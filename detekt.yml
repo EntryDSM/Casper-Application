@@ -18,9 +18,3 @@ style:
       - '1'
       - '2'
 
-comments:
-  active: true
-  CommentOverPrivateFunction:
-    active: false  # 주석 없어야 한다고 검사하는 규칙이므로 비활성화
-  CommentOverPrivateProperty:
-    active: false  # 주석 없어야 한다고 검사하는 규칙이므로 비활성화
