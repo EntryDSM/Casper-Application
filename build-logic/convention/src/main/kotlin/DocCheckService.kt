@@ -2,8 +2,8 @@ import org.gradle.api.Project
 import java.io.File
 
 /**
- * 문서화 검사를 실행하는 서비스 클래스입니다.
- * 프로젝트 내 Kotlin 소스 파일을 찾아 KDoc 주석 검사를 수행하고 결과를 보고합니다.
+ * KDoc 주석 검사 서비스 클래스입니다.
+ * 소스 코드 파일을 분석하여 KDoc 주석이 없는 코드 요소를 찾습니다.
  */
 class DocCheckService(
     private val project: Project
@@ -25,26 +25,27 @@ class DocCheckService(
             project.logger.warn("코틀린 소스 파일을 찾을 수 없습니다.")
             return true
         }
-        
-        val allProblems = mutableListOf<DocumentationProblem>()
-        sourceFiles.forEachIndexed { index, file ->
+
+        // flatMap으로 리펙토링 | 박주원
+        val allProblems = sourceFiles.flatMapIndexed { index, file ->
             reporter.reportProgress(index + 1, sourceFiles.size, file.name)
+
             
             val analyzer = CodeFileAnalyzer(
                 filePath = file.absolutePath,
                 fileContent = file.readText()
             )
-            
-            val problems = analyzer.findClasses()
-            allProblems.addAll(problems)
+
+            analyzer.findClasses().filter { it.element == element }
         }
-        
-        if (allProblems.isEmpty()) {
+
+        // 조건문을 표현식으로 간결화 | 박주원
+        return if (allProblems.isEmpty()) {
             reporter.reportSuccess(element)
-            return true
+            true
         } else {
             reporter.reportProblems(element, allProblems)
-            return false
+            false
         }
     }
     
