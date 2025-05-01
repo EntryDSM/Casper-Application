@@ -20,11 +20,12 @@ class CodeFileAnalyzer(
      * 발견된 문서화 문제 목록
      */
     private val foundProblems = mutableListOf<DocumentationProblem>()
-    
+
     /**
-     * 위치에서 줄 번호를 빠르게 찾기 위한 맵
+     * 파일 내용을 한 번만 라인으로 분리하여 재사용
      */
-    private val lineMap = createLineMap()
+    private val lines = fileContent.lines()
+
     
     /**
      * 파일의 줄 번호를 빠르게 찾기 위한 맵을 생성합니다.
@@ -53,28 +54,32 @@ class CodeFileAnalyzer(
      * @return 발견된 문서화 문제 목록
      */
     fun findClasses(): List<DocumentationProblem> {
-        fileContent.lines().forEachIndexed { index, line ->
+
+        val elementKeywords = mapOf(
+            CodeElement.CLASS to "class",
+            CodeElement.INTERFACE to "interface",
+            CodeElement.FUNCTION to "fun",
+            CodeElement.OBJECT to "object",
+        )
+
+        lines.forEachIndexed { index, line ->
             val lineNumber = index + 1
             val trimmedLine = line.trim()
-            
-            if (trimmedLine.startsWith("class ")) {
-                val className = extractName(trimmedLine, "class ")
-                checkDocumentation(CodeElement.CLASS, className, lineNumber)
+
+
+            for ((element, keyword) in elementKeywords) {
+                if (trimmedLine.startsWith("$keyword ")) {
+                    val name = if (element == CodeElement.FUNCTION) {
+                        extractFunctionName(trimmedLine)
+                    } else {
+                        extractName(trimmedLine, "$keyword ")
+                    }
+                    checkDocumentation(element, name, lineNumber)
+                }
             }
-            else if (trimmedLine.startsWith("object ")) {
-                val objectName = extractName(trimmedLine, "object ")
-                checkDocumentation(CodeElement.OBJECT, objectName, lineNumber)
-            }
-            else if (trimmedLine.startsWith("interface ")) {
-                val interfaceName = extractName(trimmedLine, "interface ")
-                checkDocumentation(CodeElement.INTERFACE, interfaceName, lineNumber)
-            }
-            else if (trimmedLine.startsWith("fun ") && !trimmedLine.contains("private ")) {
-                val functionName = extractFunctionName(trimmedLine)
-                checkDocumentation(CodeElement.FUNCTION, functionName, lineNumber)
-            }
+
         }
-        
+
         return foundProblems
     }
     
@@ -120,7 +125,7 @@ class CodeFileAnalyzer(
         var hasComment = false
         
         while (currentLine > 0) {
-            val previousLine = fileContent.lines().getOrNull(currentLine - 1)?.trim() ?: ""
+            val previousLine = lines.getOrNull(currentLine - 1)?.trim() ?: ""
             
             if (previousLine.isEmpty()) {
                 break
