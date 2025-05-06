@@ -1,3 +1,7 @@
+package io.casper.convention.tasks
+
+import io.casper.convention.model.CodeElement
+import io.casper.convention.service.DocCheckService
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.provider.Property

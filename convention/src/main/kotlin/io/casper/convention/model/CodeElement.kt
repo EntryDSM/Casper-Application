@@ -1,3 +1,5 @@
+package io.casper.convention.model
+
 /**
  * 코드 요소 종류를 정의하는 열거형 클래스입니다.
  * 각 코드 요소는 KDoc 검사 대상이 됩니다.
