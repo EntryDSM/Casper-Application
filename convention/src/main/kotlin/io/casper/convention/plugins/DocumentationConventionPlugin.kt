@@ -13,6 +13,21 @@ import org.gradle.kotlin.dsl.register
 class DocumentationConventionPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project) {
+            // 현재 프로젝트에 태스크 등록
+            registerDocTasks(this)
+
+            // 모든 서브프로젝트에도 태스크 등록
+            subprojects {
+                registerDocTasks(this)
+            }
+        }
+    }
+
+    /**
+     * 지정된 프로젝트에 문서화 검사 태스크를 등록합니다.
+     */
+    private fun registerDocTasks(project: Project) {
+        with(project) {
             // 코드 요소별 문서화 검사 태스크 등록
             val classCheck = tasks.register<DocCheckTask>("checkClassDocs") {
                 group = DocConstants.DOC_GROUP
@@ -42,7 +57,7 @@ class DocumentationConventionPlugin : Plugin<Project> {
             tasks.register("checkAllDocs") {
                 group = DocConstants.CHECK_GROUP
                 description = "모든 코드 요소의 KDoc 주석 여부를 확인합니다"
-                
+
                 // 모든 개별 검사 태스크에 의존
                 dependsOn(
                     classCheck,
