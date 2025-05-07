@@ -80,7 +80,7 @@ class DocReporter(
      *
      * @param element 검사한 코드 요소 타입
      */
-    private fun reportHelpMessage(element: CodeElement) = with(logger) {
+    fun reportHelpMessage(element: CodeElement) = with(logger) {
         lifecycle("")
         lifecycle("${COLORS["cyan"]}💡 도움말: KDoc 주석은 다음과 같이 작성할 수 있습니다:${COLORS["reset"]}")
         lifecycle("${COLORS["cyan"]}/**${COLORS["reset"]}")
@@ -99,5 +99,49 @@ class DocReporter(
     fun reportProgress(current: Int, total: Int, fileName: String) {
         val percentage = (current * 100) / total
         logger.lifecycle("${COLORS["blue"]}검사 중... ($percentage%) - $fileName${COLORS["reset"]}")
+    }
+    
+    /**
+     * 모듈 검사 시작 메시지를 출력합니다.
+     *
+     * @param moduleName 검사 중인 모듈 이름
+     */
+    fun reportModuleStart(moduleName: String) {
+        logger.lifecycle("")
+        logger.lifecycle("${COLORS["purple"]}📦 모듈 검사: $moduleName${COLORS["reset"]}")
+        logger.lifecycle("${COLORS["purple"]}--------------------------------${COLORS["reset"]}")
+    }
+    
+    /**
+     * 모듈 검사 결과 요약을 출력합니다.
+     *
+     * @param moduleName 모듈 이름
+     * @param success 검사 성공 여부
+     * @param problemCount 발견된 문제 수
+     */
+    fun reportModuleResult(moduleName: String, success: Boolean, problemCount: Int) {
+        val status = if (success) "${COLORS["green"]}✅ 성공${COLORS["reset"]}" 
+                     else "${COLORS["red"]}❌ 실패${COLORS["reset"]}"
+        
+        logger.lifecycle("$moduleName: $status (문제 수: $problemCount)")
+    }
+    
+    /**
+     * 전체 검사 결과 요약을 출력합니다.
+     *
+     * @param totalModules 검사한 모듈 수
+     * @param successModules 검사 성공 모듈 수
+     * @param totalFiles 검사한 파일 수
+     * @param totalProblems 발견된 전체 문제 수
+     */
+    fun reportSummary(totalModules: Int, successModules: Int, totalFiles: Int, totalProblems: Int) {
+        logger.lifecycle("")
+        logger.lifecycle("${COLORS["blue"]}📊 검사 결과 요약${COLORS["reset"]}")
+        logger.lifecycle("${COLORS["blue"]}=================================${COLORS["reset"]}")
+        logger.lifecycle("총 모듈 수: $totalModules")
+        logger.lifecycle("검사 성공 모듈 수: $successModules")
+        logger.lifecycle("검사 실패 모듈 수: ${totalModules - successModules}")
+        logger.lifecycle("총 파일 수: $totalFiles")
+        logger.lifecycle("총 문제 수: $totalProblems")
     }
 }
