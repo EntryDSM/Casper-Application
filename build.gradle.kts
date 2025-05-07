@@ -8,6 +8,27 @@ plugins {
     id("casper.documentation-convention")
 }
 
+// 모든 프로젝트(루트 및 서브프로젝트)에 공통 설정 적용
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    // 모든 프로젝트에 플러그인 적용
+    apply(plugin = "casper.documentation-convention")
+}
+
+tasks.register("checkAll") {
+    group = "verification"
+    description = "모든 모듈(includeBuild 포함)에 대해 check 태스크를 실행합니다"
+
+    // 루트 프로젝트의 check 태스크에 의존
+    dependsOn(tasks.named("check"))
+
+    // build-logic, convention 등 includeBuild 모듈의 check 태스크에 의존
+    dependsOn(gradle.includedBuilds.map { it.task(":check") })
+}
+
 group = "hs.kr.entrydsm"
 version = "0.0.1-SNAPSHOT"
 
@@ -15,10 +36,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
