@@ -7,7 +7,7 @@ pluginManagement {
     }
     
     // convention 모듈 참조
-    includeBuild("../convention")
+    includeBuild("../casper-convention")
 }
 
 dependencyResolutionManagement {

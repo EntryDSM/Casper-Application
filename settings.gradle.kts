@@ -1,7 +1,7 @@
 rootProject.name = "Casper-Application"
 
 pluginManagement {
-    includeBuild("convention")
+    includeBuild("casper-convention")
     includeBuild("build-logic")
     repositories {
         gradlePluginPortal()
