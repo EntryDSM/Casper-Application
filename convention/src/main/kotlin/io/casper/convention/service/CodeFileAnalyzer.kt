@@ -82,10 +82,10 @@ class CodeFileAnalyzer(
             CodeElement.FUNCTION -> extractFunctionName(line)
             else -> {
                 val prefix = when(element) {
-                    CodeElement.CLASS -> "class "
-                    CodeElement.INTERFACE -> "interface "
-                    CodeElement.OBJECT -> "object "
-                    CodeElement.PROPERTY -> if (line.startsWith("val ")) "val " else "var "
+                    CodeElement.CLASS -> PREFIX_CLASS
+                    CodeElement.INTERFACE -> PREFIX_INTERFACE
+                    CodeElement.OBJECT ->  PREFIX_OBJECT
+                    CodeElement.PROPERTY -> if (line.startsWith(PREFIX_VAL)) PREFIX_VAL else PREFIX_VAR
                     else -> error("확인할 수 없는 요소 타입: $element")
                 }
                 
@@ -114,7 +114,7 @@ class CodeFileAnalyzer(
      * @return 추출된 함수 이름
      */
     private fun extractFunctionName(line: String): String {
-        val afterFun = line.substring(line.indexOf("fun ") + 4).trim()
+        val afterFun = line.substring(line.indexOf(PREFIX_FUNCTION) + 4).trim()
         val parenIndex = afterFun.indexOf('(')
         return if (parenIndex >= 0) afterFun.substring(0, parenIndex).trim() else afterFun
     }
@@ -160,5 +160,12 @@ class CodeFileAnalyzer(
         const val KEYWORD_FUNCTION = "fun"
         const val KEYWORD_OBJECT = "object"
         const val KEYWORD_PROPERTY = "(val|var)"
+
+        const val PREFIX_CLASS = "class "
+        const val PREFIX_INTERFACE = "interface "
+        const val PREFIX_FUNCTION = "fun "
+        const val PREFIX_OBJECT = "object "
+        const val PREFIX_VAL = "val "
+        const val PREFIX_VAR = "var "
     }
 }
