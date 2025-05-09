@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened]
     branches:
-      - main  # 메인 브랜치에 대한 PR만 트리거하도록 설정
+      - main
 
 jobs:
   create-branch-and-pr:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 모든 히스토리를 가져옵니다
+          fetch-depth: 0
 
       - name: Get PR Information
         id: pr-info
@@ -38,9 +38,9 @@ jobs:
       - name: Create Branch in Target Repository
         id: create-branch
         env:
-          TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"  # 대상 리포지토리 (GitHub 시크릿에서 설정)
-          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}  # 대상 리포지토리에 접근 가능한 개인 액세스 토큰
-          TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"  # 대상 브랜치 (기본값: main)
+          TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"
+          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
+          TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"
         run: |
           chmod +x .github/scripts/create-branch.sh
           BRANCH_NAME=$(.github/scripts/create-branch.sh \
@@ -54,9 +54,9 @@ jobs:
 
       - name: Create PR in Target Repository
         env:
-          TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"  # 대상 리포지토리 (GitHub 시크릿에서 설정)
-          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}  # 대상 리포지토리에 접근 가능한 개인 액세스 토큰
-          TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"  # 대상 브랜치 (기본값: main)
+          TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"
+          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
+          TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"
         run: |
           chmod +x .github/scripts/create-pr.sh
           .github/scripts/create-pr.sh \
