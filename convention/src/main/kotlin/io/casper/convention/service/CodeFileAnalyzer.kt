@@ -41,11 +41,11 @@ class CodeFileAnalyzer(
             
             // 요소 키워드로 검색 (클래스, 함수 등)
             val keyword = when(element) {
-                CodeElement.CLASS -> "class"
-                CodeElement.INTERFACE -> "interface"
-                CodeElement.FUNCTION -> "fun"
-                CodeElement.OBJECT -> "object"
-                CodeElement.PROPERTY -> "(val|var)"
+                CodeElement.CLASS -> KEYWORD_CLASS
+                CodeElement.INTERFACE -> KEYWORD_INTERFACE
+                CodeElement.FUNCTION -> KEYWORD_FUNCTION
+                CodeElement.OBJECT -> KEYWORD_OBJECT
+                CodeElement.PROPERTY -> KEYWORD_PROPERTY
             }
             
             val pattern = "^$keyword\\s+".toRegex()
@@ -154,5 +154,11 @@ class CodeFileAnalyzer(
          */
         fun analyze(filePath: String, fileContent: String, element: CodeElement): List<DocumentationProblem> =
             CodeFileAnalyzer(filePath, fileContent).findProblems(element)
+
+        const val KEYWORD_CLASS = "class"
+        const val KEYWORD_INTERFACE = "interface"
+        const val KEYWORD_FUNCTION = "fun"
+        const val KEYWORD_OBJECT = "object"
+        const val KEYWORD_PROPERTY = "(val|var)"
     }
 }
