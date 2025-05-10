@@ -5,6 +5,17 @@ on:
     types: [opened, reopened]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR 번호'
+        required: true
+      branch:
+        description: '원본 브랜치 이름'
+        required: true
+      title:
+        description: 'PR 제목'
+        required: true
 
 jobs:
   sync-to-docs:
@@ -12,6 +23,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set PR variables
+        id: set-vars
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "PR_NUMBER=${{ github.event.inputs.pr_number }}" >> $GITHUB_ENV
+            echo "PR_TITLE=${{ github.event.inputs.title }}" >> $GITHUB_ENV
+            echo "PR_BRANCH=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+          else
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+            echo "PR_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+          fi
 
       - name: Set up Git and GitHub CLI
         run: |
@@ -27,9 +51,6 @@ jobs:
           TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"
           GITHUB_TOKEN: "${{ secrets.TARGET_REPO_TOKEN }}"
           TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"
-          PR_NUMBER: "${{ github.event.pull_request.number }}"
-          PR_TITLE: "${{ github.event.pull_request.title }}"
-          PR_BRANCH: "${{ github.head_ref }}"
           GITHUB_REPO: "${{ github.repository }}"
         run: |
           # 현재 리포지토리 이름 추출
