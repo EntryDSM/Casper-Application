@@ -1,0 +1,26 @@
+complexity:
+  active: true
+  LongParameterList:
+    active: true
+    functionThreshold: 6
+    constructorThreshold: 7
+
+style:
+  active: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+
+comments:
+  active: true
+  CommentOverPrivateFunction:
+    active: false  # 주석 없어야 한다고 검사하는 규칙이므로 비활성화
+  CommentOverPrivateProperty:
+    active: false  # 주석 없어야 한다고 검사하는 규칙이므로 비활성화
