@@ -72,7 +72,6 @@ jobs:
           # PR 내용 준비 (상세 정보 포함)
           PR_BODY="# 자동으로 생성된 PR입니다.
 
-## 원본 PR 정보
 - **PR 번호:** #${PR_NUMBER}
 - **PR 제목:** ${PR_TITLE}
 - **원본 브랜치:** ${PR_BRANCH}
