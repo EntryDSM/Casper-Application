@@ -1,0 +1,103 @@
+name: Sync PR to Documentation
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR 번호'
+        required: true
+      branch:
+        description: '원본 브랜치 이름'
+        required: true
+      title:
+        description: 'PR 제목'
+        required: true
+
+jobs:
+  sync-to-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set PR variables
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "PR_NUMBER=${{ github.event.inputs.pr_number }}" >> $GITHUB_ENV
+            echo "PR_TITLE=${{ github.event.inputs.title }}" >> $GITHUB_ENV
+            echo "PR_BRANCH=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+          else
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+            echo "PR_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+          fi
+
+      - name: Create branch and PR
+        env:
+          TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"
+          PAT_TOKEN: "${{ secrets.TARGET_REPO_TOKEN }}"
+          TARGET_BRANCH: "main"
+          GITHUB_REPO: "${{ github.repository }}"
+        run: |
+          # 리포지토리 이름 추출
+          REPO_NAME=$(echo "$GITHUB_REPO" | cut -d'/' -f2)
+          
+          # Git 설정
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # 타임스탬프 생성
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          
+          # 브랜치 이름 설정
+          BRANCH_CONTENT="${REPO_NAME}-pr${PR_NUMBER}"
+          BRANCH_CONTENT=$(echo $BRANCH_CONTENT | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+          BRANCH_NAME="${TIMESTAMP}/${BRANCH_CONTENT}"
+          
+          echo "생성될 브랜치 이름: ${BRANCH_NAME}"
+          
+          # 대상 리포지토리 클론
+          git clone "https://${PAT_TOKEN}@github.com/${TARGET_REPO}.git" target-repo
+          cd target-repo
+          
+          # 브랜치 생성
+          git checkout -b "${BRANCH_NAME}" "${TARGET_BRANCH}"
+          
+          # 빈 커밋 생성
+          git commit --allow-empty -m "Auto-sync from ${REPO_NAME} PR #${PR_NUMBER}"
+          git push origin "${BRANCH_NAME}"
+          
+          # jq 설치
+          sudo apt-get update && sudo apt-get install -y jq
+          
+          # PR 본문 파일 생성
+          echo "# 자동으로 생성된 PR입니다." > pr_body.txt
+          echo "" >> pr_body.txt
+          echo "## 원본 PR 정보" >> pr_body.txt
+          echo "- **PR 번호:** #${PR_NUMBER}" >> pr_body.txt
+          echo "- **PR 제목:** ${PR_TITLE}" >> pr_body.txt
+          echo "- **원본 브랜치:** ${PR_BRANCH}" >> pr_body.txt
+          echo "- **원본 저장소:** ${GITHUB_REPO}" >> pr_body.txt
+          echo "- **링크:** https://github.com/${GITHUB_REPO}/pull/${PR_NUMBER}" >> pr_body.txt
+          echo "- **생성 시간:** $(date)" >> pr_body.txt
+          echo "" >> pr_body.txt
+          echo "---" >> pr_body.txt
+          echo "이 PR은 ${REPO_NAME} 저장소의 PR #${PR_NUMBER}에 대응하여 자동으로 생성되었습니다." >> pr_body.txt
+          
+          # PR 본문 이스케이프
+          PR_BODY_ESCAPED=$(jq -Rs . < pr_body.txt)
+          
+          # PR 생성
+          curl -X POST \
+            -H "Authorization: token ${PAT_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${TARGET_REPO}/pulls" \
+            -d "{
+              \"title\": \"[Auto] ${REPO_NAME}: ${PR_TITLE}\",
+              \"body\": ${PR_BODY_ESCAPED},
+              \"head\": \"${BRANCH_NAME}\",
+              \"base\": \"${TARGET_BRANCH}\"
+            }"
