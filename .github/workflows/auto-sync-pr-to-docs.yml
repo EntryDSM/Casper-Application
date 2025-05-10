@@ -67,22 +67,14 @@ jobs:
           # GitHub CLI 인증
           echo "${GITHUB_TOKEN}" | gh auth login --with-token
           
-          # PR 내용 준비
-          PR_BODY="${{ github.event.pull_request.body }}"
-          PR_CREATE_BODY="자동으로 생성된 PR입니다.
+          # PR 생성
+          gh pr create \
+            --title "[Auto] ${REPO_NAME}: ${PR_TITLE}" \
+            --body "자동으로 생성된 PR입니다.
 
-  ## 원본 정보
-  - 저장소: ${{ github.repository }}
-  - 브랜치: ${PR_BRANCH}
-  - PR: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}
-
-## 원본 PR 내용
-  ${PR_BODY}"
-  
-  # PR 생성
-  gh pr create \
---title "[Auto] ${REPO_NAME}: ${PR_TITLE}" \
-  --body "${PR_CREATE_BODY}" \
+원본 저장소: ${{ github.repository }}
+원본 브랜치: ${PR_BRANCH}
+원본 PR: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}" \
   --base "${TARGET_BRANCH}" \
   --head "${BRANCH_NAME}" \
   --repo "${TARGET_REPO}"
