@@ -1,5 +1,6 @@
 package io.casper.convention.tasks
 
+import io.casper.convention.exception.DocumentationException
 import io.casper.convention.model.CodeElement
 import io.casper.convention.service.DocCheckService
 import org.gradle.api.DefaultTask
@@ -35,10 +36,7 @@ abstract class DocCheckTask : DefaultTask() {
         val success = checkService.checkDocumentation(element)
         
         if (!success) {
-            throw GradleException(
-                "일부 ${element.friendlyName}에 KDoc 주석이 없습니다. " +
-                "자세한 내용은 로그를 확인하세요."
-            )
+            throw DocumentationException.missingDocumentation(element)
         }
     }
 }
