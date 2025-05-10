@@ -1,12 +1,13 @@
-rootProject.name = "Casper-Application"
+rootProject.name = "build-logic"
 
 pluginManagement {
-    includeBuild("casper-convention")
-    includeBuild("build-logic")
     repositories {
         gradlePluginPortal()
         mavenCentral()
     }
+
+    // convention 모듈 참조
+    includeBuild("../casper-convention")
 }
 
 dependencyResolutionManagement {

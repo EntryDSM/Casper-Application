@@ -54,7 +54,10 @@ object UndocumentedObject {
     }
 }
 
-
+/**
+ * 문서화 검사 예제를 위한 인터페이스입니다.
+ * 이 인터페이스는 구현 클래스가 따라야 할 계약을 정의합니다.
+ */
 interface UndocumentedInterface {
     /**
      * 인터페이스에서 정의된 메소드입니다.
