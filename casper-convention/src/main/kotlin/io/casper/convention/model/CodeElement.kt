@@ -53,21 +53,4 @@ sealed class CodeElement(
         5,
         "속성 '%s'에 KDoc 주석이 없습니다."
     )
-
-    companion object {
-        /**
-         * 모든 코드 요소 인스턴스를 반환합니다.
-         * @return 모든 코드 요소의 리스트
-         */
-        fun values(): List<CodeElement> = listOf(CLASS, OBJECT, INTERFACE, FUNCTION, PROPERTY)
-        
-        /**
-         * 이름으로 코드 요소를 찾습니다.
-         * @param name 찾을 요소의 이름
-         * @return 해당 이름의 코드 요소 또는 null
-         */
-        fun valueOf(name: String): CodeElement? = values().find { 
-            it.javaClass.simpleName == name 
-        }
-    }
 }
