@@ -16,4 +16,6 @@ class CasperApplication
  */
 fun main(args: Array<String>) {
     runApplication<CasperApplication>(*args)
+
+
 }
