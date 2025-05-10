@@ -1,4 +1,4 @@
-name: Create Branch and PR on PR Creation
+name: Sync PR to Documentation
 
 on:
   pull_request:
@@ -7,69 +7,67 @@ on:
       - main
 
 jobs:
-  create-branch-and-pr:
+  sync-to-docs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Get PR Information
-        id: pr-info
+      - name: Set up Git and GitHub CLI
         run: |
-          PR_BRANCH="${{ github.head_ref }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          PR_BODY="${{ github.event.pull_request.body }}"
-          echo "PR_BRANCH=$PR_BRANCH" >> $GITHUB_ENV
-          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          # PR_BODY에 줄바꿈이 있을 수 있으므로 안전하게 처리
-          echo "PR_BODY<<EOF" >> $GITHUB_ENV
-          echo "$PR_BODY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # GitHub CLI 설치
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh -y
 
-      - name: Setup Environment
-        run: |
-          chmod +x .github/scripts/setup-environment.sh
-          .github/scripts/setup-environment.sh
-
-      - name: Create Branch in Target Repository
-        id: create-branch
+      - name: Create branch and PR in target repository
         env:
           TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"
-          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
+          GITHUB_TOKEN: "${{ secrets.TARGET_REPO_TOKEN }}"
           TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"
+          PR_NUMBER: "${{ github.event.pull_request.number }}"
+          PR_TITLE: "${{ github.event.pull_request.title }}"
+          PR_BODY: "${{ github.event.pull_request.body }}"
+          PR_BRANCH: "${{ github.head_ref }}"
         run: |
-          chmod +x .github/scripts/create-branch.sh
-          BRANCH_NAME=$(.github/scripts/create-branch.sh \
-            "${{ env.PR_NUMBER }}" \
-            "${{ env.PR_TITLE }}" \
-            "${{ env.PR_BRANCH }}" \
-            "${{ secrets.TARGET_REPOSITORY }}" \
-            "${{ secrets.TARGET_BRANCH || 'main' }}" \
-            "${{ github.repository }}")
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          # 간단한 브랜치 이름 설정
+          BRANCH_NAME="auto-pr-${PR_NUMBER}"
+          
+          # 대상 리포지토리 클론
+          git clone https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git target-repo
+          cd target-repo
+          
+          # 브랜치 생성
+          git checkout -b ${BRANCH_NAME} ${TARGET_BRANCH}
+          
+          # 파일 추가
+          echo "# 원본 PR 정보" > PR_INFO.md
+          echo "- PR 번호: #${PR_NUMBER}" >> PR_INFO.md
+          echo "- PR 제목: ${PR_TITLE}" >> PR_INFO.md
+          echo "- 원본 브랜치: ${PR_BRANCH}" >> PR_INFO.md
+          echo "- 링크: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}" >> PR_INFO.md
+          echo "- 생성 시간: $(date)" >> PR_INFO.md
+          
+          # 커밋 및 푸시
+          git add PR_INFO.md
+          git commit -m "Auto-sync from PR #${PR_NUMBER}"
+          git push origin ${BRANCH_NAME}
+          
+          # GitHub CLI 인증
+          echo "${GITHUB_TOKEN}" | gh auth login --with-token
+          
+          # PR 생성
+          gh pr create \
+            --title "[Auto] ${PR_TITLE}" \
+            --body "자동으로 생성된 PR입니다.
 
-      - name: Create PR in Target Repository
-        env:
-          TARGET_REPO: "${{ secrets.TARGET_REPOSITORY }}"
-          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
-          TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"
-        run: |
-          chmod +x .github/scripts/create-pr.sh
-          .github/scripts/create-pr.sh \
-            "${{ env.PR_NUMBER }}" \
-            "${{ env.PR_TITLE }}" \
-            "${{ env.PR_BODY }}" \
-            "${{ env.BRANCH_NAME }}" \
-            "${{ secrets.TARGET_REPOSITORY }}" \
-            "${{ secrets.TARGET_BRANCH || 'main' }}" \
-            "${{ github.repository }}"
-
-      - name: PR Creation Result
-        run: |
-          echo "✅ Branch and PR created in target repository"
-          echo "Target Repository: ${{ secrets.TARGET_REPOSITORY }}"
-          echo "Branch Name: ${{ env.BRANCH_NAME }}"
+원본 PR: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}
+  
+  ${PR_BODY}" \
+  --base ${TARGET_BRANCH} \
+  --head ${BRANCH_NAME} \
+  --repo ${TARGET_REPO}
