@@ -1,6 +1,7 @@
 package io.casper.convention.service
 
 import io.casper.convention.model.CodeElement
+import io.casper.convention.service.component.CodeFileAnalyzerComponent
 import io.casper.convention.util.DocConstants
 import org.gradle.api.Project
 import java.io.File
@@ -39,7 +40,7 @@ class DocCheckService(
                 reporter.reportProgress(index + 1, sourceFiles.size, file.name)
                 
                 // 파일 분석
-                CodeFileAnalyzer.analyze(file.absolutePath, file.readText(), element)
+                CodeFileAnalyzerComponent.analyze(file.absolutePath, file.readText(), element)
             }
             .flatten()
 
