@@ -1,3 +1,5 @@
+package io.casper.convention.model
+
 /**
  * 문서화 문제를 나타내는 데이터 클래스입니다.
  * 코드 베이스에서 KDoc 주석이 누락된 요소에 대한 정보를 저장합니다.

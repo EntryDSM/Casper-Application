@@ -1,7 +1,8 @@
 package io.casper.convention.exception
 
-import org.gradle.api.GradleException
 import io.casper.convention.model.CodeElement
+import org.gradle.api.GradleException
+
 
 /**
  * 문서화 관련 예외를 처리하기 위한 예외 클래스

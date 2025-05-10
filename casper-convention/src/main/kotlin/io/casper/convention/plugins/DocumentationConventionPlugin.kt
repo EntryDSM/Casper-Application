@@ -1,7 +1,6 @@
 package io.casper.convention.plugins
 
 import io.casper.convention.tasks.DocCheckTask
-import io.casper.convention.model.CodeElement
 import io.casper.convention.model.DocCheckTaskType
 import io.casper.convention.util.DocConstants
 import org.gradle.api.Plugin
