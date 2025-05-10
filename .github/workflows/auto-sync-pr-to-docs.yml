@@ -17,8 +17,6 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          
-          # GitHub CLI 설치
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
           sudo apt update
@@ -32,16 +30,14 @@ jobs:
           PR_NUMBER: "${{ github.event.pull_request.number }}"
           PR_TITLE: "${{ github.event.pull_request.title }}"
           PR_BRANCH: "${{ github.head_ref }}"
+          GITHUB_REPO: "${{ github.repository }}"
         run: |
-          # 현재 리포지토리 이름 추출 (org/repo 형식에서 repo 부분만)
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          # 현재 리포지토리 이름 추출
+          REPO_NAME=$(echo "$GITHUB_REPO" | cut -d'/' -f2)
           
-          # 브랜치 이름 설정 (현재 리포 이름 + 원본 브랜치 이름)
+          # 브랜치 이름 설정
           BRANCH_NAME="${REPO_NAME}-${PR_BRANCH}"
-          
-          # 브랜치 이름에서 특수 문자 제거 및 소문자로 변환
           BRANCH_NAME=$(echo $BRANCH_NAME | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
-          echo "생성될 브랜치 이름: ${BRANCH_NAME}"
           
           # 대상 리포지토리 클론
           git clone "https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git" target-repo
@@ -55,9 +51,8 @@ jobs:
           echo "- PR 번호: #${PR_NUMBER}" >> PR_INFO.md
           echo "- PR 제목: ${PR_TITLE}" >> PR_INFO.md
           echo "- 원본 브랜치: ${PR_BRANCH}" >> PR_INFO.md
-          echo "- 원본 저장소: ${{ github.repository }}" >> PR_INFO.md
-          echo "- 링크: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}" >> PR_INFO.md
-          echo "- 생성 시간: $(date)" >> PR_INFO.md
+          echo "- 원본 저장소: ${GITHUB_REPO}" >> PR_INFO.md
+          echo "- 링크: https://github.com/${GITHUB_REPO}/pull/${PR_NUMBER}" >> PR_INFO.md
           
           # 커밋 및 푸시
           git add PR_INFO.md
@@ -67,19 +62,12 @@ jobs:
           # GitHub CLI 인증
           echo "${GITHUB_TOKEN}" | gh auth login --with-token
           
-          # PR 본문 파일 생성
-          cat > pr_body.txt << EOL
-          자동으로 생성된 PR입니다.
-
-원본 저장소: ${{ github.repository }}
-원본 브랜치: ${PR_BRANCH}
-원본 PR: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}
-  EOL
-  
-  # PR 생성
-  gh pr create \
---title "[Auto] ${REPO_NAME}: ${PR_TITLE}" \
-  --body-file pr_body.txt \
-  --base "${TARGET_BRANCH}" \
-  --head "${BRANCH_NAME}" \
-  --repo "${TARGET_REPO}"
+          # PR 생성용 템플릿 파일 작성
+          echo "자동으로 생성된 PR입니다." > pr_body.txt
+          echo "" >> pr_body.txt
+          echo "원본 저장소: ${GITHUB_REPO}" >> pr_body.txt
+          echo "원본 브랜치: ${PR_BRANCH}" >> pr_body.txt
+          echo "원본 PR: https://github.com/${GITHUB_REPO}/pull/${PR_NUMBER}" >> pr_body.txt
+          
+          # PR 생성
+          gh pr create --title "[Auto] ${REPO_NAME}: ${PR_TITLE}" --body-file pr_body.txt --base "${TARGET_BRANCH}" --head "${BRANCH_NAME}" --repo "${TARGET_REPO}"
