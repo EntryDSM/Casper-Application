@@ -26,7 +26,7 @@ class DocCheckService(
     fun checkDocumentation(element: CodeElement): Boolean {
         reporter.reportStart(element)
         
-        val sourceFiles = getKotlinSourceFiles()
+        val sourceFiles = findKotlinSourceFiles()
         if (sourceFiles.isEmpty()) {
             project.logger.warn("코틀린 소스 파일을 찾을 수 없습니다.")
             return true
@@ -62,7 +62,7 @@ class DocCheckService(
      *
      * @return Kotlin 소스 파일 목록
      */
-    private fun getKotlinSourceFiles(): List<File> =
+    private fun findKotlinSourceFiles(): List<File> =
         project.fileTree(DocConstants.SRC_FOLDER) {
             include(DocConstants.KOTLIN_FILES)
         }.files.toList()
