@@ -31,43 +31,58 @@ jobs:
           TARGET_BRANCH: "${{ secrets.TARGET_BRANCH || 'main' }}"
           PR_NUMBER: "${{ github.event.pull_request.number }}"
           PR_TITLE: "${{ github.event.pull_request.title }}"
-          PR_BODY: "${{ github.event.pull_request.body }}"
           PR_BRANCH: "${{ github.head_ref }}"
         run: |
-          # 간단한 브랜치 이름 설정
-          BRANCH_NAME="auto-pr-${PR_NUMBER}"
+          # 현재 리포지토리 이름 추출 (org/repo 형식에서 repo 부분만)
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          
+          # 브랜치 이름 설정 (현재 리포 이름 + 원본 브랜치 이름)
+          BRANCH_NAME="${REPO_NAME}-${PR_BRANCH}"
+          
+          # 브랜치 이름에서 특수 문자 제거 및 소문자로 변환
+          BRANCH_NAME=$(echo $BRANCH_NAME | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+          echo "생성될 브랜치 이름: ${BRANCH_NAME}"
           
           # 대상 리포지토리 클론
-          git clone https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git target-repo
+          git clone "https://${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git" target-repo
           cd target-repo
           
           # 브랜치 생성
-          git checkout -b ${BRANCH_NAME} ${TARGET_BRANCH}
+          git checkout -b "${BRANCH_NAME}" "${TARGET_BRANCH}"
           
           # 파일 추가
           echo "# 원본 PR 정보" > PR_INFO.md
           echo "- PR 번호: #${PR_NUMBER}" >> PR_INFO.md
           echo "- PR 제목: ${PR_TITLE}" >> PR_INFO.md
           echo "- 원본 브랜치: ${PR_BRANCH}" >> PR_INFO.md
+          echo "- 원본 저장소: ${{ github.repository }}" >> PR_INFO.md
           echo "- 링크: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}" >> PR_INFO.md
           echo "- 생성 시간: $(date)" >> PR_INFO.md
           
           # 커밋 및 푸시
           git add PR_INFO.md
-          git commit -m "Auto-sync from PR #${PR_NUMBER}"
-          git push origin ${BRANCH_NAME}
+          git commit -m "Auto-sync from ${REPO_NAME} PR #${PR_NUMBER}"
+          git push origin "${BRANCH_NAME}"
           
           # GitHub CLI 인증
           echo "${GITHUB_TOKEN}" | gh auth login --with-token
           
-          # PR 생성
-          gh pr create \
-            --title "[Auto] ${PR_TITLE}" \
-            --body "자동으로 생성된 PR입니다.
+          # PR 내용 준비
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_CREATE_BODY="자동으로 생성된 PR입니다.
 
-원본 PR: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}
+  ## 원본 정보
+  - 저장소: ${{ github.repository }}
+  - 브랜치: ${PR_BRANCH}
+  - PR: https://github.com/${{ github.repository }}/pull/${PR_NUMBER}
+
+## 원본 PR 내용
+  ${PR_BODY}"
   
-  ${PR_BODY}" \
-  --base ${TARGET_BRANCH} \
-  --head ${BRANCH_NAME} \
-  --repo ${TARGET_REPO}
+  # PR 생성
+  gh pr create \
+--title "[Auto] ${REPO_NAME}: ${PR_TITLE}" \
+  --body "${PR_CREATE_BODY}" \
+  --base "${TARGET_BRANCH}" \
+  --head "${BRANCH_NAME}" \
+  --repo "${TARGET_REPO}"
