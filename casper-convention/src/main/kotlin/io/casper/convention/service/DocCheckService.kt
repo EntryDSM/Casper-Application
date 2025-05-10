@@ -40,7 +40,7 @@ class DocCheckService(
     /**
      * 프로젝트 내 소스 파일들을 분석하여 문서화 문제를 찾습니다.
      *
-     * @param sourceFiles 분석할 소스 파일 목록
+     * @param sourceFile 분석할 소스 파일 목록
      * @param element 검사할 코드 요소 타입
      * @return 발견된 문서화 문제 목록
      */
