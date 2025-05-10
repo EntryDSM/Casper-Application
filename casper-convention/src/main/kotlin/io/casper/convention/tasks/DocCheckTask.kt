@@ -1,9 +1,9 @@
 package io.casper.convention.tasks
 
+import io.casper.convention.exception.DocumentationException
 import io.casper.convention.model.CodeElement
 import io.casper.convention.service.DocCheckService
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -25,7 +25,7 @@ abstract class DocCheckTask : DefaultTask() {
      * 태스크 실행 시 호출되는 메소드입니다.
      * 문서화 검사를 수행하고 결과를 처리합니다.
      * 
-     * @throws GradleException 문서화 검사 실패 시 발생
+     * @throws DocumentationException 문서화 검사 실패 시 발생
      */
     @TaskAction
     fun check() {
@@ -35,10 +35,7 @@ abstract class DocCheckTask : DefaultTask() {
         val success = checkService.checkDocumentation(element)
         
         if (!success) {
-            throw GradleException(
-                "일부 ${element.friendlyName}에 KDoc 주석이 없습니다. " +
-                "자세한 내용은 로그를 확인하세요."
-            )
+            throw DocumentationException.missingDocumentation(element)
         }
     }
 }
