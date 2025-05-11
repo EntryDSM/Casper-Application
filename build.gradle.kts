@@ -1,10 +1,7 @@
 plugins {
-    // 플러그인 순서 최적화: 기본 플러그인이 먼저 적용되도록 함
-    id("java") // 먼저 java 플러그인 적용
     kotlin("jvm") version "1.9.23"
     id("org.jlleitschuh.gradle.ktlint").version("12.1.1")
     id("io.gitlab.arturbosch.detekt") version "1.23.6"
-    // 마지막에 커스텀 플러그인 적용
     id("casper.documentation-convention")
 }
 
@@ -14,12 +11,6 @@ subprojects {
     repositories {
         mavenCentral()
     }
-
-    // 서브프로젝트 경로 출력 (디버깅용)
-    logger.lifecycle("서브프로젝트 경로: ${this.path}, 이름: ${this.name}")
-
-    // 모든 서브프로젝트에 문서화 플러그인 적용
-    apply(plugin = "casper.documentation-convention")
 }
 
 tasks.register("checkAll") {
