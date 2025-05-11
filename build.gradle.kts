@@ -16,7 +16,7 @@ subprojects {
     }
 
     // 서브프로젝트 경로 출력 (디버깅용)
-    println("서브프로젝트 경로: ${this.path}, 이름: ${this.name}")
+    logger.lifecycle("서브프로젝트 경로: ${this.path}, 이름: ${this.name}")
 
     // 모든 서브프로젝트에 문서화 플러그인 적용
     apply(plugin = "casper.documentation-convention")
