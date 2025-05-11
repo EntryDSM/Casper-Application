@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Git 디렉토리 위치
+git_dir=$(git rev-parse --git-dir 2>/dev/null) || { echo "❌ Git 저장소만 지원한다."; exit 1; }
+
+# 방금 작성된 커밋 메시지 읽기
+commit_msg="$(< "$git_dir/COMMIT_EDITMSG")"
+
+# 메시지 패턴 정의
+regex="^(feat|fix|chore|docs|style|refactor|test|perf|ci|build|revert) *\([[:space:]]*#[[:space:]]*[0-9]+[[:space:]]*\) *: .+$"
+
+if [[ "$commit_msg" =~ $regex ]]; then
+  echo "✅ 커밋 메시지 형식이 올바릅니다."
+else
+  echo "❌ 커밋 메시지 형식이 잘못되었습니다."
+  echo "   형식: 타입(#이슈번호) : 설명"
+  exit 1
+fi
+
+# 기존에 하던 Gradle 빌드 검증도 이어서 실행
+echo "Gradle 빌드 검증 시작..."
+if ! ./gradlew clean build --no-daemon; then
+  echo "❌ 빌드 실패! 커밋 중단."
+  exit 1
+else
+  echo "✅ 빌드 성공! 커밋 계속."
+  exit 0
+fi
