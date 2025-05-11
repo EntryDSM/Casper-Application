@@ -1,4 +1,4 @@
-package hs.kr.casper.entrydsm.application
+package hs.kr.entrydsm.application
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

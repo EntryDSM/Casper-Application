@@ -1,4 +1,4 @@
-package hs.kr.casper.entrydsm.application
+package hs.kr.entrydsm.application
 
 /**
  * 이 클래스는 KDoc 주석 검사 테스트를 위한 용도입니다.
