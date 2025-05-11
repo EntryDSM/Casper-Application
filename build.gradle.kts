@@ -1,21 +1,16 @@
 plugins {
     kotlin("jvm") version "1.9.23"
-    kotlin("plugin.spring") version "1.9.23"
-    id("org.springframework.boot") version "3.4.4"
-    id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint").version("12.1.1")
     id("io.gitlab.arturbosch.detekt") version "1.23.6"
     id("casper.documentation-convention")
 }
 
-// 모든 프로젝트(루트 및 서브프로젝트)에 공통 설정 적용
-allprojects {
+// 서브프로젝트 설정
+subprojects {
+    // 서브프로젝트에 공통 설정 적용
     repositories {
         mavenCentral()
     }
-
-    // 모든 프로젝트에 플러그인 적용
-    apply(plugin = "casper.documentation-convention")
 }
 
 tasks.register("checkAll") {
@@ -24,6 +19,11 @@ tasks.register("checkAll") {
 
     // 루트 프로젝트의 check 태스크에 의존
     dependsOn(tasks.named("check"))
+
+    // 모든 서브프로젝트의 check 태스크에 의존
+    subprojects.forEach { subproject ->
+        dependsOn(subproject.tasks.matching { it.name.startsWith("check") })
+    }
 
     // build-logic, convention 등 includeBuild 모듈의 check 태스크에 의존
     dependsOn(gradle.includedBuilds.map { it.task(":check") })
@@ -35,20 +35,6 @@ version = "0.0.1-SNAPSHOT"
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }
 
