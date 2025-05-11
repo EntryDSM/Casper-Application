@@ -4,7 +4,7 @@
 msg_file="$1"
 commit_msg="$(<"$msg_file")"
 
-regex="^(feat|fix|chore|docs|style|refactor|test|perf|ci|build|revert) *\([[:space:]]*#[[:space:]]*[0-9]+[[:space:]]*\) *: .+$"
+regex="^(feat|fix|chore|docs|style|refactor|test|perf|ci|build|revert) \\( #[0-9]+ \\) : .+$"
 
 if [[ ! $commit_msg =~ $regex ]]; then
   echo "❌ 메시지 형식 에러: 타입 ( #이슈 ) : 설명"
