@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: build-check
+        name: 빌드 검증
+        entry: ./build-check.sh
+        language: script
+        pass_filenames: false
+
+      - id: commit-msg-check
+        name: 커밋 메시지 포맷 검증
+        entry: ./check-commit-message.sh
+        language: script
+        stages: [ commit-msg ]
