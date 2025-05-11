@@ -14,3 +14,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
+include(":casper-application-domain")
+
+include("casper-application-infrastructure")
