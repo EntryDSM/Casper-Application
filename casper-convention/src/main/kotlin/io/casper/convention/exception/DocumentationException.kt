@@ -20,6 +20,8 @@ class DocumentationException(
         /**
          * 문서화 부재 예외를 생성
          *
+         * 테스트
+         *
          * @param element 문서화가 부재한 코드 요소
          * @return 생성된 DocumentationException 인스턴스
          */
