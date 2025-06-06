@@ -6,7 +6,6 @@ pluginManagement {
         mavenCentral()
     }
 
-    // convention 모듈 참조
     includeBuild("../casper-convention")
 }
 
