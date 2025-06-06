@@ -16,7 +16,7 @@ subprojects {
     }
 
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(17)
     }
 
     tasks.withType<Test> {
@@ -27,5 +27,5 @@ subprojects {
 version = Projects.VERSION
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }

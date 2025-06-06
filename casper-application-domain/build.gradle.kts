@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm")
+    kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
 }
 
 version = Projects.APPLICATION_DOMAIN_VERSION
 
 dependencies {
-    // Test
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
-    testImplementation(kotlin("test"))
+    testImplementation(Dependencies.JUNIT)
+    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
+    testImplementation(Dependencies.KOTLIN_TEST)
 }
