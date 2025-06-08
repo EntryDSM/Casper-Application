@@ -1,7 +1,7 @@
 plugins {
     kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
-    id(Plugins.KTLINT).version(PluginVersions.KTLINT_VERSION)
-    id(Plugins.CASPER_CONVENTION).version(PluginVersions.CASPER_CONVENTION_VERSION)
+    id(Plugins.KTLINT) version(PluginVersions.KTLINT_VERSION)
+    id(Plugins.CASPER_CONVENTION) version(Plugins.CASPER_CONVENTION)
 }
 
 allprojects {
@@ -9,7 +9,7 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = Plugins.JETBRAINS_KOTLIN_JVM)
 
     repositories {
         mavenCentral()

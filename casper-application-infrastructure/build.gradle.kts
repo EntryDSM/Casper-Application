@@ -14,7 +14,11 @@ repositories {
 
 dependencies {
     implementation(Dependencies.SPRING_BOOT_STARTER)
+    implementation(Dependencies.SPRING_BOOT_STARTER_WEB)
     implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
+    implementation(Dependencies.SPRING_BOOT_STARTER_ACTUATOR)
+
+    implementation(Dependencies.APACHE_COMMONS_JEXL)
 
     implementation(Dependencies.KOTLIN_REFLECT)
     testImplementation(Dependencies.KOTLIN_TEST)
