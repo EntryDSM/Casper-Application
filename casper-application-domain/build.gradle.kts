@@ -1,22 +1,11 @@
 plugins {
-    kotlin("jvm")
-    id("casper.documentation-convention") // 명시적으로 플러그인 적용
+    kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
 }
 
-group = "hs.kr.casper.entrydsm"
-version = "0.0.1-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-}
+version = Projects.APPLICATION_DOMAIN_VERSION
 
 dependencies {
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(17)
+    testImplementation(Dependencies.JUNIT)
+    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
+    testImplementation(Dependencies.KOTLIN_TEST)
 }

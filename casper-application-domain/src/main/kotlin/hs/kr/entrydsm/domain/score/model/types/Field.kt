@@ -1,0 +1,15 @@
+package hs.kr.entrydsm.domain.score.model.types
+
+enum class Field {
+    COURSE_SCORE,
+    ATTENDANCE_SCORE,
+    VOLUNTEER_SCORE,
+    BONUS_SCORE,
+    VOCATIONAL_BASIC_SCORE,
+    INTERVIEW_SCORE,
+    COMPUTING_THINKING_SCORE,
+    FIRST_STAGE_TOTAL,
+    SECOND_STAGE_TOTAL,
+    FINAL_TOTAL,
+    NONE
+}

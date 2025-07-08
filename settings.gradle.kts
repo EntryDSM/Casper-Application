@@ -2,7 +2,6 @@ rootProject.name = "Casper-Application"
 
 pluginManagement {
     includeBuild("casper-convention")
-    includeBuild("build-logic")
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -15,6 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-include(":casper-application-domain")
-
-include("casper-application-infrastructure")
+include(
+    "casper-application-domain",
+    "casper-application-infrastructure",
+)

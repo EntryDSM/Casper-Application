@@ -1,41 +1,25 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.spring") version "1.9.23"
-    id("org.springframework.boot") version "3.4.4"
-    id("io.spring.dependency-management") version "1.1.7"
-    id("casper.documentation-convention")
+    kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KOTLIN_SPRING) version PluginVersions.KOTLIN_VERSION
+    id(Plugins.KTLINT) version PluginVersions.KTLINT_VERSION
+    id(Plugins.SPRING_BOOT) version PluginVersions.SPRING_BOOT_VERSION
+    id(Plugins.SPRING_DEPENDENCY_MANAGEMENT) version PluginVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION
 }
 
-group = "hs.kr.entrydsm"
-version = "0.0.1-SNAPSHOT"
+version = Projects.APPLICATION_INFRASTRUCTURE_VERSION
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    // impl project
-    implementation(project(":casper-application-domain"))
-    
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation(kotlin("test"))
-}
+    implementation(Dependencies.SPRING_BOOT_STARTER)
+    implementation(Dependencies.SPRING_BOOT_STARTER_WEB)
+    implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
+    implementation(Dependencies.SPRING_BOOT_STARTER_ACTUATOR)
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs += "-Xjsr305=strict"
-    }
-}
+    implementation(Dependencies.APACHE_COMMONS_JEXL)
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-kotlin {
-    jvmToolchain(17)
+    implementation(Dependencies.KOTLIN_REFLECT)
+    testImplementation(Dependencies.KOTLIN_TEST)
 }
