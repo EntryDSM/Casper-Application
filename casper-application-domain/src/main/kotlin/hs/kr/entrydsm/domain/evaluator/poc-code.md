@@ -767,12 +767,12 @@ object FirstFollowSets {
                         val before = followSets[symbol]!!.size // 변경 전 FOLLOW 집합 크기
                         val beta = prod.right.drop(i + 1) // 현재 심볼 이후의 심볼들
                         val firstOfBeta = firstOfSequence(beta) // beta의 FIRST 집합 계산
-                        followSets[symbol]!!.addAll(firstOfBeta - TokenType.DOLLAR) // FIRST(beta)를 FOLLOW(symbol)에 추가 (epsilon 제외)
+                        followSets[symbol]!!.addAll(firstOfBeta - TokenType.DOLLAR) // FIRST(beta)를 FOLLOW(tokenSymbol)에 추가 (epsilon 제외)
                         logger.trace("FOLLOW({})에 FIRST({}) 추가. 현재: {}", symbol, beta, followSets[symbol]) // FOLLOW 집합 업데이트 로그
 
                         if (beta.isEmpty() || canDeriveEmpty(beta)) {
                             // beta가 비어있거나 epsilon을 파생할 수 있는 경우
-                            followSets[symbol]!!.addAll(followSets[prod.left]!!) // FOLLOW(생산 규칙 좌변)를 FOLLOW(symbol)에 추가
+                            followSets[symbol]!!.addAll(followSets[prod.left]!!) // FOLLOW(생산 규칙 좌변)를 FOLLOW(tokenSymbol)에 추가
                             logger.trace("FOLLOW({})에 FOLLOW({}) 추가. 현재: {}", symbol, prod.left, followSets[symbol]) // FOLLOW 집합 업데이트 로그
                         }
 
