@@ -23,6 +23,5 @@ import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 annotation class Factory(
     val context: String,
     val complexity: Complexity,
-    val cache: Boolean,
-
-    )
+    val cache: Boolean
+)
