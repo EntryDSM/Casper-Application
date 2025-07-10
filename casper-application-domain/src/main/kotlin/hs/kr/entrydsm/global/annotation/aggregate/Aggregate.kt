@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.global.annotation.factory
+package hs.kr.entrydsm.global.annotation.aggregate
 
 /**
  * Aggregate Root 를 나타내는 어노테이션 입니다.
