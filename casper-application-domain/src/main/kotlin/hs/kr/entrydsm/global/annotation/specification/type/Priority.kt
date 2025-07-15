@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.global.annotation.specification.type
 
 /**
- * 비즈니스 규칙(Rule)의 우선순위를 나타내는 열거형입니다.
+ * 비즈니스 규칙(Specification)의 우선순위를 나타내는 열거형입니다.
  *
  * 여러 규칙이 적용될 때 실행 순서나 중요도를 결정하는 데 사용됩니다.
  * 높은 우선순위의 규칙이 먼저 처리되거나 더 엄격하게 적용될 수 있습니다.

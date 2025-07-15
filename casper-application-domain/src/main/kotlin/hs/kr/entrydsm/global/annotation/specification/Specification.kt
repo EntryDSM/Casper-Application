@@ -3,7 +3,7 @@ package hs.kr.entrydsm.global.annotation.specification
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
 
 /**
- * DDD(Domain-Driven Design)의 비즈니스 규칙(Business Rule)을 나타내는 어노테이션입니다.
+ * DDD(Domain-Driven Design)의 비즈니스 규칙(Business Specification)을 나타내는 어노테이션입니다.
  *
  * 규칙은 도메인의 비즈니스 로직이나 검증 조건을 명시적으로 표현하는 데 사용됩니다.
  * Specification 패턴과 함께 사용되어 복잡한 비즈니스 조건을 구조화하고 재사용 가능하게 만듭니다.
@@ -21,7 +21,7 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class Rule(
+annotation class Specification(
     val name: String,
     val description: String,
     val domain: String,
