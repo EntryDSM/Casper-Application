@@ -17,5 +17,8 @@ enum class Priority {
     NORMAL,
 
     /** 높은 우선순위 - 필수적이거나 중요한 규칙 */
-    HIGH
+    HIGH,
+
+    /** 치명적 우선순위 - 시스템의 안전성과 직결되는 규칙 */
+    CRITICAL
 }
