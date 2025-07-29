@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.global.annotation.entity
+package hs.kr.entrydsm.global.annotation.entities
 
 import kotlin.reflect.KClass
 

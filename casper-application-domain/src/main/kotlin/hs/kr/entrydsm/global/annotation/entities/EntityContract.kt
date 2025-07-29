@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.global.annotation.entity
+package hs.kr.entrydsm.global.annotation.entities
 
 /**
  * DDD의 Entity 패턴을 구현하는 클래스가 따라야 하는 계약을 정의합니다.

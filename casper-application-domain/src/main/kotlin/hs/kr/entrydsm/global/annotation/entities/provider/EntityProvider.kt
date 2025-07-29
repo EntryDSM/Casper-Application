@@ -1,8 +1,8 @@
-package hs.kr.entrydsm.global.annotation.entity.provider
+package hs.kr.entrydsm.global.annotation.entities.provider
 
-import hs.kr.entrydsm.global.annotation.aggregate.provider.AggregateProvider
-import hs.kr.entrydsm.global.annotation.entity.Entity
-import hs.kr.entrydsm.global.annotation.entity.EntityContract
+import hs.kr.entrydsm.global.annotation.aggregates.provider.AggregateProvider
+import hs.kr.entrydsm.global.annotation.entities.Entity
+import hs.kr.entrydsm.global.annotation.entities.EntityContract
 
 /**
  * DDD의 Entity 패턴 관리를 담당하는 Provider 객체입니다.

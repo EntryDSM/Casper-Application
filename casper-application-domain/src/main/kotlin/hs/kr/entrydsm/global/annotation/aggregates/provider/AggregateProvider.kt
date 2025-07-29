@@ -1,7 +1,7 @@
-package hs.kr.entrydsm.global.annotation.aggregate.provider
+package hs.kr.entrydsm.global.annotation.aggregates.provider
 
-import hs.kr.entrydsm.global.annotation.aggregate.Aggregate
-import hs.kr.entrydsm.global.annotation.aggregate.AggregateContract
+import hs.kr.entrydsm.global.annotation.aggregates.Aggregate
+import hs.kr.entrydsm.global.annotation.aggregates.AggregateContract
 
 /**
  * DDD의 Aggregate Root 패턴 관리를 담당하는 Provider 객체입니다.

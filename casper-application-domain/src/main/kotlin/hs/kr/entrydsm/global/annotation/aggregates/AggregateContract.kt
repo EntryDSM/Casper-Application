@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.global.annotation.aggregate
+package hs.kr.entrydsm.global.annotation.aggregates
 
 /**
  * DDD의 Aggregate Root 패턴을 구현하는 클래스가 따라야 하는 계약을 정의합니다.
