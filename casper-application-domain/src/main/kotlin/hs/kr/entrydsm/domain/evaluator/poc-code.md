@@ -1,4 +1,4 @@
-```kt
+"```kt
 package com.example.calculator
 
 import org.slf4j.LoggerFactory
@@ -408,21 +408,21 @@ object OperatorPrecedenceTable {
         TokenType.LESS_EQUAL to OperatorPrecedence(4, Associativity.NONE),
         TokenType.GREATER to OperatorPrecedence(4, Associativity.NONE),
         TokenType.GREATER_EQUAL to OperatorPrecedence(4, Associativity.NONE),
-        
+
         // 산술 연산자
         TokenType.PLUS to OperatorPrecedence(5, Associativity.LEFT),
         TokenType.MINUS to OperatorPrecedence(5, Associativity.LEFT),
         TokenType.MULTIPLY to OperatorPrecedence(6, Associativity.LEFT),
         TokenType.DIVIDE to OperatorPrecedence(6, Associativity.LEFT),
         TokenType.MODULO to OperatorPrecedence(6, Associativity.LEFT),
-        
+
         // 거듭제곱 (가장 높은 우선순위)
         TokenType.POWER to OperatorPrecedence(7, Associativity.RIGHT),
-        
+
         // 단항 연산자 (NOT, unary +, unary -)는 파싱 과정에서 특별 처리
         TokenType.NOT to OperatorPrecedence(8, Associativity.RIGHT)
     )
-    
+
     fun getPrecedence(token: TokenType): OperatorPrecedence? = precedenceMap[token]
 }
 
@@ -585,59 +585,59 @@ data class Production(
 
 sealed class ASTBuilder {
     abstract fun build(children: List<Any>): Any
-    
+
     object Identity : ASTBuilder() {
         override fun build(children: List<Any>) = children[0] as ASTNode
     }
-    
+
     object Start : ASTBuilder() {
         override fun build(children: List<Any>) = children[0] as ASTNode
     }
-    
+
     class BinaryOp(private val operator: String, private val leftIndex: Int = 0, private val rightIndex: Int = 2) : ASTBuilder() {
         override fun build(children: List<Any>) = BinaryOpNode(children[leftIndex] as ASTNode, operator, children[rightIndex] as ASTNode)
     }
-    
+
     class UnaryOp(private val operator: String, private val operandIndex: Int = 1) : ASTBuilder() {
         override fun build(children: List<Any>) = UnaryOpNode(operator, children[operandIndex] as ASTNode)
     }
-    
+
     object Number : ASTBuilder() {
         override fun build(children: List<Any>) = NumberNode((children[0] as Token).value.toDouble())
     }
-    
+
     object Variable : ASTBuilder() {
         override fun build(children: List<Any>) = VariableNode((children[0] as Token).value)
     }
-    
+
     object BooleanTrue : ASTBuilder() {
         override fun build(children: List<Any>) = BooleanNode(true)
     }
-    
+
     object BooleanFalse : ASTBuilder() {
         override fun build(children: List<Any>) = BooleanNode(false)
     }
-    
+
     object Parenthesized : ASTBuilder() {
         override fun build(children: List<Any>) = children[1] as ASTNode
     }
-    
+
     object FunctionCall : ASTBuilder() {
         override fun build(children: List<Any>) = FunctionCallNode((children[0] as Token).value, children[2] as List<ASTNode>)
     }
-    
+
     object FunctionCallEmpty : ASTBuilder() {
         override fun build(children: List<Any>) = FunctionCallNode((children[0] as Token).value, emptyList())
     }
-    
+
     object If : ASTBuilder() {
         override fun build(children: List<Any>) = IfNode(children[2] as ASTNode, children[4] as ASTNode, children[6] as ASTNode)
     }
-    
+
     object ArgsSingle : ASTBuilder() {
         override fun build(children: List<Any>) = listOf(children[0] as ASTNode)
     }
-    
+
     object ArgsMultiple : ASTBuilder() {
         override fun build(children: List<Any>) = (children[0] as List<ASTNode>) + (children[2] as ASTNode)
     }
@@ -902,17 +902,17 @@ object LRParserTable {
     private val compressedStates = mutableMapOf<String, Int>() // 압축된 상태 시그니처 -> 상태 ID 매핑
     private val conflicts = mutableListOf<String>() // 파싱 충돌 목록
     private val logger = LoggerFactory.getLogger(this::class.java) // 로거 인스턴스 생성
-    
+
     // Lazy initialization을 위한 플래그들
     private var isInitialized = false
     private val stateCache = mutableMapOf<Set<LRItem>, Int>() // 상태 캐시
-    
+
     // 2D 배열 최적화된 테이블들
     private lateinit var actionTable2D: Array<Array<LRAction?>> // 2D 액션 테이블 [상태][토큰]
     private lateinit var gotoTable2D: Array<IntArray> // 2D GOTO 테이블 [상태][논터미널]
     private val terminalToIndex = mutableMapOf<TokenType, Int>() // 터미널 -> 인덱스 매핑
     private val nonTerminalToIndex = mutableMapOf<TokenType, Int>() // 논터미널 -> 인덱스 매핑
-    
+
     // 백업용 맵 테이블 (초기화 중에만 사용)
     private val actionTable = mutableMapOf<Pair<Int, TokenType>, LRAction>() // 액션 테이블
     private val gotoTable = mutableMapOf<Pair<Int, TokenType>, Int>() // GOTO 테이블
@@ -952,18 +952,18 @@ object LRParserTable {
      */
     private fun initializeTokenMappings() {
         logger.debug("토큰 매핑 초기화 시작")
-        
+
         // 터미널 심볼 매핑
         Grammar.terminals.forEachIndexed { index, terminal ->
             terminalToIndex[terminal] = index
         }
-        
+
         // 논터미널 심볼 매핑
         Grammar.nonTerminals.forEachIndexed { index, nonTerminal ->
             nonTerminalToIndex[nonTerminal] = index
         }
-        
-        logger.debug("토큰 매핑 완료. 터미널: {}, 논터미널: {}", 
+
+        logger.debug("토큰 매핑 완료. 터미널: {}, 논터미널: {}",
             terminalToIndex.size, nonTerminalToIndex.size)
     }
 
@@ -972,17 +972,17 @@ object LRParserTable {
      */
     private fun build2DTables() {
         logger.debug("2D 테이블 구축 시작")
-        
+
         val numStates = states.size
         val numTerminals = Grammar.terminals.size
         val numNonTerminals = Grammar.nonTerminals.size
-        
+
         // 액션 테이블 2D 배열 초기화
         actionTable2D = Array(numStates) { arrayOfNulls<LRAction>(numTerminals) }
-        
+
         // GOTO 테이블 2D 배열 초기화 (-1은 엔트리 없음을 의미)
         gotoTable2D = Array(numStates) { IntArray(numNonTerminals) { -1 } }
-        
+
         // 맵에서 2D 배열로 데이터 복사
         for ((key, action) in actionTable) {
             val (stateId, terminal) = key
@@ -991,7 +991,7 @@ object LRParserTable {
                 actionTable2D[stateId][terminalIndex] = action
             }
         }
-        
+
         for ((key, nextState) in gotoTable) {
             val (stateId, nonTerminal) = key
             val nonTerminalIndex = nonTerminalToIndex[nonTerminal]
@@ -999,8 +999,8 @@ object LRParserTable {
                 gotoTable2D[stateId][nonTerminalIndex] = nextState
             }
         }
-        
-        logger.info("2D 테이블 구축 완료. 액션 테이블: {}x{}, GOTO 테이블: {}x{}", 
+
+        logger.info("2D 테이블 구축 완료. 액션 테이블: {}x{}, GOTO 테이블: {}x{}",
             numStates, numTerminals, numStates, numNonTerminals)
     }
 
@@ -1036,7 +1036,7 @@ object LRParserTable {
 
             for ((symbol, itemSet) in transitions) {
                 val newState = closure(itemSet) // 새로운 상태의 클로저 계산
-                
+
                 // 캐시된 상태 확인
                 val cachedStateId = stateCache[newState]
                 val existingStateId = cachedStateId ?: stateMap[newState] // 이미 존재하는 상태인지 확인
@@ -1051,10 +1051,10 @@ object LRParserTable {
                         stateMap[newState] = newStateId // 맵에 추가
                         stateCache[newState] = newStateId // 캐시에 추가
                         workList.add(newStateId) // 작업 목록에 추가
-                        
+
                         // 압축된 상태 시그니처 생성
                         val coreSignature = generateCoreSignature(newState)
-                        
+
                         // LALR 병합 시도
                         val existingCoreStateId = compressedStates[coreSignature]
                         if (existingCoreStateId != null && canMergeLALRStates(states[existingCoreStateId], newState)) {
@@ -1065,13 +1065,13 @@ object LRParserTable {
                             stateMap[mergedState] = existingCoreStateId
                             stateCache[mergedState] = existingCoreStateId
                             states.removeAt(states.size - 1) // 추가했던 새 상태 제거
-                            
-                            logger.debug("LALR 상태 병합: 상태 {}와 병합됨. 시그니처: {}", 
+
+                            logger.debug("LALR 상태 병합: 상태 {}와 병합됨. 시그니처: {}",
                                 existingCoreStateId, coreSignature)
                             existingCoreStateId
                         } else {
                             compressedStates[coreSignature] = newStateId
-                            logger.debug("상태 {}에서 심볼 {}로 전이: 새로운 상태 {} 생성. 시그니처: {}", 
+                            logger.debug("상태 {}에서 심볼 {}로 전이: 새로운 상태 {} 생성. 시그니처: {}",
                                 stateId, symbol, newStateId, coreSignature)
                             newStateId
                         }
@@ -1110,17 +1110,17 @@ object LRParserTable {
         // Core 아이템들 (lookahead 제외) 비교
         val core1 = state1.map { LRItem(it.production, it.dotPos, TokenType.DOLLAR) }.toSet()
         val core2 = state2.map { LRItem(it.production, it.dotPos, TokenType.DOLLAR) }.toSet()
-        
+
         if (core1 != core2) {
             return false
         }
-        
+
         // 동일한 core를 가진 아이템들의 lookahead 집합이 겹치지 않는지 확인
         val lookaheadMap1 = state1.groupBy { "${it.production.id}:${it.dotPos}" }
             .mapValues { it.value.map { item -> item.lookahead }.toSet() }
         val lookaheadMap2 = state2.groupBy { "${it.production.id}:${it.dotPos}" }
             .mapValues { it.value.map { item -> item.lookahead }.toSet() }
-        
+
         // 각 core 아이템에 대해 lookahead 집합이 겹치지 않는지 확인
         for (coreKey in lookaheadMap1.keys) {
             val lookaheads1 = lookaheadMap1[coreKey] ?: emptySet()
@@ -1130,7 +1130,7 @@ object LRParserTable {
                 return false
             }
         }
-        
+
         return true
     }
 
@@ -1140,22 +1140,22 @@ object LRParserTable {
      */
     private fun mergeLALRStates(state1: Set<LRItem>, state2: Set<LRItem>): Set<LRItem> {
         val mergedItems = mutableSetOf<LRItem>()
-        
+
         // 모든 아이템들을 core 기준으로 그룹화
         val allItems = (state1 + state2).groupBy { "${it.production.id}:${it.dotPos}" }
-        
+
         for ((coreKey, items) in allItems) {
             // 동일한 core를 가진 아이템들의 lookahead를 모두 수집
             val production = items.first().production
             val dotPos = items.first().dotPos
             val allLookaheads = items.map { it.lookahead }.toSet()
-            
+
             // 각 lookahead에 대해 별도의 아이템 생성
             for (lookahead in allLookaheads) {
                 mergedItems.add(LRItem(production, dotPos, lookahead))
             }
         }
-        
+
         return mergedItems
     }
 
@@ -1226,12 +1226,12 @@ object LRParserTable {
                             val resolved = resolveConflict(existing, LRAction.Reduce(item.production), item.lookahead, stateId)
                             if (resolved != null) {
                                 actionTable[Pair(stateId, item.lookahead)] = resolved
-                                logger.info("충돌 해결됨: 상태 {}, 토큰 {}. 기존: {}, 새: Reduce({}), 해결: {}", 
+                                logger.info("충돌 해결됨: 상태 {}, 토큰 {}. 기존: {}, 새: Reduce({}), 해결: {}",
                                     stateId, item.lookahead, existing, item.production, resolved)
                             } else {
                                 // 해결할 수 없는 충돌
                                 conflicts.add("Unresolvable conflict in state $stateId on ${item.lookahead}: $existing vs Reduce(${item.production})")
-                                logger.warn("해결할 수 없는 충돌: 상태 {}, 토큰 {}. 기존: {}, 새: Reduce({})", 
+                                logger.warn("해결할 수 없는 충돌: 상태 {}, 토큰 {}. 기존: {}, 새: Reduce({})",
                                     stateId, item.lookahead, existing, item.production)
                             }
                         } else {
@@ -1260,7 +1260,7 @@ object LRParserTable {
         stateId: Int
     ): LRAction? {
         logger.debug("충돌 해결 시도: 상태 {}, 토큰 {}, 기존: {}, 새: {}", stateId, lookahead, existing, newAction)
-        
+
         when {
             existing is LRAction.Shift && newAction is LRAction.Reduce -> {
                 // Shift/Reduce 충돌
@@ -1288,16 +1288,16 @@ object LRParserTable {
     ): LRAction? {
         val lookaheadPrec = OperatorPrecedenceTable.getPrecedence(lookahead)
         val productionPrec = getProductionPrecedence(reduceAction.production)
-        
+
         logger.debug("Shift/Reduce 충돌 해결: lookahead={}, precedence={}, production={}, precedence={}",
             lookahead, lookaheadPrec, reduceAction.production, productionPrec)
-        
+
         if (lookaheadPrec == null || productionPrec == null) {
             // 우선순위 정보가 없으면 기본적으로 Shift 선택 (LR 파서의 기본 동작)
             logger.debug("우선순위 정보 없음, Shift 선택")
             return shiftAction
         }
-        
+
         return when {
             lookaheadPrec.precedence > productionPrec.precedence -> {
                 logger.debug("Lookahead 우선순위가 높음, Shift 선택")
@@ -1338,7 +1338,7 @@ object LRParserTable {
     ): LRAction? {
         logger.debug("Reduce/Reduce 충돌 해결: 기존={}, 새={}",
             existingReduce.production, newReduce.production)
-        
+
         // 더 긴 생산 규칙을 선택 (더 구체적인 규칙)
         return if (existingReduce.production.length >= newReduce.production.length) {
             logger.debug("기존 생산 규칙이 더 길거나 같음, 기존 선택")
@@ -1379,18 +1379,18 @@ object LRParserTable {
     ): LRAction {
         ensureInitialized() // Lazy initialization 보장
         logger.debug("getAction 호출됨. 상태: {}, 터미널: {}", state, terminal) // getAction 호출 로그
-        
+
         val terminalIndex = terminalToIndex[terminal]
         if (terminalIndex == null || state >= actionTable2D.size || state < 0) {
             logger.error("잘못된 상태 또는 터미널: 상태={}, 터미널={}", state, terminal)
             return LRAction.Error
         }
-        
+
         val action = actionTable2D[state][terminalIndex]
         if (terminal == TokenType.DOLLAR) {
             logger.info("DOLLAR 토큰 액션 조회: 상태 {}, 액션: {}", state, action)
         }
-        
+
         if (action == null) {
             logger.error("상태 {}에서 토큰 {}에 대한 액션이 없습니다. 파싱 오류 발생.", state, terminal) // 액션 없음 에러 로그
             logger.error("사용 가능한 액션들 (상태 {}):", state)
@@ -1401,7 +1401,7 @@ object LRParserTable {
                 }
             }
         }
-        
+
         logger.debug("getAction 결과: {}", action ?: LRAction.Error) // getAction 결과 로그
         return action ?: LRAction.Error
     }
@@ -1418,13 +1418,13 @@ object LRParserTable {
     ): Int? {
         ensureInitialized() // Lazy initialization 보장
         logger.debug("getGoto 호출됨. 상태: {}, 논터미널: {}", state, nonTerminal) // getGoto 호출 로그
-        
+
         val nonTerminalIndex = nonTerminalToIndex[nonTerminal]
         if (nonTerminalIndex == null || state >= gotoTable2D.size || state < 0) {
             logger.debug("잘못된 상태 또는 논터미널: 상태={}, 논터미널={}", state, nonTerminal)
             return null
         }
-        
+
         val nextState = gotoTable2D[state][nonTerminalIndex]
         val result = if (nextState == -1) null else nextState
         logger.debug("getGoto 결과: {}", result) // getGoto 결과 로그
@@ -1553,7 +1553,7 @@ class CalculatorLexer : Lexer {
                     tokens.add(Token(type, id, start))
                     logger.debug("{} 토큰 추가: '{}' (위치: {})", type, id, start)
                 }
-                
+
                 // 산술 연산자
                 input[pos] == '+' -> {
                     tokens.add(Token(TokenType.PLUS, "+", pos++))
@@ -1579,7 +1579,7 @@ class CalculatorLexer : Lexer {
                     tokens.add(Token(TokenType.MODULO, "%", pos++))
                     logger.debug("MODULO 토큰 추가")
                 }
-                
+
                 // 괄호 및 구분자
                 input[pos] == '(' -> {
                     tokens.add(Token(TokenType.LEFT_PAREN, "(", pos++))
@@ -2491,4 +2491,4 @@ data class StepResult(
     val executionTimeMs: Long = 0,
 )
 
-```
+```"
