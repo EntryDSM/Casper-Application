@@ -26,6 +26,8 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 object ParenthesizedBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): ASTNode {
         require(children.size == 3) { "Parenthesized 빌더는 정확히 3개의 자식이 필요합니다: ${children.size}" }
+        require(children[1] is ASTNode) { "두 번째 자식은 ASTNode 타입이어야 합니다: ${children[1]::class.simpleName}" }
+        
         return children[1] as ASTNode
     }
     

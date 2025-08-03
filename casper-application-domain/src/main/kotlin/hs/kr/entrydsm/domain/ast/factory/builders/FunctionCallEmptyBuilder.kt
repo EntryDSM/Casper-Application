@@ -26,14 +26,20 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 )
 object FunctionCallEmptyBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): FunctionCallNode {
-        require(children.size == 2) { "FunctionCallEmpty 빌더는 정확히 2개의 자식이 필요합니다: ${children.size}" }
+        require(children.size == 3) { "FunctionCallEmpty 빌더는 정확히 3개의 자식이 필요합니다: ${children.size}" }
+        require(children[0] is Token) { "첫 번째 자식은 Token이어야 합니다: ${children[0]::class.simpleName}" }
+        require(children[1] is Token) { "두 번째 자식은 Token이어야 합니다: ${children[1]::class.simpleName}" }
+        require(children[2] is Token) { "세 번째 자식은 Token이어야 합니다: ${children[2]::class.simpleName}" }
         
         val nameToken = children[0] as Token
         return FunctionCallNode(nameToken.value, emptyList())
     }
     
     override fun validateChildren(children: List<Any>): Boolean {
-        return children.size == 2 && children[0] is Token
+        return children.size == 3 && 
+               children[0] is Token &&  // IDENTIFIER
+               children[1] is Token &&  // LEFT_PAREN
+               children[2] is Token     // RIGHT_PAREN
     }
     
     override fun getBuilderName(): String = "FunctionCallEmpty"
