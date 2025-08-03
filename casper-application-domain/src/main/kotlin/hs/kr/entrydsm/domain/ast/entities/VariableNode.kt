@@ -36,7 +36,7 @@ data class VariableNode(val name: String) : ASTNode() {
 
     override fun getNodeCount(): Int = 1
 
-    override fun copy(): VariableNode = this.copy()
+    override fun copy(): VariableNode = VariableNode(name)
 
     override fun toSimpleString(): String = name
 
@@ -51,15 +51,7 @@ data class VariableNode(val name: String) : ASTNode() {
      * @param variableName 확인할 변수명
      * @return 유효하면 true, 아니면 false
      */
-    private fun isValidVariableName(variableName: String): Boolean {
-        if (variableName.isEmpty()) return false
-        
-        // 첫 문자는 영문자 또는 밑줄이어야 함
-        if (!variableName.first().isLetter() && variableName.first() != '_') return false
-        
-        // 나머지 문자는 영문자, 숫자, 밑줄이어야 함
-        return variableName.drop(1).all { it.isLetterOrDigit() || it == '_' }
-    }
+    private fun isValidVariableName(variableName: String): Boolean = isValidName(variableName)
 
     /**
      * 변수명이 키워드와 충돌하는지 확인합니다.

@@ -34,7 +34,7 @@ data class NumberNode(val value: Double) : ASTNode() {
 
     override fun getNodeCount(): Int = 1
 
-    override fun copy(): NumberNode = this.copy()
+    override fun copy(): NumberNode = NumberNode(value)
 
     override fun toSimpleString(): String = when {
         value == value.toLong().toDouble() -> value.toLong().toString()
