@@ -20,6 +20,7 @@ enum class ErrorCode(val code: String, val description: String) {
     VALIDATION_FAILED("CMN002", "유효성 검사에 실패했습니다"),
     BUSINESS_RULE_VIOLATION("CMN003", "비즈니스 규칙을 위반했습니다"),
     INTERNAL_SERVER_ERROR("CMN004", "서버 내부 오류가 발생했습니다"),
+    UNEXPECTED_ERROR("CMN005", "예상치 못한 오류가 발생했습니다"),
 
     // Lexer 도메인 오류 (LEX)
     UNEXPECTED_CHARACTER("LEX001", "예상치 못한 문자가 발견되었습니다"),

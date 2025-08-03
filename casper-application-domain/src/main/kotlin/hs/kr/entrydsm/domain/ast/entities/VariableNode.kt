@@ -173,7 +173,12 @@ data class VariableNode(val name: String) : ASTNode() {
          */
         fun createSafe(name: String): VariableNode? = try {
             if (isValidName(name)) VariableNode(name) else null
+        } catch (e: IllegalArgumentException) {
+            // 유효하지 않은 변수명으로 인한 예상된 예외는 조용히 처리
+            null
         } catch (e: Exception) {
+            // 예상치 못한 예외는 간단하게 로깅하고 null 반환
+            System.err.println("예상치 못한 오류 발생: name='$name', error=${e.javaClass.simpleName}: ${e.message}")
             null
         }
 

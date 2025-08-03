@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.domain.ast.exception
+package hs.kr.entrydsm.domain.ast.exceptions
 
 import hs.kr.entrydsm.global.exception.ErrorCode
 import hs.kr.entrydsm.global.exception.DomainException
