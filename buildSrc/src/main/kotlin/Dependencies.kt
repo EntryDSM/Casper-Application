@@ -12,6 +12,9 @@ object Dependencies {
     //jexl
     const val APACHE_COMMONS_JEXL = "org.apache.commons:commons-jexl3:${DependencyVersions.APACHE_COMMONS_JEXL_VERSION}"
 
+    //kotlinx serialization
+    const val KOTLINX_SERIALIZATION_JSON = "org.jetbrains.kotlinx:kotlinx-serialization-json:${DependencyVersions.KOTLINX_SERIALIZATION_VERSION}"
+
     //junit
     const val JUNIT = "org.jetbrains.kotlin:kotlin-test-junit5"
     const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher"

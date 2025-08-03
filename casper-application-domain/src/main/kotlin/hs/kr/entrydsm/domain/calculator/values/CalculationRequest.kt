@@ -1,5 +1,9 @@
 package hs.kr.entrydsm.domain.calculator.values
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 
 
 /**
@@ -187,7 +191,7 @@ data class CalculationRequest(
         val regex = Regex("[a-zA-Z_][a-zA-Z0-9_]*")
         return regex.findAll(formula)
             .map { it.value }
-            .filter { it !in setOf("sin", "cos", "tan", "sqrt", "log", "exp", "abs", "floor", "ceil", "round", "min", "max", "pow", "if", "true", "false") }
+            .filter { !ReservedKeywords.isReserved(it) }
             .toSet()
     }
 
@@ -229,23 +233,25 @@ data class CalculationRequest(
 
     /**
      * 요청을 JSON 형태로 표현합니다.
+     * kotlinx.serialization을 사용하여 안전하게 직렬화합니다.
      *
      * @return JSON 형태의 문자열
      */
-    fun toJson(): String = buildString {
-        append("{")
-        append("\"formula\":\"${formula.replace("\"", "\\\"")}\",")
-        append("\"variables\":{")
-        variables.entries.joinToString(",") { (k, v) ->
-            "\"$k\":\"$v\""
-        }.let { append(it) }
-        append("},")
-        append("\"options\":{")
-        options.entries.joinToString(",") { (k, v) ->
-            "\"$k\":\"$v\""
-        }.let { append(it) }
-        append("}")
-        append("}")
+    fun toJson(): String {
+        @Serializable
+        data class CalculationRequestJson(
+            val formula: String,
+            val variables: Map<String, String>,
+            val options: Map<String, String>
+        )
+        
+        val jsonData = CalculationRequestJson(
+            formula = formula,
+            variables = variables.mapValues { it.value.toString() },
+            options = options.mapValues { it.value.toString() }
+        )
+        
+        return Json.encodeToString(jsonData)
     }
 
     /**

@@ -1,6 +1,9 @@
 package hs.kr.entrydsm.domain.calculator.values
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * 계산 결과를 나타내는 값 객체입니다.
@@ -265,30 +268,35 @@ data class CalculationResult(
 
     /**
      * 결과를 JSON 형태로 표현합니다.
+     * kotlinx.serialization을 사용하여 안전하게 직렬화합니다.
      *
      * @return JSON 형태의 문자열
      */
-    fun toJson(): String = buildString {
-        append("{")
-        append("\"result\":\"${asString().replace("\"", "\\\\\"")}\",")
-        append("\"executionTimeMs\":$executionTimeMs,")
-        append("\"formula\":\"${formula.replace("\"", "\\\\\"")}\",")
-        append("\"variables\":{")
-        variables.entries.joinToString(",") { (k, v) ->
-            "\"$k\":\"$v\""
-        }.let { append(it) }
-        append("},")
-        append("\"steps\":[")
-        steps.joinToString(",") { "\"${it.replace("\"", "\\\\\\\"")}\"" }.let { append(it) }
-        append("],")
-        append("\"errors\":[")
-        errors.joinToString(",") { "\"${it.replace("\"", "\\\\\\\"")}\"" }.let { append(it) }
-        append("],")
-        append("\"warnings\":[")
-        warnings.joinToString(",") { "\"${it.replace("\"", "\\\\\\\"")}\"" }.let { append(it) }
-        append("],")
-        append("\"isSuccess\":${isSuccess()}")
-        append("}")
+    fun toJson(): String {
+        @Serializable
+        data class CalculationResultJson(
+            val result: String,
+            val executionTimeMs: Long,
+            val formula: String,
+            val variables: Map<String, String>,
+            val steps: List<String>,
+            val errors: List<String>,
+            val warnings: List<String>,
+            val isSuccess: Boolean
+        )
+        
+        val jsonData = CalculationResultJson(
+            result = asString(),
+            executionTimeMs = executionTimeMs,
+            formula = formula,
+            variables = variables.mapValues { it.value.toString() },
+            steps = steps,
+            errors = errors,
+            warnings = warnings,
+            isSuccess = isSuccess()
+        )
+        
+        return Json.encodeToString(jsonData)
     }
 
     /**

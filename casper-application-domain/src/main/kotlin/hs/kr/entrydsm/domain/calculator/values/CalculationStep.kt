@@ -108,18 +108,11 @@ data class CalculationStep(
         )
         
         val variables = mutableSetOf<String>()
-        val reservedWords = setOf(
-            "sin", "cos", "tan", "sqrt", "log", "exp", "abs", "floor", "ceil", "round",
-            "min", "max", "pow", "if", "true", "false", "and", "or", "not",
-            "sum", "avg", "average", "gcd", "lcm", "factorial", "combination", "permutation",
-            "pi", "e", "random", "rand", "radians", "degrees", "mod", "truncate", "trunc",
-            "sign", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "asin", "acos", "atan", "atan2"
-        )
         
         variablePatterns.forEach { pattern ->
             pattern.findAll(formula).forEach { match ->
                 val variable = if (match.groups.size > 1) match.groups[1]?.value else match.value
-                if (variable != null && variable.lowercase() !in reservedWords) {
+                if (variable != null && !ReservedKeywords.isReserved(variable)) {
                     variables.add(variable)
                 }
             }
