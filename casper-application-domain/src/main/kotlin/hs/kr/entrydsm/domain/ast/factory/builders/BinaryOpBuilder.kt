@@ -36,6 +36,13 @@ class BinaryOpBuilder(
             "BinaryOp 빌더는 최소 ${maxOf(leftIndex, rightIndex) + 1}개의 자식이 필요합니다: ${children.size}" 
         }
         
+        require(children[leftIndex] is ASTNode) {
+            "왼쪽 피연산자는 ASTNode 타입이어야 합니다: ${children[leftIndex]::class.simpleName}"
+        }
+        require(children[rightIndex] is ASTNode) {
+            "오른쪽 피연산자는 ASTNode 타입이어야 합니다: ${children[rightIndex]::class.simpleName}"
+        }
+        
         val left = children[leftIndex] as ASTNode
         val right = children[rightIndex] as ASTNode
         
