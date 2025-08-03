@@ -22,12 +22,11 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 )
 object BooleanFalseBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): BooleanNode {
-        require(children.size == 1) { "BooleanFalse 빌더는 정확히 1개의 자식이 필요합니다: ${children.size}" }
         return BooleanNode.FALSE
     }
     
     override fun validateChildren(children: List<Any>): Boolean {
-        return children.size == 1
+        return true // 자식 요소가 필요하지 않음
     }
     
     override fun getBuilderName(): String = "BooleanFalse"
