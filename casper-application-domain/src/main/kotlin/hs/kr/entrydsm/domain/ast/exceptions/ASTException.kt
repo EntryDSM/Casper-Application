@@ -130,7 +130,7 @@ class ASTException(
          */
         fun typeMismatch(expectedType: String, actualType: String, nodeName: String? = null): ASTException {
             return ASTException(
-                errorCode = ErrorCode.UNSUPPORTED_AST_TYPE,
+                errorCode = ErrorCode.AST_TYPE_MISMATCH,
                 expectedType = expectedType,
                 actualType = actualType,
                 nodeName = nodeName
