@@ -455,20 +455,24 @@ class NodeStructureSpec : SpecificationContract<ASTNode> {
     /**
      * 순환 참조가 있는지 확인합니다.
      */
-    private fun hasCircularReference(node: ASTNode, visited: MutableSet<ASTNode> = mutableSetOf()): Boolean {
-        if (node in visited) {
+    private fun hasCircularReference(node: ASTNode): Boolean {
+        return hasCircularReferenceHelper(node, mutableSetOf())
+    }
+
+    /**
+     * 순환 참조 검증을 위한 헬퍼 함수입니다.
+     * 각 재귀 호출마다 새로운 visited 집합의 복사본을 사용하여
+     * 독립적인 경로 추적을 통해 정확한 순환 참조 감지를 보장합니다.
+     */
+    private fun hasCircularReferenceHelper(node: ASTNode, path: MutableSet<ASTNode>): Boolean {
+        if (node in path) {
             return true
         }
         
-        visited.add(node)
-        
-        val hasCircular = node.getChildren().any { child ->
-            hasCircularReference(child, visited)
+        path.add(node)
+        return node.getChildren().any { child ->
+            hasCircularReferenceHelper(child, path.toMutableSet())
         }
-        
-        visited.remove(node)
-        
-        return hasCircular
     }
 
     /**
