@@ -344,11 +344,22 @@ class ValidationService {
         // 수식 길이에 따른 기본 복잡도
         complexity += formula.length / 10
         
-        // 연산자 개수
-        val operators = listOf("+", "-", "*", "/", "^", "%", "&&", "||", "==", "!=", "<", ">", "<=", ">=")
+        // 연산자 개수 (길이순으로 정렬하여 겹치는 연산자 처리)
+        val operators = listOf("<=", ">=", "==", "!=", "&&", "||", "+", "-", "*", "/", "^", "%", "<", ">")
+        var formulaForCounting = formula
+        var totalOperatorCount = 0
+        
+        // 긴 연산자부터 검사하여 겹치는 연산자 문제 해결
         operators.forEach { op ->
-            complexity += formula.split(op).size - 1
+            val regex = Regex(Regex.escape(op))
+            val matches = regex.findAll(formulaForCounting).toList()
+            totalOperatorCount += matches.size
+            
+            // 찾은 연산자를 공백으로 치환하여 중복 카운팅 방지
+            formulaForCounting = formulaForCounting.replace(regex, " ".repeat(op.length))
         }
+        
+        complexity += totalOperatorCount
         
         // 함수 호출 개수
         val functionPattern = Regex("[a-zA-Z]+\\(")
