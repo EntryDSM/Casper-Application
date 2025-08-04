@@ -482,15 +482,14 @@ class NodeStructureSpec : SpecificationContract<ASTNode> {
         val violations = mutableListOf<String>()
         val children = node.getChildren()
         
-        // 자식 노드 null 검증
-        if (children.any { it == null }) {
-            violations.add("null 자식 노드가 발견되었습니다")
-        }
-        
         // 자식 노드 타입 일관성 검증
         children.forEach { child ->
-            if (!child.validate()) {
-                violations.add("유효하지 않은 자식 노드가 발견되었습니다: ${child::class.simpleName}")
+            try {
+                if (!child.validate()) {
+                    violations.add("유효하지 않은 자식 노드가 발견되었습니다: ${child::class.simpleName}")
+                }
+            } catch (e: Exception) {
+                violations.add("자식 노드 검증 중 예외가 발생했습니다: ${child::class.simpleName} - ${e.message}")
             }
         }
         
