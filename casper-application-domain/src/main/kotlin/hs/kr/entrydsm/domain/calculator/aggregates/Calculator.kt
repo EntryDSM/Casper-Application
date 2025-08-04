@@ -179,12 +179,13 @@ class Calculator(
      *
      * @param formula 검사할 수식
      * @return 유효하면 true, 아니면 false
+     * @throws CalculatorException 검증 중 오류 발생 시
      */
     fun isValidFormula(formula: String): Boolean = try {
         tokenize(formula)
         true
     } catch (e: Exception) {
-        false
+        throw CalculatorException.formulaValidationError(formula, e)
     }
 
     /**

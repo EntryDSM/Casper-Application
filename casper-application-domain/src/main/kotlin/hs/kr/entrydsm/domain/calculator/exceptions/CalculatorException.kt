@@ -167,6 +167,21 @@ class CalculatorException(
                 cause = cause
             )
         }
+
+        /**
+         * 수식 검증 오류를 생성합니다.
+         *
+         * @param formula 검증 실패한 수식
+         * @param cause 원인 예외
+         * @return CalculatorException 인스턴스
+         */
+        fun formulaValidationError(formula: String, cause: Throwable? = null): CalculatorException {
+            return CalculatorException(
+                errorCode = ErrorCode.FORMULA_VALIDATION_ERROR,
+                formula = formula,
+                cause = cause
+            )
+        }
     }
 
     /**

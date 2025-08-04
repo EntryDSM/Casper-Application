@@ -70,6 +70,7 @@ enum class ErrorCode(val code: String, val description: String) {
     TOO_MANY_VARIABLES("CAL005", "변수가 너무 많습니다"),
     MISSING_VARIABLES("CAL006", "필수 변수가 누락되었습니다"),
     STEP_EXECUTION_ERROR("CAL007", "단계 실행 중 오류가 발생했습니다"),
+    FORMULA_VALIDATION_ERROR("CAL008", "수식 검증 중 오류가 발생했습니다"),
 
     // Expresser 도메인 오류 (EXP)
     FORMATTING_ERROR("EXP001", "포맷팅 중 오류가 발생했습니다"),
