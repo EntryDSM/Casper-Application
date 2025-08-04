@@ -22,7 +22,7 @@ data class TreeDepth private constructor(val value: Int) {
      * 깊이를 증가시킵니다.
      */
     fun increment(): TreeDepth {
-        return of(value + 1)
+        return if (value < MAX_DEPTH) of(value + 1) else this
     }
     
     /**
