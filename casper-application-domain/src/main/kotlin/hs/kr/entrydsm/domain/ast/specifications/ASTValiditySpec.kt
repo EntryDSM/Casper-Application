@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.specifications
 
 import hs.kr.entrydsm.domain.ast.entities.*
+import hs.kr.entrydsm.domain.ast.utils.FunctionValidationRules
 import hs.kr.entrydsm.global.annotation.specification.Specification
 import hs.kr.entrydsm.global.annotation.specification.SpecificationResult
 import hs.kr.entrydsm.global.annotation.specification.SpecificationContract
@@ -402,14 +403,7 @@ class ASTValiditySpec : SpecificationContract<ASTNode> {
      * 유효한 함수 호출인지 확인합니다.
      */
     private fun isValidFunctionCall(name: String, args: List<ASTNode>): Boolean {
-        return when (name.uppercase()) {
-            "SQRT" -> args.size == 1
-            "POW" -> args.size == 2
-            "SIN", "COS", "TAN", "ABS", "LOG", "EXP" -> args.size == 1
-            "MAX", "MIN" -> args.isNotEmpty()
-            "IF" -> args.size == 3
-            else -> true // 기본적으로 허용
-        }
+        return FunctionValidationRules.isValidFunctionCall(name, args)
     }
 
     /**

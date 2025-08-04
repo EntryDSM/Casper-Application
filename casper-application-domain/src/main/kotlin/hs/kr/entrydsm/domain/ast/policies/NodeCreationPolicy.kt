@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.ast.policies
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.utils.ASTValidationUtils
+import hs.kr.entrydsm.domain.ast.utils.FunctionValidationRules
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.PolicyResult
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
@@ -319,19 +320,10 @@ class NodeCreationPolicy {
      * 함수별 특별 규칙을 검증합니다.
      */
     private fun validateFunctionSpecificRules(name: String, args: List<ASTNode>) {
-        when (name.uppercase()) {
-            "SQRT" -> {
-                require(args.size == 1) { "SQRT 함수는 정확히 1개의 인수가 필요합니다" }
-            }
-            "POW" -> {
-                require(args.size == 2) { "POW 함수는 정확히 2개의 인수가 필요합니다" }
-            }
-            "MAX", "MIN" -> {
-                require(args.isNotEmpty()) { "$name 함수는 최소 1개의 인수가 필요합니다" }
-            }
-            "IF" -> {
-                require(args.size == 3) { "IF 함수는 정확히 3개의 인수가 필요합니다" }
-            }
+        require(FunctionValidationRules.isValidFunctionCall(name, args)) {
+            val expectedCount = FunctionValidationRules.getExpectedArgumentCount(name)
+            val description = FunctionValidationRules.getArgumentCountDescription(name)
+            "$name 함수는 $description 의 인수가 필요합니다 (현재: ${args.size}개)"
         }
     }
 
