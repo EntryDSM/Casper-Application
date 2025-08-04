@@ -258,9 +258,9 @@ class ASTValidationPolicy {
         }
         
         // 중첩 깊이 검증
-        val nestingDepth = calculateNestingDepth(condition) + 
-                          calculateNestingDepth(trueValue) + 
-                          calculateNestingDepth(falseValue)
+        val nestingDepth = calculateIfNodeNestingDepth(condition) + 
+                          calculateIfNodeNestingDepth(trueValue) + 
+                          calculateIfNodeNestingDepth(falseValue)
         if (nestingDepth > MAX_NESTING_DEPTH) {
             violations.add("중첩 깊이가 최대값을 초과합니다: $nestingDepth > $MAX_NESTING_DEPTH")
         }
@@ -340,14 +340,15 @@ class ASTValidationPolicy {
     private fun isZeroConstant(node: ASTNode): Boolean = ASTValidationUtils.isZeroConstant(node)
 
     /**
-     * 중첩 깊이를 계산합니다.
+     * IfNode의 중첩 깊이를 계산합니다.
+     * 다른 노드 타입의 경우 0을 반환합니다.
      */
-    private fun calculateNestingDepth(node: ASTNode): Int {
+    private fun calculateIfNodeNestingDepth(node: ASTNode): Int {
         return when (node) {
             is hs.kr.entrydsm.domain.ast.entities.IfNode -> 1 + maxOf(
-                calculateNestingDepth(node.condition),
-                calculateNestingDepth(node.trueValue),
-                calculateNestingDepth(node.falseValue)
+                calculateIfNodeNestingDepth(node.condition),
+                calculateIfNodeNestingDepth(node.trueValue),
+                calculateIfNodeNestingDepth(node.falseValue)
             )
             else -> 0
         }
