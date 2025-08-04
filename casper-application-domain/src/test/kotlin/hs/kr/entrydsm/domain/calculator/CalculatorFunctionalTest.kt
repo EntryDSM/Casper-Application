@@ -238,13 +238,19 @@ class CalculatorFunctionalTest {
             "(korean_3_1 + social_3_1 + history_3_1 + math_3_1 + science_3_1 + tech_3_1 + english_3_1) / 7",
             "(korean_2_2 + social_2_2 + history_2_2 + math_2_2 + science_2_2 + tech_2_2 + english_2_2) / 7", 
             "(korean_2_1 + social_2_1 + history_2_1 + math_2_1 + science_2_1 + tech_2_1 + english_2_1) / 7",
-            "step1 * 8 + step2 * 4 + step3 * 4", // 기준점수
-            "step4 * 1.75", // 교과점수
+            "__entry_calc_step_1 * 8 + __entry_calc_step_2 * 4 + __entry_calc_step_3 * 4", // 기준점수
+            "__entry_calc_step_4 * 1.75", // 교과점수
             "IF(volunteer_hours > 15, 15, volunteer_hours)", // 봉사점수
-            "step5 + step6 + 15" // 총점 (출석점수 15점 가정)
+            "__entry_calc_step_5 + __entry_calc_step_6 + 15" // 총점 (출석점수 15점 가정)
         )
         
-        val results = calculator.calculateMultiStep(formulas, userData)
+        val results = try {
+            calculator.calculateMultiStep(formulas, userData)
+        } catch (e: Exception) {
+            println("Exception during calculation: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
         
         assertEquals(7, results.size)
         results.forEach { result ->

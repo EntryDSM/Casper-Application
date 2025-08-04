@@ -85,7 +85,13 @@ class MultiStepScoreCalculationTest {
         )
         
         // 다단계 계산 실행
-        val results = calculator.calculateMultiStep(formulas, variables)
+        val results = try {
+            calculator.calculateMultiStep(formulas, variables)
+        } catch (e: Exception) {
+            println("Exception during calculation: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
         
         // 모든 단계가 성공했는지 확인
         assertEquals(14, results.size)
@@ -183,15 +189,21 @@ class MultiStepScoreCalculationTest {
             Triple("3학년 1학기 교과평균", "(korean_3_1 + social_3_1 + history_3_1 + math_3_1 + science_3_1 + tech_3_1 + english_3_1) / 7", "semester_3_1_avg"),
             Triple("2학년 2학기 교과평균", "(korean_2_2 + social_2_2 + history_2_2 + math_2_2 + science_2_2 + tech_2_2 + english_2_2) / 7", "semester_2_2_avg"),
             Triple("2학년 1학기 교과평균", "(korean_2_1 + social_2_1 + history_2_1 + math_2_1 + science_2_1 + tech_2_1 + english_2_1) / 7", "semester_2_1_avg"),
-            Triple("3학년 1학기 점수 (40점 만점)", "8 * step1", "score_3_1"),
-            Triple("2학년 2학기 점수 (20점 만점)", "4 * step2", "score_2_2"),
-            Triple("2학년 1학기 점수 (20점 만점)", "4 * step3", "score_2_1"),
-            Triple("교과 기준점수 (80점 만점)", "step4 + step5 + step6", "base_academic_score"),
-            Triple("일반전형 교과점수 (140점 만점)", "step7 * 1.75", "academic_score")
+            Triple("3학년 1학기 점수 (40점 만점)", "8 * __entry_calc_step_1", "score_3_1"),
+            Triple("2학년 2학기 점수 (20점 만점)", "4 * __entry_calc_step_2", "score_2_2"),
+            Triple("2학년 1학기 점수 (20점 만점)", "4 * __entry_calc_step_3", "score_2_1"),
+            Triple("교과 기준점수 (80점 만점)", "__entry_calc_step_4 + __entry_calc_step_5 + __entry_calc_step_6", "base_academic_score"),
+            Triple("일반전형 교과점수 (140점 만점)", "__entry_calc_step_7 * 1.75", "academic_score")
         )
         
         val formulas = steps.map { it.second }
-        val results = calculator.calculateMultiStep(formulas, variables)
+        val results = try {
+            calculator.calculateMultiStep(formulas, variables)
+        } catch (e: Exception) {
+            println("Exception during calculation: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
         
         // 각 단계별 검증
         steps.forEachIndexed { index, (stepName, formula, resultVariable) ->

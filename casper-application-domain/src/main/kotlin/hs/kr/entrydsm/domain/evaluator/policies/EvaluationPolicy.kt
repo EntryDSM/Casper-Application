@@ -231,13 +231,84 @@ class EvaluationPolicy {
 
     /**
      * 의심스러운 패턴이 포함되어 있는지 확인합니다.
+     * AST 노드의 구조를 직접 분석하여 위험한 구성요소를 탐지합니다.
      */
     private fun containsSuspiciousPatterns(node: ASTNode): Boolean {
-        // 예: 과도한 재귀, 무한 루프 가능성 등을 검사
-        val nodeString = node.toString()
-        return nodeString.contains("eval") ||
-               nodeString.contains("exec") ||
-               nodeString.contains("system")
+        return when (node) {
+            is hs.kr.entrydsm.domain.ast.entities.FunctionCallNode -> {
+                // 위험한 함수 호출 검사
+                val dangerousFunctions = setOf(
+                    "eval", "exec", "system", "shell", "command", "run",
+                    "import", "require", "load", "include", "file", "read", "write",
+                    "delete", "remove", "create", "mkdir", "rmdir", "chmod"
+                )
+                if (node.name.lowercase() in dangerousFunctions) {
+                    return true
+                }
+                
+                // 과도한 재귀 호출 패턴 검사
+                val recursiveCallDepth = countRecursiveCalls(node, node.name)
+                if (recursiveCallDepth > 5) {
+                    return true
+                }
+                
+                // 인수 내에서도 재귀적으로 검사
+                node.args.any { containsSuspiciousPatterns(it) }
+            }
+            is hs.kr.entrydsm.domain.ast.entities.VariableNode -> {
+                // 위험한 변수명 검사
+                val dangerousVariables = setOf(
+                    "process", "runtime", "classloader", "system", "environment",
+                    "__proto__", "constructor", "prototype", "global", "window"
+                )
+                node.name.lowercase() in dangerousVariables
+            }
+            is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> {
+                // 자식 노드들을 재귀적으로 검사
+                containsSuspiciousPatterns(node.left) || containsSuspiciousPatterns(node.right)
+            }
+            is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode -> {
+                // 자식 노드를 재귀적으로 검사
+                containsSuspiciousPatterns(node.operand)
+            }
+            is hs.kr.entrydsm.domain.ast.entities.IfNode -> {
+                // 조건문의 모든 분기를 검사
+                containsSuspiciousPatterns(node.condition) ||
+                containsSuspiciousPatterns(node.trueValue) ||
+                containsSuspiciousPatterns(node.falseValue)
+            }
+            is hs.kr.entrydsm.domain.ast.entities.ArgumentsNode -> {
+                // 모든 인수를 검사
+                node.arguments.any { containsSuspiciousPatterns(it) }
+            }
+            else -> {
+                // NumberNode, BooleanNode 등은 일반적으로 안전
+                false
+            }
+        }
+    }
+
+    /**
+     * 재귀 호출 깊이를 계산합니다.
+     */
+    private fun countRecursiveCalls(node: ASTNode, functionName: String, depth: Int = 0): Int {
+        if (depth > 10) return depth // 무한 루프 방지
+        
+        return when (node) {
+            is hs.kr.entrydsm.domain.ast.entities.FunctionCallNode -> {
+                val currentDepth = if (node.name == functionName) depth + 1 else depth
+                val maxChildDepth = node.args.maxOfOrNull { 
+                    countRecursiveCalls(it, functionName, currentDepth) 
+                } ?: currentDepth
+                maxChildDepth
+            }
+            else -> {
+                val children = node.getChildren()
+                children.maxOfOrNull { 
+                    countRecursiveCalls(it, functionName, depth) 
+                } ?: depth
+            }
+        }
     }
 
     /**
