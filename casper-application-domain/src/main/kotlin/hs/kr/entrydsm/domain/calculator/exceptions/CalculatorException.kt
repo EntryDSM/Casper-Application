@@ -182,6 +182,21 @@ class CalculatorException(
                 cause = cause
             )
         }
+
+        /**
+         * 변수 추출 오류를 생성합니다.
+         *
+         * @param formula 변수 추출 실패한 수식
+         * @param cause 원인 예외
+         * @return CalculatorException 인스턴스
+         */
+        fun variableExtractionError(formula: String, cause: Throwable? = null): CalculatorException {
+            return CalculatorException(
+                errorCode = ErrorCode.VARIABLE_EXTRACTION_ERROR,
+                formula = formula,
+                cause = cause
+            )
+        }
     }
 
     /**

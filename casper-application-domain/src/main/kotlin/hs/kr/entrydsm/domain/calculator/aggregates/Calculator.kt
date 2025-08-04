@@ -193,6 +193,7 @@ class Calculator(
      *
      * @param formula 분석할 수식
      * @return 변수 이름 집합
+     * @throws CalculatorException 변수 추출 중 오류 발생 시
      */
     fun extractVariables(formula: String): Set<String> = try {
         val tokens = tokenize(formula)
@@ -200,7 +201,7 @@ class Calculator(
             .map { it.value }
             .toSet()
     } catch (e: Exception) {
-        emptySet()
+        throw CalculatorException.variableExtractionError(formula, e)
     }
 
     /**

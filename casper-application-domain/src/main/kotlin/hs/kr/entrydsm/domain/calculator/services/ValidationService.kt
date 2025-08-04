@@ -250,17 +250,13 @@ class ValidationService {
                 }
             }
             is String -> {
-                // 문자열은 숫자로 변환 가능한지 확인 (선택적)
-                if (value.isNotEmpty() && value.toDoubleOrNull() == null) {
-                    // 숫자가 아닌 문자열도 허용하지만, 너무 긴 문자열은 제한
-                    if (value.length > 1000) {
-                        throw ValidationException(
-                            errorCode = ErrorCode.VALIDATION_FAILED,
-                            field = "variables.$variableName",
-                            value = value.length,
-                            constraint = "문자열 변수값은 최대 1000자까지 허용됩니다"
-                        )
-                    }
+                if (value.length > 1000) {
+                    throw ValidationException(
+                        errorCode = ErrorCode.VALIDATION_FAILED,
+                        field = "variables.$variableName",
+                        value = value.length,
+                        constraint = "문자열 변수값은 최대 1000자까지 허용됩니다"
+                    )
                 }
             }
             is Boolean -> {
