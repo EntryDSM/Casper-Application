@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.policies
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.utils.ASTValidationUtils
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.PolicyResult
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
@@ -330,51 +331,13 @@ class ASTValidationPolicy {
         )
     }
 
-    /**
-     * 변수명이 유효한지 확인합니다.
-     */
-    private fun isValidVariableName(name: String): Boolean {
-        if (name.isEmpty()) return false
-        if (!name[0].isLetter() && name[0] != '_') return false
-        return name.drop(1).all { it.isLetterOrDigit() || it == '_' }
-    }
-
-    /**
-     * 함수명이 유효한지 확인합니다.
-     */
-    private fun isValidFunctionName(name: String): Boolean {
-        if (name.isEmpty()) return false
-        if (!name[0].isLetter()) return false
-        return name.drop(1).all { it.isLetterOrDigit() || it == '_' }
-    }
-
-    /**
-     * 예약어인지 확인합니다.
-     */
-    private fun isReservedWord(name: String): Boolean {
-        return RESERVED_WORDS.contains(name.lowercase())
-    }
-
-    /**
-     * 지원되는 이항 연산자인지 확인합니다.
-     */
-    private fun isSupportedBinaryOperator(operator: String): Boolean {
-        return BINARY_OPERATORS.contains(operator)
-    }
-
-    /**
-     * 지원되는 단항 연산자인지 확인합니다.
-     */
-    private fun isSupportedUnaryOperator(operator: String): Boolean {
-        return UNARY_OPERATORS.contains(operator)
-    }
-
-    /**
-     * 노드가 0 상수인지 확인합니다.
-     */
-    private fun isZeroConstant(node: ASTNode): Boolean {
-        return node is hs.kr.entrydsm.domain.ast.entities.NumberNode && node.value == 0.0
-    }
+    // 중복 메서드들을 ASTValidationUtils로 대체
+    private fun isValidVariableName(name: String): Boolean = ASTValidationUtils.isValidVariableName(name)
+    private fun isValidFunctionName(name: String): Boolean = ASTValidationUtils.isValidFunctionName(name)
+    private fun isReservedWord(name: String): Boolean = ASTValidationUtils.isReservedWord(name)
+    private fun isSupportedBinaryOperator(operator: String): Boolean = ASTValidationUtils.isSupportedBinaryOperator(operator)
+    private fun isSupportedUnaryOperator(operator: String): Boolean = ASTValidationUtils.isSupportedUnaryOperator(operator)
+    private fun isZeroConstant(node: ASTNode): Boolean = ASTValidationUtils.isZeroConstant(node)
 
     /**
      * 중첩 깊이를 계산합니다.
@@ -402,19 +365,7 @@ class ASTValidationPolicy {
         private const val MAX_VARIABLES_PER_NODE = 100
         private const val MAX_NESTING_DEPTH = 20
 
-        private val RESERVED_WORDS = setOf(
-            "if", "else", "while", "for", "do", "break", "continue",
-            "function", "return", "var", "let", "const", "true", "false",
-            "null", "undefined", "this", "new", "typeof", "instanceof",
-            "try", "catch", "finally", "throw", "switch", "case", "default"
-        )
-
-        private val BINARY_OPERATORS = setOf(
-            "+", "-", "*", "/", "%", "^",
-            "==", "!=", "<", "<=", ">", ">=",
-            "&&", "||"
-        )
-
-        private val UNARY_OPERATORS = setOf("-", "+", "!")
+        // 중복 상수들을 ASTValidationUtils로 대체
+        // RESERVED_WORDS, BINARY_OPERATORS, UNARY_OPERATORS는 ASTValidationUtils에서 관리
     }
 }
