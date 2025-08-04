@@ -104,8 +104,7 @@ class Calculator(
                 val result = calculate(request)
                 results.add(result)
                 
-                // 결과를 다음 단계의 변수로 추가 (step1, step2, ...)
-                currentVariables["step${index + 1}"] = result.result ?: 0.0
+                currentVariables["${STEP_VARIABLE_PREFIX}${index + 1}"] = result.result ?: 0.0
                 
             } catch (e: Exception) {
                 throw CalculatorException.stepExecutionError(index + 1, e)
@@ -215,6 +214,8 @@ class Calculator(
     )
 
     companion object {
+        
+        private const val STEP_VARIABLE_PREFIX = "__entry_step_"
         /**
          * 기본 설정으로 계산기를 생성합니다.
          *
