@@ -50,29 +50,29 @@ class MultiStepScoreCalculationTest {
             // 3. 2학년 1학기 교과평균
             "(korean_2_1 + social_2_1 + history_2_1 + math_2_1 + science_2_1 + tech_2_1 + english_2_1) / 7",
             
-            // 4. 3학년 1학기 점수 (40점 만점) - step1 사용
-            "8 * step1",
+            // 4. 3학년 1학기 점수 (40점 만점) - __entry_calc_step_1 사용
+            "8 * __entry_calc_step_1",
             
-            // 5. 2학년 2학기 점수 (20점 만점) - step2 사용
-            "4 * step2", 
+            // 5. 2학년 2학기 점수 (20점 만점) - __entry_calc_step_2 사용
+            "4 * __entry_calc_step_2", 
             
-            // 6. 2학년 1학기 점수 (20점 만점) - step3 사용
-            "4 * step3",
+            // 6. 2학년 1학기 점수 (20점 만점) - __entry_calc_step_3 사용
+            "4 * __entry_calc_step_3",
             
-            // 7. 교과 기준점수 (80점 만점) - step4, step5, step6 사용
-            "step4 + step5 + step6",
+            // 7. 교과 기준점수 (80점 만점) - __entry_calc_step_4, __entry_calc_step_5, __entry_calc_step_6 사용
+            "__entry_calc_step_4 + __entry_calc_step_5 + __entry_calc_step_6",
             
-            // 8. 일반전형 교과점수 (140점 만점) - step7 사용
-            "step7 * 1.75",
+            // 8. 일반전형 교과점수 (140점 만점) - __entry_calc_step_7 사용
+            "__entry_calc_step_7 * 1.75",
             
             // 9. 환산결석일수 계산
             "absent_days + late_count/3 + early_leave_count/3 + lesson_absence_count/3",
             
             // 10. 환산결석일수 정수변환 (ROUND 함수 대신 간단한 처리)
-            "step9",  // 실제로는 ROUND(step9 - 0.5, 0)이지만 단순화
+            "__entry_calc_step_9",  // 실제로는 ROUND(__entry_calc_step_9 - 0.5, 0)이지만 단순화
             
             // 11. 출석점수 (복잡한 IF문 대신 단순화) - 환산결석일수가 1미만이면 15점
-            "IF(step10 < 1, 15, 14)",
+            "IF(__entry_calc_step_10 < 1, 15, 14)",
             
             // 12. 봉사활동점수 (MIN 함수 대신 IF문)
             "IF(volunteer_hours > 15, 15, volunteer_hours)",
@@ -81,7 +81,7 @@ class MultiStepScoreCalculationTest {
             "algorithm_award * 3 + info_license * 0",
             
             // 14. 최종 총점 계산
-            "step8 + step11 + step12 + step13"
+            "__entry_calc_step_8 + __entry_calc_step_11 + __entry_calc_step_12 + __entry_calc_step_13"
         )
         
         // 다단계 계산 실행
@@ -229,7 +229,7 @@ class MultiStepScoreCalculationTest {
         val invalidFormulas = listOf(
             "nonexistent_variable + 1", // 존재하지 않는 변수
             "korean_3_1 / 0", // 0으로 나누기
-            "step10", // 존재하지 않는 step 참조
+            "__entry_calc_step_10", // 존재하지 않는 step 참조
             "korean_3_1 + " // 문법 오류
         )
         
