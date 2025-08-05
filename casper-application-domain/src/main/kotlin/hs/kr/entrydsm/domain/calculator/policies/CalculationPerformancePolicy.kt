@@ -556,14 +556,3 @@ class CalculationPerformancePolicy {
     )
 }
 
-// 임시 데이터 클래스들 (실제로는 별도 파일에 정의되어야 함)
-data class CalculationResult(
-    val success: Boolean,
-    val executionTimeMs: Long,
-    val errors: List<String> = emptyList(),
-    val errorCode: String? = null,
-    val stepResults: List<Any> = emptyList(),
-    val finalVariables: Map<String, Any> = emptyMap(),
-    val stepExecutionTimes: List<Long> = emptyList(),
-    val cached: Boolean = false
-)
