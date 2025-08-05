@@ -7,6 +7,7 @@ import hs.kr.entrydsm.domain.ast.policies.ASTValidationPolicy
 import hs.kr.entrydsm.domain.ast.policies.NodeCreationPolicy
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * AST 노드 객체들을 생성하는 팩토리입니다.
@@ -54,6 +55,8 @@ class ASTNodeFactory {
             "생성된 숫자 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
         }
         
+        createdNumberCount.incrementAndGet()
+        
         return node
     }
 
@@ -73,6 +76,8 @@ class ASTNodeFactory {
         require(validitySpec.isSatisfiedBy(node)) { 
             "생성된 불리언 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
         }
+        
+        createdBooleanCount.incrementAndGet()
         
         return node
     }
@@ -94,6 +99,8 @@ class ASTNodeFactory {
         require(validitySpec.isSatisfiedBy(node)) { 
             "생성된 변수 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
         }
+        
+        createdVariableCount.incrementAndGet()
         
         return node
     }
@@ -123,6 +130,8 @@ class ASTNodeFactory {
             "생성된 이항 연산 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
         }
         
+        createdBinaryOpCount.incrementAndGet()
+        
         return node
     }
 
@@ -150,6 +159,8 @@ class ASTNodeFactory {
             "생성된 단항 연산 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
         }
         
+        createdUnaryOpCount.incrementAndGet()
+        
         return node
     }
 
@@ -176,6 +187,8 @@ class ASTNodeFactory {
         require(structureSpec.isSatisfiedBy(node)) { 
             "생성된 함수 호출 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
         }
+        
+        createdFunctionCallCount.incrementAndGet()
         
         return node
     }
@@ -205,6 +218,8 @@ class ASTNodeFactory {
             "생성된 조건문 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
         }
         
+        createdIfCount.incrementAndGet()
+        
         return node
     }
 
@@ -225,6 +240,8 @@ class ASTNodeFactory {
         require(validitySpec.isSatisfiedBy(node)) { 
             "생성된 인수 목록 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
         }
+        
+        createdArgumentsCount.incrementAndGet()
         
         return node
     }
@@ -398,30 +415,30 @@ class ASTNodeFactory {
      */
     fun getFactoryStatistics(): Map<String, Any> {
         return mapOf(
-            "totalNodesCreated" to createdNodeCount,
-            "numberNodesCreated" to createdNumberCount,
-            "booleanNodesCreated" to createdBooleanCount,
-            "variableNodesCreated" to createdVariableCount,
-            "binaryOpNodesCreated" to createdBinaryOpCount,
-            "unaryOpNodesCreated" to createdUnaryOpCount,
-            "functionCallNodesCreated" to createdFunctionCallCount,
-            "ifNodesCreated" to createdIfCount,
-            "argumentsNodesCreated" to createdArgumentsCount,
+            "totalNodesCreated" to createdNodeCount.get(),
+            "numberNodesCreated" to createdNumberCount.get(),
+            "booleanNodesCreated" to createdBooleanCount.get(),
+            "variableNodesCreated" to createdVariableCount.get(),
+            "binaryOpNodesCreated" to createdBinaryOpCount.get(),
+            "unaryOpNodesCreated" to createdUnaryOpCount.get(),
+            "functionCallNodesCreated" to createdFunctionCallCount.get(),
+            "ifNodesCreated" to createdIfCount.get(),
+            "argumentsNodesCreated" to createdArgumentsCount.get(),
             "factoryComplexity" to Complexity.HIGH.name,
             "cacheEnabled" to true
         )
     }
 
     companion object {
-        private var createdNodeCount = 0L
-        private var createdNumberCount = 0L
-        private var createdBooleanCount = 0L
-        private var createdVariableCount = 0L
-        private var createdBinaryOpCount = 0L
-        private var createdUnaryOpCount = 0L
-        private var createdFunctionCallCount = 0L
-        private var createdIfCount = 0L
-        private var createdArgumentsCount = 0L
+        private val createdNodeCount = AtomicLong(0)
+        private val createdNumberCount = AtomicLong(0)
+        private val createdBooleanCount = AtomicLong(0)
+        private val createdVariableCount = AtomicLong(0)
+        private val createdBinaryOpCount = AtomicLong(0)
+        private val createdUnaryOpCount = AtomicLong(0)
+        private val createdFunctionCallCount = AtomicLong(0)
+        private val createdIfCount = AtomicLong(0)
+        private val createdArgumentsCount = AtomicLong(0)
 
         /**
          * 싱글톤 팩토리 인스턴스를 반환합니다.
@@ -449,6 +466,6 @@ class ASTNodeFactory {
     }
 
     init {
-        createdNodeCount++
+        createdNodeCount.incrementAndGet()
     }
 }
