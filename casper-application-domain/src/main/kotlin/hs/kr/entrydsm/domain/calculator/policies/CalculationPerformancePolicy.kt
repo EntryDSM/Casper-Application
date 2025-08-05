@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.*
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * POC 코드의 성능 관리 기능을 DDD Policy 패턴으로 구현한 클래스입니다.
@@ -34,6 +36,43 @@ import java.util.concurrent.TimeoutException
     scope = Scope.DOMAIN
 )
 class CalculationPerformancePolicy {
+
+    /**
+     * Thread-safe circular FIFO queue implementation
+     * 고정 크기 원형 큐로 자동으로 오래된 데이터를 제거하며 동시성 성능을 개선합니다.
+     */
+    private class ThreadSafeCircularQueue<T>(private val maxSize: Int) {
+        private val deque = ConcurrentLinkedDeque<T>()
+        private val size = AtomicInteger(0)
+        
+        fun add(element: T) {
+            deque.addLast(element)
+            val currentSize = size.incrementAndGet()
+            
+            // 크기 제한 초과 시 오래된 요소 제거
+            if (currentSize > maxSize) {
+                deque.pollFirst()
+                size.decrementAndGet()
+            }
+        }
+        
+        fun toList(): List<T> = deque.toList()
+        
+        fun size(): Int = size.get()
+        
+        fun clear() {
+            deque.clear()
+            size.set(0)
+        }
+        
+        fun isEmpty(): Boolean = deque.isEmpty()
+        
+        fun average(): Double {
+            val list = toList()
+            return if (list.isEmpty()) 0.0 
+                   else list.map { (it as Number).toDouble() }.average()
+        }
+    }
 
     companion object {
         // POC 코드의 CalculatorProperties 기본값들
@@ -59,9 +98,9 @@ class CalculationPerformancePolicy {
     private val calculationCache = ConcurrentHashMap<String, CachedResult>()
     private val multiStepCache = ConcurrentHashMap<String, CachedMultiStepResult>()
     
-    // 성능 모니터링을 위한 메트릭
-    private val executionTimes = mutableListOf<Long>()
-    private val memoryUsage = mutableListOf<Long>()
+    // 성능 모니터링을 위한 메트릭 (Thread-safe circular queues)
+    private val executionTimes = ThreadSafeCircularQueue<Long>(1000)
+    private val memoryUsage = ThreadSafeCircularQueue<Long>(1000)
 
     /**
      * POC 코드의 CalculatorService.calculate에 해당하는 성능 정책 적용
@@ -211,7 +250,7 @@ class CalculationPerformancePolicy {
     fun getPerformanceRecommendations(): List<PerformanceRecommendation> {
         val recommendations = mutableListOf<PerformanceRecommendation>()
         
-        val avgExecutionTime = if (executionTimes.isNotEmpty()) {
+        val avgExecutionTime = if (!executionTimes.isEmpty()) {
             executionTimes.average()
         } else 0.0
         
@@ -240,7 +279,7 @@ class CalculationPerformancePolicy {
             )
         }
         
-        val avgMemory = if (memoryUsage.isNotEmpty()) {
+        val avgMemory = if (!memoryUsage.isEmpty()) {
             memoryUsage.average()
         } else 0.0
         
@@ -273,7 +312,7 @@ class CalculationPerformancePolicy {
             "multiStepCacheSize" to multiStepCache.size,
             "slowCalculations" to slowCalculations.get(),
             "failedCalculations" to failedCalculations.get(),
-            "averageExecutionTime" to if (executionTimes.isNotEmpty()) executionTimes.average() else 0.0,
+            "averageExecutionTime" to if (!executionTimes.isEmpty()) executionTimes.average() else 0.0,
             "totalExecutionTime" to totalExecutionTime.get()
         )
     }
@@ -399,19 +438,9 @@ class CalculationPerformancePolicy {
     }
 
     private fun updatePerformanceMetrics(executionTime: Long, memoryDelta: Long) {
-        synchronized(executionTimes) {
-            executionTimes.add(executionTime)
-            if (executionTimes.size > 1000) {
-                executionTimes.removeAt(0) // 오래된 데이터 제거
-            }
-        }
-        
-        synchronized(memoryUsage) {
-            memoryUsage.add(memoryDelta)
-            if (memoryUsage.size > 1000) {
-                memoryUsage.removeAt(0)
-            }
-        }
+        // Thread-safe circular queues automatically handle size limits
+        executionTimes.add(executionTime)
+        memoryUsage.add(memoryDelta)
         
         totalExecutionTime.addAndGet(executionTime)
     }
