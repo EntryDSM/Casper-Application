@@ -4,6 +4,7 @@ import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.MultiStepCalculationRequest
 import hs.kr.entrydsm.global.annotation.specification.Specification
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.constants.ErrorCodes
 
 /**
@@ -316,8 +317,14 @@ class CalculatorValiditySpec {
     }
 
     private fun extractFormulaFromStep(step: Any): String {
-        // 실제 구현에서는 Step 객체의 구조에 따라 구현
-        return step.toString()
+        return when (step) {
+            is hs.kr.entrydsm.domain.calculator.values.CalculationStep -> step.formula
+            is String -> step
+            else -> throw EvaluatorException.unsupportedType(
+                valueType = step::class.simpleName ?: "Unknown",
+                value = "지원하지 않는 단계 타입입니다. CalculationStep 또는 String만 지원됩니다."
+            )
+        }
     }
 
     private fun extractVariablesFromFormula(formula: String): Set<String> {
@@ -329,9 +336,10 @@ class CalculatorValiditySpec {
     }
 
     private fun extractAssignedVariable(step: Any): String? {
-        // 실제 구현에서는 Step 객체에서 할당 변수를 추출
-        // 예: "x = 2 + 3" -> "x"
-        return null
+        return when (step) {
+            is hs.kr.entrydsm.domain.calculator.values.CalculationStep -> step.resultVariable
+            else -> null
+        }
     }
 
     /**

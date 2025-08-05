@@ -26,7 +26,7 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
     scope = Scope.DOMAIN
 )
 class EvaluationPolicy {
-
+    
     companion object {
         private const val DEFAULT_MAX_DEPTH = 100
         private const val DEFAULT_MAX_NODES = 10000
