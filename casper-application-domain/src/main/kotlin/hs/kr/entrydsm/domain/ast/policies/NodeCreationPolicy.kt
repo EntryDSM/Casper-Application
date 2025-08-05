@@ -183,29 +183,30 @@ class NodeCreationPolicy {
         
         // 조건문 특별 검증
         if (OPTIMIZE_CONSTANT_CONDITIONS) {
-            when (condition) {
-                is hs.kr.entrydsm.domain.ast.entities.BooleanNode -> {
-                    // 상수 조건에 대한 경고 (정책 위반은 아님)
-                }
-                is hs.kr.entrydsm.domain.ast.entities.NumberNode -> {
-                    // 숫자 조건에 대한 경고
-                }
-                is hs.kr.entrydsm.domain.ast.entities.ArgumentsNode -> {
-                    // ArgumentsNode 처리
-                is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> {
-                    // BinaryOpNode 처리
-                }
-                is hs.kr.entrydsm.domain.ast.entities.FunctionCallNode -> {
-                    // FunctionCallNode 처리
-                }
-                is hs.kr.entrydsm.domain.ast.entities.IfNode -> {
-                    // IfNode 처리
-                }
-                is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode -> {
-                    // UnaryOpNode 처리
-                }
-                is hs.kr.entrydsm.domain.ast.entities.VariableNode -> {
-                    // VariableNode 처리
+            // 상수 조건이 감지된 경우 최적화 권고
+            if (condition.isLiteral()) {
+                when (condition) {
+                    is hs.kr.entrydsm.domain.ast.entities.BooleanNode -> {
+                        if (condition.value) {
+                            // 항상 참인 조건 - trueValue만 사용하면 됨
+                            constantConditionOptimizationCount.incrementAndGet()
+                        } else {
+                            // 항상 거짓인 조건 - falseValue만 사용하면 됨
+                            constantConditionOptimizationCount.incrementAndGet()
+                        }
+                    }
+                    is hs.kr.entrydsm.domain.ast.entities.NumberNode -> {
+                        if (condition.isZero()) {
+                            // 0은 거짓으로 간주 - falseValue만 사용하면 됨
+                            constantConditionOptimizationCount.incrementAndGet()
+                        } else {
+                            // 0이 아닌 숫자는 참으로 간주 - trueValue만 사용하면 됨
+                            constantConditionOptimizationCount.incrementAndGet()
+                        }
+                    }
+                    else -> {
+                        // 다른 리터럴 타입들은 현재 최적화하지 않음
+                    }
                 }
             }
         }
