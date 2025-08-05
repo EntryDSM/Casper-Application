@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.evaluator.factories
 
 import hs.kr.entrydsm.domain.evaluator.entities.MathFunction
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 import kotlin.math.E
@@ -194,7 +195,7 @@ class MathFunctionFactory {
             "SQRT", 1, "제곱근을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value < 0) throw IllegalArgumentException("음수의 제곱근은 계산할 수 없습니다")
+            if (value < 0) throw EvaluatorException.mathError("음수의 제곱근은 계산할 수 없습니다 (입력값: $value)")
             sqrt(value)
         }
     }
@@ -211,7 +212,7 @@ class MathFunctionFactory {
                     val multiplier = 10.0.pow(places.toDouble())
                     round(value * multiplier) / multiplier
                 }
-                else -> throw IllegalArgumentException("ROUND 함수는 1-2개의 인수를 받습니다")
+                else -> throw EvaluatorException.wrongArgumentCount("ROUND", 2, args.size)
             }
         }
     }
@@ -220,7 +221,7 @@ class MathFunctionFactory {
         MathFunction.varArgs(
             "MIN", 1, Int.MAX_VALUE, "최솟값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
         ) { args ->
-            args.map { toDouble(it) }.minOrNull() ?: throw IllegalArgumentException("인수가 없습니다")
+            args.map { toDouble(it) }.minOrNull() ?: throw EvaluatorException.wrongArgumentCount("MIN", 1, 0)
         }
     }
 
@@ -228,7 +229,7 @@ class MathFunctionFactory {
         MathFunction.varArgs(
             "MAX", 1, Int.MAX_VALUE, "최댓값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
         ) { args ->
-            args.map { toDouble(it) }.maxOrNull() ?: throw IllegalArgumentException("인수가 없습니다")
+            args.map { toDouble(it) }.maxOrNull() ?: throw EvaluatorException.wrongArgumentCount("MAX", 1, 0)
         }
     }
 
@@ -261,7 +262,7 @@ class MathFunctionFactory {
             "LOG", 1, "자연로그를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value <= 0) throw IllegalArgumentException("로그의 인수는 양수여야 합니다")
+            if (value <= 0) throw EvaluatorException.mathError("로그의 인수는 양수여야 합니다 (입력값: $value)")
             ln(value)
         }
     }
@@ -271,7 +272,7 @@ class MathFunctionFactory {
             "LOG10", 1, "상용로그를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value <= 0) throw IllegalArgumentException("로그의 인수는 양수여야 합니다")
+            if (value <= 0) throw EvaluatorException.mathError("로그의 인수는 양수여야 합니다 (입력값: $value)")
             log10(value)
         }
     }
@@ -313,7 +314,7 @@ class MathFunctionFactory {
             "ASIN", 1, "아크사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value < -1 || value > 1) throw IllegalArgumentException("ASIN 정의역 오류")
+            if (value < -1 || value > 1) throw EvaluatorException.mathError("ASIN 함수의 정의역 오류: 입력값은 [-1, 1] 범위여야 합니다 (입력값: $value)")
             asin(value)
         }
     }
@@ -323,7 +324,7 @@ class MathFunctionFactory {
             "ACOS", 1, "아크코사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value < -1 || value > 1) throw IllegalArgumentException("ACOS 정의역 오류")
+            if (value < -1 || value > 1) throw EvaluatorException.mathError("ACOS 함수의 정의역 오류: 입력값은 [-1, 1] 범위여야 합니다 (입력값: $value)")
             acos(value)
         }
     }
@@ -381,7 +382,7 @@ class MathFunctionFactory {
             "ACOSH", 1, "역 하이퍼볼릭 코사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value < 1) throw IllegalArgumentException("ACOSH 정의역 오류")
+            if (value < 1) throw EvaluatorException.mathError("ACOSH 함수의 정의역 오류: 입력값은 1 이상이어야 합니다 (입력값: $value)")
             acosh(value)
         }
     }
@@ -391,7 +392,7 @@ class MathFunctionFactory {
             "ATANH", 1, "역 하이퍼볼릭 탄젠트값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
         ) { args ->
             val value = toDouble(args[0])
-            if (value <= -1 || value >= 1) throw IllegalArgumentException("ATANH 정의역 오류")
+            if (value <= -1 || value >= 1) throw EvaluatorException.mathError("ATANH 함수의 정의역 오류: 입력값은 (-1, 1) 범위여야 합니다 (입력값: $value)")
             atanh(value)
         }
     }
@@ -483,7 +484,7 @@ class MathFunctionFactory {
         ) { args ->
             val dividend = toDouble(args[0])
             val divisor = toDouble(args[1])
-            if (divisor == 0.0) throw IllegalArgumentException("0으로 나눌 수 없습니다")
+            if (divisor == 0.0) throw EvaluatorException.divisionByZero("MOD")
             dividend % divisor
         }
     }
@@ -513,7 +514,6 @@ class MathFunctionFactory {
             "FACTORIAL", 1, "팩토리얼을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
         ) { args ->
             val n = toDouble(args[0]).toInt()
-            if (n < 0) throw IllegalArgumentException("음수의 팩토리얼은 계산할 수 없습니다")
             factorial(n).toDouble()
         }
     }
@@ -524,7 +524,7 @@ class MathFunctionFactory {
         ) { args ->
             val n = toDouble(args[0]).toInt()
             val r = toDouble(args[1]).toInt()
-            if (n < 0 || r < 0 || r > n) throw IllegalArgumentException("조합 정의역 오류")
+            if (n < 0 || r < 0 || r > n) throw EvaluatorException.mathError("조합 함수의 정의역 오류: n >= 0, r >= 0, r <= n 이어야 합니다 (n: $n, r: $r)")
             combination(n, r).toDouble()
         }
     }
@@ -535,7 +535,7 @@ class MathFunctionFactory {
         ) { args ->
             val n = toDouble(args[0]).toInt()
             val r = toDouble(args[1]).toInt()
-            if (n < 0 || r < 0 || r > n) throw IllegalArgumentException("순열 정의역 오류")
+            if (n < 0 || r < 0 || r > n) throw EvaluatorException.mathError("순열 함수의 정의역 오류: n >= 0, r >= 0, r <= n 이어야 합니다 (n: $n, r: $r)")
             permutation(n, r).toDouble()
         }
     }
@@ -596,8 +596,8 @@ class MathFunctionFactory {
             is Int -> value.toDouble()
             is Float -> value.toDouble()
             is Long -> value.toDouble()
-            is String -> value.toDoubleOrNull() ?: throw IllegalArgumentException("숫자로 변환할 수 없습니다: $value")
-            else -> throw IllegalArgumentException("지원하지 않는 타입: ${value::class.simpleName}")
+            is String -> value.toDoubleOrNull() ?: throw EvaluatorException.numberConversionError(value)
+            else -> throw EvaluatorException.unsupportedType(value::class.simpleName ?: "Unknown", value)
         }
     }
 
@@ -620,6 +620,8 @@ class MathFunctionFactory {
     }
 
     private fun factorial(n: Int): Long {
+        if (n < 0) throw EvaluatorException.mathError("음수의 팩토리얼은 계산할 수 없습니다 (입력값: $n)")
+        if (n > 20) throw EvaluatorException.mathError("팩토리얼 계산 범위 초과: n은 20 이하여야 합니다 (Long 타입 오버플로우 방지, 입력값: $n)")
         if (n <= 1) return 1
         var result = 1L
         for (i in 2..n) {
