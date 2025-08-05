@@ -35,6 +35,40 @@ class ASTNodeFactory {
         private val SUPPORTED_MATH_FUNCTIONS = setOf(
             "SIN", "COS", "TAN", "SQRT", "ABS", "LOG", "EXP"
         )
+
+        private val createdNodeCount = AtomicLong(0)
+        private val createdNumberCount = AtomicLong(0)
+        private val createdBooleanCount = AtomicLong(0)
+        private val createdVariableCount = AtomicLong(0)
+        private val createdBinaryOpCount = AtomicLong(0)
+        private val createdUnaryOpCount = AtomicLong(0)
+        private val createdFunctionCallCount = AtomicLong(0)
+        private val createdIfCount = AtomicLong(0)
+        private val createdArgumentsCount = AtomicLong(0)
+
+        /**
+         * 싱글톤 팩토리 인스턴스를 반환합니다.
+         */
+        @JvmStatic
+        fun getInstance(): ASTNodeFactory = ASTNodeFactory()
+
+        /**
+         * 기본 설정으로 노드를 생성하는 편의 메서드입니다.
+         */
+        @JvmStatic
+        fun quickCreateNumber(value: Double): NumberNode {
+            return getInstance().createNumber(value)
+        }
+
+        @JvmStatic
+        fun quickCreateBoolean(value: Boolean): BooleanNode {
+            return getInstance().createBoolean(value)
+        }
+
+        @JvmStatic
+        fun quickCreateVariable(name: String): VariableNode {
+            return getInstance().createVariable(name)
+        }
     }
 
     /**
@@ -429,41 +463,6 @@ class ASTNodeFactory {
         )
     }
 
-    companion object {
-        private val createdNodeCount = AtomicLong(0)
-        private val createdNumberCount = AtomicLong(0)
-        private val createdBooleanCount = AtomicLong(0)
-        private val createdVariableCount = AtomicLong(0)
-        private val createdBinaryOpCount = AtomicLong(0)
-        private val createdUnaryOpCount = AtomicLong(0)
-        private val createdFunctionCallCount = AtomicLong(0)
-        private val createdIfCount = AtomicLong(0)
-        private val createdArgumentsCount = AtomicLong(0)
-
-        /**
-         * 싱글톤 팩토리 인스턴스를 반환합니다.
-         */
-        @JvmStatic
-        fun getInstance(): ASTNodeFactory = ASTNodeFactory()
-
-        /**
-         * 기본 설정으로 노드를 생성하는 편의 메서드입니다.
-         */
-        @JvmStatic
-        fun quickCreateNumber(value: Double): NumberNode {
-            return getInstance().createNumber(value)
-        }
-
-        @JvmStatic
-        fun quickCreateBoolean(value: Boolean): BooleanNode {
-            return getInstance().createBoolean(value)
-        }
-
-        @JvmStatic
-        fun quickCreateVariable(name: String): VariableNode {
-            return getInstance().createVariable(name)
-        }
-    }
 
     init {
         createdNodeCount.incrementAndGet()
