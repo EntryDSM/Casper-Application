@@ -9,6 +9,7 @@ import hs.kr.entrydsm.domain.evaluator.aggregates.ExpressionEvaluator
 // Removed unused EvaluatorException and EvaluationResult imports
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
 import hs.kr.entrydsm.domain.parser.aggregates.LRParser
+import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
@@ -35,7 +36,8 @@ class CalculatorService(
     private val parser: LRParser,
     private val evaluator: ExpressionEvaluator,
     private val calculationPolicy: CalculationPolicy,
-    private val validitySpec: CalculationValiditySpec
+    private val validitySpec: CalculationValiditySpec,
+    private val treeOptimizer: TreeOptimizer
 ) {
 
     companion object {
@@ -220,8 +222,8 @@ class CalculatorService(
         // 불필요한 괄호 제거 (간단한 경우만)
         optimized = optimized.replace(Regex("\\(\\s*(\\d+(?:\\.\\d+)?)\\s*\\)"), "$1")
         
-        // 상수 계산 미리 수행 (매우 간단한 경우만)
-        optimized = preCalculateConstants(optimized)
+        // 상수 폴딩은 AST 최적화 단계에서 TreeOptimizer에 위임됨
+        // 문자열 기반 최적화 대신 AST 기반 상수 폴딩 사용
         
         return optimized
     }
@@ -261,13 +263,16 @@ class CalculatorService(
             // 2. 파싱
             val ast = parser.parse(tokens)
             
-            // 3. 변수 결합
+            // 3. AST 최적화 (상수 폴딩 포함)
+            val optimizedAst = treeOptimizer.optimize(ast)
+            
+            // 4. 변수 결합
             val allVariables = mutableMapOf<String, Any>()
             session?.variables?.let { allVariables.putAll(it) }
             allVariables.putAll(request.variables)
             
-            // 4. 평가
-            val evaluationResult = evaluateWithRetry(ast, allVariables)
+            // 5. 평가 (최적화된 AST 사용)
+            val evaluationResult = evaluateWithRetry(optimizedAst, allVariables)
             
             val executionTime = System.currentTimeMillis() - startTime
             
@@ -278,7 +283,8 @@ class CalculatorService(
                 metadata = mapOf(
                     "tokenCount" to tokens.size,
                     "variableCount" to allVariables.size,
-                    "astDepth" to calculateASTDepth(ast)
+                    "astDepth" to calculateASTDepth(optimizedAst),
+                    "optimized" to true
                 )
             )
             
@@ -361,16 +367,6 @@ class CalculatorService(
             .toSet()
     }
 
-    private fun preCalculateConstants(expression: String): String {
-        var result = expression
-        
-        // 간단한 상수 계산들
-        result = result.replace("1+1", "2")
-        result = result.replace("2*2", "4")
-        result = result.replace("PI*2", "${2 * kotlin.math.PI}")
-        
-        return result
-    }
 
     private fun calculateASTDepth(ast: Any): Int {
         // 실제 구현에서는 AST의 실제 구조를 분석
