@@ -294,54 +294,67 @@ class TreeTraverser {
         var totalDepth = 0
         val nodeTypeCounts = mutableMapOf<String, Int>()
         
-        preOrderTraversal(root, object : ASTVisitor<Unit> {
-            override fun visitNumber(node: hs.kr.entrydsm.domain.ast.entities.NumberNode) {
-                nodeCount++
-                leafCount++
-                updateNodeTypeCount("Number", nodeTypeCounts)
+        // 깊이를 추적하면서 순회하는 헬퍼 함수
+        fun traverseWithDepth(node: ASTNode, currentDepth: Int) {
+            nodeCount++
+            totalDepth += currentDepth
+            
+            // 최대 깊이 업데이트
+            if (currentDepth > maxDepth.value) {
+                maxDepth = TreeDepth.of(currentDepth)
             }
             
-            override fun visitBoolean(node: hs.kr.entrydsm.domain.ast.entities.BooleanNode) {
-                nodeCount++
-                leafCount++
-                updateNodeTypeCount("Boolean", nodeTypeCounts)
+            // 노드 타입별 처리
+            when (node) {
+                is hs.kr.entrydsm.domain.ast.entities.NumberNode -> {
+                    leafCount++
+                    updateNodeTypeCount("Number", nodeTypeCounts)
+                }
+                is hs.kr.entrydsm.domain.ast.entities.BooleanNode -> {
+                    leafCount++
+                    updateNodeTypeCount("Boolean", nodeTypeCounts)
+                }
+                is hs.kr.entrydsm.domain.ast.entities.VariableNode -> {
+                    leafCount++
+                    updateNodeTypeCount("Variable", nodeTypeCounts)
+                }
+                is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> {
+                    updateNodeTypeCount("BinaryOp", nodeTypeCounts)
+                    // 자식 노드들을 더 깊은 레벨에서 순회
+                    traverseWithDepth(node.left, currentDepth + 1)
+                    traverseWithDepth(node.right, currentDepth + 1)
+                }
+                is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode -> {
+                    updateNodeTypeCount("UnaryOp", nodeTypeCounts)
+                    // 자식 노드를 더 깊은 레벨에서 순회
+                    traverseWithDepth(node.operand, currentDepth + 1)
+                }
+                is hs.kr.entrydsm.domain.ast.entities.FunctionCallNode -> {
+                    updateNodeTypeCount("FunctionCall", nodeTypeCounts)
+                    // 모든 인수들을 더 깊은 레벨에서 순회
+                    node.args.forEach { arg ->
+                        traverseWithDepth(arg, currentDepth + 1)
+                    }
+                }
+                is hs.kr.entrydsm.domain.ast.entities.IfNode -> {
+                    updateNodeTypeCount("If", nodeTypeCounts)
+                    // 조건, 참 값, 거짓 값을 더 깊은 레벨에서 순회
+                    traverseWithDepth(node.condition, currentDepth + 1)
+                    traverseWithDepth(node.trueValue, currentDepth + 1)
+                    traverseWithDepth(node.falseValue, currentDepth + 1)
+                }
+                is hs.kr.entrydsm.domain.ast.entities.ArgumentsNode -> {
+                    updateNodeTypeCount("Arguments", nodeTypeCounts)
+                    // 모든 인수들을 더 깊은 레벨에서 순회
+                    node.arguments.forEach { arg ->
+                        traverseWithDepth(arg, currentDepth + 1)
+                    }
+                }
             }
-            
-            override fun visitVariable(node: hs.kr.entrydsm.domain.ast.entities.VariableNode) {
-                nodeCount++
-                leafCount++
-                updateNodeTypeCount("Variable", nodeTypeCounts)
-            }
-            
-            override fun visitBinaryOp(node: hs.kr.entrydsm.domain.ast.entities.BinaryOpNode) {
-                nodeCount++
-                updateNodeTypeCount("BinaryOp", nodeTypeCounts)
-            }
-            
-            override fun visitUnaryOp(node: hs.kr.entrydsm.domain.ast.entities.UnaryOpNode) {
-                nodeCount++
-                updateNodeTypeCount("UnaryOp", nodeTypeCounts)
-            }
-            
-            override fun visitFunctionCall(node: hs.kr.entrydsm.domain.ast.entities.FunctionCallNode) {
-                nodeCount++
-                updateNodeTypeCount("FunctionCall", nodeTypeCounts)
-            }
-            
-            override fun visitIf(node: hs.kr.entrydsm.domain.ast.entities.IfNode) {
-                nodeCount++
-                updateNodeTypeCount("If", nodeTypeCounts)
-            }
-            
-            override fun visitArguments(node: hs.kr.entrydsm.domain.ast.entities.ArgumentsNode) {
-                nodeCount++
-                updateNodeTypeCount("Arguments", nodeTypeCounts)
-            }
-        })
+        }
         
-        // 최대 깊이 계산
-        val (_, depth) = findDeepestNode(root)
-        maxDepth = depth
+        // 루트 노드부터 깊이 0에서 시작
+        traverseWithDepth(root, 0)
         
         return TreeStatistics(
             nodeCount = NodeSize.of(nodeCount),
