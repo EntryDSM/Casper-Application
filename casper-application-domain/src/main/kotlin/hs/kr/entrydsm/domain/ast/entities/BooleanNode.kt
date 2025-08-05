@@ -30,7 +30,7 @@ data class BooleanNode(val value: Boolean) : ASTNode() {
 
     override fun getNodeCount(): Int = 1
 
-    override fun copy(): BooleanNode = this.copy()
+    override fun copy(): BooleanNode = this
 
     override fun toSimpleString(): String = value.toString()
 
