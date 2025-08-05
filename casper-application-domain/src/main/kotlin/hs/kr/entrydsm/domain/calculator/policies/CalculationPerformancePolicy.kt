@@ -16,6 +16,8 @@ import kotlinx.coroutines.*
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.atomic.AtomicInteger
+import hs.kr.entrydsm.global.exception.DomainException
+import hs.kr.entrydsm.global.exception.ErrorCode
 
 /**
  * POC 코드의 성능 관리 기능을 DDD Policy 패턴으로 구현한 클래스입니다.

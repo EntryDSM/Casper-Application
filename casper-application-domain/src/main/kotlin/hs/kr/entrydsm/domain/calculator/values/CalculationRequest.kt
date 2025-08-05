@@ -3,15 +3,7 @@ package hs.kr.entrydsm.domain.calculator.values
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
 
@@ -32,12 +24,9 @@ import hs.kr.entrydsm.global.exception.ErrorCode
  * @author kangeunchan
  * @since 2025.07.15
  */
-@Serializable
 data class CalculationRequest(
     val formula: String,
-    @Serializable(with = AnyMapSerializer::class)
     val variables: Map<String, Any> = emptyMap(),
-    @Serializable(with = AnyMapSerializer::class)
     val options: Map<String, Any> = emptyMap()
 ) {
     
@@ -288,7 +277,34 @@ data class CalculationRequest(
      */
     fun toJson(): String {
         return try {
-            Json.encodeToString(this)
+            @Serializable
+            data class CalculationRequestDto(
+                val formula: String,
+                val variables: Map<String, String>,
+                val options: Map<String, String>
+            )
+            
+            val dto = CalculationRequestDto(
+                formula = formula,
+                variables = variables.mapValues { (_, value) -> 
+                    when (value) {
+                        is String -> value
+                        is Number -> value.toString()
+                        is Boolean -> value.toString()
+                        else -> value.toString()
+                    }
+                },
+                options = options.mapValues { (_, value) ->
+                    when (value) {
+                        is String -> value
+                        is Number -> value.toString()
+                        is Boolean -> value.toString()
+                        else -> value.toString()
+                    }
+                }
+            )
+            
+            Json.encodeToString(dto)
         } catch (e: SerializationException) {
             throw DomainException(
                 errorCode = ErrorCode.SERIALIZATION_FAILED,
@@ -387,71 +403,5 @@ data class CalculationRequest(
          */
         fun fromTemplate(template: String, variables: Map<String, Any>): CalculationRequest =
             CalculationRequest(template, variables)
-    }
-}
-
-/**
- * Map<String, Any> 타입을 안전하게 직렬화하기 위한 커스텀 시리얼라이저입니다.
- * 다양한 타입의 값들을 적절한 JsonElement로 변환합니다.
- */
-object AnyMapSerializer : KSerializer<Map<String, Any>> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("AnyMap")
-
-    override fun serialize(encoder: Encoder, value: Map<String, Any>) {
-        val jsonObject = value.mapValues { (_, v) -> convertToJsonElement(v) }
-        encoder.encodeSerializableValue(JsonObject.serializer(), JsonObject(jsonObject))
-    }
-
-    override fun deserialize(decoder: Decoder): Map<String, Any> {
-        val jsonObject = decoder.decodeSerializableValue(JsonObject.serializer())
-        return jsonObject.mapValues { (_, element) -> convertFromJsonElement(element) }
-    }
-
-    private fun convertToJsonElement(value: Any): JsonElement {
-        return when (value) {
-            is String -> JsonPrimitive(value)
-            is Number -> JsonPrimitive(value)
-            is Boolean -> JsonPrimitive(value)
-            is List<*> -> {
-                val elements = value.map { item ->
-                    if (item != null) convertToJsonElement(item) else JsonPrimitive(null as String?)
-                }
-                kotlinx.serialization.json.JsonArray(elements)
-            }
-            is Map<*, *> -> {
-                val jsonMap = value.entries.associate { (k, v) ->
-                    k.toString() to if (v != null) convertToJsonElement(v) else JsonPrimitive(null as String?)
-                }
-                JsonObject(jsonMap)
-            }
-            else -> JsonPrimitive(value.toString())
-        }
-    }
-
-    private fun convertFromJsonElement(element: JsonElement): Any {
-        return when (element) {
-            is JsonPrimitive -> {
-                when {
-                    element.isString -> element.content
-                    element.content == "true" -> true
-                    element.content == "false" -> false
-                    element.content.toDoubleOrNull() != null -> {
-                        val doubleValue = element.content.toDouble()
-                        if (doubleValue == doubleValue.toLong().toDouble()) {
-                            doubleValue.toLong()
-                        } else {
-                            doubleValue
-                        }
-                    }
-                    else -> element.content
-                }
-            }
-            is kotlinx.serialization.json.JsonArray -> {
-                element.map { convertFromJsonElement(it) }
-            }
-            is JsonObject -> {
-                element.mapValues { (_, v) -> convertFromJsonElement(v) }
-            }
-        }
     }
 }
