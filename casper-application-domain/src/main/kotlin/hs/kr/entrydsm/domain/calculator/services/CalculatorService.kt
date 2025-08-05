@@ -14,6 +14,7 @@ import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
 import java.time.Instant
+import java.security.MessageDigest
 
 /**
  * 계산기의 핵심 비즈니스 로직을 처리하는 도메인 서비스입니다.
@@ -366,8 +367,24 @@ class CalculatorService(
 
     private fun generateCacheKey(request: CalculationRequest, session: CalculationSession?): String {
         val variables = (session?.variables ?: emptyMap()) + request.variables
-        val variablesHash = variables.entries.sortedBy { it.key }.hashCode()
-        return "${request.formula.hashCode()}_${variablesHash}"
+        
+        // 변수들을 키로 정렬하여 일관된 문자열 생성
+        val sortedVariables = variables.entries.sortedBy { it.key }
+            .joinToString(",") { "${it.key}=${it.value}" }
+        
+        // 수식과 변수를 결합한 문자열
+        val combinedString = "${request.formula}|$sortedVariables"
+        
+        // SHA-256 해시로 안전한 캐시 키 생성
+        return try {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val hashBytes = digest.digest(combinedString.toByteArray())
+            hashBytes.joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            // SHA-256을 사용할 수 없는 경우 fallback으로 안전한 문자열 기반 키 사용
+            "formula_${request.formula.replace("[^a-zA-Z0-9]".toRegex(), "_")}_vars_${sortedVariables.replace("[^a-zA-Z0-9,=]".toRegex(), "_")}"
+                .take(200) // 키 길이 제한
+        }
     }
 
     private fun getCachedResult(key: String): CachedResult? {
