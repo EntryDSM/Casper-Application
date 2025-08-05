@@ -10,6 +10,7 @@ import hs.kr.entrydsm.domain.ast.entities.NumberNode
 import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 
 /**
  * AST 방문자 패턴의 계약을 정의하는 인터페이스입니다.
@@ -91,9 +92,26 @@ interface ASTVisitorContract {
 
     /**
      * AST 노드 방문을 위한 기본 메서드입니다.
+     * 
+     * ASTVisitor<T> 구현체에서만 사용해야 합니다.
      *
      * @param node 방문할 AST 노드
      * @return 방문 결과
+     * @throws EvaluatorException 캐스팅 실패 시 예외 발생
      */
-    fun <T> visit(node: ASTNode): T? = node.accept(this as ASTVisitor<T>)
+    fun <T> visit(node: ASTNode): T {
+        return try {
+            val visitor = this as? ASTVisitor<T> 
+                ?: throw EvaluatorException.unsupportedType(
+                    valueType = this::class.simpleName ?: "Unknown",
+                    value = "ASTVisitorContract 구현체가 ASTVisitor<T>를 구현하지 않습니다"
+                )
+            node.accept(visitor)
+        } catch (e: ClassCastException) {
+            throw EvaluatorException.unsupportedType(
+                valueType = this::class.simpleName ?: "Unknown", 
+                value = "ASTVisitor<T>로 캐스팅할 수 없습니다"
+            )
+        }
+    }
 }
