@@ -6,6 +6,7 @@ import hs.kr.entrydsm.domain.ast.utils.FunctionValidationRules
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.PolicyResult
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * AST 노드 생성 정책을 구현하는 클래스입니다.
@@ -90,21 +91,134 @@ class NodeCreationPolicy {
         when (operator) {
             "/" -> {
                 require(!isZeroConstant(right)) { "0으로 나눌 수 없습니다" }
+                if (isZeroConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+                // 1로 나누기 최적화 (x / 1 = x)
+                if (isOneConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
             }
             "%" -> {
                 require(!isZeroConstant(right)) { "0으로 나눈 나머지를 구할 수 없습니다" }
+                if (isZeroConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+                // 1로 나눈 나머지 최적화 (x % 1 = 0)
+                if (isOneConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
             }
             "^" -> {
                 if (isZeroConstant(left) && isZeroConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
                     throw IllegalArgumentException("0^0은 정의되지 않습니다")
+                }
+                // 거듭제곱 최적화 감지
+                if (isOneConstant(left)) {
+                    // 1^x = 1
+                    zeroConstantOptimizationCount.incrementAndGet()
+                } else if (isZeroConstant(right)) {
+                    // x^0 = 1 (x != 0)
+                    zeroConstantOptimizationCount.incrementAndGet()
+                } else if (isOneConstant(right)) {
+                    // x^1 = x
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+            }
+            "*" -> {
+                // 0과의 곱셈 최적화 감지 (x * 0 = 0, 0 * x = 0)
+                if (isZeroConstant(left) || isZeroConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+                // 1과의 곱셈 최적화 감지 (x * 1 = x, 1 * x = x)
+                if (isOneConstant(left) || isOneConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+            }
+            "+" -> {
+                // 0과의 덧셈 최적화 감지 (x + 0 = x, 0 + x = x)
+                if (isZeroConstant(left) || isZeroConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+                // 같은 피연산자 최적화 감지 (x + x = 2*x)
+                if (left.isStructurallyEqual(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+            }
+            "-" -> {
+                // 0과의 뺄셈 최적화 감지 (x - 0 = x)
+                if (isZeroConstant(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+                // 0에서 빼기 최적화 감지 (0 - x = -x)
+                if (isZeroConstant(left)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+                // 같은 피연산자 최적화 감지 (x - x = 0)
+                if (left.isStructurallyEqual(right)) {
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+            }
+            "&&" -> {
+                // 논리 AND 최적화 감지
+                if (isTrueConstant(left)) {
+                    // true && x = x
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isFalseConstant(left)) {
+                    // false && x = false
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isTrueConstant(right)) {
+                    // x && true = x
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isFalseConstant(right)) {
+                    // x && false = false
+                    constantConditionOptimizationCount.incrementAndGet()
+                }
+                // 같은 피연산자 최적화 (x && x = x)
+                if (left.isStructurallyEqual(right)) {
+                    constantConditionOptimizationCount.incrementAndGet()
+                }
+            }
+            "||" -> {
+                // 논리 OR 최적화 감지
+                if (isTrueConstant(left)) {
+                    // true || x = true
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isFalseConstant(left)) {
+                    // false || x = x
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isTrueConstant(right)) {
+                    // x || true = true
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isFalseConstant(right)) {
+                    // x || false = x
+                    constantConditionOptimizationCount.incrementAndGet()
+                }
+                // 같은 피연산자 최적화 (x || x = x)
+                if (left.isStructurallyEqual(right)) {
+                    constantConditionOptimizationCount.incrementAndGet()
+                }
+            }
+            "==", "!=" -> {
+                // 같은 피연산자 비교 최적화 (x == x = true, x != x = false)
+                if (left.isStructurallyEqual(right)) {
+                    constantConditionOptimizationCount.incrementAndGet()
+                }
+            }
+            "<", "<=", ">", ">=" -> {
+                // 같은 피연산자 비교 최적화
+                if (left.isStructurallyEqual(right)) {
+                    constantConditionOptimizationCount.incrementAndGet()
                 }
             }
         }
         
         // 순환 참조 검증
         if (PREVENT_CIRCULAR_REFERENCES) {
-            require(!hasCircularReference(left, right)) { 
-                "순환 참조가 감지되었습니다" 
+            if (hasCircularReference(left, right)) {
+                circularReferenceDetectionCount.incrementAndGet()
+                throw IllegalArgumentException("순환 참조가 감지되었습니다")
             }
         }
     }
@@ -131,6 +245,35 @@ class NodeCreationPolicy {
                         "논리 연산자는 논리적으로 호환되는 피연산자만 허용합니다" 
                     }
                 }
+                // 논리 부정 최적화 감지
+                if (isTrueConstant(operand)) {
+                    // !true = false
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (isFalseConstant(operand)) {
+                    // !false = true
+                    constantConditionOptimizationCount.incrementAndGet()
+                } else if (operand is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode && operand.isLogicalNot()) {
+                    // !!x = x (이중 부정 제거)
+                    constantConditionOptimizationCount.incrementAndGet()
+                }
+            }
+            "-" -> {
+                // 단항 마이너스 최적화 감지
+                if (isZeroConstant(operand)) {
+                    // -0 = 0
+                    zeroConstantOptimizationCount.incrementAndGet()
+                } else if (operand is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode && operand.isNegation()) {
+                    // -(-x) = x (이중 부정 제거)
+                    zeroConstantOptimizationCount.incrementAndGet()
+                } else if (operand is hs.kr.entrydsm.domain.ast.entities.NumberNode && operand.value < 0) {
+                    // -(음수) = 양수
+                    zeroConstantOptimizationCount.incrementAndGet()
+                }
+            }
+            "+" -> {
+                // 단항 플러스 최적화 감지
+                // +x = x (항상 최적화 가능)
+                zeroConstantOptimizationCount.incrementAndGet()
             }
         }
     }
@@ -275,6 +418,27 @@ class NodeCreationPolicy {
     private fun isZeroConstant(node: ASTNode): Boolean = ASTValidationUtils.isZeroConstant(node)
 
     /**
+     * 노드가 1 상수인지 확인합니다.
+     */
+    private fun isOneConstant(node: ASTNode): Boolean {
+        return node is hs.kr.entrydsm.domain.ast.entities.NumberNode && node.value == 1.0
+    }
+
+    /**
+     * 노드가 true 상수인지 확인합니다.
+     */
+    private fun isTrueConstant(node: ASTNode): Boolean {
+        return node is hs.kr.entrydsm.domain.ast.entities.BooleanNode && node.value
+    }
+
+    /**
+     * 노드가 false 상수인지 확인합니다.
+     */
+    private fun isFalseConstant(node: ASTNode): Boolean {
+        return node is hs.kr.entrydsm.domain.ast.entities.BooleanNode && !node.value
+    }
+
+    /**
      * 논리 연산에 호환되는 노드인지 확인합니다.
      */
     private fun isLogicalCompatible(node: ASTNode): Boolean {
@@ -321,7 +485,6 @@ class NodeCreationPolicy {
      */
     private fun validateFunctionSpecificRules(name: String, args: List<ASTNode>) {
         require(FunctionValidationRules.isValidFunctionCall(name, args)) {
-            val expectedCount = FunctionValidationRules.getExpectedArgumentCount(name)
             val description = FunctionValidationRules.getArgumentCountDescription(name)
             "$name 함수는 $description 의 인수가 필요합니다 (현재: ${args.size}개)"
         }
@@ -347,7 +510,41 @@ class NodeCreationPolicy {
         private const val OPTIMIZE_CONSTANT_CONDITIONS = true
         private const val PREVENT_DUPLICATE_ARGUMENTS = false
 
+        // 최적화 통계 카운터
+        private val constantConditionOptimizationCount = AtomicLong(0)
+        private val zeroConstantOptimizationCount = AtomicLong(0)
+        private val circularReferenceDetectionCount = AtomicLong(0)
+
         // 중복 상수들을 ASTValidationUtils로 대체
         // RESERVED_WORDS, BINARY_OPERATORS, UNARY_OPERATORS는 ASTValidationUtils에서 관리
+
+        /**
+         * 정책 통계를 반환합니다.
+         *
+         * @return 정책 적용 통계 정보
+         */
+        fun getPolicyStatistics(): Map<String, Any> {
+            return mapOf(
+                "constantConditionOptimizations" to constantConditionOptimizationCount.get(),
+                "zeroConstantOptimizations" to zeroConstantOptimizationCount.get(),
+                "circularReferenceDetections" to circularReferenceDetectionCount.get(),
+                "optimizationFlags" to mapOf(
+                    "enforceNamingConvention" to ENFORCE_NAMING_CONVENTION,
+                    "strictLogicalOperations" to STRICT_LOGICAL_OPERATIONS,
+                    "preventCircularReferences" to PREVENT_CIRCULAR_REFERENCES,
+                    "optimizeConstantConditions" to OPTIMIZE_CONSTANT_CONDITIONS,
+                    "preventDuplicateArguments" to PREVENT_DUPLICATE_ARGUMENTS
+                )
+            )
+        }
+
+        /**
+         * 통계 카운터를 초기화합니다.
+         */
+        fun resetStatistics() {
+            constantConditionOptimizationCount.set(0)
+            zeroConstantOptimizationCount.set(0)
+            circularReferenceDetectionCount.set(0)
+        }
     }
 }
