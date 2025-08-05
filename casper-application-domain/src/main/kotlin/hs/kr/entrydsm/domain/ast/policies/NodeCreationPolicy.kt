@@ -192,7 +192,6 @@ class NodeCreationPolicy {
                 }
                 is hs.kr.entrydsm.domain.ast.entities.ArgumentsNode -> {
                     // ArgumentsNode 처리
-                }
                 is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> {
                     // BinaryOpNode 처리
                 }
