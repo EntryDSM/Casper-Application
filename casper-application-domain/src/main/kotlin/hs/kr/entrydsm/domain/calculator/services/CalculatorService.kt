@@ -10,6 +10,8 @@ import hs.kr.entrydsm.domain.evaluator.aggregates.ExpressionEvaluator
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
 import hs.kr.entrydsm.domain.parser.aggregates.LRParser
 import hs.kr.entrydsm.global.annotation.service.Service
+import hs.kr.entrydsm.global.exception.DomainException
+import hs.kr.entrydsm.global.exception.ErrorCode
 import java.time.Instant
 
 /**
@@ -58,49 +60,73 @@ class CalculatorService(
             performanceMetrics.incrementTotalRequests()
             
             // 1. 요청 유효성 검증
-            if (!validitySpec.isSatisfiedBy(request, session)) {
-                val errors = validitySpec.getValidationErrors(request, session)
-                return createFailureResult(request, "유효성 검증 실패: ${errors.joinToString(", ") { it.message }}", startTime)
-            }
+            validateRequest(request, session)
             
             // 2. 정책 검증
-            if (session != null && !calculationPolicy.isCalculationAllowed(request, session)) {
-                return createFailureResult(request, "계산 정책 위반", startTime)
-            }
+            checkPolicy(request, session)
             
             // 3. 캐시 확인
-            val cacheKey = generateCacheKey(request, session)
-            if (session?.settings?.enableCaching == true) {
-                val cachedResult = getCachedResult(cacheKey)
-                if (cachedResult != null) {
-                    performanceMetrics.incrementCacheHits()
-                    return cachedResult.toCalculationResult(request.formula, startTime)
-                }
+            val cachedResult = retrieveFromCache(request, session)
+            if (cachedResult != null) {
+                return cachedResult
             }
             
             // 4. 계산 실행
-            val result = executeCalculation(request, session)
+            val result = performCalculation(request, session)
             
             // 5. 결과 캐싱
-            if (session?.settings?.enableCaching == true && result.isSuccess()) {
-                cacheResult(cacheKey, result)
-            }
+            cacheResultIfNeeded(request, session, result)
             
             // 6. 메트릭 업데이트
             val executionTime = System.currentTimeMillis() - startTime
-            calculationPolicy.updateSessionMetrics(
-                session?.sessionId ?: "anonymous",
-                executionTime,
-                estimateMemoryUsage(request.formula)
-            )
-            
-            performanceMetrics.updateExecutionTime(executionTime)
+            updateMetrics(request, session, executionTime)
             
             return result
             
-        } catch (e: Exception) {
+        } catch (e: DomainException) {
+            // 도메인 예외는 이미 적절한 컨텍스트를 포함하고 있음
             performanceMetrics.incrementFailures()
-            return createFailureResult(request, "계산 실행 오류: ${e.message}", startTime)
+            return createFailureResult(request, e.message ?: "도메인 오류", startTime)
+            
+        } catch (e: IllegalArgumentException) {
+            // 잘못된 인수 예외
+            performanceMetrics.incrementFailures()
+            throw DomainException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                message = "잘못된 계산 인수: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "formula" to request.formula,
+                    "sessionId" to (session?.sessionId ?: "anonymous")
+                )
+            )
+            
+        } catch (e: ArithmeticException) {
+            // 산술 연산 예외
+            performanceMetrics.incrementFailures()
+            throw DomainException(
+                errorCode = ErrorCode.MATH_ERROR,
+                message = "수학 연산 오류: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "formula" to request.formula,
+                    "sessionId" to (session?.sessionId ?: "anonymous")
+                )
+            )
+            
+        } catch (e: Exception) {
+            // 예상치 못한 시스템 예외
+            performanceMetrics.incrementFailures()
+            throw DomainException(
+                errorCode = ErrorCode.UNEXPECTED_ERROR,
+                message = "계산 실행 중 예상치 못한 오류: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "formula" to request.formula,
+                    "sessionId" to (session?.sessionId ?: "anonymous"),
+                    "exceptionType" to e.javaClass.simpleName
+                )
+            )
         }
     }
 
@@ -447,6 +473,84 @@ class CalculatorService(
             "enabled" to true
         )
     )
+
+    /**
+     * 요청 유효성을 검증합니다.
+     */
+    private fun validateRequest(request: CalculationRequest, session: CalculationSession?) {
+        if (!validitySpec.isSatisfiedBy(request, session)) {
+            val errors = validitySpec.getValidationErrors(request, session)
+            throw DomainException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                message = "유효성 검증 실패: ${errors.joinToString(", ") { it.message }}",
+                context = mapOf(
+                    "formula" to request.formula,
+                    "errorCount" to errors.size,
+                    "errors" to errors.map { it.message }
+                )
+            )
+        }
+    }
+
+    /**
+     * 계산 정책을 확인합니다.
+     */
+    private fun checkPolicy(request: CalculationRequest, session: CalculationSession?) {
+        if (session != null && !calculationPolicy.isCalculationAllowed(request, session)) {
+            throw DomainException(
+                errorCode = ErrorCode.BUSINESS_RULE_VIOLATION,
+                message = "계산 정책 위반",
+                context = mapOf(
+                    "formula" to request.formula,
+                    "sessionId" to session.sessionId
+                )
+            )
+        }
+    }
+
+    /**
+     * 캐시에서 결과를 조회합니다.
+     */
+    private fun retrieveFromCache(request: CalculationRequest, session: CalculationSession?): CalculationResult? {
+        if (session?.settings?.enableCaching != true) return null
+        
+        val cacheKey = generateCacheKey(request, session)
+        val cachedResult = getCachedResult(cacheKey)
+        
+        return if (cachedResult != null) {
+            performanceMetrics.incrementCacheHits()
+            cachedResult.toCalculationResult(request.formula, System.currentTimeMillis())
+        } else null
+    }
+
+    /**
+     * 실제 계산을 수행합니다.
+     */
+    private fun performCalculation(request: CalculationRequest, session: CalculationSession?): CalculationResult {
+        return executeCalculation(request, session)
+    }
+
+    /**
+     * 필요한 경우 결과를 캐시에 저장합니다.
+     */
+    private fun cacheResultIfNeeded(request: CalculationRequest, session: CalculationSession?, result: CalculationResult) {
+        if (session?.settings?.enableCaching == true && result.isSuccess()) {
+            val cacheKey = generateCacheKey(request, session)
+            cacheResult(cacheKey, result)
+        }
+    }
+
+    /**
+     * 메트릭을 업데이트합니다.
+     */
+    private fun updateMetrics(request: CalculationRequest, session: CalculationSession?, executionTime: Long) {
+        calculationPolicy.updateSessionMetrics(
+            session?.sessionId ?: "anonymous",
+            executionTime,
+            estimateMemoryUsage(request.formula)
+        )
+        performanceMetrics.updateExecutionTime(executionTime)
+    }
 
     /**
      * 서비스 건강 상태를 확인합니다.
