@@ -596,10 +596,10 @@ class TreeOptimizer {
     }
     
     /**
-     * 두 노드가 같은지 확인합니다.
+     * 두 노드가 구조적으로 같은지 확인합니다.
      */
     private fun nodesEqual(node1: ASTNode, node2: ASTNode): Boolean {
-        return node1.toString() == node2.toString()
+        return node1.isStructurallyEqual(node2)
     }
     
     /**
