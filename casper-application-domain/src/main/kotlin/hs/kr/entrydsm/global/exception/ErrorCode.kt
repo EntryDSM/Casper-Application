@@ -72,6 +72,7 @@ enum class ErrorCode(val code: String, val description: String) {
     STEP_EXECUTION_ERROR("CAL007", "단계 실행 중 오류가 발생했습니다"),
     FORMULA_VALIDATION_ERROR("CAL008", "수식 검증 중 오류가 발생했습니다"),
     VARIABLE_EXTRACTION_ERROR("CAL009", "변수 추출 중 오류가 발생했습니다"),
+    HEALTH_CHECK_FAILED("CAL010", "핼스 체크에 실패했습니다."),
 
     // Expresser 도메인 오류 (EXP)
     FORMATTING_ERROR("EXP001", "포맷팅 중 오류가 발생했습니다"),
