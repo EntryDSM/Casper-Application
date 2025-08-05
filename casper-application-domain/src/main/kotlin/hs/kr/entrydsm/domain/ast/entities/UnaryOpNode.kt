@@ -141,7 +141,7 @@ data class UnaryOpNode(
      *
      * @return 단순화 가능하면 true, 아니면 false
      */
-    fun canSimplifyDoubleNegation_Logical(): Boolean = 
+    fun canSimplifyDoubleNegationLogical(): Boolean = 
         isLogicalNot() && operand is UnaryOpNode && operand.isLogicalNot()
 
     /**
@@ -162,7 +162,7 @@ data class UnaryOpNode(
      * @throws IllegalStateException 단순화할 수 없는 경우
      */
     fun simplifyDoubleLogicalNegation(): ASTNode {
-        check(canSimplifyDoubleNegation_Logical()) { "이중 논리 부정을 단순화할 수 없습니다" }
+        check(canSimplifyDoubleNegationLogical()) { "이중 논리 부정을 단순화할 수 없습니다" }
         return (operand as UnaryOpNode).operand
     }
 
@@ -174,7 +174,7 @@ data class UnaryOpNode(
     fun simplify(): ASTNode {
         return when {
             canSimplifyDoubleNegation() -> simplifyDoubleNegation()
-            canSimplifyDoubleNegation_Logical() -> simplifyDoubleLogicalNegation()
+            canSimplifyDoubleNegationLogical() -> simplifyDoubleLogicalNegation()
             else -> this
         }
     }
