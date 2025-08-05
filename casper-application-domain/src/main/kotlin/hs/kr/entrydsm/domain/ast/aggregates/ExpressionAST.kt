@@ -39,18 +39,17 @@ import java.util.*
 class ExpressionAST private constructor(
     val id: String,
     private var root: ASTNode,
+    private val traverser: TreeTraverser = TreeTraverser(),
+    private val optimizer: TreeOptimizer = TreeOptimizer(),
+    private val factory: ASTNodeFactory = ASTNodeFactory(),
+    private val validitySpec: ASTValiditySpec = ASTValiditySpec(),
+    private val structureSpec: NodeStructureSpec = NodeStructureSpec(),
     private val createdAt: LocalDateTime = LocalDateTime.now(),
     private var lastModifiedAt: LocalDateTime = LocalDateTime.now(),
     private var optimizationLevel: OptimizationLevel = OptimizationLevel.NONE,
     private var isValidated: Boolean = false,
     private var validationResult: ASTValidationResult? = null
 ) {
-    
-    private val traverser = TreeTraverser()
-    private val optimizer = TreeOptimizer()
-    private val factory = ASTNodeFactory()
-    private val validitySpec = ASTValiditySpec()
-    private val structureSpec = NodeStructureSpec()
     
     // 도메인 이벤트
     private val domainEvents = mutableListOf<Any>()
