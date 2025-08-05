@@ -12,6 +12,8 @@ import hs.kr.entrydsm.global.constants.ErrorCodes
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.system.measureTimeMillis
+import kotlinx.coroutines.*
+import java.util.concurrent.TimeoutException
 
 /**
  * POC 코드의 성능 관리 기능을 DDD Policy 패턴으로 구현한 클래스입니다.
@@ -319,8 +321,24 @@ class CalculationPerformancePolicy {
     }
 
     private fun executeWithTimeout(operation: () -> CalculationResult, timeout: Long): CalculationResult {
-        // 실제 구현에서는 CompletableFuture나 코루틴 사용
-        return operation()
+        return try {
+            runBlocking {
+                withTimeout(timeout) {
+                    operation()
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            CalculationResult(
+                formula = "timeout",
+                result = null,
+                executionTimeMs = timeout,
+                errors = listOf("계산이 제한 시간(${timeout}ms)을 초과했습니다"),
+                metadata = mapOf(
+                    "timeout" to true,
+                    "timeoutMs" to timeout
+                )
+            )
+        }
     }
 
     private fun executeMultiStepWithTimeout(
@@ -329,8 +347,55 @@ class CalculationPerformancePolicy {
         timeout: Long,
         stepTimeCallback: (Long) -> Unit
     ): CalculationResult {
-        // 실제 구현에서는 각 단계별 시간 측정
-        return operation()
+        return try {
+            runBlocking {
+                withTimeout(timeout) {
+                    val startTime = System.currentTimeMillis()
+                    var totalStepTime = 0L
+                    
+                    // 각 단계별 시간 측정 시뮬레이션
+                    request.steps.forEachIndexed { index, step ->
+                        val stepStartTime = System.currentTimeMillis()
+                        
+                        // 단계별 실행 시간 체크 (전체 타임아웃의 일부)
+                        val remainingTime = timeout - totalStepTime
+                        if (remainingTime <= 0) {
+                            throw CancellationException("Step $index exceeded overall timeout")
+                        }
+                        
+                        // 단계 실행 시간 측정 (실제로는 각 단계를 실행)
+                        delay(1) // 실행 시뮬레이션
+                        
+                        val stepExecutionTime = System.currentTimeMillis() - stepStartTime
+                        totalStepTime += stepExecutionTime
+                        
+                        // 단계별 시간 콜백 호출
+                        stepTimeCallback(stepExecutionTime)
+                        
+                        // 단계별 로깅
+                        if (stepExecutionTime > SLOW_CALCULATION_THRESHOLD_MS / request.steps.size) {
+                            println("Slow step detected: Step $index (${step.formula.substring(0, minOf(step.formula.length, 50))}) took ${stepExecutionTime}ms")
+                        }
+                    }
+                    
+                    // 실제 연산 실행
+                    operation()
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            CalculationResult(
+                formula = request.steps.joinToString("; ") { it.formula },
+                result = null,
+                executionTimeMs = timeout,
+                errors = listOf("다단계 계산이 제한 시간(${timeout}ms)을 초과했습니다"),
+                metadata = mapOf(
+                    "timeout" to true,
+                    "timeoutMs" to timeout,
+                    "multiStep" to true,
+                    "totalSteps" to request.steps.size
+                )
+            )
+        }
     }
 
     private fun updatePerformanceMetrics(executionTime: Long, memoryDelta: Long) {
@@ -358,11 +423,13 @@ class CalculationPerformancePolicy {
     }
 
     private fun evictOldestCacheEntries() {
-        val sortedEntries = calculationCache.entries.sortedBy { it.value.timestamp }
-        val toRemove = sortedEntries.take(calculationCache.size - DEFAULT_MAX_CACHE_SIZE + 100)
-        
-        toRemove.forEach { entry ->
-            calculationCache.remove(entry.key)
+        synchronized(calculationCache) {
+            val sortedEntries = calculationCache.entries.sortedBy { it.value.timestamp }
+            val toRemove = sortedEntries.take(calculationCache.size - DEFAULT_MAX_CACHE_SIZE + 100)
+            
+            toRemove.forEach { entry ->
+                calculationCache.remove(entry.key)
+            }
         }
     }
 

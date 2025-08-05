@@ -7,6 +7,7 @@ version = Projects.APPLICATION_DOMAIN_VERSION
 
 dependencies {
     implementation(Dependencies.KOTLINX_SERIALIZATION_JSON)
+    implementation(Dependencies.KOTLINX_COROUTINES_CORE)
     
     testImplementation(Dependencies.JUNIT)
     testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
