@@ -542,42 +542,50 @@ class MathFunctionFactory {
 
     // Statistical Functions
 
-    private fun createMedianFunction() = MathFunction.varArgs(
-        "MEDIAN", 1, Int.MAX_VALUE, "중앙값을 계산합니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        val values = args.map { toDouble(it) }.sorted()
-        val size = values.size
-        if (size % 2 == 0) {
-            (values[size / 2 - 1] + values[size / 2]) / 2.0
-        } else {
-            values[size / 2]
+    private fun createMedianFunction() = functionCache.getOrPut("MEDIAN") {
+        MathFunction.varArgs(
+            "MEDIAN", 1, Int.MAX_VALUE, "중앙값을 계산합니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            val values = args.map { toDouble(it) }.sorted()
+            val size = values.size
+            if (size % 2 == 0) {
+                (values[size / 2 - 1] + values[size / 2]) / 2.0
+            } else {
+                values[size / 2]
+            }
         }
     }
 
-    private fun createModeFunction() = MathFunction.varArgs(
-        "MODE", 1, Int.MAX_VALUE, "최빈값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        val values = args.map { toDouble(it) }
-        val frequency = values.groupBy { it }.mapValues { it.value.size }
-        val maxFreq = frequency.maxByOrNull { it.value }?.value ?: 0
-        frequency.filter { it.value == maxFreq }.keys.minOrNull() ?: 0.0
+    private fun createModeFunction() = functionCache.getOrPut("MODE") {
+        MathFunction.varArgs(
+            "MODE", 1, Int.MAX_VALUE, "최빈값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            val values = args.map { toDouble(it) }
+            val frequency = values.groupBy { it }.mapValues { it.value.size }
+            val maxFreq = frequency.maxByOrNull { it.value }?.value ?: 0
+            frequency.filter { it.value == maxFreq }.keys.minOrNull() ?: 0.0
+        }
     }
 
-    private fun createStandardDeviationFunction() = MathFunction.varArgs(
-        "STDEV", 1, Int.MAX_VALUE, "표준편차를 계산합니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        val values = args.map { toDouble(it) }
-        val mean = values.average()
-        val variance = values.map { (it - mean).pow(2) }.average()
-        sqrt(variance)
+    private fun createStandardDeviationFunction() = functionCache.getOrPut("STDEV") {
+        MathFunction.varArgs(
+            "STDEV", 1, Int.MAX_VALUE, "표준편차를 계산합니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            val values = args.map { toDouble(it) }
+            val mean = values.average()
+            val variance = values.map { (it - mean).pow(2) }.average()
+            sqrt(variance)
+        }
     }
 
-    private fun createVarianceFunction() = MathFunction.varArgs(
-        "VARIANCE", 1, Int.MAX_VALUE, "분산을 계산합니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        val values = args.map { toDouble(it) }
-        val mean = values.average()
-        values.map { (it - mean).pow(2) }.average()
+    private fun createVarianceFunction() = functionCache.getOrPut("VARIANCE") {
+        MathFunction.varArgs(
+            "VARIANCE", 1, Int.MAX_VALUE, "분산을 계산합니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            val values = args.map { toDouble(it) }
+            val mean = values.average()
+            values.map { (it - mean).pow(2) }.average()
+        }
     }
 
     // Helper Functions
