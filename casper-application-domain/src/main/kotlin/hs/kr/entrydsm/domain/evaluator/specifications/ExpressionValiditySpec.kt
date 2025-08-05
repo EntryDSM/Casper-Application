@@ -10,6 +10,7 @@ import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.evaluator.entities.EvaluationContext
 import hs.kr.entrydsm.global.annotation.specification.Specification
+import hs.kr.entrydsm.global.exception.ValidationException
 
 /**
  * 표현식 유효성 검증 명세를 구현하는 클래스입니다.
@@ -63,7 +64,10 @@ class ExpressionValiditySpec {
             validateStructure(node) &&
             validateSecurity(node)
         } catch (e: Exception) {
-            false
+            throw ValidationException(
+                message = "표현식 유효성 검증 실패: ${e.message}",
+                cause = e
+            )
         }
     }
 
@@ -79,7 +83,10 @@ class ExpressionValiditySpec {
             validateStructure(node) &&
             validateSecurity(node)
         } catch (e: Exception) {
-            false
+            throw ValidationException(
+                message = "표현식 유효성 검증 실패: ${e.message}",
+                cause = e
+            )
         }
     }
 
