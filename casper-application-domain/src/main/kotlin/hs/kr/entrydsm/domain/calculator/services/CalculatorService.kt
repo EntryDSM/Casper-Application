@@ -610,8 +610,31 @@ class CalculatorService(
             val testRequest = CalculationRequest("1+1", emptyMap())
             val result = calculate(testRequest)
             result.isSuccess()
+        } catch (e: DomainException) {
+            // 도메인 예외는 이미 적절한 컨텍스트를 포함하고 있음
+            throw DomainException(
+                errorCode = ErrorCode.HEALTH_CHECK_FAILED,
+                message = "서비스 건강 상태 확인 실패: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "healthCheckFormula" to "1+1",
+                    "originalErrorCode" to e.getCode(),
+                    "originalDomain" to e.getDomain(),
+                    "healthCheckFailed" to true
+                )
+            )
         } catch (e: Exception) {
-            false
+            // 예상치 못한 시스템 예외
+            throw DomainException(
+                errorCode = ErrorCode.HEALTH_CHECK_FAILED,
+                message = "서비스 건강 상태 확인 중 예상치 못한 오류: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "healthCheckFormula" to "1+1",
+                    "exceptionType" to e.javaClass.simpleName,
+                    "healthCheckFailed" to true
+                )
+            )
         }
     }
 }
