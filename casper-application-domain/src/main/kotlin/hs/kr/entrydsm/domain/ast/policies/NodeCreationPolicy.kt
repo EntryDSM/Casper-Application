@@ -455,10 +455,108 @@ class NodeCreationPolicy {
 
     /**
      * 순환 참조를 확인합니다.
+     * 
+     * DFS(깊이 우선 탐색)를 사용하여 노드 간의 순환 의존성을 감지합니다.
+     * 
+     * @param left 좌측 피연산자
+     * @param right 우측 피연산자
+     * @return 순환 참조가 있으면 true, 없으면 false
      */
     private fun hasCircularReference(left: ASTNode, right: ASTNode): Boolean {
-        // 간단한 순환 참조 검증 (실제로는 더 복잡한 로직 필요)
-        return left == right
+        // 직접적인 동일성 검사
+        if (left === right) {
+            return true
+        }
+        
+        // 좌측 노드가 우측 노드를 참조하는지 확인
+        if (containsNode(left, right)) {
+            return true
+        }
+        
+        // 우측 노드가 좌측 노드를 참조하는지 확인
+        if (containsNode(right, left)) {
+            return true
+        }
+        
+        return false
+    }
+
+    /**
+     * 주어진 노드가 다른 노드를 포함하는지 DFS로 확인합니다.
+     * 
+     * @param container 검색할 컨테이너 노드
+     * @param target 찾을 대상 노드
+     * @param visited 이미 방문한 노드들 (무한 루프 방지)
+     * @return 포함하면 true, 아니면 false
+     */
+    private fun containsNode(
+        container: ASTNode, 
+        target: ASTNode, 
+        visited: MutableSet<ASTNode> = mutableSetOf()
+    ): Boolean {
+        // 무한 루프 방지
+        if (container in visited) {
+            return false
+        }
+        
+        // 직접 일치
+        if (container === target) {
+            return true
+        }
+        
+        // 방문 표시
+        visited.add(container)
+        
+        // 자식 노드들을 재귀적으로 검사
+        val hasTarget = container.getChildren().any { child ->
+            containsNode(child, target, visited)
+        }
+        
+        // 방문 표시 해제 (백트래킹)
+        visited.remove(container)
+        
+        return hasTarget
+    }
+
+    /**
+     * 노드 트리에서 순환 참조를 감지합니다.
+     * 
+     * @param root 검사할 루트 노드
+     * @return 순환 참조가 있으면 true, 없으면 false
+     */
+    private fun detectCircularReferenceInTree(root: ASTNode): Boolean {
+        val visiting = mutableSetOf<ASTNode>()  // 현재 방문 중인 노드들
+        val visited = mutableSetOf<ASTNode>()   // 완전히 처리된 노드들
+        
+        fun dfs(node: ASTNode): Boolean {
+            // 현재 방문 중인 노드를 다시 방문하면 순환 참조
+            if (node in visiting) {
+                return true
+            }
+            
+            // 이미 처리된 노드는 건너뛰기
+            if (node in visited) {
+                return false
+            }
+            
+            // 방문 시작
+            visiting.add(node)
+            
+            // 자식 노드들 검사
+            for (child in node.getChildren()) {
+                if (dfs(child)) {
+                    return true
+                }
+            }
+            
+            // 방문 완료
+            visiting.remove(node)
+            visited.add(node)
+            
+            return false
+        }
+        
+        return dfs(root)
     }
 
     /**
