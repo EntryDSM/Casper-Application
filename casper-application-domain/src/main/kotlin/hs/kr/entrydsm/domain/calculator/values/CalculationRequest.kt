@@ -164,9 +164,19 @@ data class CalculationRequest(
         // 수식 길이에 따른 복잡도
         complexity += (formula.length / 10).coerceAtMost(30)
         
-        // 연산자 개수에 따른 복잡도
-        val operators = listOf("+", "-", "*", "/", "^", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "!")
-        complexity += operators.sumOf { op -> formula.count { it.toString() == op } * 2 }
+        // 연산자 개수에 따른 복잡도 (긴 연산자부터 처리하여 중복 카운트 방지)
+        val operators = listOf("==", "!=", "<=", ">=", "&&", "||", "+", "-", "*", "/", "^", "<", ">", "!")
+        var remainingFormula = formula
+        var operatorComplexity = 0
+        
+        operators.forEach { op ->
+            val occurrences = countNonOverlappingOccurrences(remainingFormula, op)
+            operatorComplexity += occurrences * 2
+            // 이미 카운트한 연산자들을 마스킹하여 중복 카운트 방지
+            remainingFormula = remainingFormula.replace(op, " ".repeat(op.length))
+        }
+        
+        complexity += operatorComplexity
         
         // 괄호 개수에 따른 복잡도
         complexity += formula.count { it == '(' } * 3
@@ -178,6 +188,30 @@ data class CalculationRequest(
         complexity += variables.size * 2
         
         return complexity.coerceAtMost(100)
+    }
+
+    /**
+     * 문자열에서 부분 문자열의 겹치지 않는 발생 횟수를 카운트합니다.
+     *
+     * @param text 검색할 문자열
+     * @param substring 찾을 부분 문자열
+     * @return 발생 횟수
+     */
+    private fun countNonOverlappingOccurrences(text: String, substring: String): Int {
+        if (substring.isEmpty()) return 0
+        
+        var count = 0
+        var startIndex = 0
+        
+        while (true) {
+            val index = text.indexOf(substring, startIndex)
+            if (index == -1) break
+            
+            count++
+            startIndex = index + substring.length // 겹치지 않게 다음 위치로 이동
+        }
+        
+        return count
     }
 
     /**
