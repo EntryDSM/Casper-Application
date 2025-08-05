@@ -4,6 +4,8 @@ import hs.kr.entrydsm.domain.calculator.entities.CalculationSession
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
+import hs.kr.entrydsm.global.exception.DomainException
+import hs.kr.entrydsm.global.exception.ErrorCode
 
 /**
  * 계산 정책을 구현하는 클래스입니다.
@@ -70,8 +72,33 @@ class CalculationPolicy {
             validateSessionLimits(session) &&
             validateRateLimit(session.sessionId) &&
             validateResourceUsage(request, session)
+        } catch (e: DomainException) {
+            // 도메인 예외는 이미 적절한 에러 코드와 메시지를 가지고 있음
+            throw DomainException(
+                errorCode = ErrorCode.BUSINESS_RULE_VIOLATION,
+                message = "계산 정책 검증 실패: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "formula" to request.formula,
+                    "sessionId" to session.sessionId,
+                    "originalErrorCode" to e.getCode(),
+                    "originalDomain" to e.getDomain(),
+                    "validationPhase" to "calculationAllowed"
+                )
+            )
         } catch (e: Exception) {
-            false
+            // 예상치 못한 시스템 예외
+            throw DomainException(
+                errorCode = ErrorCode.UNEXPECTED_ERROR,
+                message = "계산 정책 검증 중 예상치 못한 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "formula" to request.formula,
+                    "sessionId" to session.sessionId,
+                    "exceptionType" to e.javaClass.simpleName,
+                    "validationPhase" to "calculationAllowed"
+                )
+            )
         }
     }
 
