@@ -1,8 +1,8 @@
 package hs.kr.entrydsm.domain.ast.entities
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
+import kotlin.math.pow
 
 /**
  * 이항 연산(예: 덧셈, 뺄셈, 비교)을 나타내는 AST 노드입니다.
@@ -170,6 +170,114 @@ data class BinaryOpNode(
     fun commute(): BinaryOpNode {
         check(isCommutative()) { "교환법칙이 성립하지 않는 연산자입니다: $operator" }
         return BinaryOpNode(right, operator, left)
+    }
+
+
+    /**
+     * BinaryOpNode를 단순화합니다.
+     *
+     * 다음과 같은 최적화를 수행합니다:
+     * - 산술 연산: 0과의 덧셈/뺄셈, 1과의 곱셈/나눗셈, 0과의 곱셈
+     * - 논리 연산: true/false와의 논리 연산
+     * - 상수 계산: 두 상수의 연산 결과를 미리 계산
+     * - 동일한 피연산자의 연산 처리
+     *
+     * @return 단순화된 AST 노드
+     */
+    fun simplify(): ASTNode {
+        // 양쪽 피연산자가 NumberNode인 경우 상수 계산
+        if (left is NumberNode && right is NumberNode) {
+            return when (operator) {
+                "+" -> NumberNode(left.value + right.value)
+                "-" -> NumberNode(left.value - right.value)
+                "*" -> NumberNode(left.value * right.value)
+                "/" -> {
+                    if (right.isZero()) return this // 0으로 나누기는 단순화하지 않음
+                    NumberNode(left.value / right.value)
+                }
+                "%" -> {
+                    if (right.isZero()) return this
+                    NumberNode(left.value % right.value)
+                }
+                "^" -> NumberNode(left.value.pow(right.value))
+                "==" -> NumberNode(if (left.value == right.value) 1.0 else 0.0)
+                "!=" -> NumberNode(if (left.value != right.value) 1.0 else 0.0)
+                "<" -> NumberNode(if (left.value < right.value) 1.0 else 0.0)
+                "<=" -> NumberNode(if (left.value <= right.value) 1.0 else 0.0)
+                ">" -> NumberNode(if (left.value > right.value) 1.0 else 0.0)
+                ">=" -> NumberNode(if (left.value >= right.value) 1.0 else 0.0)
+                "&&" -> NumberNode(if (!left.isZero() && !right.isZero()) 1.0 else 0.0)
+                "||" -> NumberNode(if (!left.isZero() || !right.isZero()) 1.0 else 0.0)
+                else -> this
+            }
+        }
+
+        // 산술 연산 최적화
+        if (left is NumberNode || right is NumberNode) {
+            when (operator) {
+                "+" -> {
+                    if (left is NumberNode && left.isZero()) return right
+                    if (right is NumberNode && right.isZero()) return left
+                }
+                "-" -> {
+                    if (right is NumberNode && right.isZero()) return left
+                    if (left is NumberNode && left.isZero()) return UnaryOpNode("-", right)
+                }
+                "*" -> {
+                    if ((left is NumberNode && left.isZero()) || (right is NumberNode && right.isZero())) {
+                        return NumberNode.ZERO
+                    }
+                    if (left is NumberNode && left.value == 1.0) return right
+                    if (right is NumberNode && right.value == 1.0) return left
+                    if (left is NumberNode && left.value == -1.0) return UnaryOpNode("-", right)
+                    if (right is NumberNode && right.value == -1.0) return UnaryOpNode("-", left)
+                }
+                "/" -> {
+                    if (left is NumberNode && left.isZero()) return NumberNode.ZERO
+                    if (right is NumberNode && right.value == 1.0) return left
+                    if (right is NumberNode && right.value == -1.0) return UnaryOpNode("-", left)
+                }
+                "^" -> {
+                    if (right is NumberNode && right.isZero()) return NumberNode.ONE
+                    if (right is NumberNode && right.value == 1.0) return left
+                    if (left is NumberNode && left.value == 1.0) return NumberNode.ONE
+                    if (left is NumberNode && left.isZero()) return NumberNode.ZERO
+                }
+            }
+        }
+
+        // 논리 연산 최적화
+        when (operator) {
+            "&&" -> {
+                if (left is NumberNode && left.isZero()) return NumberNode.ZERO
+                if (right is NumberNode && right.isZero()) return NumberNode.ZERO
+                if (left is NumberNode && !left.isZero()) return right
+                if (right is NumberNode && !right.isZero()) return left
+            }
+            "||" -> {
+                if (left is NumberNode && !left.isZero()) return NumberNode.ONE
+                if (right is NumberNode && !right.isZero()) return NumberNode.ONE
+                if (left is NumberNode && left.isZero()) return right
+                if (right is NumberNode && right.isZero()) return left
+            }
+        }
+
+        // 동일한 피연산자 처리
+        if (left.isStructurallyEqual(right)) {
+            when (operator) {
+                "-" -> return NumberNode.ZERO
+                "/" -> return NumberNode.ONE
+                "%" -> return NumberNode.ZERO
+                "==" -> return NumberNode.ONE
+                "!=" -> return NumberNode.ZERO
+                "<=" -> return NumberNode.ONE
+                ">=" -> return NumberNode.ONE
+                "<" -> return NumberNode.ZERO
+                ">" -> return NumberNode.ZERO
+            }
+        }
+
+        return this
     }
 
     /**

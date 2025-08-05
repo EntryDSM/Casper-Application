@@ -6,6 +6,9 @@ import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.BinaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.FunctionCallNode
 import hs.kr.entrydsm.domain.ast.entities.ArgumentsNode
+import hs.kr.entrydsm.domain.ast.entities.NumberNode
+import hs.kr.entrydsm.domain.ast.entities.BooleanNode
+import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.ast.services.TreeTraverser
 import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
 import hs.kr.entrydsm.domain.ast.factories.ASTNodeFactory
@@ -233,13 +236,44 @@ class ExpressionAST private constructor(
     
     /**
      * 기본 최적화를 수행합니다.
+     * 
+     * 모든 자식 노드를 재귀적으로 최적화한 후 현재 노드의 최적화를 수행합니다.
      */
     private fun performBasicOptimization(node: ASTNode): ASTNode {
-        // 기본적인 최적화만 수행 (상수 폴딩, 항등원소 제거)
-        return when (node) {
-            is IfNode -> node.optimize()
-            is UnaryOpNode -> node.simplify()
+        // 먼저 모든 자식 노드를 재귀적으로 최적화
+        val optimizedNode = when (node) {
+            is BinaryOpNode -> BinaryOpNode(
+                left = performBasicOptimization(node.left),
+                operator = node.operator,
+                right = performBasicOptimization(node.right)
+            )
+            is UnaryOpNode -> UnaryOpNode(
+                operator = node.operator,
+                operand = performBasicOptimization(node.operand)
+            )
+            is FunctionCallNode -> FunctionCallNode(
+                name = node.name,
+                args = node.args.map { performBasicOptimization(it) }
+            )
+            is IfNode -> IfNode(
+                condition = performBasicOptimization(node.condition),
+                trueValue = performBasicOptimization(node.trueValue),
+                falseValue = performBasicOptimization(node.falseValue)
+            )
+            is ArgumentsNode -> ArgumentsNode(
+                arguments = node.arguments.map { performBasicOptimization(it) }
+            )
+            // 리프 노드들은 그대로 반환
+            is NumberNode, is BooleanNode, is VariableNode -> node
             else -> node
+        }
+        
+        // 자식 노드 최적화 후 현재 노드의 최적화 수행
+        return when (optimizedNode) {
+            is IfNode -> optimizedNode.optimize()
+            is UnaryOpNode -> optimizedNode.simplify()
+            is BinaryOpNode -> optimizedNode.simplify()
+            else -> optimizedNode
         }
     }
     
