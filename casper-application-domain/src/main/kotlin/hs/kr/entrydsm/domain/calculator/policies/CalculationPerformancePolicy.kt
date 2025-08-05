@@ -413,7 +413,17 @@ class CalculationPerformancePolicy {
                         
                         // 단계별 로깅
                         if (stepExecutionTime > SLOW_CALCULATION_THRESHOLD_MS / request.steps.size) {
-                            println("Slow step detected: Step $index (${step.formula.substring(0, minOf(step.formula.length, 50))}) took ${stepExecutionTime}ms")
+                            throw DomainException(
+                                errorCode = ErrorCode.PERFORMANCE_WARNING,
+                                message = "느린 단계 감지: 단계 $index (${step.formula.substring(0, minOf(step.formula.length, 50))})가 ${stepExecutionTime}ms 소요됨",
+                                context = mapOf(
+                                    "stepIndex" to index,
+                                    "stepFormula" to step.formula,
+                                    "executionTime" to stepExecutionTime,
+                                    "threshold" to (SLOW_CALCULATION_THRESHOLD_MS / request.steps.size),
+                                    "multiStep" to true
+                                )
+                            )
                         }
                     }
                     
@@ -446,9 +456,17 @@ class CalculationPerformancePolicy {
     }
 
     private fun handleSlowCalculation(request: CalculationRequest, executionTime: Long) {
-        // 느린 계산에 대한 로깅이나 알림 처리
-        // 실제 구현에서는 로거 사용
-        println("Slow calculation detected: ${request.formula} took ${executionTime}ms")
+        // 느린 계산에 대한 글로벌 도메인 예외 발생
+        throw DomainException(
+            errorCode = ErrorCode.PERFORMANCE_WARNING,
+            message = "느린 계산 감지: '${request.formula}'가 ${executionTime}ms 소요됨",
+            context = mapOf(
+                "formula" to request.formula,
+                "executionTime" to executionTime,
+                "threshold" to SLOW_CALCULATION_THRESHOLD_MS,
+                "performanceIssue" to true
+            )
+        )
     }
 
     private fun evictOldestCacheEntries() {
