@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.evaluator.interfaces
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.entities.ArgumentsNode
 import hs.kr.entrydsm.domain.ast.entities.BinaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.BooleanNode
 import hs.kr.entrydsm.domain.ast.entities.FunctionCallNode
@@ -79,6 +80,14 @@ interface ASTVisitorContract {
      * @return 방문 결과
      */
     fun visitIf(node: IfNode): Any?
+
+    /**
+     * ArgumentsNode를 방문합니다.
+     *
+     * @param node 방문할 ArgumentsNode
+     * @return 방문 결과
+     */
+    fun visitArguments(node: ArgumentsNode): Any?
 
     /**
      * AST 노드 방문을 위한 기본 메서드입니다.
