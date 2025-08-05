@@ -181,283 +181,363 @@ class MathFunctionFactory {
 
     // Standard Math Functions Implementation
 
-    private fun createAbsFunction() = MathFunction.fixedArgs(
-        "ABS", 1, "절댓값을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        abs(toDouble(args[0]))
-    }
-
-    private fun createSqrtFunction() = MathFunction.fixedArgs(
-        "SQRT", 1, "제곱근을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value < 0) throw IllegalArgumentException("음수의 제곱근은 계산할 수 없습니다")
-        sqrt(value)
-    }
-
-    private fun createRoundFunction() = MathFunction.varArgs(
-        "ROUND", 1, 2, "반올림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        when (args.size) {
-            1 -> round(toDouble(args[0]))
-            2 -> {
-                val value = toDouble(args[0])
-                val places = toDouble(args[1]).toInt()
-                val multiplier = 10.0.pow(places.toDouble())
-                round(value * multiplier) / multiplier
-            }
-            else -> throw IllegalArgumentException("ROUND 함수는 1-2개의 인수를 받습니다")
+    private fun createAbsFunction() = functionCache.getOrPut("ABS") {
+        MathFunction.fixedArgs(
+            "ABS", 1, "절댓값을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            abs(toDouble(args[0]))
         }
     }
 
-    private fun createMinFunction() = MathFunction.varArgs(
-        "MIN", 1, Int.MAX_VALUE, "최솟값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        args.map { toDouble(it) }.minOrNull() ?: throw IllegalArgumentException("인수가 없습니다")
+    private fun createSqrtFunction() = functionCache.getOrPut("SQRT") {
+        MathFunction.fixedArgs(
+            "SQRT", 1, "제곱근을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value < 0) throw IllegalArgumentException("음수의 제곱근은 계산할 수 없습니다")
+            sqrt(value)
+        }
     }
 
-    private fun createMaxFunction() = MathFunction.varArgs(
-        "MAX", 1, Int.MAX_VALUE, "최댓값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        args.map { toDouble(it) }.maxOrNull() ?: throw IllegalArgumentException("인수가 없습니다")
+    private fun createRoundFunction() = functionCache.getOrPut("ROUND") {
+        MathFunction.varArgs(
+            "ROUND", 1, 2, "반올림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            when (args.size) {
+                1 -> round(toDouble(args[0]))
+                2 -> {
+                    val value = toDouble(args[0])
+                    val places = toDouble(args[1]).toInt()
+                    val multiplier = 10.0.pow(places.toDouble())
+                    round(value * multiplier) / multiplier
+                }
+                else -> throw IllegalArgumentException("ROUND 함수는 1-2개의 인수를 받습니다")
+            }
+        }
     }
 
-    private fun createSumFunction() = MathFunction.varArgs(
-        "SUM", 0, Int.MAX_VALUE, "합계를 계산합니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        args.map { toDouble(it) }.sum()
+    private fun createMinFunction() = functionCache.getOrPut("MIN") {
+        MathFunction.varArgs(
+            "MIN", 1, Int.MAX_VALUE, "최솟값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            args.map { toDouble(it) }.minOrNull() ?: throw IllegalArgumentException("인수가 없습니다")
+        }
     }
 
-    private fun createAvgFunction() = MathFunction.varArgs(
-        "AVG", 1, Int.MAX_VALUE, "평균을 계산합니다", MathFunction.FunctionCategory.STATISTICAL
-    ) { args ->
-        args.map { toDouble(it) }.average()
+    private fun createMaxFunction() = functionCache.getOrPut("MAX") {
+        MathFunction.varArgs(
+            "MAX", 1, Int.MAX_VALUE, "최댓값을 찾습니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            args.map { toDouble(it) }.maxOrNull() ?: throw IllegalArgumentException("인수가 없습니다")
+        }
     }
 
-    private fun createPowFunction() = MathFunction.fixedArgs(
-        "POW", 2, "거듭제곱을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        toDouble(args[0]).pow(toDouble(args[1]))
+    private fun createSumFunction() = functionCache.getOrPut("SUM") {
+        MathFunction.varArgs(
+            "SUM", 0, Int.MAX_VALUE, "합계를 계산합니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            args.map { toDouble(it) }.sum()
+        }
     }
 
-    private fun createLogFunction() = MathFunction.fixedArgs(
-        "LOG", 1, "자연로그를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value <= 0) throw IllegalArgumentException("로그의 인수는 양수여야 합니다")
-        ln(value)
+    private fun createAvgFunction() = functionCache.getOrPut("AVG") {
+        MathFunction.varArgs(
+            "AVG", 1, Int.MAX_VALUE, "평균을 계산합니다", MathFunction.FunctionCategory.STATISTICAL
+        ) { args ->
+            args.map { toDouble(it) }.average()
+        }
     }
 
-    private fun createLog10Function() = MathFunction.fixedArgs(
-        "LOG10", 1, "상용로그를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value <= 0) throw IllegalArgumentException("로그의 인수는 양수여야 합니다")
-        log10(value)
+    private fun createPowFunction() = functionCache.getOrPut("POW") {
+        MathFunction.fixedArgs(
+            "POW", 2, "거듭제곱을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            toDouble(args[0]).pow(toDouble(args[1]))
+        }
     }
 
-    private fun createExpFunction() = MathFunction.fixedArgs(
-        "EXP", 1, "지수함수를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
-    ) { args ->
-        exp(toDouble(args[0]))
+    private fun createLogFunction() = functionCache.getOrPut("LOG") {
+        MathFunction.fixedArgs(
+            "LOG", 1, "자연로그를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value <= 0) throw IllegalArgumentException("로그의 인수는 양수여야 합니다")
+            ln(value)
+        }
     }
 
-    private fun createSinFunction() = MathFunction.fixedArgs(
-        "SIN", 1, "사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        sin(toDouble(args[0]))
+    private fun createLog10Function() = functionCache.getOrPut("LOG10") {
+        MathFunction.fixedArgs(
+            "LOG10", 1, "상용로그를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value <= 0) throw IllegalArgumentException("로그의 인수는 양수여야 합니다")
+            log10(value)
+        }
     }
 
-    private fun createCosFunction() = MathFunction.fixedArgs(
-        "COS", 1, "코사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        cos(toDouble(args[0]))
+    private fun createExpFunction() = functionCache.getOrPut("EXP") {
+        MathFunction.fixedArgs(
+            "EXP", 1, "지수함수를 계산합니다", MathFunction.FunctionCategory.LOGARITHMIC
+        ) { args ->
+            exp(toDouble(args[0]))
+        }
     }
 
-    private fun createTanFunction() = MathFunction.fixedArgs(
-        "TAN", 1, "탄젠트값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        tan(toDouble(args[0]))
+    private fun createSinFunction() = functionCache.getOrPut("SIN") {
+        MathFunction.fixedArgs(
+            "SIN", 1, "사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            sin(toDouble(args[0]))
+        }
     }
 
-    private fun createAsinFunction() = MathFunction.fixedArgs(
-        "ASIN", 1, "아크사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value < -1 || value > 1) throw IllegalArgumentException("ASIN 정의역 오류")
-        asin(value)
+    private fun createCosFunction() = functionCache.getOrPut("COS") {
+        MathFunction.fixedArgs(
+            "COS", 1, "코사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            cos(toDouble(args[0]))
+        }
     }
 
-    private fun createAcosFunction() = MathFunction.fixedArgs(
-        "ACOS", 1, "아크코사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value < -1 || value > 1) throw IllegalArgumentException("ACOS 정의역 오류")
-        acos(value)
+    private fun createTanFunction() = functionCache.getOrPut("TAN") {
+        MathFunction.fixedArgs(
+            "TAN", 1, "탄젠트값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            tan(toDouble(args[0]))
+        }
     }
 
-    private fun createAtanFunction() = MathFunction.fixedArgs(
-        "ATAN", 1, "아크탄젠트값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        atan(toDouble(args[0]))
+    private fun createAsinFunction() = functionCache.getOrPut("ASIN") {
+        MathFunction.fixedArgs(
+            "ASIN", 1, "아크사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value < -1 || value > 1) throw IllegalArgumentException("ASIN 정의역 오류")
+            asin(value)
+        }
     }
 
-    private fun createAtan2Function() = MathFunction.fixedArgs(
-        "ATAN2", 2, "2개 인수의 아크탄젠트값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
-    ) { args ->
-        atan2(toDouble(args[0]), toDouble(args[1]))
+    private fun createAcosFunction() = functionCache.getOrPut("ACOS") {
+        MathFunction.fixedArgs(
+            "ACOS", 1, "아크코사인값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value < -1 || value > 1) throw IllegalArgumentException("ACOS 정의역 오류")
+            acos(value)
+        }
     }
 
-    private fun createSinhFunction() = MathFunction.fixedArgs(
-        "SINH", 1, "하이퍼볼릭 사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
-    ) { args ->
-        sinh(toDouble(args[0]))
+    private fun createAtanFunction() = functionCache.getOrPut("ATAN") {
+        MathFunction.fixedArgs(
+            "ATAN", 1, "아크탄젠트값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            atan(toDouble(args[0]))
+        }
     }
 
-    private fun createCoshFunction() = MathFunction.fixedArgs(
-        "COSH", 1, "하이퍼볼릭 코사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
-    ) { args ->
-        cosh(toDouble(args[0]))
+    private fun createAtan2Function() = functionCache.getOrPut("ATAN2") {
+        MathFunction.fixedArgs(
+            "ATAN2", 2, "2개 인수의 아크탄젠트값을 계산합니다", MathFunction.FunctionCategory.TRIGONOMETRIC
+        ) { args ->
+            atan2(toDouble(args[0]), toDouble(args[1]))
+        }
     }
 
-    private fun createTanhFunction() = MathFunction.fixedArgs(
-        "TANH", 1, "하이퍼볼릭 탄젠트값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
-    ) { args ->
-        tanh(toDouble(args[0]))
+    private fun createSinhFunction() = functionCache.getOrPut("SINH") {
+        MathFunction.fixedArgs(
+            "SINH", 1, "하이퍼볼릭 사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
+        ) { args ->
+            sinh(toDouble(args[0]))
+        }
     }
 
-    private fun createAsinhFunction() = MathFunction.fixedArgs(
-        "ASINH", 1, "역 하이퍼볼릭 사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
-    ) { args ->
-        asinh(toDouble(args[0]))
+    private fun createCoshFunction() = functionCache.getOrPut("COSH") {
+        MathFunction.fixedArgs(
+            "COSH", 1, "하이퍼볼릭 코사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
+        ) { args ->
+            cosh(toDouble(args[0]))
+        }
     }
 
-    private fun createAcoshFunction() = MathFunction.fixedArgs(
-        "ACOSH", 1, "역 하이퍼볼릭 코사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value < 1) throw IllegalArgumentException("ACOSH 정의역 오류")
-        acosh(value)
+    private fun createTanhFunction() = functionCache.getOrPut("TANH") {
+        MathFunction.fixedArgs(
+            "TANH", 1, "하이퍼볼릭 탄젠트값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
+        ) { args ->
+            tanh(toDouble(args[0]))
+        }
     }
 
-    private fun createAtanhFunction() = MathFunction.fixedArgs(
-        "ATANH", 1, "역 하이퍼볼릭 탄젠트값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
-    ) { args ->
-        val value = toDouble(args[0])
-        if (value <= -1 || value >= 1) throw IllegalArgumentException("ATANH 정의역 오류")
-        atanh(value)
+    private fun createAsinhFunction() = functionCache.getOrPut("ASINH") {
+        MathFunction.fixedArgs(
+            "ASINH", 1, "역 하이퍼볼릭 사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
+        ) { args ->
+            asinh(toDouble(args[0]))
+        }
     }
 
-    private fun createFloorFunction() = MathFunction.fixedArgs(
-        "FLOOR", 1, "내림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        floor(toDouble(args[0]))
+    private fun createAcoshFunction() = functionCache.getOrPut("ACOSH") {
+        MathFunction.fixedArgs(
+            "ACOSH", 1, "역 하이퍼볼릭 코사인값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value < 1) throw IllegalArgumentException("ACOSH 정의역 오류")
+            acosh(value)
+        }
     }
 
-    private fun createCeilFunction() = MathFunction.fixedArgs(
-        "CEIL", 1, "올림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        ceil(toDouble(args[0]))
+    private fun createAtanhFunction() = functionCache.getOrPut("ATANH") {
+        MathFunction.fixedArgs(
+            "ATANH", 1, "역 하이퍼볼릭 탄젠트값을 계산합니다", MathFunction.FunctionCategory.HYPERBOLIC
+        ) { args ->
+            val value = toDouble(args[0])
+            if (value <= -1 || value >= 1) throw IllegalArgumentException("ATANH 정의역 오류")
+            atanh(value)
+        }
     }
 
-    private fun createTruncFunction() = MathFunction.fixedArgs(
-        "TRUNC", 1, "버림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        truncate(toDouble(args[0]))
+    private fun createFloorFunction() = functionCache.getOrPut("FLOOR") {
+        MathFunction.fixedArgs(
+            "FLOOR", 1, "내림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            floor(toDouble(args[0]))
+        }
     }
 
-    private fun createSignFunction() = MathFunction.fixedArgs(
-        "SIGN", 1, "부호를 반환합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        sign(toDouble(args[0]))
+    private fun createCeilFunction() = functionCache.getOrPut("CEIL") {
+        MathFunction.fixedArgs(
+            "CEIL", 1, "올림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            ceil(toDouble(args[0]))
+        }
     }
 
-    private fun createIfFunction() = MathFunction.fixedArgs(
-        "IF", 3, "조건문을 처리합니다", MathFunction.FunctionCategory.LOGICAL
-    ) { args ->
-        val condition = toBoolean(args[0])
-        if (condition) args[1] else args[2]
+    private fun createTruncFunction() = functionCache.getOrPut("TRUNC") {
+        MathFunction.fixedArgs(
+            "TRUNC", 1, "버림을 수행합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            truncate(toDouble(args[0]))
+        }
     }
 
-    private fun createRandomFunction() = MathFunction.fixedArgs(
-        "RANDOM", 0, "난수를 생성합니다", MathFunction.FunctionCategory.UTILITY
-    ) { _ ->
-        kotlin.random.Random.nextDouble()
+    private fun createSignFunction() = functionCache.getOrPut("SIGN") {
+        MathFunction.fixedArgs(
+            "SIGN", 1, "부호를 반환합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            sign(toDouble(args[0]))
+        }
     }
 
-    private fun createRadiansFunction() = MathFunction.fixedArgs(
-        "RADIANS", 1, "도를 라디안으로 변환합니다", MathFunction.FunctionCategory.CONVERSION
-    ) { args ->
-        toDouble(args[0]) * PI / 180.0
+    private fun createIfFunction() = functionCache.getOrPut("IF") {
+        MathFunction.fixedArgs(
+            "IF", 3, "조건문을 처리합니다", MathFunction.FunctionCategory.LOGICAL
+        ) { args ->
+            val condition = toBoolean(args[0])
+            if (condition) args[1] else args[2]
+        }
     }
 
-    private fun createDegreesFunction() = MathFunction.fixedArgs(
-        "DEGREES", 1, "라디안을 도로 변환합니다", MathFunction.FunctionCategory.CONVERSION
-    ) { args ->
-        toDouble(args[0]) * 180.0 / PI
+    private fun createRandomFunction() = functionCache.getOrPut("RANDOM") {
+        MathFunction.fixedArgs(
+            "RANDOM", 0, "난수를 생성합니다", MathFunction.FunctionCategory.UTILITY
+        ) { _ ->
+            kotlin.random.Random.nextDouble()
+        }
     }
 
-    private fun createPiFunction() = MathFunction.fixedArgs(
-        "PI", 0, "원주율 π를 반환합니다", MathFunction.FunctionCategory.UTILITY
-    ) { _ ->
-        PI
+    private fun createRadiansFunction() = functionCache.getOrPut("RADIANS") {
+        MathFunction.fixedArgs(
+            "RADIANS", 1, "도를 라디안으로 변환합니다", MathFunction.FunctionCategory.CONVERSION
+        ) { args ->
+            toDouble(args[0]) * PI / 180.0
+        }
     }
 
-    private fun createEFunction() = MathFunction.fixedArgs(
-        "E", 0, "자연상수 e를 반환합니다", MathFunction.FunctionCategory.UTILITY
-    ) { _ ->
-        E
+    private fun createDegreesFunction() = functionCache.getOrPut("DEGREES") {
+        MathFunction.fixedArgs(
+            "DEGREES", 1, "라디안을 도로 변환합니다", MathFunction.FunctionCategory.CONVERSION
+        ) { args ->
+            toDouble(args[0]) * 180.0 / PI
+        }
     }
 
-    private fun createModFunction() = MathFunction.fixedArgs(
-        "MOD", 2, "나머지를 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val dividend = toDouble(args[0])
-        val divisor = toDouble(args[1])
-        if (divisor == 0.0) throw IllegalArgumentException("0으로 나눌 수 없습니다")
-        dividend % divisor
+    private fun createPiFunction() = functionCache.getOrPut("PI") {
+        MathFunction.fixedArgs(
+            "PI", 0, "원주율 π를 반환합니다", MathFunction.FunctionCategory.UTILITY
+        ) { _ ->
+            PI
+        }
     }
 
-    private fun createGcdFunction() = MathFunction.fixedArgs(
-        "GCD", 2, "최대공약수를 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val a = toDouble(args[0]).toLong()
-        val b = toDouble(args[1]).toLong()
-        gcd(a, b).toDouble()
+    private fun createEFunction() = functionCache.getOrPut("E") {
+        MathFunction.fixedArgs(
+            "E", 0, "자연상수 e를 반환합니다", MathFunction.FunctionCategory.UTILITY
+        ) { _ ->
+            E
+        }
     }
 
-    private fun createLcmFunction() = MathFunction.fixedArgs(
-        "LCM", 2, "최소공배수를 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val a = toDouble(args[0]).toLong()
-        val b = toDouble(args[1]).toLong()
-        lcm(a, b).toDouble()
+    private fun createModFunction() = functionCache.getOrPut("MOD") {
+        MathFunction.fixedArgs(
+            "MOD", 2, "나머지를 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val dividend = toDouble(args[0])
+            val divisor = toDouble(args[1])
+            if (divisor == 0.0) throw IllegalArgumentException("0으로 나눌 수 없습니다")
+            dividend % divisor
+        }
     }
 
-    private fun createFactorialFunction() = MathFunction.fixedArgs(
-        "FACTORIAL", 1, "팩토리얼을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val n = toDouble(args[0]).toInt()
-        if (n < 0) throw IllegalArgumentException("음수의 팩토리얼은 계산할 수 없습니다")
-        factorial(n).toDouble()
+    private fun createGcdFunction() = functionCache.getOrPut("GCD") {
+        MathFunction.fixedArgs(
+            "GCD", 2, "최대공약수를 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val a = toDouble(args[0]).toLong()
+            val b = toDouble(args[1]).toLong()
+            gcd(a, b).toDouble()
+        }
     }
 
-    private fun createCombinationFunction() = MathFunction.fixedArgs(
-        "COMBINATION", 2, "조합을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val n = toDouble(args[0]).toInt()
-        val r = toDouble(args[1]).toInt()
-        if (n < 0 || r < 0 || r > n) throw IllegalArgumentException("조합 정의역 오류")
-        combination(n, r).toDouble()
+    private fun createLcmFunction() = functionCache.getOrPut("LCM") {
+        MathFunction.fixedArgs(
+            "LCM", 2, "최소공배수를 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val a = toDouble(args[0]).toLong()
+            val b = toDouble(args[1]).toLong()
+            lcm(a, b).toDouble()
+        }
     }
 
-    private fun createPermutationFunction() = MathFunction.fixedArgs(
-        "PERMUTATION", 2, "순열을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
-    ) { args ->
-        val n = toDouble(args[0]).toInt()
-        val r = toDouble(args[1]).toInt()
-        if (n < 0 || r < 0 || r > n) throw IllegalArgumentException("순열 정의역 오류")
-        permutation(n, r).toDouble()
+    private fun createFactorialFunction() = functionCache.getOrPut("FACTORIAL") {
+        MathFunction.fixedArgs(
+            "FACTORIAL", 1, "팩토리얼을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val n = toDouble(args[0]).toInt()
+            if (n < 0) throw IllegalArgumentException("음수의 팩토리얼은 계산할 수 없습니다")
+            factorial(n).toDouble()
+        }
+    }
+
+    private fun createCombinationFunction() = functionCache.getOrPut("COMBINATION") {
+        MathFunction.fixedArgs(
+            "COMBINATION", 2, "조합을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val n = toDouble(args[0]).toInt()
+            val r = toDouble(args[1]).toInt()
+            if (n < 0 || r < 0 || r > n) throw IllegalArgumentException("조합 정의역 오류")
+            combination(n, r).toDouble()
+        }
+    }
+
+    private fun createPermutationFunction() = functionCache.getOrPut("PERMUTATION") {
+        MathFunction.fixedArgs(
+            "PERMUTATION", 2, "순열을 계산합니다", MathFunction.FunctionCategory.ARITHMETIC
+        ) { args ->
+            val n = toDouble(args[0]).toInt()
+            val r = toDouble(args[1]).toInt()
+            if (n < 0 || r < 0 || r > n) throw IllegalArgumentException("순열 정의역 오류")
+            permutation(n, r).toDouble()
+        }
     }
 
     // Statistical Functions
