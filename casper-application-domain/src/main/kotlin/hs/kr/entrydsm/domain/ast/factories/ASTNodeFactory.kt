@@ -46,11 +46,13 @@ class ASTNodeFactory {
         private val createdIfCount = AtomicLong(0)
         private val createdArgumentsCount = AtomicLong(0)
 
+        private val instance = ASTNodeFactory()
+
         /**
          * 싱글톤 팩토리 인스턴스를 반환합니다.
          */
         @JvmStatic
-        fun getInstance(): ASTNodeFactory = ASTNodeFactory()
+        fun getInstance(): ASTNodeFactory = instance
 
         /**
          * 기본 설정으로 노드를 생성하는 편의 메서드입니다.
