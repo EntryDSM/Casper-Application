@@ -27,6 +27,15 @@ class ASTNodeFactory {
     private val validationPolicy = ASTValidationPolicy()
     private val creationPolicy = NodeCreationPolicy()
 
+    companion object {
+        /**
+         * 지원되는 수학 함수 목록입니다.
+         */
+        private val SUPPORTED_MATH_FUNCTIONS = setOf(
+            "SIN", "COS", "TAN", "SQRT", "ABS", "LOG", "EXP"
+        )
+    }
+
     /**
      * 숫자 노드를 생성합니다.
      *
@@ -350,7 +359,7 @@ class ASTNodeFactory {
      * @return FunctionCallNode 인스턴스
      */
     fun createMathFunction(name: String, args: List<ASTNode>): FunctionCallNode {
-        require(setOf("SIN", "COS", "TAN", "SQRT", "ABS", "LOG", "EXP").contains(name.uppercase())) { 
+        require(SUPPORTED_MATH_FUNCTIONS.contains(name.uppercase())) { 
             "지원되지 않는 수학 함수입니다: $name" 
         }
         return createFunctionCall(name.uppercase(), args)
