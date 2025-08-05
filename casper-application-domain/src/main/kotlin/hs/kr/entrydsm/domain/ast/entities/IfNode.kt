@@ -321,8 +321,12 @@ data class IfNode(
          * @return 결합된 조건
          */
         private fun createCompoundCondition(conditions: List<ASTNode>): ASTNode {
-            return conditions.reduce { acc, condition ->
-                BinaryOpNode(acc, "&&", condition)
+            return when {
+                conditions.isEmpty() -> BooleanNode.TRUE
+                conditions.size == 1 -> conditions.first()
+                else -> conditions.reduce { acc, condition ->
+                    BinaryOpNode(acc, "&&", condition)
+                }
             }
         }
     }
