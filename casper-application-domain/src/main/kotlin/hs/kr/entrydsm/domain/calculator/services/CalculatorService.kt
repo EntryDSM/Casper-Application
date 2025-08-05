@@ -311,12 +311,46 @@ class CalculatorService(
     }
 
     private fun evaluateAST(ast: Any, variables: Map<String, Any>): Any? {
-        // 실제 구현에서는 AST를 적절한 타입으로 캐스팅하여 evaluator.evaluate 호출
-        // 여기서는 간단한 시뮬레이션
-        return when {
-            ast.toString().contains("+") -> 42.0 // 예시
-            ast.toString().contains("sin") -> 0.5
-            else -> 1.0
+        return try {
+            // AST를 실제 ASTNode로 캐스팅하여 evaluator로 평가
+            val astNode = ast as? hs.kr.entrydsm.domain.ast.entities.ASTNode
+                ?: throw IllegalArgumentException("Invalid AST node type: ${ast.javaClass.simpleName}")
+            
+            // 변수와 함께 새로운 evaluator 생성하여 평가
+            val evaluatorWithVariables = evaluator.withVariables(variables)
+            evaluatorWithVariables.evaluate(astNode)
+            
+        } catch (e: IllegalArgumentException) {
+            throw DomainException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                message = "AST 평가 실패: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "astType" to ast.javaClass.simpleName,
+                    "variableCount" to variables.size
+                )
+            )
+        } catch (e: ArithmeticException) {
+            throw DomainException(
+                errorCode = ErrorCode.MATH_ERROR,
+                message = "수학 연산 오류: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "astType" to ast.javaClass.simpleName,
+                    "variableCount" to variables.size
+                )
+            )
+        } catch (e: Exception) {
+            throw DomainException(
+                errorCode = ErrorCode.UNEXPECTED_ERROR,
+                message = "AST 평가 중 예상치 못한 오류: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "astType" to ast.javaClass.simpleName,
+                    "variableCount" to variables.size,
+                    "exceptionType" to e.javaClass.simpleName
+                )
+            )
         }
     }
 
