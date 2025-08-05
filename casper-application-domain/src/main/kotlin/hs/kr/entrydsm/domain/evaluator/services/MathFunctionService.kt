@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.domain.evaluator.services
 
-import hs.kr.entrydsm.domain.evaluator.values.EvaluationResult
-import hs.kr.entrydsm.domain.evaluator.exception.EvaluatorException
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import kotlin.math.PI
