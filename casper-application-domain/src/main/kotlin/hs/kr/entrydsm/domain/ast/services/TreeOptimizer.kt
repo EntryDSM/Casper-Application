@@ -10,6 +10,8 @@ import hs.kr.entrydsm.domain.ast.values.NodeSize
 import hs.kr.entrydsm.domain.ast.values.TreeDepth
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
+import hs.kr.entrydsm.global.exception.DomainException
+import hs.kr.entrydsm.global.exception.ErrorCode
 import kotlin.math.*
 
 /**
@@ -458,8 +460,30 @@ class TreeOptimizer {
                 else -> return factory.createBinaryOp(left, operator, right)
             }
             factory.createNumber(result)
-        } catch (e: Exception) {
-            factory.createBinaryOp(left, operator, right)
+        } catch (e: ArithmeticException) {
+            // 산술 연산 오류 발생 시 원본 노드 반환
+            throw DomainException(
+                errorCode = ErrorCode.MATH_ERROR,
+                message = "이항 연산 중 산술 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "operator" to operator,
+                    "leftValue" to left.value,
+                    "rightValue" to right.value
+                )
+            )
+        } catch (e: NumberFormatException) {
+            // 숫자 형식 오류도 처리
+            throw DomainException(
+                errorCode = ErrorCode.NUMBER_CONVERSION_ERROR,
+                message = "숫자 변환 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "operator" to operator,
+                    "leftValue" to left.value,
+                    "rightValue" to right.value
+                )
+            )
         }
     }
     
@@ -474,8 +498,28 @@ class TreeOptimizer {
                 else -> return factory.createUnaryOp(operator, operand)
             }
             factory.createNumber(result)
-        } catch (e: Exception) {
-            factory.createUnaryOp(operator, operand)
+        } catch (e: ArithmeticException) {
+            // 산술 연산 오류 발생 시 도메인 예외로 변환
+            throw DomainException(
+                errorCode = ErrorCode.MATH_ERROR,
+                message = "단항 연산 중 산술 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "operator" to operator,
+                    "operandValue" to operand.value
+                )
+            )
+        } catch (e: NumberFormatException) {
+            // 숫자 형식 오류도 처리
+            throw DomainException(
+                errorCode = ErrorCode.NUMBER_CONVERSION_ERROR,
+                message = "숫자 변환 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "operator" to operator,
+                    "operandValue" to operand.value
+                )
+            )
         }
     }
     
@@ -498,8 +542,42 @@ class TreeOptimizer {
                 else -> return factory.createFunctionCall(name, args)
             }
             factory.createNumber(result)
-        } catch (e: Exception) {
-            factory.createFunctionCall(name, args)
+        } catch (e: ArithmeticException) {
+            // 산술 연산 오류 발생 시 도메인 예외로 변환
+            throw DomainException(
+                errorCode = ErrorCode.MATH_ERROR,
+                message = "함수 호출 중 산술 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "functionName" to name,
+                    "argumentCount" to args.size,
+                    "arguments" to args.map { it.value }
+                )
+            )
+        } catch (e: NumberFormatException) {
+            // 숫자 형식 오류도 처리
+            throw DomainException(
+                errorCode = ErrorCode.NUMBER_CONVERSION_ERROR,
+                message = "함수 호출 중 숫자 변환 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "functionName" to name,
+                    "argumentCount" to args.size,
+                    "arguments" to args.map { it.value }
+                )
+            )
+        } catch (e: IllegalArgumentException) {
+            // 잘못된 인수 (예: SQRT(-1), LOG(0) 등)
+            throw DomainException(
+                errorCode = ErrorCode.WRONG_ARGUMENT_COUNT,
+                message = "함수 호출 중 잘못된 인수: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "functionName" to name,
+                    "argumentCount" to args.size,
+                    "arguments" to args.map { it.value }
+                )
+            )
         }
     }
     
