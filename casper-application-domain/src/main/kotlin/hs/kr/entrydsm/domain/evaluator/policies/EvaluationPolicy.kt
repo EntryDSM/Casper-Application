@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.evaluator.policies
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.evaluator.entities.EvaluationContext
 import hs.kr.entrydsm.domain.evaluator.entities.MathFunction
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 
@@ -64,6 +65,7 @@ class EvaluationPolicy {
      * @param node 검증할 AST 노드
      * @param context 평가 컨텍스트
      * @return 평가 가능하면 true
+     * @throws EvaluatorException 평가 정책 검증 중 오류 발생 시
      */
     fun canEvaluate(node: ASTNode, context: EvaluationContext): Boolean {
         return try {
@@ -73,7 +75,7 @@ class EvaluationPolicy {
             validateOperators(node) &&
             validateVariables(node, context)
         } catch (e: Exception) {
-            false
+            throw EvaluatorException.evaluationError(e)
         }
     }
 
