@@ -82,8 +82,20 @@ data class EvaluationResult private constructor(
     
     /**
      * 평가 시간을 nanoseconds 단위로 반환합니다.
+     * 
+     * @return 평가 시간 (nanoseconds), 오버플로우 발생 시 Long.MAX_VALUE
      */
-    fun getEvaluationTimeNs(): Long = evaluationTime * 1_000_000
+    fun getEvaluationTimeNs(): Long {
+        return try {
+            if (evaluationTime > Long.MAX_VALUE / 1_000_000) {
+                Long.MAX_VALUE
+            } else {
+                evaluationTime * 1_000_000
+            }
+        } catch (e: ArithmeticException) {
+            Long.MAX_VALUE
+        }
+    }
     
     /**
      * 사용된 변수 개수를 반환합니다.
