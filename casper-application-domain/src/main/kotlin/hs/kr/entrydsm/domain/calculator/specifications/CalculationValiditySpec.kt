@@ -339,10 +339,18 @@ class CalculationValiditySpec {
     }
 
     private fun validateOperators(expression: String): Boolean {
+        if (expression.isEmpty()) return true
+        
         // 연속된 연산자 검사
-        return !Regex("[+\\-*/^%]{2,}").containsMatchIn(expression) &&
-               !expression.startsWith("*/^%") && // 시작 부분 연산자 검사
-               !expression.endsWith("+-*/^%") // 끝 부분 연산자 검사
+        val hasConsecutiveOperators = Regex("[+\\-*/^%]{2,}").containsMatchIn(expression)
+        
+        // 시작 부분 연산자 검사 - 첫 문자가 *, /, ^, % 중 하나인지 확인
+        val startsWithInvalidOperator = expression.first() in setOf('*', '/', '^', '%')
+        
+        // 끝 부분 연산자 검사 - 마지막 문자가 +, -, *, /, ^, % 중 하나인지 확인
+        val endsWithOperator = expression.last() in setOf('+', '-', '*', '/', '^', '%')
+        
+        return !hasConsecutiveOperators && !startsWithInvalidOperator && !endsWithOperator
     }
 
     private fun validateNumbers(expression: String): Boolean {
