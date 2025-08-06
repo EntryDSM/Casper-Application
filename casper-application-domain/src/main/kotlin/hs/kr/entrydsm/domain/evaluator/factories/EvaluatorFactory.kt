@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.evaluator.factories
 import hs.kr.entrydsm.domain.evaluator.aggregates.ExpressionEvaluator
 import hs.kr.entrydsm.domain.evaluator.services.MathFunctionService
 import hs.kr.entrydsm.domain.evaluator.values.VariableBinding
+import hs.kr.entrydsm.domain.factories.EnvironmentFactory
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 
@@ -136,15 +137,7 @@ class EvaluatorFactory {
      * 기본 환경 변수들을 생성합니다.
      */
     fun createDefaultEnvironment(): Map<String, Any?> {
-        return mapOf(
-            "PI" to kotlin.math.PI,
-            "E" to kotlin.math.E,
-            "TRUE" to true,
-            "FALSE" to false,
-            "NULL" to null,
-            "INFINITY" to Double.POSITIVE_INFINITY,
-            "NAN" to Double.NaN
-        )
+        return EnvironmentFactory.createBasicEnvironment().mapValues { it.value }
     }
     
     /**
@@ -196,43 +189,24 @@ class EvaluatorFactory {
      * 과학 계산용 환경 변수들을 생성합니다.
      */
     fun createScientificEnvironment(): Map<String, Any?> {
-        val defaultEnv = createDefaultEnvironment().toMutableMap()
-        
-        // 물리 상수들
-        defaultEnv["LIGHT_SPEED"] = 299792458.0 // m/s
-        defaultEnv["PLANCK"] = 6.62607015e-34 // J⋅s
-        defaultEnv["AVOGADRO"] = 6.02214076e23 // mol⁻¹
-        defaultEnv["BOLTZMANN"] = 1.380649e-23 // J/K
-        defaultEnv["GAS_CONSTANT"] = 8.314462618 // J/(mol⋅K)
-        
-        // 수학 상수들
-        defaultEnv["GOLDEN_RATIO"] = (1 + kotlin.math.sqrt(5.0)) / 2
-        defaultEnv["EULER_GAMMA"] = 0.5772156649015329 // 오일러-마스케로니 상수
-        
-        return defaultEnv
+        return EnvironmentFactory.createScientificEnvironment().mapValues { it.value }
     }
     
     /**
      * 통계 계산용 환경 변수들을 생성합니다.
      */
     fun createStatisticalEnvironment(): Map<String, Any?> {
-        val defaultEnv = createDefaultEnvironment().toMutableMap()
-        
-        // 통계 상수들
-        defaultEnv["SQRT_2PI"] = kotlin.math.sqrt(2 * kotlin.math.PI)
-        defaultEnv["LN_2"] = kotlin.math.ln(2.0)
-        defaultEnv["LN_10"] = kotlin.math.ln(10.0)
-        
-        return defaultEnv
+        return EnvironmentFactory.createStatisticalEnvironment().mapValues { it.value }
     }
     
     /**
      * 사용자 정의 환경을 생성합니다.
      */
     fun createCustomEnvironment(customVariables: Map<String, Any?>): Map<String, Any?> {
-        val defaultEnv = createDefaultEnvironment().toMutableMap()
-        defaultEnv.putAll(customVariables)
-        return defaultEnv
+        return EnvironmentFactory.createCustomEnvironment(
+            customVariables.filterValues { it != null }.mapValues { it.value!! },
+            EnvironmentFactory.createBasicEnvironment()
+        ).mapValues { it.value }
     }
     
     /**

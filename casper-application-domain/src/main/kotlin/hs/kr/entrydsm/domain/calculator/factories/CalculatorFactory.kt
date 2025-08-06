@@ -4,10 +4,12 @@ import hs.kr.entrydsm.domain.calculator.aggregates.Calculator
 import hs.kr.entrydsm.domain.calculator.entities.CalculationSession
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
+import hs.kr.entrydsm.domain.factories.EnvironmentFactory
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Calculator 도메인 객체들을 생성하는 팩토리입니다.
@@ -29,9 +31,9 @@ import java.time.Instant
 class CalculatorFactory {
 
     companion object {
-        private var createdCalculatorCount = 0L
-        private var createdSessionCount = 0L
-        private var createdRequestCount = 0L
+        private val createdCalculatorCount = AtomicLong(0L)
+        private val createdSessionCount = AtomicLong(0L)
+        private val createdRequestCount = AtomicLong(0L)
         
         @Volatile
         private var instance: CalculatorFactory? = null
@@ -56,7 +58,7 @@ class CalculatorFactory {
      * @return 기본 설정의 계산기
      */
     fun createBasicCalculator(): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         return Calculator.createBasic()
     }
 
@@ -66,7 +68,7 @@ class CalculatorFactory {
      * @return 과학 계산 기능이 포함된 계산기
      */
     fun createScientificCalculator(): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         return Calculator.createScientific()
     }
 
@@ -76,7 +78,7 @@ class CalculatorFactory {
      * @return 통계 함수가 포함된 계산기
      */
     fun createStatisticalCalculator(): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         return Calculator.createStatistical()
     }
 
@@ -86,7 +88,7 @@ class CalculatorFactory {
      * @return 공학 계산 기능이 포함된 계산기
      */
     fun createEngineeringCalculator(): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         return Calculator.createEngineering()
     }
 
@@ -105,7 +107,7 @@ class CalculatorFactory {
         enableCaching: Boolean = true,
         enableOptimization: Boolean = true
     ): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         
         val settingsMap = mapOf(
             "precision" to precision,
@@ -124,7 +126,7 @@ class CalculatorFactory {
      * @return 새로운 계산 세션
      */
     fun createSession(userId: String? = null): CalculationSession {
-        createdSessionCount++
+        createdSessionCount.incrementAndGet()
         return if (userId != null) {
             CalculationSession.createForUser(userId)
         } else {
@@ -140,7 +142,7 @@ class CalculatorFactory {
      */
     fun createUserSession(userId: String): CalculationSession {
         require(userId.isNotBlank()) { "사용자 ID는 비어있을 수 없습니다" }
-        createdSessionCount++
+        createdSessionCount.incrementAndGet()
         return CalculationSession.createForUser(userId)
     }
 
@@ -150,7 +152,7 @@ class CalculatorFactory {
      * @return 임시 세션
      */
     fun createTemporarySession(): CalculationSession {
-        createdSessionCount++
+        createdSessionCount.incrementAndGet()
         return CalculationSession.createTemporary()
     }
 
@@ -169,7 +171,7 @@ class CalculatorFactory {
         settings: CalculationSession.CalculationSettings = CalculationSession.CalculationSettings.default(),
         variables: Map<String, Any> = emptyMap()
     ): CalculationSession {
-        createdSessionCount++
+        createdSessionCount.incrementAndGet()
         return CalculationSession(
             sessionId = sessionId,
             userId = userId,
@@ -190,7 +192,7 @@ class CalculatorFactory {
         variables: Map<String, Any> = emptyMap()
     ): CalculationRequest {
         require(formula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
-        createdRequestCount++
+        createdRequestCount.incrementAndGet()
         
         return CalculationRequest(
             formula = formula,
@@ -211,7 +213,7 @@ class CalculatorFactory {
         priority: Priority,
         variables: Map<String, Any> = emptyMap()
     ): CalculationRequest {
-        createdRequestCount++
+        createdRequestCount.incrementAndGet()
         val options = mapOf("priority" to priority.name)
         return CalculationRequest(
             formula = formula,
@@ -306,14 +308,7 @@ class CalculatorFactory {
      * @return 기본 변수 맵
      */
     fun createDefaultEnvironment(): Map<String, Any> {
-        return mapOf(
-            "PI" to kotlin.math.PI,
-            "E" to kotlin.math.E,
-            "TRUE" to true,
-            "FALSE" to false,
-            "INFINITY" to Double.POSITIVE_INFINITY,
-            "NAN" to Double.NaN
-        )
+        return EnvironmentFactory.createBasicEnvironment()
     }
 
     /**
@@ -322,23 +317,7 @@ class CalculatorFactory {
      * @return 과학 상수가 포함된 변수 맵
      */
     fun createScientificEnvironment(): Map<String, Any> {
-        val defaultEnv = createDefaultEnvironment().toMutableMap()
-        
-        // 물리 상수들
-        defaultEnv["LIGHT_SPEED"] = 299792458.0 // m/s
-        defaultEnv["PLANCK"] = 6.62607015e-34 // J⋅s
-        defaultEnv["AVOGADRO"] = 6.02214076e23 // mol⁻¹
-        defaultEnv["BOLTZMANN"] = 1.380649e-23 // J/K
-        defaultEnv["GAS_CONSTANT"] = 8.314462618 // J/(mol⋅K)
-        defaultEnv["ELECTRON_CHARGE"] = 1.602176634e-19 // C
-        defaultEnv["ELECTRON_MASS"] = 9.1093837015e-31 // kg
-        defaultEnv["PROTON_MASS"] = 1.67262192369e-27 // kg
-        
-        // 수학 상수들
-        defaultEnv["GOLDEN_RATIO"] = (1 + kotlin.math.sqrt(5.0)) / 2
-        defaultEnv["EULER_GAMMA"] = 0.5772156649015329
-        
-        return defaultEnv
+        return EnvironmentFactory.createScientificEnvironment()
     }
 
     /**
@@ -347,15 +326,7 @@ class CalculatorFactory {
      * @return 공학 상수가 포함된 변수 맵
      */
     fun createEngineeringEnvironment(): Map<String, Any> {
-        val scientificEnv = createScientificEnvironment().toMutableMap()
-        
-        // 공학 상수들
-        scientificEnv["GRAVITY"] = 9.80665 // m/s²
-        scientificEnv["ATMOSPHERIC_PRESSURE"] = 101325.0 // Pa
-        scientificEnv["ABSOLUTE_ZERO"] = -273.15 // °C
-        scientificEnv["STEFAN_BOLTZMANN"] = 5.670374419e-8 // W⋅m⁻²⋅K⁻⁴
-        
-        return scientificEnv
+        return EnvironmentFactory.createEngineeringEnvironment()
     }
 
     /**
@@ -364,15 +335,7 @@ class CalculatorFactory {
      * @return 통계 상수가 포함된 변수 맵
      */
     fun createStatisticalEnvironment(): Map<String, Any> {
-        val defaultEnv = createDefaultEnvironment().toMutableMap()
-        
-        // 통계 상수들
-        defaultEnv["SQRT_2PI"] = kotlin.math.sqrt(2 * kotlin.math.PI)
-        defaultEnv["LN_2"] = kotlin.math.ln(2.0)
-        defaultEnv["LN_10"] = kotlin.math.ln(10.0)
-        defaultEnv["LOG10_E"] = kotlin.math.log10(kotlin.math.E)
-        
-        return defaultEnv
+        return EnvironmentFactory.createStatisticalEnvironment()
     }
 
     /**
@@ -386,7 +349,7 @@ class CalculatorFactory {
         maxConcurrency: Int = 10,
         cacheSize: Int = 1000
     ): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         
         val settingsMap = mapOf(
             "precision" to 15,
@@ -404,7 +367,7 @@ class CalculatorFactory {
      * @return 보안 설정이 강화된 계산기
      */
     fun createSecureCalculator(): Calculator {
-        createdCalculatorCount++
+        createdCalculatorCount.incrementAndGet()
         
         val settingsMap = mapOf(
             "precision" to 10,
@@ -433,9 +396,9 @@ class CalculatorFactory {
      */
     fun getStatistics(): Map<String, Any> = mapOf(
         "factoryName" to "CalculatorFactory",
-        "createdCalculators" to createdCalculatorCount,
-        "createdSessions" to createdSessionCount,
-        "createdRequests" to createdRequestCount,
+        "createdCalculators" to createdCalculatorCount.get(),
+        "createdSessions" to createdSessionCount.get(),
+        "createdRequests" to createdRequestCount.get(),
         "supportedCalculatorTypes" to listOf("basic", "scientific", "statistical", "engineering", "custom"),
         "supportedEnvironments" to listOf("default", "scientific", "engineering", "statistical"),
         "cacheEnabled" to true,
