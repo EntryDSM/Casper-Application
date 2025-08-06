@@ -380,14 +380,6 @@ class CalculatorFactory {
         return Calculator.createWithSettings(settingsMap)
     }
 
-    /**
-     * 요청 ID를 생성합니다.
-     *
-     * @return 고유한 요청 ID
-     */
-    private fun generateRequestId(): String {
-        return "req_${System.currentTimeMillis()}_${(Math.random() * 10000).toInt()}"
-    }
 
     /**
      * 팩토리의 통계 정보를 반환합니다.
