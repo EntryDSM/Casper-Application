@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.ast.services
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.domain.ast.values.NodeSize
+import hs.kr.entrydsm.domain.ast.values.NodeType
 import hs.kr.entrydsm.domain.ast.values.TreeDepth
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
@@ -292,7 +293,7 @@ class TreeTraverser {
         var leafCount = 0
         var maxDepth = TreeDepth.zero()
         var totalDepth = 0
-        val nodeTypeCounts = mutableMapOf<String, Int>()
+        val nodeTypeCounts = mutableMapOf<NodeType, Int>()
         
         // 깊이를 추적하면서 순회하는 헬퍼 함수
         fun traverseWithDepth(node: ASTNode, currentDepth: Int) {
@@ -308,43 +309,43 @@ class TreeTraverser {
             when (node) {
                 is hs.kr.entrydsm.domain.ast.entities.NumberNode -> {
                     leafCount++
-                    updateNodeTypeCount("Number", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.NUMBER, nodeTypeCounts)
                 }
                 is hs.kr.entrydsm.domain.ast.entities.BooleanNode -> {
                     leafCount++
-                    updateNodeTypeCount("Boolean", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.BOOLEAN, nodeTypeCounts)
                 }
                 is hs.kr.entrydsm.domain.ast.entities.VariableNode -> {
                     leafCount++
-                    updateNodeTypeCount("Variable", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.VARIABLE, nodeTypeCounts)
                 }
                 is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> {
-                    updateNodeTypeCount("BinaryOp", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.BINARY_OP, nodeTypeCounts)
                     // 자식 노드들을 더 깊은 레벨에서 순회
                     traverseWithDepth(node.left, currentDepth + 1)
                     traverseWithDepth(node.right, currentDepth + 1)
                 }
                 is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode -> {
-                    updateNodeTypeCount("UnaryOp", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.UNARY_OP, nodeTypeCounts)
                     // 자식 노드를 더 깊은 레벨에서 순회
                     traverseWithDepth(node.operand, currentDepth + 1)
                 }
                 is hs.kr.entrydsm.domain.ast.entities.FunctionCallNode -> {
-                    updateNodeTypeCount("FunctionCall", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.FUNCTION_CALL, nodeTypeCounts)
                     // 모든 인수들을 더 깊은 레벨에서 순회
                     node.args.forEach { arg ->
                         traverseWithDepth(arg, currentDepth + 1)
                     }
                 }
                 is hs.kr.entrydsm.domain.ast.entities.IfNode -> {
-                    updateNodeTypeCount("If", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.IF, nodeTypeCounts)
                     // 조건, 참 값, 거짓 값을 더 깊은 레벨에서 순회
                     traverseWithDepth(node.condition, currentDepth + 1)
                     traverseWithDepth(node.trueValue, currentDepth + 1)
                     traverseWithDepth(node.falseValue, currentDepth + 1)
                 }
                 is hs.kr.entrydsm.domain.ast.entities.ArgumentsNode -> {
-                    updateNodeTypeCount("Arguments", nodeTypeCounts)
+                    updateNodeTypeCount(NodeType.ARGUMENTS, nodeTypeCounts)
                     // 모든 인수들을 더 깊은 레벨에서 순회
                     node.arguments.forEach { arg ->
                         traverseWithDepth(arg, currentDepth + 1)
@@ -368,7 +369,7 @@ class TreeTraverser {
     /**
      * 노드 타입 카운트 업데이트
      */
-    private fun updateNodeTypeCount(type: String, counts: MutableMap<String, Int>) {
+    private fun updateNodeTypeCount(type: NodeType, counts: MutableMap<NodeType, Int>) {
         counts[type] = counts.getOrDefault(type, 0) + 1
     }
     
@@ -387,7 +388,7 @@ class TreeTraverser {
         val leafCount: NodeSize,
         val maxDepth: TreeDepth,
         val averageDepth: TreeDepth,
-        val nodeTypeCounts: Map<String, Int>
+        val nodeTypeCounts: Map<NodeType, Int>
     ) {
         /**
          * 리프 노드 비율을 계산합니다.
@@ -403,7 +404,7 @@ class TreeTraverser {
         /**
          * 가장 많은 노드 타입을 반환합니다.
          */
-        fun getMostCommonNodeType(): String? {
+        fun getMostCommonNodeType(): NodeType? {
             return nodeTypeCounts.maxByOrNull { it.value }?.key
         }
         
