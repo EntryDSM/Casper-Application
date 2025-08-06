@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.calculator.values
 
-
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
+import hs.kr.entrydsm.global.exception.ErrorCode
 
 /**
  * 다단계 수식 계산 요청을 나타내는 값 객체입니다.
@@ -367,6 +368,7 @@ data class MultiStepCalculationRequest(
      * 요청의 유효성을 검사합니다.
      *
      * @return 유효하면 true, 아니면 false
+     * @throws CalculatorException 검증 중 예외가 발생한 경우
      */
     fun isValid(): Boolean {
         return try {
@@ -376,7 +378,11 @@ data class MultiStepCalculationRequest(
             steps.all { it.formula.isNotBlank() && it.formula.length <= 10000 } &&
             !hasCircularDependency()
         } catch (e: Exception) {
-            false
+            throw CalculatorException(
+                errorCode = ErrorCode.VALIDATION_EXCEPTION,
+                message = "다단계 계산 요청 유효성 검증 중 예외가 발생했습니다: ${e.message}",
+                cause = e
+            )
         }
     }
 
