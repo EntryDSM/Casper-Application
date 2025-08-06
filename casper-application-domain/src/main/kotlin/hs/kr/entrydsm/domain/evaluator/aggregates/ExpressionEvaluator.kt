@@ -12,6 +12,7 @@ import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.aggregates.Aggregate
+import hs.kr.entrydsm.domain.evaluator.registries.FunctionRegistry
 import kotlin.math.E
 import kotlin.math.PI
 import kotlin.math.abs
@@ -56,7 +57,8 @@ import kotlin.math.truncate
  */
 @Aggregate(context = "evaluator")
 class ExpressionEvaluator(
-    private val variables: Map<String, Any> = emptyMap()
+    private val variables: Map<String, Any> = emptyMap(),
+    private val functionRegistry: FunctionRegistry = FunctionRegistry.createDefault()
 ) : ASTVisitor<Any?> {
 
     /**
@@ -152,85 +154,26 @@ class ExpressionEvaluator(
 
     /**
      * FunctionCallNode를 방문하여 함수 호출을 처리합니다.
+     * 함수 레지스트리를 통해 모듈화된 함수 평가기를 사용합니다.
      */
     override fun visitFunctionCall(node: FunctionCallNode): Any? {
         val args = node.args.map { evaluate(it) }
         
+        // 레지스트리에서 함수 평가기 조회
+        val evaluator = functionRegistry.get(node.name)
+        if (evaluator != null) {
+            return evaluator.evaluate(args)
+        }
+        
+        // 레지스트리에 없는 특수 함수들 처리 (상수, 복잡한 함수들)
         return when (node.name.uppercase()) {
-            // 기본 수학 함수들
-            "ABS" -> {
-                validateArgumentCount(node.name, args, 1)
-                abs(toDouble(args[0]))
+            "PI" -> {
+                validateArgumentCount(node.name, args, 0)
+                PI
             }
-            "SQRT" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value < 0) throw ArithmeticException("SQRT of negative number")
-                sqrt(value)
-            }
-            "ROUND" -> {
-                when (args.size) {
-                    1 -> round(toDouble(args[0]))
-                    2 -> {
-                        val value = toDouble(args[0])
-                        val places = toDouble(args[1]).toInt()
-                        val multiplier = 10.0.pow(places.toDouble())
-                        round(value * multiplier) / multiplier
-                    }
-                    else -> throw IllegalArgumentException("Wrong argument count for ${node.name}: expected 1-2, got ${args.size}")
-                }
-            }
-            "MIN" -> {
-                if (args.isEmpty()) throw IllegalArgumentException("Wrong argument count for ${node.name}: expected at least 1, got ${args.size}")
-                args.map { toDouble(it) }.minOrNull() ?: 0.0
-            }
-            "MAX" -> {
-                if (args.isEmpty()) throw IllegalArgumentException("Wrong argument count for ${node.name}: expected at least 1, got ${args.size}")
-                args.map { toDouble(it) }.maxOrNull() ?: 0.0
-            }
-            "SUM" -> {
-                args.map { toDouble(it) }.sum()
-            }
-            "AVG", "AVERAGE" -> {
-                if (args.isEmpty()) throw IllegalArgumentException("Wrong argument count for ${node.name}: expected at least 1, got ${args.size}")
-                args.map { toDouble(it) }.average()
-            }
-            "IF" -> {
-                validateArgumentCount(node.name, args, 3)
-                val condition = toBoolean(args[0])
-                if (condition) args[1] else args[2]
-            }
-            "POW" -> {
-                validateArgumentCount(node.name, args, 2)
-                toDouble(args[0]).pow(toDouble(args[1]))
-            }
-            "LOG" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value <= 0) throw ArithmeticException("LOG of non-positive number")
-                ln(value)
-            }
-            "LOG10" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value <= 0) throw ArithmeticException("LOG10 of non-positive number")
-                log10(value)
-            }
-            "EXP" -> {
-                validateArgumentCount(node.name, args, 1)
-                exp(toDouble(args[0]))
-            }
-            "SIN" -> {
-                validateArgumentCount(node.name, args, 1)
-                sin(toDouble(args[0]))
-            }
-            "COS" -> {
-                validateArgumentCount(node.name, args, 1)
-                cos(toDouble(args[0]))
-            }
-            "TAN" -> {
-                validateArgumentCount(node.name, args, 1)
-                tan(toDouble(args[0]))
+            "E" -> {
+                validateArgumentCount(node.name, args, 0)
+                E
             }
             "ASIN" -> {
                 validateArgumentCount(node.name, args, 1)
@@ -307,14 +250,6 @@ class ExpressionEvaluator(
             "DEGREES" -> {
                 validateArgumentCount(node.name, args, 1)
                 toDouble(args[0]) * 180.0 / PI
-            }
-            "PI" -> {
-                validateArgumentCount(node.name, args, 0)
-                PI
-            }
-            "E" -> {
-                validateArgumentCount(node.name, args, 0)
-                E
             }
             "MOD" -> {
                 validateArgumentCount(node.name, args, 2)
@@ -470,14 +405,14 @@ class ExpressionEvaluator(
      * 변수 바인딩을 추가한 새로운 평가기를 생성합니다.
      */
     fun withVariables(newVariables: Map<String, Any>): ExpressionEvaluator {
-        return ExpressionEvaluator(variables + newVariables)
+        return ExpressionEvaluator(variables + newVariables, functionRegistry)
     }
 
     /**
      * 단일 변수를 추가한 새로운 평가기를 생성합니다.
      */
     fun withVariable(name: String, value: Any): ExpressionEvaluator {
-        return ExpressionEvaluator(variables + (name to value))
+        return ExpressionEvaluator(variables + (name to value), functionRegistry)
     }
 
     /**
@@ -573,5 +508,11 @@ class ExpressionEvaluator(
          * 변수 바인딩과 함께 평가기를 생성합니다.
          */
         fun create(variables: Map<String, Any>): ExpressionEvaluator = ExpressionEvaluator(variables)
+        
+        /**
+         * 커스텀 함수 레지스트리와 함께 평가기를 생성합니다.
+         */
+        fun create(variables: Map<String, Any>, functionRegistry: FunctionRegistry): ExpressionEvaluator = 
+            ExpressionEvaluator(variables, functionRegistry)
     }
 }
