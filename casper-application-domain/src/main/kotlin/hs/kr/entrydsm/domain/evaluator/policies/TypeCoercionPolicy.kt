@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.evaluator.policies
 
+import hs.kr.entrydsm.domain.util.TypeUtils
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 import kotlin.reflect.KClass
@@ -191,13 +192,13 @@ class TypeCoercionPolicy {
         }
         
         // 둘 다 숫자 타입인 경우
-        if (isNumericType(type1) && isNumericType(type2)) {
+        if (TypeUtils.isNumericType(type1) && TypeUtils.isNumericType(type2)) {
             return getHigherPriorityNumericType(type1, type2)
         }
         
         // Boolean과 숫자 타입의 경우
-        if ((type1 == Boolean::class && isNumericType(type2)) ||
-            (type2 == Boolean::class && isNumericType(type1))) {
+        if ((type1 == Boolean::class && TypeUtils.isNumericType(type2)) ||
+            (type2 == Boolean::class && TypeUtils.isNumericType(type1))) {
             return Double::class // Boolean은 숫자로 변환 가능
         }
         
@@ -244,15 +245,6 @@ class TypeCoercionPolicy {
         return ALLOWED_TYPES.any { it.isInstance(value) }
     }
 
-    /**
-     * 타입이 숫자 타입인지 확인합니다.
-     *
-     * @param type 확인할 타입
-     * @return 숫자 타입이면 true
-     */
-    fun isNumericType(type: KClass<*>): Boolean {
-        return NUMBER_TYPE_PRIORITY.containsKey(type)
-    }
 
     /**
      * 값이 숫자인지 확인합니다.

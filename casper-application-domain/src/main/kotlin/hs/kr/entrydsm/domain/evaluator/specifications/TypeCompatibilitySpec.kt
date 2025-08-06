@@ -11,6 +11,7 @@ import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.evaluator.entities.EvaluationContext
 import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
+import hs.kr.entrydsm.domain.util.TypeUtils
 import hs.kr.entrydsm.global.annotation.specification.Specification
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
@@ -80,12 +81,6 @@ class TypeCompatibilitySpec {
             "SIN" to listOf(TypeRequirement.NUMERIC),
             "COS" to listOf(TypeRequirement.NUMERIC),
             "TAN" to listOf(TypeRequirement.NUMERIC)
-        )
-        
-        // 숫자 타입들
-        private val NUMERIC_TYPES = setOf(
-            Int::class, Long::class, Float::class, Double::class,
-            Byte::class, Short::class
         )
         
         // Boolean으로 변환 가능한 타입들
@@ -178,7 +173,7 @@ class TypeCompatibilitySpec {
         
         return when (requirement) {
             TypeRequirement.NUMERIC -> {
-                isNumericType(leftType) && isNumericType(rightType)
+                TypeUtils.isNumericType(leftType) && TypeUtils.isNumericType(rightType)
             }
             TypeRequirement.BOOLEAN_CONVERTIBLE -> {
                 isBooleanConvertible(leftType) && isBooleanConvertible(rightType)
@@ -202,7 +197,7 @@ class TypeCompatibilitySpec {
         val requirement = OPERATOR_TYPE_REQUIREMENTS[operator] ?: return false
         
         return when (requirement) {
-            TypeRequirement.NUMERIC -> isNumericType(operandType)
+            TypeRequirement.NUMERIC -> TypeUtils.isNumericType(operandType)
             TypeRequirement.BOOLEAN_CONVERTIBLE -> isBooleanConvertible(operandType)
             TypeRequirement.STRING -> operandType == String::class
             TypeRequirement.ANY -> true
@@ -222,7 +217,7 @@ class TypeCompatibilitySpec {
         
         // 가변 인수 함수 처리
         if (functionName.uppercase() in setOf("MIN", "MAX", "SUM", "AVG")) {
-            return argumentTypes.isNotEmpty() && argumentTypes.all { isNumericType(it) }
+            return argumentTypes.isNotEmpty() && argumentTypes.all { TypeUtils.isNumericType(it) }
         }
         
         // 고정 인수 함수 처리
@@ -259,13 +254,13 @@ class TypeCompatibilitySpec {
         if (type1 == type2) return true
         
         // 숫자 타입들 간의 호환성
-        if (isNumericType(type1) && isNumericType(type2)) {
+        if (TypeUtils.isNumericType(type1) && TypeUtils.isNumericType(type2)) {
             return true
         }
         
         // Boolean과 숫자 타입 간의 호환성
-        if ((type1 == Boolean::class && isNumericType(type2)) ||
-            (type2 == Boolean::class && isNumericType(type1))) {
+        if ((type1 == Boolean::class && TypeUtils.isNumericType(type2)) ||
+            (type2 == Boolean::class && TypeUtils.isNumericType(type1))) {
             return true
         }
         
@@ -277,15 +272,6 @@ class TypeCompatibilitySpec {
         return false
     }
 
-    /**
-     * 타입이 숫자형인지 확인합니다.
-     *
-     * @param type 확인할 타입
-     * @return 숫자형이면 true
-     */
-    fun isNumericType(type: KClass<*>): Boolean {
-        return NUMERIC_TYPES.contains(type)
-    }
 
     /**
      * 타입이 Boolean으로 변환 가능한지 확인합니다.
@@ -390,7 +376,7 @@ class TypeCompatibilitySpec {
 
     private fun satisfiesRequirement(type: KClass<*>, requirement: TypeRequirement): Boolean {
         return when (requirement) {
-            TypeRequirement.NUMERIC -> isNumericType(type)
+            TypeRequirement.NUMERIC -> TypeUtils.isNumericType(type)
             TypeRequirement.BOOLEAN_CONVERTIBLE -> isBooleanConvertible(type)
             TypeRequirement.STRING -> type == String::class
             TypeRequirement.ANY -> true
@@ -429,7 +415,7 @@ class TypeCompatibilitySpec {
 
     private fun getCommonType(type1: KClass<*>, type2: KClass<*>): KClass<*> {
         if (type1 == type2) return type1
-        if (isNumericType(type1) && isNumericType(type2)) return Double::class
+        if (TypeUtils.isNumericType(type1) && TypeUtils.isNumericType(type2)) return Double::class
         return Any::class
     }
 
@@ -514,7 +500,7 @@ class TypeCompatibilitySpec {
     fun getConfiguration(): Map<String, Any> = mapOf(
         "supportedOperators" to OPERATOR_TYPE_REQUIREMENTS.size,
         "supportedFunctions" to FUNCTION_TYPE_REQUIREMENTS.size,
-        "numericTypes" to NUMERIC_TYPES.size,
+        "numericTypes" to TypeUtils.NUMERIC_TYPES.size,
         "booleanConvertibleTypes" to BOOLEAN_CONVERTIBLE_TYPES.size,
         "typeInferenceEnabled" to true,
         "strictTypeChecking" to false
