@@ -188,9 +188,17 @@ class TreeOptimizer {
                     }
                     "^" -> {
                         when {
-                            isZero(rightOptimized) -> factory.createNumber(1.0)
-                            isOne(rightOptimized) -> leftOptimized
-                            isOne(leftOptimized) -> factory.createNumber(1.0)
+                            isOne(rightOptimized) -> leftOptimized  // x^1 = x
+                            isOne(leftOptimized) -> factory.createNumber(1.0)  // 1^x = 1
+
+                            isZero(leftOptimized) && rightOptimized is NumberNode && rightOptimized.value > 0.0 -> {
+                                factory.createNumber(0.0)
+                            }
+                            
+                            isZero(rightOptimized) && leftOptimized is NumberNode && leftOptimized.value != 0.0 -> {
+                                factory.createNumber(1.0)
+                            }
+                            
                             else -> factory.createBinaryOp(leftOptimized, root.operator, rightOptimized)
                         }
                     }
@@ -593,6 +601,20 @@ class TreeOptimizer {
      */
     private fun isOne(node: ASTNode): Boolean {
         return node is NumberNode && node.value == 1.0
+    }
+    
+    /**
+     * 노드가 양수인지 확인합니다.
+     */
+    private fun isPositive(node: ASTNode): Boolean {
+        return node is NumberNode && node.value > 0.0
+    }
+    
+    /**
+     * 노드가 음수인지 확인합니다.
+     */
+    private fun isNegative(node: ASTNode): Boolean {
+        return node is NumberNode && node.value < 0.0
     }
     
     /**
