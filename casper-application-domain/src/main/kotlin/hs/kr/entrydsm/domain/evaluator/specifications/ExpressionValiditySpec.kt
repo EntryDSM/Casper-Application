@@ -43,6 +43,18 @@ class ExpressionValiditySpec {
             "eval", "exec", "system", "runtime", "process", "file", "io"
         )
         
+        // 의심스러운 함수 패턴들
+        private val SUSPICIOUS_FUNCTION_PATTERNS = setOf(
+            "eval", "exec", "system", "runtime", "process", "file", "io",
+            "script", "command", "shell", "import", "require", "load"
+        )
+        
+        // 의심스러운 변수 패턴들
+        private val SUSPICIOUS_VARIABLE_PATTERNS = setOf(
+            "system", "runtime", "process", "file", "path", "command",
+            "exec", "eval", "shell", "script"
+        )
+        
         // 유효한 함수 이름 패턴
         private val VALID_FUNCTION_NAME_PATTERN = Regex("^[a-zA-Z][a-zA-Z0-9_]*$")
         
@@ -282,11 +294,47 @@ class ExpressionValiditySpec {
     }
 
     private fun containsSuspiciousPatterns(node: ASTNode): Boolean {
-        val nodeString = node.toString().lowercase()
-        return nodeString.contains("eval") ||
-               nodeString.contains("exec") ||
-               nodeString.contains("system") ||
-               nodeString.contains("runtime")
+        return when (node) {
+            is FunctionCallNode -> {
+                // Check function name directly against suspicious patterns
+                val functionName = node.name.lowercase()
+                val isSuspiciousFunction = SUSPICIOUS_FUNCTION_PATTERNS.any { pattern ->
+                    functionName == pattern || functionName.contains(pattern)
+                }
+                
+                // Recursively check function arguments
+                isSuspiciousFunction || node.args.any { containsSuspiciousPatterns(it) }
+            }
+            is VariableNode -> {
+                // Check variable name directly against suspicious patterns
+                val variableName = node.name.lowercase()
+                SUSPICIOUS_VARIABLE_PATTERNS.any { pattern ->
+                    variableName == pattern || variableName.contains(pattern)
+                }
+            }
+            is BinaryOpNode -> {
+                // Check both operands
+                containsSuspiciousPatterns(node.left) || containsSuspiciousPatterns(node.right)
+            }
+            is UnaryOpNode -> {
+                // Check the operand
+                containsSuspiciousPatterns(node.operand)
+            }
+            is IfNode -> {
+                // Check all branches of conditional expression
+                containsSuspiciousPatterns(node.condition) ||
+                containsSuspiciousPatterns(node.trueValue) ||
+                containsSuspiciousPatterns(node.falseValue)
+            }
+            is NumberNode, is BooleanNode -> {
+                // Primitive values are safe
+                false
+            }
+            else -> {
+                // For other node types, recursively check all children
+                node.getChildren().any { containsSuspiciousPatterns(it) }
+            }
+        }
     }
 
     private fun validateFunctionSafety(node: ASTNode): Boolean {
