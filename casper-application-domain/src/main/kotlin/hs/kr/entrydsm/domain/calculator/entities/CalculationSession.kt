@@ -3,6 +3,8 @@ package hs.kr.entrydsm.domain.calculator.entities
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import java.time.Instant
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 계산 세션을 관리하는 엔티티입니다.
@@ -314,6 +316,31 @@ data class CalculationSession(
 
     companion object {
         /**
+         * 동시성 환경에서 고유한 세션 ID 생성을 위한 atomic counter
+         */
+        private val sessionCounter = AtomicLong(0)
+        
+        /**
+         * 동시성 환경에서 고유한 세션 ID를 생성합니다.
+         * 타임스탬프, atomic counter, UUID를 조합하여 충돌 가능성을 최소화합니다.
+         *
+         * @param prefix 세션 ID 접두사
+         * @param includeUuid UUID 포함 여부 (기본값: true)
+         * @return 고유한 세션 ID
+         */
+        private fun generateUniqueSessionId(prefix: String, includeUuid: Boolean = true): String {
+            val timestamp = System.currentTimeMillis()
+            val counter = sessionCounter.incrementAndGet()
+            
+            return if (includeUuid) {
+                val uuid = UUID.randomUUID().toString().take(8)
+                "${prefix}_${timestamp}_${counter}_${uuid}"
+            } else {
+                "${prefix}_${timestamp}_${counter}"
+            }
+        }
+        
+        /**
          * 새로운 세션을 생성합니다.
          *
          * @param sessionId 세션 ID
@@ -327,23 +354,25 @@ data class CalculationSession(
 
         /**
          * 임시 세션을 생성합니다.
+         * 동시성 환경에서 고유성을 보장하기 위해 타임스탬프, UUID, atomic counter를 조합합니다.
          *
          * @return 임시 세션
          */
         fun createTemporary(): CalculationSession {
-            val sessionId = "temp_${System.currentTimeMillis()}"
+            val sessionId = generateUniqueSessionId("temp", includeUuid = true)
             return create(sessionId)
         }
 
         /**
          * 사용자 세션을 생성합니다.
+         * 동시성 환경에서 고유성을 보장하기 위해 타임스탬프, atomic counter를 조합합니다.
          *
          * @param userId 사용자 ID
          * @return 사용자 세션
          */
         fun createForUser(userId: String): CalculationSession {
             require(userId.isNotBlank()) { "사용자 ID는 비어있을 수 없습니다" }
-            val sessionId = "user_${userId}_${System.currentTimeMillis()}"
+            val sessionId = generateUniqueSessionId("user_${userId}", includeUuid = false)
             return create(sessionId, userId)
         }
     }
