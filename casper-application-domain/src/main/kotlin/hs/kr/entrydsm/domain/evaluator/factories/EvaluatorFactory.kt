@@ -81,6 +81,7 @@ class EvaluatorFactory {
      * 변수 바인딩을 생성합니다.
      */
     fun createVariableBinding(name: String, value: Any?, isReadonly: Boolean = false): VariableBinding {
+        createdBindingCount++
         return VariableBinding.of(name, value, isReadonly)
     }
     
@@ -88,6 +89,7 @@ class EvaluatorFactory {
      * 숫자 변수 바인딩을 생성합니다.
      */
     fun createNumberBinding(name: String, value: Double, isReadonly: Boolean = false): VariableBinding {
+        createdBindingCount++
         return VariableBinding.ofNumber(name, value, isReadonly)
     }
     
@@ -95,6 +97,7 @@ class EvaluatorFactory {
      * 불리언 변수 바인딩을 생성합니다.
      */
     fun createBooleanBinding(name: String, value: Boolean, isReadonly: Boolean = false): VariableBinding {
+        createdBindingCount++
         return VariableBinding.ofBoolean(name, value, isReadonly)
     }
     
@@ -102,6 +105,7 @@ class EvaluatorFactory {
      * 문자열 변수 바인딩을 생성합니다.
      */
     fun createStringBinding(name: String, value: String, isReadonly: Boolean = false): VariableBinding {
+        createdBindingCount++
         return VariableBinding.ofString(name, value, isReadonly)
     }
     
@@ -109,6 +113,7 @@ class EvaluatorFactory {
      * 읽기 전용 변수 바인딩을 생성합니다.
      */
     fun createReadonlyBinding(name: String, value: Any?): VariableBinding {
+        createdBindingCount++
         return VariableBinding.readonly(name, value)
     }
     
@@ -116,6 +121,7 @@ class EvaluatorFactory {
      * 상수 바인딩을 생성합니다.
      */
     fun createConstantBinding(name: String, value: Any?): VariableBinding {
+        createdBindingCount++
         return VariableBinding.constant(name, value)
     }
     
@@ -123,13 +129,16 @@ class EvaluatorFactory {
      * 값 맵에서 변수 바인딩 리스트를 생성합니다.
      */
     fun createBindingsFromMap(valueMap: Map<String, Any?>): List<VariableBinding> {
-        return VariableBinding.fromValueMap(valueMap)
+        val bindings = VariableBinding.fromValueMap(valueMap)
+        createdBindingCount += bindings.size
+        return bindings
     }
     
     /**
      * 수학 함수 서비스를 생성합니다.
      */
     fun createMathFunctionService(): MathFunctionService {
+        createdMathServiceCount++
         return MathFunctionService()
     }
     
