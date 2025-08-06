@@ -6,6 +6,7 @@ import hs.kr.entrydsm.global.annotation.specification.Specification
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
 import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.constants.ErrorCodes
+import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
 
 /**
  * POC 코드의 FormulaValidator 기능을 DDD Specification 패턴으로 구현한 클래스입니다.
@@ -272,36 +273,16 @@ class CalculatorValiditySpec {
     }
 
     private fun tokenizeFormula(formula: String): List<String> {
-        // 간단한 토큰화 (실제로는 Lexer를 사용해야 함)
-        val tokens = mutableListOf<String>()
-        var i = 0
+        val lexer = LexerAggregate()
+        val result = lexer.tokenize(formula)
         
-        while (i < formula.length) {
-            val char = formula[i]
-            when {
-                char.isWhitespace() -> i++
-                char.isDigit() -> {
-                    val start = i
-                    while (i < formula.length && (formula[i].isDigit() || formula[i] == '.')) {
-                        i++
-                    }
-                    tokens.add(formula.substring(start, i))
-                }
-                char.isLetter() -> {
-                    val start = i
-                    while (i < formula.length && (formula[i].isLetterOrDigit() || formula[i] == '_')) {
-                        i++
-                    }
-                    tokens.add(formula.substring(start, i))
-                }
-                else -> {
-                    tokens.add(char.toString())
-                    i++
-                }
-            }
+        return if (result.isSuccess) {
+            result.tokens.map { it.value }
+        } else {
+            throw EvaluatorException.evaluationError(
+                cause = RuntimeException("Tokenization failed: ${result.error?.message}")
+            )
         }
-        
-        return tokens
     }
 
     private fun isAllowedToken(token: String): Boolean {
