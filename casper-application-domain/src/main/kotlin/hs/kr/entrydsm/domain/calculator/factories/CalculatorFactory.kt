@@ -307,8 +307,8 @@ class CalculatorFactory {
      *
      * @return 기본 변수 맵
      */
-    fun createDefaultEnvironment(): Map<String, Any> {
-        return EnvironmentFactory.createBasicEnvironment()
+    fun createDefaultEnvironment(): Map<String, Any?> {
+        return EnvironmentFactory.createBasicEnvironment().mapValues { it.value }
     }
 
     /**
@@ -316,8 +316,8 @@ class CalculatorFactory {
      *
      * @return 과학 상수가 포함된 변수 맵
      */
-    fun createScientificEnvironment(): Map<String, Any> {
-        return EnvironmentFactory.createScientificEnvironment()
+    fun createScientificEnvironment(): Map<String, Any?> {
+        return EnvironmentFactory.createScientificEnvironment().mapValues { it.value }
     }
 
     /**
@@ -325,8 +325,8 @@ class CalculatorFactory {
      *
      * @return 공학 상수가 포함된 변수 맵
      */
-    fun createEngineeringEnvironment(): Map<String, Any> {
-        return EnvironmentFactory.createEngineeringEnvironment()
+    fun createEngineeringEnvironment(): Map<String, Any?> {
+        return EnvironmentFactory.createEngineeringEnvironment().mapValues { it.value }
     }
 
     /**
@@ -334,8 +334,8 @@ class CalculatorFactory {
      *
      * @return 통계 상수가 포함된 변수 맵
      */
-    fun createStatisticalEnvironment(): Map<String, Any> {
-        return EnvironmentFactory.createStatisticalEnvironment()
+    fun createStatisticalEnvironment(): Map<String, Any?> {
+        return EnvironmentFactory.createStatisticalEnvironment().mapValues { it.value }
     }
 
     /**
