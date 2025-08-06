@@ -393,11 +393,11 @@ data class CalculationResult(
             CalculationResult(result, executionTimeMs, formula, warnings = listOf(warning))
 
         /**
-         * 빈 결과를 생성합니다 (테스트용).
+         * 테스트용 빈 결과를 생성합니다.
          *
-         * @return 빈 CalculationResult
+         * @return 테스트용 CalculationResult
          */
-        fun empty(): CalculationResult = CalculationResult(null, 0, "")
+        fun testResult(): CalculationResult = CalculationResult(null, 0, "test")
 
         /**
          * 여러 결과를 병합합니다.
