@@ -474,12 +474,96 @@ class TypeCompatibilitySpec {
                     node.getChildren().forEach { collectTypeErrors(it, context, errors) }
                 }
             }
+        } catch (e: EvaluatorException) {
+            // 평가기 도메인 예외 - 글로벌 도메인 예외로 변환
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_EVALUATOR_ERROR,
+                message = "타입 추론 중 평가 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "phase" to "collectTypeErrors"
+                )
+            )
+        } catch (e: IllegalArgumentException) {
+            // 잘못된 인수나 타입으로 인한 오류
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_ARGUMENT_ERROR,
+                message = "타입 추론 중 인수 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "phase" to "collectTypeErrors"
+                )
+            )
+        } catch (e: ClassCastException) {
+            // 타입 캐스팅 오류
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_CAST_ERROR,
+                message = "타입 추론 중 캐스팅 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "phase" to "collectTypeErrors"
+                )
+            )
+        } catch (e: NoSuchElementException) {
+            // 컬렉션이나 맵에서 요소를 찾지 못한 경우
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_LOOKUP_ERROR,
+                message = "타입 추론 중 요소 조회 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "phase" to "collectTypeErrors"
+                )
+            )
+        } catch (e: NullPointerException) {
+            // null 참조로 인한 오류
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_NULL_REFERENCE_ERROR,
+                message = "타입 추론 중 null 참조 오류 발생: ${e.message ?: "null 값 접근"}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "phase" to "collectTypeErrors"
+                )
+            )
+        } catch (e: UnsupportedOperationException) {
+            // 지원되지 않는 연산이나 타입
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_UNSUPPORTED_ERROR,
+                message = "타입 추론 중 지원되지 않는 연산 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "phase" to "collectTypeErrors"
+                )
+            )
+        } catch (e: RuntimeException) {
+            // 기타 런타임 예외들 (ArithmeticException, IllegalStateException 등)
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_RUNTIME_ERROR,
+                message = "타입 추론 중 런타임 오류 발생: ${e.javaClass.simpleName} - ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "originalErrorType" to e.javaClass.simpleName,
+                    "phase" to "collectTypeErrors"
+                )
+            )
         } catch (e: Exception) {
-            errors.add(TypeCompatibilityError(
-                "TYPE_INFERENCE_ERROR",
-                "타입 추론 중 오류 발생: ${e.message}",
-                node
-            ))
+            // 예상치 못한 검사된 예외들 (최후의 수단)
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_COMPATIBILITY_ERROR,
+                message = "타입 호환성 검증 중 예상치 못한 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "errorType" to e.javaClass.simpleName,
+                    "phase" to "collectTypeErrors"
+                )
+            )
         }
     }
 

@@ -62,6 +62,13 @@ enum class ErrorCode(val code: String, val description: String) {
     NUMBER_CONVERSION_ERROR("EVA008", "숫자 변환 중 오류가 발생했습니다"),
     MATH_ERROR("EVA009", "수학 연산 중 오류가 발생했습니다"),
     TYPE_COMPATIBILITY_ERROR("EVA010", "타입 호환성 오류가 발생했습니다"),
+    TYPE_EVALUATOR_ERROR("EVA011", "타입 평가 중 오류가 발생했습니다"),
+    TYPE_ARGUMENT_ERROR("EVA012", "타입 인수 오류가 발생했습니다"),
+    TYPE_CAST_ERROR("EVA013", "타입 캐스팅 오류가 발생했습니다"),
+    TYPE_LOOKUP_ERROR("EVA014", "타입 조회 오류가 발생했습니다"),
+    TYPE_NULL_REFERENCE_ERROR("EVA015", "타입 null 참조 오류가 발생했습니다"),
+    TYPE_UNSUPPORTED_ERROR("EVA016", "지원하지 않는 타입 연산 오류가 발생했습니다"),
+    TYPE_RUNTIME_ERROR("EVA017", "타입 런타임 오류가 발생했습니다"),
 
     // Calculator 도메인 오류 (CAL)
     EMPTY_FORMULA("CAL001", "수식이 비어있습니다"),
