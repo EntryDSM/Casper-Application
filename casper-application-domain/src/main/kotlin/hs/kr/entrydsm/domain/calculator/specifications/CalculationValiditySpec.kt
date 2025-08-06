@@ -2,7 +2,9 @@ package hs.kr.entrydsm.domain.calculator.specifications
 
 import hs.kr.entrydsm.domain.calculator.entities.CalculationSession
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.global.annotation.specification.Specification
+import hs.kr.entrydsm.global.exception.ErrorCode
 
 /**
  * 계산 유효성 검증 명세를 구현하는 클래스입니다.
@@ -99,7 +101,12 @@ class CalculationValiditySpec {
             validateFunctions(request.formula) &&
             validateSemantics(request.formula)
         } catch (e: Exception) {
-            false
+            throw CalculatorException(
+                errorCode = ErrorCode.VALIDATION_EXCEPTION,
+                formula = request.formula,
+                message = "계산 유효성 검증 중 예외가 발생했습니다: ${e.message}",
+                cause = e
+            )
         }
     }
 
