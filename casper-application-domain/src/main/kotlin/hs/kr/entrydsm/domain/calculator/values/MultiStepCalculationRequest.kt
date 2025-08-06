@@ -274,30 +274,92 @@ data class MultiStepCalculationRequest(
 
     /**
      * 순환 의존성이 있는지 확인합니다.
+     * DFS 알고리즘을 사용하여 모든 직간접 순환 의존성을 감지합니다.
      *
      * @return 순환 의존성이 있으면 true, 아니면 false
      */
     fun hasCircularDependency(): Boolean {
-        val resultVariables = steps.mapNotNull { it.resultVariable }.toSet()
+        // 의존성 그래프 구축
+        val dependencyGraph = buildDependencyGraph()
+        val visited = mutableSetOf<String>()
+        val recursionStack = mutableSetOf<String>()
+        
+        // 모든 노드에서 DFS 수행
+        for (node in dependencyGraph.keys) {
+            if (node !in visited) {
+                if (hasCycleDFS(node, dependencyGraph, visited, recursionStack)) {
+                    return true
+                }
+            }
+        }
+        
+        return false
+    }
+    
+    /**
+     * 의존성 그래프를 구축합니다.
+     * 각 결과 변수를 키로 하고, 해당 변수가 의존하는 변수들을 값으로 하는 맵을 생성합니다.
+     *
+     * @return 의존성 그래프 맵
+     */
+    private fun buildDependencyGraph(): Map<String, Set<String>> {
+        val graph = mutableMapOf<String, Set<String>>()
         val dependencies = analyzeDependencies()
         
-        // 각 단계에서 생성되는 변수가 이전 단계에서 참조되는지 확인
         steps.forEachIndexed { index, step ->
             step.resultVariable?.let { resultVar ->
-                // 이후 단계들에서 이 변수를 사용하는지 확인
-                for (laterIndex in (index + 1) until steps.size) {
-                    val laterDependencies = dependencies[laterIndex] ?: emptySet()
-                    if (resultVar in laterDependencies) {
-                        // 순환 참조 가능성 체크 (단순화된 구현)
-                        val laterStep = steps[laterIndex]
-                        if (laterStep.resultVariable in (dependencies[index] ?: emptySet())) {
-                            return true
-                        }
+                val stepDependencies = dependencies[index] ?: emptySet()
+                graph[resultVar] = stepDependencies
+                
+                // 의존하는 변수들도 그래프에 추가 (빈 의존성으로)
+                stepDependencies.forEach { dep ->
+                    if (dep !in graph) {
+                        graph[dep] = emptySet()
                     }
                 }
             }
         }
         
+        return graph
+    }
+    
+    /**
+     * DFS를 사용하여 순환 의존성을 감지합니다.
+     * 재귀 스택을 사용하여 현재 경로에서 이미 방문한 노드를 다시 만나면 순환으로 판단합니다.
+     *
+     * @param node 현재 노드
+     * @param graph 의존성 그래프
+     * @param visited 방문한 노드 집합
+     * @param recursionStack 현재 재귀 경로의 노드 집합
+     * @return 순환이 감지되면 true
+     */
+    private fun hasCycleDFS(
+        node: String,
+        graph: Map<String, Set<String>>,
+        visited: MutableSet<String>,
+        recursionStack: MutableSet<String>
+    ): Boolean {
+        visited.add(node)
+        recursionStack.add(node)
+        
+        // 현재 노드의 모든 의존성을 검사
+        val dependencies = graph[node] ?: emptySet()
+        for (dependency in dependencies) {
+            // 의존성이 현재 재귀 스택에 있으면 순환 감지
+            if (dependency in recursionStack) {
+                return true
+            }
+            
+            // 아직 방문하지 않은 의존성에 대해 재귀 DFS 수행
+            if (dependency !in visited) {
+                if (hasCycleDFS(dependency, graph, visited, recursionStack)) {
+                    return true
+                }
+            }
+        }
+        
+        // 현재 노드 처리 완료, 재귀 스택에서 제거
+        recursionStack.remove(node)
         return false
     }
 
