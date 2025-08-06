@@ -61,6 +61,7 @@ enum class ErrorCode(val code: String, val description: String) {
     UNSUPPORTED_TYPE("EVA007", "지원하지 않는 타입입니다"),
     NUMBER_CONVERSION_ERROR("EVA008", "숫자 변환 중 오류가 발생했습니다"),
     MATH_ERROR("EVA009", "수학 연산 중 오류가 발생했습니다"),
+    TYPE_COMPATIBILITY_ERROR("EVA010", "타입 호환성 오류가 발생했습니다"),
 
     // Calculator 도메인 오류 (CAL)
     EMPTY_FORMULA("CAL001", "수식이 비어있습니다"),

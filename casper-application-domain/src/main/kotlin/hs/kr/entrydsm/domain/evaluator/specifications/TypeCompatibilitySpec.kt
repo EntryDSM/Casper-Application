@@ -10,7 +10,10 @@ import hs.kr.entrydsm.domain.ast.entities.NumberNode
 import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.evaluator.entities.EvaluationContext
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.annotation.specification.Specification
+import hs.kr.entrydsm.global.exception.DomainException
+import hs.kr.entrydsm.global.exception.ErrorCode
 import kotlin.reflect.KClass
 
 /**
@@ -113,8 +116,22 @@ class TypeCompatibilitySpec {
     fun isSatisfiedBy(node: ASTNode, context: EvaluationContext): Boolean {
         return try {
             validateTypeCompatibility(node, context)
+        } catch (e: EvaluatorException) {
+            throw e
+        } catch (e: DomainException) {
+            throw e
         } catch (e: Exception) {
-            false
+            // 예상치 못한 예외는 글로벌 도메인 예외로 래핑
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_COMPATIBILITY_ERROR,
+                message = "타입 호환성 검증 중 예상치 못한 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "contextVariables" to context.variables.keys,
+                    "originalError" to e.javaClass.simpleName
+                )
+            )
         }
     }
 
@@ -127,8 +144,24 @@ class TypeCompatibilitySpec {
     fun isSatisfiedBy(node: ASTNode): Boolean {
         return try {
             validateTypeCompatibility(node, null)
+        } catch (e: EvaluatorException) {
+            // EvaluatorException은 이미 적절히 구조화된 예외이므로 재발생
+            throw e
+        } catch (e: DomainException) {
+            // DomainException은 이미 적절히 구조화된 예외이므로 재발생
+            throw e
         } catch (e: Exception) {
-            false
+            // 예상치 못한 예외는 글로벌 도메인 예외로 래핑
+            throw DomainException(
+                errorCode = ErrorCode.TYPE_COMPATIBILITY_ERROR,
+                message = "타입 호환성 검증 중 예상치 못한 오류 발생: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "nodeType" to (node::class.simpleName ?: "Unknown"),
+                    "hasContext" to false,
+                    "originalError" to e.javaClass.simpleName
+                )
+            )
         }
     }
 
