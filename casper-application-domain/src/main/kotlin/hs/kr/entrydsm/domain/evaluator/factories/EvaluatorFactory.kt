@@ -236,11 +236,18 @@ class EvaluatorFactory {
         private var createdBindingCount = 0L
         private var createdMathServiceCount = 0L
         
+        @Volatile
+        private var instance: EvaluatorFactory? = null
+        
         /**
          * 싱글톤 팩토리 인스턴스를 반환합니다.
          */
         @JvmStatic
-        fun getInstance(): EvaluatorFactory = EvaluatorFactory()
+        fun getInstance(): EvaluatorFactory {
+            return instance ?: synchronized(this) {
+                instance ?: EvaluatorFactory().also { instance = it }
+            }
+        }
         
         /**
          * 빠른 평가기 생성 편의 메서드입니다.
