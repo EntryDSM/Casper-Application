@@ -48,11 +48,32 @@ data class BinaryOpNode(
 
     override fun <T> accept(visitor: ASTVisitor<T>): T = visitor.visitBinaryOp(this)
 
-    override fun isStructurallyEqual(other: ASTNode): Boolean = 
-        other is BinaryOpNode && 
-        this.operator == other.operator &&
-        this.left.isStructurallyEqual(other.left) &&
-        this.right.isStructurallyEqual(other.right)
+    override fun isStructurallyEqual(other: ASTNode): Boolean {
+        if (other !is BinaryOpNode || this.operator != other.operator) return false
+        
+        // 기본적인 순서대로 비교
+        val standardMatch = this.left.isStructurallyEqual(other.left) && 
+                           this.right.isStructurallyEqual(other.right)
+        
+        // 교환법칙이 성립하는 연산자의 경우 순서를 바꿔서도 비교
+        val commutativeMatch = if (isCommutativeOperator(operator)) {
+            this.left.isStructurallyEqual(other.right) && 
+            this.right.isStructurallyEqual(other.left)
+        } else false
+        
+        return standardMatch || commutativeMatch
+    }
+    
+    /**
+     * 교환법칙이 성립하는 연산자인지 확인합니다.
+     * 
+     * @param op 확인할 연산자
+     * @return 교환법칙이 성립하면 true
+     */
+    private fun isCommutativeOperator(op: String): Boolean = when (op) {
+        "+", "*", "==", "!=", "&&", "||" -> true
+        else -> false
+    }
 
     /**
      * 연산자가 지원되는지 확인합니다.

@@ -44,7 +44,33 @@ data class NumberNode(val value: Double) : ASTNode() {
     override fun <T> accept(visitor: ASTVisitor<T>): T = visitor.visitNumber(this)
 
     override fun isStructurallyEqual(other: ASTNode): Boolean = 
-        other is NumberNode && this.value == other.value
+        other is NumberNode && areNumbersEqual(this.value, other.value)
+        
+    /**
+     * 두 double 값이 의미적으로 같은지 확인합니다.
+     * 부동소수점 정밀도 문제를 해결하기 위해 엡실론 기반 비교를 사용합니다.
+     * 
+     * @param a 첫 번째 값
+     * @param b 두 번째 값
+     * @return 값이 같으면 true
+     */
+    private fun areNumbersEqual(a: Double, b: Double): Boolean {
+        // NaN과 무한대는 정확히 같아야 함
+        if (a.isNaN() && b.isNaN()) return true
+        if (a.isInfinite() && b.isInfinite()) return a == b
+        if (a.isNaN() || b.isNaN()) return false
+        if (a.isInfinite() || b.isInfinite()) return false
+        
+        // 0에 가까운 값들은 절대 차이로 비교
+        if (kotlin.math.abs(a) < EPSILON && kotlin.math.abs(b) < EPSILON) {
+            return kotlin.math.abs(a - b) < EPSILON
+        }
+        
+        // 일반적인 경우는 상대 오차로 비교
+        val diff = kotlin.math.abs(a - b)
+        val maxAbs = kotlin.math.max(kotlin.math.abs(a), kotlin.math.abs(b))
+        return diff <= EPSILON * maxAbs
+    }
 
     /**
      * 숫자 값이 정수인지 확인합니다.
@@ -162,6 +188,11 @@ data class NumberNode(val value: Double) : ASTNode() {
     }
 
     companion object {
+        /**
+         * 부동소수점 비교를 위한 엡실론 값
+         */
+        private const val EPSILON = 1e-10
+        
         /**
          * 0을 나타내는 NumberNode를 반환합니다.
          */

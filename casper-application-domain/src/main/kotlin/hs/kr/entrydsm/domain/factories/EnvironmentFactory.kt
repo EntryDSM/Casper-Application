@@ -92,6 +92,7 @@ object EnvironmentFactory {
         // 공학 상수들
         environment["GRAVITY"] = 9.80665 // m/s² (표준 중력가속도)
         environment["ATMOSPHERIC_PRESSURE"] = 101325.0 // Pa (표준 대기압)
+        environment["ABSOLUTE_ZERO"] = -273.15 // °C (절대 영도)
         environment["WATER_DENSITY"] = 1000.0 // kg/m³ (물의 밀도, 4°C)
         environment["AIR_DENSITY"] = 1.225 // kg/m³ (공기 밀도, 15°C, 1 atm)
         environment["SOUND_SPEED_AIR"] = 343.0 // m/s (공기 중 음속, 20°C)
