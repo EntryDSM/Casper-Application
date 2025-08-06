@@ -197,6 +197,12 @@ data class MathFunction(
 
     companion object {
         /**
+         * 가변 인수 함수의 실용적 최대 인수 개수 제한
+         * 메모리 사용량과 성능을 고려한 합리적인 상한선
+         */
+        private const val MAX_PRACTICAL_ARGUMENTS = 1000
+        
+        /**
          * 고정 인수 개수를 가진 함수를 생성합니다.
          *
          * @param name 함수 이름
@@ -253,7 +259,8 @@ data class MathFunction(
         }
 
         /**
-         * 인수 개수 제한이 없는 함수를 생성합니다.
+         * 인수 개수 제한이 유연한 함수를 생성합니다.
+         * 메모리와 성능을 고려하여 실용적인 상한선을 적용합니다.
          *
          * @param name 함수 이름
          * @param description 함수 설명
@@ -270,7 +277,37 @@ data class MathFunction(
             return MathFunction(
                 name = name,
                 minArguments = 0,
-                maxArguments = Int.MAX_VALUE,
+                maxArguments = MAX_PRACTICAL_ARGUMENTS,
+                description = description,
+                category = category,
+                implementation = implementation
+            )
+        }
+        
+        /**
+         * 커스텀 최대 인수 개수로 가변 인수 함수를 생성합니다.
+         *
+         * @param name 함수 이름
+         * @param minArgs 최소 인수 개수
+         * @param maxArgs 최대 인수 개수 (MAX_PRACTICAL_ARGUMENTS로 제한됨)
+         * @param description 함수 설명
+         * @param category 함수 카테고리
+         * @param implementation 함수 구현체
+         * @return MathFunction 인스턴스
+         */
+        fun flexibleArgs(
+            name: String,
+            minArgs: Int,
+            maxArgs: Int,
+            description: String,
+            category: FunctionCategory,
+            implementation: (List<Any>) -> Any
+        ): MathFunction {
+            val safeMaxArgs = minOf(maxArgs, MAX_PRACTICAL_ARGUMENTS)
+            return MathFunction(
+                name = name,
+                minArguments = minArgs,
+                maxArguments = safeMaxArgs,
                 description = description,
                 category = category,
                 implementation = implementation

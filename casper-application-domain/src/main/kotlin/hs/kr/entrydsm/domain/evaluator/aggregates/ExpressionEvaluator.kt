@@ -446,11 +446,21 @@ class ExpressionEvaluator(
 
     /**
      * 팩토리얼을 계산합니다.
+     * Long 오버플로우 방지를 위해 안전한 범위로 제한합니다.
      */
     private fun factorial(n: Int): Long {
+        if (n < 0) throw ArithmeticException("FACTORIAL of negative number: $n")
+        if (n > MAX_FACTORIAL_INPUT) {
+            throw ArithmeticException("FACTORIAL input too large: $n (max: $MAX_FACTORIAL_INPUT)")
+        }
         if (n <= 1) return 1
+        
         var result = 1L
         for (i in 2..n) {
+            // 오버플로우 체크
+            if (result > Long.MAX_VALUE / i) {
+                throw ArithmeticException("FACTORIAL overflow detected for input: $n")
+            }
             result *= i
         }
         return result
@@ -458,16 +468,31 @@ class ExpressionEvaluator(
 
     /**
      * 조합을 계산합니다.
+     * Long 오버플로우 방지를 위해 안전한 범위로 제한합니다.
      */
     private fun combination(n: Int, r: Int): Long {
-        if (r > n || r < 0) return 0
+        if (n < 0 || r < 0) throw ArithmeticException("COMBINATION with negative inputs: n=$n, r=$r")
+        if (r > n) return 0
         if (r == 0 || r == n) return 1
+        
+        // 입력 크기 검증 - 조합이 팩토리얼보다 작으므로 더 큰 값 허용
+        if (n > MAX_COMBINATION_INPUT) {
+            throw ArithmeticException("COMBINATION input too large: n=$n (max: $MAX_COMBINATION_INPUT)")
+        }
         
         val k = minOf(r, n - r)
         var result = 1L
         
         for (i in 0 until k) {
-            result = result * (n - i) / (i + 1)
+            val numerator = n - i
+            val denominator = i + 1
+            
+            // 오버플로우 체크 - 곱셈 전에 검사
+            if (result > Long.MAX_VALUE / numerator) {
+                throw ArithmeticException("COMBINATION overflow detected: n=$n, r=$r")
+            }
+            
+            result = result * numerator / denominator
         }
         
         return result
@@ -475,14 +500,28 @@ class ExpressionEvaluator(
 
     /**
      * 순열을 계산합니다.
+     * Long 오버플로우 방지를 위해 안전한 범위로 제한합니다.
      */
     private fun permutation(n: Int, r: Int): Long {
-        if (r > n || r < 0) return 0
+        if (n < 0 || r < 0) throw ArithmeticException("PERMUTATION with negative inputs: n=$n, r=$r")
+        if (r > n) return 0
         if (r == 0) return 1
+        
+        // 입력 크기 검증 - 순열은 팩토리얼과 유사한 성장률
+        if (n > MAX_PERMUTATION_INPUT || r > MAX_PERMUTATION_INPUT) {
+            throw ArithmeticException("PERMUTATION input too large: n=$n, r=$r (max: $MAX_PERMUTATION_INPUT)")
+        }
         
         var result = 1L
         for (i in 0 until r) {
-            result *= (n - i)
+            val factor = n - i
+            
+            // 오버플로우 체크
+            if (result > Long.MAX_VALUE / factor) {
+                throw ArithmeticException("PERMUTATION overflow detected: n=$n, r=$r")
+            }
+            
+            result *= factor
         }
         
         return result
@@ -499,6 +538,11 @@ class ExpressionEvaluator(
     }
 
     companion object {
+        // Long 오버플로우 방지를 위한 안전한 입력 크기 제한
+        private const val MAX_FACTORIAL_INPUT = 20      // 20! = 2,432,902,008,176,640,000 (Long 범위 내)
+        private const val MAX_COMBINATION_INPUT = 62    // C(62,31)이 Long 범위 내 최대값
+        private const val MAX_PERMUTATION_INPUT = 20    // P(20,20) = 20!과 동일
+        
         /**
          * 빈 변수 바인딩으로 평가기를 생성합니다.
          */
