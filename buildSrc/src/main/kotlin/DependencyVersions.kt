@@ -6,5 +6,5 @@ object DependencyVersions {
     const val KOTLINX_SERIALIZATION_VERSION = "1.6.3"
     
     // Kotlinx Coroutines
-    const val KOTLINX_COROUTINES_VERSION = "1.9.0"
+    const val KOTLINX_COROUTINES_VERSION = "1.8.1"
 }
