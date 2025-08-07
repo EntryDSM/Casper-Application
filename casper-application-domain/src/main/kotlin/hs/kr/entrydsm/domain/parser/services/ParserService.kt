@@ -11,6 +11,9 @@ import hs.kr.entrydsm.domain.parser.values.ParsingResult
 import hs.kr.entrydsm.domain.parser.values.ParsingTable
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
+import hs.kr.entrydsm.global.configuration.ParserConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
+import hs.kr.entrydsm.global.exception.ErrorCode
 
 /**
  * Parser 도메인의 핵심 서비스 클래스입니다.
@@ -31,19 +34,15 @@ import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 class ParserService(
     private val lrParserTableService: LRParserTableService,
     private val firstFollowCalculatorService: FirstFollowCalculatorService,
-    private val conflictResolverService: ConflictResolverService
+    private val conflictResolverService: ConflictResolverService,
+    private val configurationProvider: ConfigurationProvider
 ) : ParserContract {
 
-    companion object {
-        private const val MAX_PARSING_STEPS = 100000
-        private const val MAX_STACK_DEPTH = 10000
-        private const val MAX_TOKEN_COUNT = 50000
-    }
-
-    private var debugMode = false
-    private var errorRecoveryMode = true
-    private var maxParsingDepth = MAX_STACK_DEPTH
     private val parsingStatistics = mutableMapOf<String, Any>()
+    
+    // 설정은 ConfigurationProvider를 통해 동적으로 접근
+    private val config: ParserConfiguration
+        get() = configurationProvider.getParserConfiguration()
 
     /**
      * 토큰 목록을 구문 분석하여 AST를 생성합니다.
@@ -79,7 +78,7 @@ class ParserService(
             
             return ParsingResult.failure(
                 error = ParserException(
-                    errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSING_FAILED,
+                    errorCode = hs.kr.entrydsm.global.exception.ErrorCode.PARSING_ERROR,
                     message = "파싱 중 오류 발생: ${e.message}",
                     cause = e
                 ),
@@ -96,7 +95,7 @@ class ParserService(
      * @return 파싱 결과
      */
     override fun parseSequence(tokenSequence: Sequence<Token>): ParsingResult {
-        val tokens = tokenSequence.take(MAX_TOKEN_COUNT).toList()
+        val tokens = tokenSequence.take(config.maxTokenCount).toList()
         return parse(tokens)
     }
 
@@ -123,11 +122,14 @@ class ParserService(
      * @return 부분 파싱 결과
      */
     override fun parsePartial(tokens: List<Token>, allowIncomplete: Boolean): ParsingResult {
-        val originalErrorRecovery = errorRecoveryMode
+        val originalConfig = config
+        val modifiedConfig = if (allowIncomplete) {
+            originalConfig.copy(errorRecoveryMode = true)
+        } else originalConfig
+        
+        configurationProvider.updateParserConfiguration(modifiedConfig)
         
         try {
-            // 부분 파싱에서는 에러 복구를 더 관대하게 설정
-            errorRecoveryMode = allowIncomplete
             
             val result = parse(tokens)
             
@@ -142,7 +144,7 @@ class ParserService(
             return result
             
         } finally {
-            errorRecoveryMode = originalErrorRecovery
+            configurationProvider.updateParserConfiguration(originalConfig)
         }
     }
 
@@ -198,9 +200,9 @@ class ParserService(
      * @return 파서 상태 정보
      */
     override fun getState(): Map<String, Any> = mapOf(
-        "debugMode" to debugMode,
-        "errorRecoveryMode" to errorRecoveryMode,
-        "maxParsingDepth" to maxParsingDepth,
+        "debugMode" to config.debugMode,
+        "errorRecoveryMode" to config.errorRecoveryMode,
+        "maxParsingDepth" to config.maxParsingDepth,
         "parsingStatistics" to parsingStatistics.toMap(),
         "grammarInfo" to Grammar.getGrammarStatistics(),
         "isReady" to true
@@ -210,9 +212,8 @@ class ParserService(
      * 파서를 초기 상태로 재설정합니다.
      */
     override fun reset() {
-        debugMode = false
-        errorRecoveryMode = true
-        maxParsingDepth = MAX_STACK_DEPTH
+        // 설정을 기본값으로 초기화
+        configurationProvider.resetToDefaults()
         parsingStatistics.clear()
         
         // 서비스들도 리셋
@@ -227,11 +228,14 @@ class ParserService(
      * @return 설정 정보 맵
      */
     override fun getConfiguration(): Map<String, Any> = mapOf(
-        "maxParsingSteps" to MAX_PARSING_STEPS,
-        "maxStackDepth" to MAX_STACK_DEPTH,
-        "maxTokenCount" to MAX_TOKEN_COUNT,
-        "debugMode" to debugMode,
-        "errorRecoveryMode" to errorRecoveryMode,
+        "maxParsingSteps" to config.maxParsingSteps,
+        "maxStackDepth" to config.maxStackDepth,
+        "maxTokenCount" to config.maxTokenCount,
+        "debugMode" to config.debugMode,
+        "errorRecoveryMode" to config.errorRecoveryMode,
+        "enableOptimizations" to config.enableOptimizations,
+        "cachingEnabled" to config.cachingEnabled,
+        "streamingBatchSize" to config.streamingBatchSize,
         "parsingStrategy" to "LR(1)",
         "optimizations" to listOf("tableCompression", "stateMinimization", "conflictResolution")
     )
@@ -260,7 +264,8 @@ class ParserService(
      * @param enabled 디버그 모드 활성화 여부
      */
     override fun setDebugMode(enabled: Boolean) {
-        debugMode = enabled
+        val updatedConfig = config.copy(debugMode = enabled)
+        configurationProvider.updateParserConfiguration(updatedConfig)
     }
 
     /**
@@ -269,7 +274,8 @@ class ParserService(
      * @param enabled 오류 복구 모드 활성화 여부
      */
     override fun setErrorRecoveryMode(enabled: Boolean) {
-        errorRecoveryMode = enabled
+        val updatedConfig = config.copy(errorRecoveryMode = enabled)
+        configurationProvider.updateParserConfiguration(updatedConfig)
     }
 
     /**
@@ -279,9 +285,10 @@ class ParserService(
      */
     override fun setMaxParsingDepth(maxDepth: Int) {
         require(maxDepth > 0) { "최대 파싱 깊이는 양수여야 합니다: $maxDepth" }
-        require(maxDepth <= MAX_STACK_DEPTH) { "최대 파싱 깊이가 한계를 초과했습니다: $maxDepth > $MAX_STACK_DEPTH" }
+        require(maxDepth <= config.maxStackDepth) { "최대 파싱 깊이가 한계를 초과했습니다: $maxDepth > ${config.maxStackDepth}" }
         
-        this.maxParsingDepth = maxDepth
+        val updatedConfig = config.copy(maxParsingDepth = maxDepth)
+        configurationProvider.updateParserConfiguration(updatedConfig)
     }
 
     /**
@@ -415,7 +422,7 @@ class ParserService(
      *
      * @return 최대 토큰 수
      */
-    override fun getMaxSupportedTokens(): Int = MAX_TOKEN_COUNT
+    override fun getMaxSupportedTokens(): Int = config.maxTokenCount
 
     /**
      * 파서의 메모리 사용량을 반환합니다.
@@ -438,8 +445,8 @@ class ParserService(
     // Private helper methods
 
     private fun validateTokens(tokens: List<Token>) {
-        require(tokens.size <= MAX_TOKEN_COUNT) {
-            "토큰 개수가 최대값을 초과했습니다: ${tokens.size} > $MAX_TOKEN_COUNT"
+        require(tokens.size <= config.maxTokenCount) {
+            "토큰 개수가 최대값을 초과했습니다: ${tokens.size} > ${config.maxTokenCount}"
         }
     }
 
@@ -452,7 +459,7 @@ class ParserService(
         
         stack.add(currentState)
         
-        while (step < MAX_PARSING_STEPS && inputBuffer.isNotEmpty()) {
+        while (step < config.maxParsingSteps && inputBuffer.isNotEmpty()) {
             step++
             
             val currentToken = inputBuffer.first()
@@ -467,7 +474,12 @@ class ParserService(
                 }
                 action?.isReduce() == true -> {
                     // Reduce 연산
-                    val production = Grammar.getProduction(action.getProductionId())
+                    val productionId = action.getProductionId()
+                    val production = Grammar.productions.find { it.id == productionId }
+                        ?: throw ParserException(
+                            errorCode = ErrorCode.PARSING_ERROR,
+                            message = "생산 규칙을 찾을 수 없습니다: $productionId"
+                        )
                     repeat(production.right.size) { stack.removeLastOrNull() }
                     
                     val gotoState = stack.lastOrNull()?.let { 
@@ -479,7 +491,7 @@ class ParserService(
                         stack.add(currentState)
                     } else {
                         throw ParserException(
-                            errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSER_STATE_ERROR,
+                            errorCode = ErrorCode.PARSING_ERROR,
                             message = "Goto 상태를 찾을 수 없습니다"
                         )
                     }
@@ -495,11 +507,11 @@ class ParserService(
                 }
                 else -> {
                     // Error
-                    if (errorRecoveryMode) {
+                    if (config.errorRecoveryMode) {
                         return attemptErrorRecovery(tokens, stack, inputBuffer)
                     } else {
                         throw ParserException(
-                            errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.SYNTAX_ERROR,
+                            errorCode = ErrorCode.SYNTAX_ERROR,
                             message = "파싱 오류: 예상하지 못한 토큰 ${currentToken.type}"
                         )
                     }
@@ -518,7 +530,7 @@ class ParserService(
         progressCallback: () -> Unit
     ): ParsingResult {
         // 스트리밍 파싱 구현 (단순화)
-        val batchSize = 100
+        val batchSize = config.streamingBatchSize
         var processedTokens = 0
         
         while (processedTokens < tokens.size) {
@@ -535,7 +547,7 @@ class ParserService(
 
     private fun determineCurrentState(tokens: List<Token>, parsingTable: ParsingTable): ParsingState? {
         // 현재 토큰들로부터 파싱 상태 결정 (단순화)
-        return parsingTable.getStartState()
+        return parsingTable.states[parsingTable.startState]
     }
 
     private fun findErrorPosition(tokens: List<Token>, error: ParserException): Int {
@@ -561,7 +573,7 @@ class ParserService(
             inputBuffer.removeAt(0)
             return ParsingResult.failure(
                 error = ParserException(
-                    errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSING_FAILED,
+                    errorCode = ErrorCode.PARSING_ERROR,
                     message = "에러 복구 수행됨"
                 ),
                 partialAST = createDummyAST(),
@@ -606,7 +618,10 @@ class ParserService(
     private fun estimateParsingTableSize(): Long {
         return try {
             val parsingTable = lrParserTableService.buildParsingTable(Grammar)
-            parsingTable.getMemoryUsage()["total"] as? Long ?: 0L
+            // 대략적인 메모리 사용량 추정
+            (parsingTable.states.size * 500L + 
+             parsingTable.actionTable.size * 100L + 
+             parsingTable.gotoTable.size * 100L)
         } catch (e: Exception) {
             0L
         }

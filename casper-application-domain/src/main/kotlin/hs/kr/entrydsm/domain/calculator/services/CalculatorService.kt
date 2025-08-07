@@ -12,6 +12,8 @@ import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
+import hs.kr.entrydsm.global.configuration.CalculatorConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 import java.security.MessageDigest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -40,14 +42,13 @@ class CalculatorService(
     private val evaluator: ExpressionEvaluator,
     private val calculationPolicy: CalculationPolicy,
     private val validitySpec: CalculationValiditySpec,
-    private val treeOptimizer: TreeOptimizer
+    private val treeOptimizer: TreeOptimizer,
+    private val configurationProvider: ConfigurationProvider
 ) {
 
-    companion object {
-        private const val DEFAULT_TIMEOUT_MS = 30000L
-        private const val MAX_RETRIES = 3
-        private const val DEFAULT_CONCURRENCY = 10
-    }
+    // 설정은 ConfigurationProvider를 통해 동적으로 접근
+    private val config: CalculatorConfiguration
+        get() = configurationProvider.getCalculatorConfiguration()
 
     private val calculationCache = ConcurrentHashMap<String, CachedResult>()
     private val performanceMetrics = PerformanceMetrics()
@@ -57,7 +58,8 @@ class CalculatorService(
     private val calculationScope = CoroutineScope(
         Dispatchers.Default + SupervisorJob() + CoroutineName("CalculationService")
     )
-    private val calculationDispatcher = Dispatchers.Default.limitedParallelism(DEFAULT_CONCURRENCY)
+    private val calculationDispatcher: CoroutineDispatcher
+        get() = Dispatchers.Default.limitedParallelism(config.concurrency)
 
     /**
      * 계산 요청을 처리합니다.
@@ -363,7 +365,7 @@ class CalculatorService(
         }
     }
 
-    private suspend fun evaluateWithRetry(ast: Any, variables: Map<String, Any>, retries: Int = MAX_RETRIES): Any? {
+    private suspend fun evaluateWithRetry(ast: Any, variables: Map<String, Any>, retries: Int = config.maxRetries): Any? {
         repeat(retries) { attempt ->
             try {
                 // AST를 실제 ASTNode로 변환하여 평가
@@ -748,8 +750,8 @@ class CalculatorService(
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
         "serviceName" to "CalculatorService",
-        "defaultTimeoutMs" to DEFAULT_TIMEOUT_MS,
-        "maxRetries" to MAX_RETRIES,
+        "defaultTimeoutMs" to config.defaultTimeoutMs,
+        "maxRetries" to config.maxRetries,
         "cacheEnabled" to true,
         "maxCacheSize" to 1000,
         "cacheExpirationMs" to 3600000,

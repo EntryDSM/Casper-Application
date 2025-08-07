@@ -12,6 +12,8 @@ import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
+import hs.kr.entrydsm.global.configuration.ASTConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 import kotlin.math.*
 
 /**
@@ -29,10 +31,16 @@ import kotlin.math.*
     name = "AST 트리 최적화 서비스",
     type = ServiceType.DOMAIN_SERVICE
 )
-class TreeOptimizer {
+class TreeOptimizer(
+    private val configurationProvider: ConfigurationProvider? = null
+) {
     
     private val factory = ASTNodeFactory()
     private val traverser = TreeTraverser()
+    
+    // 설정은 ConfigurationProvider를 통해 동적으로 접근 (기본값 사용 가능)
+    private val config: ASTConfiguration
+        get() = configurationProvider?.getASTConfiguration() ?: ASTConfiguration()
     
     /**
      * 트리를 최적화합니다.
@@ -42,16 +50,14 @@ class TreeOptimizer {
      */
     fun optimize(root: ASTNode): ASTNode {
         var optimized = root
-        
-        // 여러 패스로 최적화 수행
-        for (pass in 1..MAX_OPTIMIZATION_PASSES) {
+
+        for (pass in 1..5) {
             val beforeSize = optimized.getSize()
             
             optimized = performOptimizationPass(optimized)
             
             val afterSize = optimized.getSize()
-            
-            // 더 이상 최적화가 없으면 종료
+
             if (beforeSize == afterSize) {
                 break
             }

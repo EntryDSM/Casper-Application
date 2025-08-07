@@ -14,6 +14,8 @@ import hs.kr.entrydsm.domain.expresser.values.FormattedExpression
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
 import hs.kr.entrydsm.domain.parser.aggregates.ParsingContextAggregate
 import hs.kr.entrydsm.global.annotation.service.Service
+import hs.kr.entrydsm.global.configuration.ExpresserConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 import java.time.Instant
 
 /**
@@ -37,13 +39,12 @@ class ExpresserService(
     private val parser: ParsingContextAggregate,
     private val factory: ExpresserFactory,
     private val policy: FormattingPolicy,
-    private val qualitySpec: FormattingQualitySpec
+    private val qualitySpec: FormattingQualitySpec,
+    private val configurationProvider: ConfigurationProvider
 ) : ExpresserContract {
 
-    companion object {
-        private const val DEFAULT_TIMEOUT_MS = 30000L
-        private const val MAX_RETRIES = 3
-    }
+    private val config: ExpresserConfiguration
+        get() = configurationProvider.getExpresserConfiguration()
 
     private val formattingCache = mutableMapOf<String, CachedFormatting>()
     private val performanceMetrics = PerformanceMetrics()
@@ -329,11 +330,13 @@ class ExpresserService(
     override fun getConfiguration(): Map<String, Any> {
         return mapOf(
             "serviceName" to "ExpresserService",
-            "defaultTimeoutMs" to DEFAULT_TIMEOUT_MS,
-            "maxRetries" to MAX_RETRIES,
-            "cacheEnabled" to true,
-            "maxCacheSize" to 1000,
-            "supportedFormats" to getSupportedFormats(),
+            "defaultTimeoutMs" to config.defaultTimeoutMs,
+            "maxRetries" to config.maxRetries,
+            "cacheEnabled" to config.cachingEnabled,
+            "maxCacheSize" to config.maxCacheSize,
+            "enableQualityCheck" to config.enableQualityCheck,
+            "enableSecurityFilter" to config.enableSecurityFilter,
+            "supportedFormats" to config.supportedFormats,
             "supportedColorSchemes" to getSupportedColorSchemes()
         )
     }

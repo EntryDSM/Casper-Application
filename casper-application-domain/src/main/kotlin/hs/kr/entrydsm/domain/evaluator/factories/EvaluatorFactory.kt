@@ -6,6 +6,14 @@ import hs.kr.entrydsm.domain.evaluator.values.VariableBinding
 import hs.kr.entrydsm.domain.factories.EnvironmentFactory
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
+import hs.kr.entrydsm.global.configuration.ASTConfiguration
+import hs.kr.entrydsm.global.configuration.CalculatorConfiguration
+import hs.kr.entrydsm.global.configuration.EvaluatorConfiguration
+import hs.kr.entrydsm.global.configuration.ExpresserConfiguration
+import hs.kr.entrydsm.global.configuration.LexerConfiguration
+import hs.kr.entrydsm.global.configuration.ParserConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationChangeListener
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 
 /**
  * Evaluator 도메인 객체들을 생성하는 팩토리입니다.
@@ -19,9 +27,11 @@ import hs.kr.entrydsm.global.annotation.factory.type.Complexity
  * @since 2025.07.16
  */
 @Factory(context = "evaluator", complexity = Complexity.NORMAL, cache = true)
-class EvaluatorFactory {
+class EvaluatorFactory(
+    private val configurationProvider: ConfigurationProvider
+) {
     
-    private val mathFunctionService = MathFunctionService()
+    private val mathFunctionService = MathFunctionService(configurationProvider)
     
     /**
      * 빈 변수 바인딩으로 평가기를 생성합니다.
@@ -65,13 +75,11 @@ class EvaluatorFactory {
     fun createEvaluatorWithMathConstants(userVariables: Map<String, Any?>): ExpressionEvaluator {
         val mathConstants = VariableBinding.getMathConstants()
         val allVariables = mutableMapOf<String, Any?>()
-        
-        // 수학 상수 추가
+
         mathConstants.forEach { binding ->
             allVariables[binding.name] = binding.value
         }
         
-        // 사용자 변수 추가 (덮어쓰기)
         allVariables.putAll(userVariables)
         
         return createEvaluator(allVariables)
@@ -139,7 +147,7 @@ class EvaluatorFactory {
      */
     fun createMathFunctionService(): MathFunctionService {
         createdMathServiceCount++
-        return MathFunctionService()
+        return MathFunctionService(configurationProvider)
     }
     
     /**
@@ -243,9 +251,28 @@ class EvaluatorFactory {
          * 싱글톤 팩토리 인스턴스를 반환합니다.
          */
         @JvmStatic
-        fun getInstance(): EvaluatorFactory {
+        fun getInstance(configurationProvider: ConfigurationProvider? = null): EvaluatorFactory {
             return instance ?: synchronized(this) {
-                instance ?: EvaluatorFactory().also { instance = it }
+                instance ?: EvaluatorFactory(configurationProvider ?: object : ConfigurationProvider {
+                    override fun getParserConfiguration() = ParserConfiguration()
+                    override fun getCalculatorConfiguration() = CalculatorConfiguration()
+                    override fun getASTConfiguration() = ASTConfiguration()
+                    override fun getLexerConfiguration() = LexerConfiguration()
+                    override fun getExpresserConfiguration() = ExpresserConfiguration()
+                    override fun getEvaluatorConfiguration() = EvaluatorConfiguration()
+                    override fun updateParserConfiguration(configuration: ParserConfiguration) {}
+                    override fun updateCalculatorConfiguration(configuration: CalculatorConfiguration) {}
+                    override fun updateASTConfiguration(configuration: ASTConfiguration) {}
+                    override fun updateLexerConfiguration(configuration: LexerConfiguration) {}
+                    override fun updateExpresserConfiguration(configuration: ExpresserConfiguration) {}
+                    override fun updateEvaluatorConfiguration(configuration: EvaluatorConfiguration) {}
+                    override fun resetToDefaults() {}
+                    override fun saveConfiguration() {}
+                    override fun addConfigurationChangeListener(listener: ConfigurationChangeListener) {}
+                    override fun removeConfigurationChangeListener(listener: ConfigurationChangeListener) {}
+                    override fun validateConfiguration(): Map<String, List<String>> = emptyMap()
+                    override fun getConfigurationMetadata(): Map<String, Any> = emptyMap()
+                }).also { instance = it }
             }
         }
         

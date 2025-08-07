@@ -3,10 +3,11 @@ package hs.kr.entrydsm.domain.calculator.services
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.MultiStepCalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.CalculationStep
-import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.exception.ErrorCode
 import hs.kr.entrydsm.global.exception.ValidationException
+import hs.kr.entrydsm.global.configuration.CalculatorConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 
 /**
  * 계산기 도메인의 유효성 검사를 담당하는 도메인 서비스입니다.
@@ -24,13 +25,13 @@ import hs.kr.entrydsm.global.exception.ValidationException
     name = "ValidationService",
     type = hs.kr.entrydsm.global.annotation.service.type.ServiceType.DOMAIN_SERVICE
 )
-class ValidationService {
+class ValidationService(
+    private val configurationProvider: ConfigurationProvider
+) {
 
-    companion object {
-        private const val MAX_FORMULA_LENGTH = 5000
-        private const val MAX_STEPS = 50
-        private const val MAX_VARIABLES = 100
-    }
+    // 설정은 ConfigurationProvider를 통해 동적으로 접근
+    private val config: CalculatorConfiguration
+        get() = configurationProvider.getCalculatorConfiguration()
 
     /**
      * 단일 계산 요청의 유효성을 검사합니다.
@@ -42,8 +43,8 @@ class ValidationService {
      */
     fun validateCalculationRequest(
         request: CalculationRequest,
-        maxFormulaLength: Int = MAX_FORMULA_LENGTH,
-        maxVariables: Int = MAX_VARIABLES
+        maxFormulaLength: Int = config.maxFormulaLength,
+        maxVariables: Int = config.maxVariables
     ) {
         validateFormula(request.formula, maxFormulaLength)
         request.variables?.let { validateVariableCount(it, maxVariables) }
@@ -60,9 +61,9 @@ class ValidationService {
      */
     fun validateMultiStepRequest(
         request: MultiStepCalculationRequest,
-        maxFormulaLength: Int = MAX_FORMULA_LENGTH,
-        maxSteps: Int = MAX_STEPS,
-        maxVariables: Int = MAX_VARIABLES
+        maxFormulaLength: Int = config.maxFormulaLength,
+        maxSteps: Int = 50, // MultiStep 전용 설정 (추후 Configuration에 추가 가능)
+        maxVariables: Int = config.maxVariables
     ) {
         // 단계 유효성 검사
         if (request.steps.isNullOrEmpty()) {
@@ -103,7 +104,7 @@ class ValidationService {
     fun validateCalculationStep(
         step: CalculationStep,
         stepNumber: Int,
-        maxFormulaLength: Int = MAX_FORMULA_LENGTH
+        maxFormulaLength: Int = config.maxFormulaLength
     ) {
         validateFormula(step.formula, maxFormulaLength, "단계 $stepNumber")
         
@@ -139,7 +140,7 @@ class ValidationService {
      */
     fun validateFormula(
         formula: String,
-        maxLength: Int = MAX_FORMULA_LENGTH,
+        maxLength: Int = config.maxFormulaLength,
         context: String = "수식"
     ) {
         if (formula.isBlank()) {
@@ -198,7 +199,7 @@ class ValidationService {
      */
     fun validateVariableCount(
         variables: Map<String, Any?>,
-        maxVariables: Int = MAX_VARIABLES
+        maxVariables: Int = config.maxVariables
     ) {
         if (variables.size > maxVariables) {
             throw ValidationException(

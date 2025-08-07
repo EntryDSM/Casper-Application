@@ -3,6 +3,8 @@ package hs.kr.entrydsm.domain.evaluator.services
 import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
+import hs.kr.entrydsm.global.configuration.EvaluatorConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.acos
@@ -44,7 +46,13 @@ import kotlin.math.tanh
     name = "수학 함수 실행 서비스",
     type = ServiceType.DOMAIN_SERVICE
 )
-class MathFunctionService {
+class MathFunctionService(
+    private val configurationProvider: ConfigurationProvider? = null
+) {
+    
+    // 설정은 ConfigurationProvider를 통해 동적으로 접근 (기본값 사용 가능)
+    private val config: EvaluatorConfiguration
+        get() = configurationProvider?.getEvaluatorConfiguration() ?: EvaluatorConfiguration()
     
     /**
      * 수학 함수를 실행합니다.

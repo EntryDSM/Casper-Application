@@ -11,6 +11,8 @@ import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.parser.values.ParsingTable
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
+import hs.kr.entrydsm.global.configuration.ParserConfiguration
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 
 /**
  * LR 파싱 테이블 구축을 담당하는 도메인 서비스입니다.
@@ -31,16 +33,18 @@ import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 class LRParserTableService(
     private val lrItemFactory: LRItemFactory,
     private val parsingStateFactory: ParsingStateFactory,
-    private val firstFollowCalculatorService: FirstFollowCalculatorService
+    private val firstFollowCalculatorService: FirstFollowCalculatorService,
+    private val configurationProvider: ConfigurationProvider
 ) {
 
     companion object {
-        private const val MAX_STATES = 10000
-        private const val MAX_ITEMS_PER_STATE = 1000
-        private const val CACHE_SIZE_LIMIT = 100
         private const val MAX_MERGE_ITERATIONS = 50  // 무한 루프 방지
         private const val MAX_QUEUE_REINSERTIONS = 20  // 큐 재삽입 제한
     }
+    
+    // 설정은 ConfigurationProvider를 통해 동적으로 접근
+    private val config: ParserConfiguration
+        get() = configurationProvider.getParserConfiguration()
 
     private val stateCache = mutableMapOf<Set<LRItem>, ParsingState>()
     private val tableCache = mutableMapOf<String, ParsingTable>()
@@ -80,7 +84,7 @@ class LRParserTableService(
         val parsingTable = constructParsingTable(states, productions, grammar.terminals, grammar.nonTerminals)
         
         // 캐시 크기 제한
-        if (tableCache.size >= CACHE_SIZE_LIMIT) {
+        if (tableCache.size >= (config.maxTokenCount / 500)) { // 대략적 캐시 크기
             clearOldestCacheEntry()
         }
         
@@ -120,7 +124,7 @@ class LRParserTableService(
         
         var stateIdCounter = 1
         
-        while (stateQueue.isNotEmpty() && states.size < MAX_STATES) {
+        while (stateQueue.isNotEmpty() && states.size < config.maxParsingSteps) {
             val currentState = stateQueue.removeAt(0)
             val transitions = mutableMapOf<TokenType, Int>()
             val actions = mutableMapOf<TokenType, LRAction>()
@@ -318,7 +322,7 @@ class LRParserTableService(
         ),
         "tableCache" to mapOf(
             "size" to tableCache.size,
-            "limit" to CACHE_SIZE_LIMIT
+            "limit" to (config.maxTokenCount / 500)
         )
     )
 
@@ -383,11 +387,11 @@ class LRParserTableService(
      * @return 설정 정보 맵
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "maxStates" to MAX_STATES,
-        "maxItemsPerState" to MAX_ITEMS_PER_STATE,
-        "cacheSizeLimit" to CACHE_SIZE_LIMIT,
+        "maxStates" to config.maxParsingSteps,
+        "maxItemsPerState" to config.maxStackDepth / 10, // 대략적 비율
+        "cachingEnabled" to config.cachingEnabled,
         "parsingStrategy" to "LR(1)",
-        "optimizations" to listOf("stateCompression", "caching", "conflictDetection")
+        "optimizations" to if (config.enableOptimizations) listOf("stateCompression", "caching", "conflictDetection") else emptyList()
     )
 
     /**
@@ -510,7 +514,7 @@ class LRParserTableService(
             return false
         }
         
-        if (queue.size > MAX_STATES / 2) {
+        if (queue.size > config.maxParsingSteps / 2) {
             return false
         }
         

@@ -10,6 +10,7 @@ import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import hs.kr.entrydsm.domain.parser.services.FirstFollowCalculatorService
 import hs.kr.entrydsm.domain.parser.services.LRParserTableService
+import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 
 /**
  * 파싱 충돌 해결을 담당하는 도메인 서비스입니다.
@@ -27,7 +28,9 @@ import hs.kr.entrydsm.domain.parser.services.LRParserTableService
     name = "ConflictResolverService",
     type = ServiceType.DOMAIN_SERVICE
 )
-class ConflictResolverService {
+class ConflictResolverService(
+    private val configurationProvider: ConfigurationProvider
+) {
 
     companion object {
         private const val MAX_RESOLUTION_ATTEMPTS = 1000
@@ -173,11 +176,11 @@ class ConflictResolverService {
      */
     fun hasUnresolvableConflicts(grammar: Grammar): Boolean {
         return try {
-            // 임시로 파싱 테이블을 구성하고 충돌 해결 시도
             val tempService = LRParserTableService(
                 lrItemFactory = hs.kr.entrydsm.domain.parser.factories.LRItemFactory(),
                 parsingStateFactory = hs.kr.entrydsm.domain.parser.factories.ParsingStateFactory(),
-                firstFollowCalculatorService = FirstFollowCalculatorService()
+                firstFollowCalculatorService = FirstFollowCalculatorService(),
+                configurationProvider = configurationProvider
             )
             
             val parsingTable = tempService.buildParsingTable(grammar)
@@ -186,7 +189,6 @@ class ConflictResolverService {
             if (conflicts.isEmpty()) {
                 false
             } else {
-                // 해결 시도
                 resolveConflicts(parsingTable)
                 false
             }

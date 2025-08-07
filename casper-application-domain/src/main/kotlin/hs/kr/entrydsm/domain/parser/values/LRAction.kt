@@ -120,7 +120,7 @@ sealed class LRAction {
          *
          * @return 생성 규칙 ID
          */
-        fun getProductionId(): Int = production.id
+        override fun getProductionId(): Int = production.id
 
         /**
          * 엡실론 생성 규칙인지 확인합니다.
@@ -237,6 +237,37 @@ sealed class LRAction {
      * @return Shift 또는 Reduce이면 true, 아니면 false
      */
     fun isStateTransitionAction(): Boolean = this is Shift || this is Reduce
+
+    /**
+     * 액션이 Shift 액션인지 확인합니다.
+     *
+     * @return Shift이면 true, 아니면 false
+     */
+    fun isShift(): Boolean = this is Shift
+
+    /**
+     * 액션이 Reduce 액션인지 확인합니다.
+     *
+     * @return Reduce이면 true, 아니면 false
+     */
+    fun isReduce(): Boolean = this is Reduce
+
+    /**
+     * 액션이 Accept 액션인지 확인합니다.
+     *
+     * @return Accept이면 true, 아니면 false
+     */
+    fun isAccept(): Boolean = this is Accept
+
+    /**
+     * Reduce 액션의 경우 생산 규칙 ID를 반환합니다.
+     *
+     * @return 생산 규칙 ID
+     * @throws IllegalStateException Reduce 액션이 아닌 경우
+     */
+    open fun getProductionId(): Int {
+        throw IllegalStateException("Reduce 액션이 아닙니다: ${this.getActionType()}")
+    }
 
     /**
      * 액션의 상세 정보를 맵으로 반환합니다.
