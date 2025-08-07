@@ -13,6 +13,7 @@ import java.time.LocalDateTime
  * @author kangeunchan
  * @since 2025.07.16
  */
+@ConsistentCopyVisibility
 data class VariableBinding private constructor(
     val name: String,
     val value: Any?,

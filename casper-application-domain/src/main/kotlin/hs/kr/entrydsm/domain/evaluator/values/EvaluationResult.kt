@@ -12,6 +12,7 @@ import java.time.LocalDateTime
  * @author kangeunchan
  * @since 2025.07.16
  */
+@ConsistentCopyVisibility
 data class EvaluationResult private constructor(
     val value: Any?,
     val type: ResultType,
