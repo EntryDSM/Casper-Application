@@ -586,7 +586,7 @@ class CalculatorService(
             )
         } catch (e: StackOverflowError) {
             throw DomainException(
-                errorCode = ErrorCode.PROCESSING_ERROR,
+                errorCode = ErrorCode.AST_DEPTH_EXCEEDED,
                 message = "AST 깊이 계산 중 스택 오버플로우: AST가 너무 깊습니다",
                 cause = e,
                 context = mapOf(
@@ -673,7 +673,7 @@ class CalculatorService(
                     }
                 } catch (e: Exception) {
                     throw DomainException(
-                        errorCode = ErrorCode.PROCESSING_ERROR,
+                        errorCode = ErrorCode.AST_TRAVERSAL_ERROR,
                         message = "알 수 없는 AST 노드 타입의 깊이 계산 실패: ${e.message}",
                         cause = e,
                         context = mapOf(
