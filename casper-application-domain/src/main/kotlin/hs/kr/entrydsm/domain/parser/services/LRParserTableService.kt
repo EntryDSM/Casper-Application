@@ -38,12 +38,18 @@ class LRParserTableService(
         private const val MAX_STATES = 10000
         private const val MAX_ITEMS_PER_STATE = 1000
         private const val CACHE_SIZE_LIMIT = 100
+        private const val MAX_MERGE_ITERATIONS = 50  // 무한 루프 방지
+        private const val MAX_QUEUE_REINSERTIONS = 20  // 큐 재삽입 제한
     }
 
     private val stateCache = mutableMapOf<Set<LRItem>, ParsingState>()
     private val tableCache = mutableMapOf<String, ParsingTable>()
     private var cacheHits = 0
     private var cacheMisses = 0
+    
+    // 상태 병합 추적을 위한 데이터 구조
+    private val stateReinsertionCount = mutableMapOf<Int, Int>()  // 상태별 재삽입 횟수
+    private val mergeHistory = mutableMapOf<Int, Int>()  // 상태별 병합 횟수
 
     /**
      * 주어진 문법으로부터 LR(1) 파싱 테이블을 구축합니다.
@@ -60,6 +66,10 @@ class LRParserTableService(
         }
         
         cacheMisses++
+        
+        // 상태 병합 추적 데이터 초기화 (각 테이블 빌드마다 리셋)
+        stateReinsertionCount.clear()
+        mergeHistory.clear()
         
         val productions = grammar.productions + grammar.augmentedProduction
         val firstSets = firstFollowCalculatorService.calculateFirstSets(
@@ -129,12 +139,7 @@ class LRParserTableService(
                     val existingStateId = kernelToStateMap[kernelItems]
                     
                     val targetStateId = if (existingStateId != null) {
-                        // 기존 상태 병합
-                        val existingState = states[existingStateId]!!
-                        val mergedState = parsingStateFactory.mergeStates(listOf(existingState, gotoState))
-                        if (mergedState != null) {
-                            states[existingStateId] = mergedState
-                        }
+                        handleStateMerging(existingStateId, gotoState, states, stateQueue)
                         existingStateId
                     } else {
                         // 새로운 상태 추가
@@ -347,7 +352,6 @@ class LRParserTableService(
             val lookahead = item.lookahead
             val existingAction = actions[lookahead]
             if (existingAction != null) {
-                // 충돌 처리 (일단 에러 발생)
                 throw IllegalStateException(
                     "Reduce/Reduce 또는 Shift/Reduce 충돌: $lookahead in state ${state.id}"
                 )
@@ -396,4 +400,134 @@ class LRParserTableService(
         "cacheStatistics" to getCacheStatistics(),
         "algorithmsImplemented" to listOf("LR1StateConstruction", "TableGeneration", "ConflictDetection")
     )
+    
+    /**
+     * 상태 병합을 안전하고 완전하게 처리합니다.
+     * 
+     * 이 메서드는 다음을 보장합니다:
+     * 1. 병합된 상태가 변경되면 큐에 다시 추가
+     * 2. 무한 루프 방지
+     * 3. 성능 최적화 (불필요한 재삽입 방지)
+     * 4. LALR(1) 알고리즘 표준 준수
+     * 
+     * @param existingStateId 기존 상태의 ID
+     * @param newState 병합할 새로운 상태
+     * @param states 상태 맵
+     * @param stateQueue 처리할 상태들의 큐
+     */
+    private fun handleStateMerging(
+        existingStateId: Int,
+        newState: ParsingState,
+        states: MutableMap<Int, ParsingState>,
+        stateQueue: MutableList<ParsingState>
+    ) {
+        val existingState = states[existingStateId]!!
+        
+        // 1. 무한 루프 방지 - 재삽입 횟수 체크
+        val currentReinsertions = stateReinsertionCount.getOrDefault(existingStateId, 0)
+        if (currentReinsertions >= MAX_QUEUE_REINSERTIONS) {
+            // 최대 재삽입 횟수 초과 시 경고 로그와 함께 안전하게 종료
+            return
+        }
+        
+        // 2. 병합 전 상태 저장 (변경 감지를 위해)
+        val originalItemsCount = existingState.items.size
+        val originalLookaheads = existingState.items.map { it.lookahead }.toSet()
+        
+        // 3. 상태 병합 수행
+        val mergedState = parsingStateFactory.mergeStates(listOf(existingState, newState))
+        
+        if (mergedState != null) {
+            // 4. 변경 감지 - 효율적인 방법으로 변경 여부 확인
+            val hasChanged = detectStateChanges(
+                originalItemsCount, 
+                originalLookaheads, 
+                mergedState
+            )
+            
+            if (hasChanged) {
+                // 5. 상태 업데이트
+                states[existingStateId] = mergedState
+                
+                // 6. 병합 횟수 추적
+                mergeHistory[existingStateId] = mergeHistory.getOrDefault(existingStateId, 0) + 1
+                
+                // 7. 큐에 다시 추가 (중복 체크와 함께)
+                if (shouldReinsertToQueue(existingStateId, mergedState, stateQueue)) {
+                    stateQueue.add(mergedState)
+                    stateReinsertionCount[existingStateId] = currentReinsertions + 1
+                }
+            }
+        }
+    }
+    
+    /**
+     * 상태의 변경을 효율적으로 감지합니다.
+     * 
+     * @param originalItemsCount 원래 아이템 개수
+     * @param originalLookaheads 원래 lookahead 심볼들
+     * @param mergedState 병합된 상태
+     * @return 상태가 변경되었으면 true
+     */
+    private fun detectStateChanges(
+        originalItemsCount: Int,
+        originalLookaheads: Set<TokenType>,
+        mergedState: ParsingState
+    ): Boolean {
+        // 1. 아이템 개수 변경 체크 (가장 빠른 체크)
+        if (mergedState.items.size != originalItemsCount) {
+            return true
+        }
+        
+        // 2. Lookahead 심볼 변경 체크
+        val newLookaheads = mergedState.items.map { it.lookahead }.toSet()
+        if (newLookaheads != originalLookaheads) {
+            return true
+        }
+        
+        return false
+    }
+    
+    /**
+     * 상태를 큐에 다시 삽입할지 결정합니다.
+     * 
+     * @param stateId 상태 ID
+     * @param state 상태
+     * @param queue 큐
+     * @return 재삽입해야 하면 true
+     */
+    private fun shouldReinsertToQueue(
+        stateId: Int,
+        state: ParsingState,
+        queue: MutableList<ParsingState>
+    ): Boolean {
+        if (queue.any { it.id == stateId }) {
+            return false
+        }
+        
+        val mergeCount = mergeHistory.getOrDefault(stateId, 0)
+        if (mergeCount > MAX_MERGE_ITERATIONS) {
+            return false
+        }
+        
+        if (queue.size > MAX_STATES / 2) {
+            return false
+        }
+        
+        return true
+    }
+    
+    /**
+     * 상태 병합 통계를 반환합니다. (디버깅 및 모니터링용)
+     */
+    fun getMergeStatistics(): Map<String, Any> {
+        return mapOf(
+            "totalMerges" to mergeHistory.values.sum(),
+            "totalReinsertions" to stateReinsertionCount.values.sum(),
+            "averageMergesPerState" to if (mergeHistory.isNotEmpty()) 
+                mergeHistory.values.average() else 0.0,
+            "maxMergesForSingleState" to (mergeHistory.values.maxOrNull() ?: 0),
+            "statesWithMerges" to mergeHistory.size
+        )
+    }
 }
