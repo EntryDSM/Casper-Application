@@ -64,53 +64,18 @@ class ExpresserService(
         try {
             performanceMetrics.incrementTotalRequests()
             
-            // 1. 옵션 유효성 검증
-            if (!policy.isFormattingAllowed(options)) {
-                throw ExpresserException.invalidFormatOption(options.toString())
-            }
+            // 단계별 처리
+            validateFormattingRequest(ast, options)
+            val cacheResult = tryGetCachedResult(ast, options)
+            if (cacheResult != null) return cacheResult
             
-            // 2. 복잡도 검증
-            if (!policy.isComplexityAcceptable(ast)) {
-                throw ExpresserException.formattingError("complexity_check_failed", "복잡도 초과")
-            }
+            val rawFormatted = executeFormatting(ast, options)
+            val validatedFormatted = validateFormattingQuality(rawFormatted, options)
+            val secureFormatted = applySecurityFiltering(validatedFormatted)
+            val finalResult = cacheFinalResult(ast, options, secureFormatted)
             
-            // 3. 캐시 확인
-            val cacheKey = generateCacheKey(ast, options)
-            val cachedResult = getCachedFormatting(cacheKey)
-            if (cachedResult != null) {
-                performanceMetrics.incrementCacheHits()
-                return cachedResult.toFormattedExpression()
-            }
-            
-            // 4. 형식화 실행
-            val formatter = factory.createCustomFormatter(options)
-            val formatted = formatter.format(ast)
-            
-            // 5. 품질 검증
-            if (!qualitySpec.isSatisfiedBy(formatted, options)) {
-                val issues = qualitySpec.identifyQualityIssues(formatted, options)
-                val criticalIssues = issues.filter { it.severity == FormattingQualitySpec.QualityIssue.Severity.HIGH }
-                if (criticalIssues.isNotEmpty()) {
-                    throw ExpresserException.formattingError(
-                        "quality_check_failed",
-                        "품질 기준 미달: ${criticalIssues.joinToString { it.message }}"
-                    )
-                }
-            }
-            
-            // 6. 보안 필터 적용
-            val safeContent = policy.applySecurityFilter(formatted.expression, "text")
-            val finalFormatted = formatted.copy(expression = safeContent)
-            
-            // 7. 결과 캐싱
-            cacheFormatting(cacheKey, finalFormatted)
-            
-            // 8. 메트릭 업데이트
-            val executionTime = System.currentTimeMillis() - startTime
-            policy.updateMetrics("format", executionTime, finalFormatted.expression.length)
-            performanceMetrics.updateExecutionTime(executionTime)
-            
-            return finalFormatted
+            updateMetricsAndFinalize(startTime, finalResult)
+            return finalResult
             
         } catch (e: ExpresserException) {
             performanceMetrics.incrementFailures()
@@ -267,7 +232,6 @@ class ExpresserService(
      */
     override fun highlight(expression: String, scheme: String): FormattedExpression {
         val formatted = reformat(expression)
-        // 간단한 구문 강조 시뮬레이션
         val highlighted = when (scheme) {
             "dark" -> applyDarkSyntaxHighlight(formatted.expression)
             "light" -> applyLightSyntaxHighlight(formatted.expression)
@@ -445,7 +409,85 @@ class ExpresserService(
         // 테마 설정
     }
 
-    // Private helper methods
+    /**
+     * 형식화 요청의 유효성을 검증합니다.
+     */
+    private fun validateFormattingRequest(ast: ASTNode, options: FormattingOptions) {
+        // 1. 옵션 유효성 검증
+        if (!policy.isFormattingAllowed(options)) {
+            throw ExpresserException.invalidFormatOption(options.toString())
+        }
+        
+        // 2. 복잡도 검증
+        if (!policy.isComplexityAcceptable(ast)) {
+            throw ExpresserException.formattingError("complexity_check_failed", "복잡도 초과")
+        }
+    }
+    
+    /**
+     * 캐시된 결과를 시도합니다.
+     */
+    private fun tryGetCachedResult(ast: ASTNode, options: FormattingOptions): FormattedExpression? {
+        val cacheKey = generateCacheKey(ast, options)
+        val cachedResult = getCachedFormatting(cacheKey)
+        if (cachedResult != null) {
+            performanceMetrics.incrementCacheHits()
+            return cachedResult.toFormattedExpression()
+        }
+        return null
+    }
+    
+    /**
+     * 실제 형식화를 실행합니다.
+     */
+    private fun executeFormatting(ast: ASTNode, options: FormattingOptions): FormattedExpression {
+        val formatter = factory.createCustomFormatter(options)
+        return formatter.format(ast)
+    }
+    
+    /**
+     * 형식화 품질을 검증합니다.
+     */
+    private fun validateFormattingQuality(formatted: FormattedExpression, options: FormattingOptions): FormattedExpression {
+        if (!qualitySpec.isSatisfiedBy(formatted, options)) {
+            val issues = qualitySpec.identifyQualityIssues(formatted, options)
+            val criticalIssues = issues.filter { it.severity == FormattingQualitySpec.QualityIssue.Severity.HIGH }
+            if (criticalIssues.isNotEmpty()) {
+                throw ExpresserException.formattingError(
+                    "quality_check_failed",
+                    "품질 기준 미달: ${criticalIssues.joinToString { it.message }}"
+                )
+            }
+        }
+        return formatted
+    }
+    
+    /**
+     * 보안 필터링을 적용합니다.
+     */
+    private fun applySecurityFiltering(formatted: FormattedExpression): FormattedExpression {
+        val safeContent = policy.applySecurityFilter(formatted.expression, "text")
+        return formatted.copy(expression = safeContent)
+    }
+    
+    /**
+     * 최종 결과를 캐싱합니다.
+     */
+    private fun cacheFinalResult(ast: ASTNode, options: FormattingOptions, formatted: FormattedExpression): FormattedExpression {
+        val cacheKey = generateCacheKey(ast, options)
+        cacheFormatting(cacheKey, formatted)
+        return formatted
+    }
+    
+    /**
+     * 메트릭을 업데이트하고 마무리합니다.
+     */
+    private fun updateMetricsAndFinalize(startTime: Long, formatted: FormattedExpression) {
+        val executionTime = System.currentTimeMillis() - startTime
+        policy.updateMetrics("format", executionTime, formatted.expression.length)
+        performanceMetrics.updateExecutionTime(executionTime)
+    }
+
 
     private fun generateCacheKey(ast: ASTNode, options: FormattingOptions): String {
         return "${ast.toString().hashCode()}_${options.hashCode()}"
