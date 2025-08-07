@@ -306,9 +306,7 @@ class CalculatorService(
         }
     }
 
-    // Private helper methods
-
-    private fun executeCalculation(request: CalculationRequest, session: CalculationSession?): CalculationResult {
+    private suspend fun executeCalculation(request: CalculationRequest, session: CalculationSession?): CalculationResult {
         val startTime = System.currentTimeMillis()
         
         try {
@@ -349,18 +347,16 @@ class CalculatorService(
         }
     }
 
-    private fun evaluateWithRetry(ast: Any, variables: Map<String, Any>, retries: Int = MAX_RETRIES): Any? {
+    private suspend fun evaluateWithRetry(ast: Any, variables: Map<String, Any>, retries: Int = MAX_RETRIES): Any? {
         repeat(retries) { attempt ->
             try {
                 // AST를 실제 ASTNode로 변환하여 평가
-                // 여기서는 간단히 evaluator의 evaluate 메서드 호출을 시뮬레이션
                 return evaluateAST(ast, variables)
             } catch (e: Exception) {
                 if (attempt == retries - 1) {
                     throw e
                 }
-                // 재시도 전 잠시 대기
-                Thread.sleep(100)
+                delay(100)
             }
         }
         throw RuntimeException("최대 재시도 횟수 초과")
@@ -368,13 +364,20 @@ class CalculatorService(
 
     private fun evaluateAST(ast: Any, variables: Map<String, Any>): Any? {
         return try {
-            // AST를 실제 ASTNode로 캐스팅하여 evaluator로 평가
             val astNode = ast as? hs.kr.entrydsm.domain.ast.entities.ASTNode
                 ?: throw IllegalArgumentException("Invalid AST node type: ${ast.javaClass.simpleName}")
             
-            // 변수와 함께 새로운 evaluator 생성하여 평가
-            val evaluatorWithVariables = evaluator.withVariables(variables)
-            evaluatorWithVariables.evaluate(astNode)
+            val evaluatorWithVariables = if (variables.isNotEmpty()) {
+                evaluator.withVariables(variables)
+            } else {
+                evaluator
+            }
+            
+            val result = evaluatorWithVariables.evaluate(astNode)
+            
+            validateEvaluationResult(result, astNode)
+            
+            result
             
         } catch (e: IllegalArgumentException) {
             throw DomainException(
@@ -383,7 +386,8 @@ class CalculatorService(
                 cause = e,
                 context = mapOf(
                     "astType" to ast.javaClass.simpleName,
-                    "variableCount" to variables.size
+                    "variableCount" to variables.size,
+                    "variables" to variables.keys.joinToString(", ")
                 )
             )
         } catch (e: ArithmeticException) {
@@ -393,7 +397,8 @@ class CalculatorService(
                 cause = e,
                 context = mapOf(
                     "astType" to ast.javaClass.simpleName,
-                    "variableCount" to variables.size
+                    "variableCount" to variables.size,
+                    "variables" to variables.keys.joinToString(", ")
                 )
             )
         } catch (e: Exception) {
@@ -404,9 +409,62 @@ class CalculatorService(
                 context = mapOf(
                     "astType" to ast.javaClass.simpleName,
                     "variableCount" to variables.size,
+                    "variables" to variables.keys.joinToString(", "),
                     "exceptionType" to e.javaClass.simpleName
                 )
             )
+        }
+    }
+    
+    /**
+     * 평가 결과의 유효성을 검증합니다.
+     */
+    private fun validateEvaluationResult(result: Any?, astNode: hs.kr.entrydsm.domain.ast.entities.ASTNode) {
+        when (result) {
+            is Double -> {
+                if (result.isNaN()) {
+                    throw DomainException(
+                        errorCode = ErrorCode.MATH_ERROR,
+                        message = "계산 결과가 NaN입니다",
+                        context = mapOf(
+                            "astType" to astNode.javaClass.simpleName,
+                            "result" to "NaN"
+                        )
+                    )
+                }
+                if (result.isInfinite()) {
+                    throw DomainException(
+                        errorCode = ErrorCode.MATH_ERROR,
+                        message = "계산 결과가 무한대입니다",
+                        context = mapOf(
+                            "astType" to astNode.javaClass.simpleName,
+                            "result" to if (result > 0) "+Infinity" else "-Infinity"
+                        )
+                    )
+                }
+            }
+            is Float -> {
+                if (result.isNaN()) {
+                    throw DomainException(
+                        errorCode = ErrorCode.MATH_ERROR,
+                        message = "계산 결과가 NaN입니다",
+                        context = mapOf(
+                            "astType" to astNode.javaClass.simpleName,
+                            "result" to "NaN"
+                        )
+                    )
+                }
+                if (result.isInfinite()) {
+                    throw DomainException(
+                        errorCode = ErrorCode.MATH_ERROR,
+                        message = "계산 결과가 무한대입니다",
+                        context = mapOf(
+                            "astType" to astNode.javaClass.simpleName,
+                            "result" to if (result > 0) "+Infinity" else "-Infinity"
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -629,7 +687,9 @@ class CalculatorService(
      * 실제 계산을 수행합니다.
      */
     private fun performCalculation(request: CalculationRequest, session: CalculationSession?): CalculationResult {
-        return executeCalculation(request, session)
+        return runBlocking {
+            executeCalculation(request, session)
+        }
     }
 
     /**
