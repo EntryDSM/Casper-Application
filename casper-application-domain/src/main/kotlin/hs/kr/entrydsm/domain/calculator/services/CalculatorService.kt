@@ -6,15 +6,15 @@ import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import hs.kr.entrydsm.domain.calculator.policies.CalculationPolicy
 import hs.kr.entrydsm.domain.calculator.specifications.CalculationValiditySpec
 import hs.kr.entrydsm.domain.evaluator.aggregates.ExpressionEvaluator
-// Removed unused EvaluatorException and EvaluationResult imports
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
 import hs.kr.entrydsm.domain.parser.aggregates.LRParser
 import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
-import java.time.Instant
 import java.security.MessageDigest
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
 /**
  * 계산기의 핵심 비즈니스 로직을 처리하는 도메인 서비스입니다.
@@ -44,10 +44,17 @@ class CalculatorService(
     companion object {
         private const val DEFAULT_TIMEOUT_MS = 30000L
         private const val MAX_RETRIES = 3
+        private const val DEFAULT_CONCURRENCY = 10
     }
 
     private val calculationCache = mutableMapOf<String, CachedResult>()
     private val performanceMetrics = PerformanceMetrics()
+    
+    // 코루틴 스코프 및 디스패처 설정
+    private val calculationScope = CoroutineScope(
+        Dispatchers.Default + SupervisorJob() + CoroutineName("CalculationService")
+    )
+    private val calculationDispatcher = Dispatchers.Default.limitedParallelism(DEFAULT_CONCURRENCY)
 
     /**
      * 계산 요청을 처리합니다.
@@ -150,17 +157,65 @@ class CalculatorService(
 
     /**
      * 병렬 계산을 수행합니다.
+     * Kotlin 코루틴을 사용하여 효율적인 비동기 병렬 처리를 제공합니다.
      *
      * @param requests 계산 요청들
      * @param session 계산 세션
+     * @param concurrency 동시 실행할 최대 작업 수 (기본값: 10)
      * @return 계산 결과들
      */
-    fun calculateParallel(requests: List<CalculationRequest>, session: CalculationSession? = null): List<CalculationResult> {
+    fun calculateParallel(
+        requests: List<CalculationRequest>, 
+        session: CalculationSession? = null,
+        concurrency: Int = DEFAULT_CONCURRENCY
+    ): List<CalculationResult> {
         require(requests.isNotEmpty()) { "계산 요청 목록은 비어있을 수 없습니다" }
+        require(concurrency > 0) { "동시성 수준은 0보다 커야 합니다: $concurrency" }
         
-        return requests.parallelStream().map { request ->
-            calculate(request, session)
-        }.toList()
+        return runBlocking(calculationDispatcher.limitedParallelism(concurrency)) {
+            requests.map { request ->
+                async {
+                    try {
+                        calculate(request, session)
+                    } catch (e: Exception) {
+                        // 개별 계산 실패가 전체 배치를 중단시키지 않도록 처리
+                        createFailureResult(request, "병렬 계산 오류: ${e.message}", System.currentTimeMillis())
+                    }
+                }
+            }.awaitAll()
+        }
+    }
+
+    /**
+     * Flow 기반 스트리밍 병렬 계산을 수행합니다.
+     * 대용량 배치 처리에 적합하며 메모리 효율적이고 백프레셔를 지원합니다.
+     *
+     * @param requests 계산 요청들
+     * @param session 계산 세션
+     * @param concurrency 동시 실행할 최대 작업 수 (기본값: 10)
+     * @param bufferSize 버퍼 크기 (기본값: 50)
+     * @return 계산 결과 Flow
+     */
+    fun calculateParallelFlow(
+        requests: List<CalculationRequest>,
+        session: CalculationSession? = null,
+        concurrency: Int = DEFAULT_CONCURRENCY,
+        bufferSize: Int = 50
+    ): Flow<CalculationResult> {
+        require(requests.isNotEmpty()) { "계산 요청 목록은 비어있을 수 없습니다" }
+        require(concurrency > 0) { "동시성 수준은 0보다 커야 합니다: $concurrency" }
+        require(bufferSize > 0) { "버퍼 크기는 0보다 커야 합니다: $bufferSize" }
+        
+        return requests.asFlow()
+            .buffer(capacity = bufferSize)
+            .map { request ->
+                try {
+                    calculate(request, session)
+                } catch (e: Exception) {
+                    createFailureResult(request, "스트리밍 계산 오류: ${e.message}", System.currentTimeMillis())
+                }
+            }
+            .flowOn(calculationDispatcher.limitedParallelism(concurrency))
     }
 
     /**
