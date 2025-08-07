@@ -15,6 +15,8 @@ import hs.kr.entrydsm.global.exception.ErrorCode
 import java.security.MessageDigest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 계산기의 핵심 비즈니스 로직을 처리하는 도메인 서비스입니다.
@@ -47,8 +49,9 @@ class CalculatorService(
         private const val DEFAULT_CONCURRENCY = 10
     }
 
-    private val calculationCache = mutableMapOf<String, CachedResult>()
+    private val calculationCache = ConcurrentHashMap<String, CachedResult>()
     private val performanceMetrics = PerformanceMetrics()
+    private val requestCounter = AtomicLong(0)
     
     // 코루틴 스코프 및 디스패처 설정
     private val calculationScope = CoroutineScope(
@@ -68,6 +71,11 @@ class CalculatorService(
         
         try {
             performanceMetrics.incrementTotalRequests()
+            
+            // 주기적 캐시 정리 (100번 요청마다)
+            if (requestCounter.incrementAndGet() % 100 == 0L) {
+                manageCaches()
+            }
             
             // 1. 요청 유효성 검증
             validateRequest(request, session)
@@ -286,23 +294,31 @@ class CalculatorService(
 
     /**
      * 캐시를 관리합니다.
+     * ConcurrentHashMap을 사용하여 스레드 안전성을 보장합니다.
      *
      * @param maxSize 최대 캐시 크기
      * @param maxAge 최대 캐시 유지 시간 (밀리초)
      */
-    fun manageCaches(maxSize: Int = 1000, maxAge: Long = 3600000) { // 1시간
+    fun manageCaches(maxSize: Int = 1000, maxAge: Long = 3600000) {
         val currentTime = System.currentTimeMillis()
         
-        // 만료된 캐시 제거
-        calculationCache.entries.removeIf { (_, cached) ->
-            currentTime - cached.timestamp > maxAge
+        val expiredKeys = calculationCache.entries
+            .filter { (_, cached) -> currentTime - cached.timestamp > maxAge }
+            .map { it.key }
+        
+        expiredKeys.forEach { key ->
+            calculationCache.remove(key)
         }
         
-        // 크기 제한
         if (calculationCache.size > maxSize) {
-            val sortedEntries = calculationCache.entries.sortedBy { it.value.timestamp }
-            val toRemove = sortedEntries.take(calculationCache.size - maxSize)
-            toRemove.forEach { calculationCache.remove(it.key) }
+            val entriesToRemove = calculationCache.entries
+                .sortedBy { it.value.timestamp }
+                .take(calculationCache.size - maxSize)
+                .map { it.key }
+            
+            entriesToRemove.forEach { key ->
+                calculationCache.remove(key)
+            }
         }
     }
 
@@ -501,18 +517,31 @@ class CalculatorService(
     }
 
     private fun getCachedResult(key: String): CachedResult? {
-        return calculationCache[key]?.takeIf { 
-            System.currentTimeMillis() - it.timestamp < 3600000 // 1시간 유효
+        val cached = calculationCache[key]
+        return if (cached != null && System.currentTimeMillis() - cached.timestamp < 3600000) {
+            cached
+        } else {
+            if (cached != null) {
+                calculationCache.remove(key)
+            }
+            null
         }
     }
 
     private fun cacheResult(key: String, result: CalculationResult) {
-        if (result.isSuccess() && calculationCache.size < 1000) { // 캐시 크기 제한
-            calculationCache[key] = CachedResult(
-                result = result.result,
-                executionTime = result.executionTimeMs,
-                timestamp = System.currentTimeMillis()
-            )
+        if (result.isSuccess()) {
+
+            if (calculationCache.size >= 950) {
+                manageCaches(900)
+            }
+            
+            if (calculationCache.size < 1000) {
+                calculationCache[key] = CachedResult(
+                    result = result.result,
+                    executionTime = result.executionTimeMs,
+                    timestamp = System.currentTimeMillis()
+                )
+            }
         }
     }
 
@@ -532,9 +561,130 @@ class CalculatorService(
     }
 
 
+    /**
+     * AST의 실제 구조적 깊이를 계산합니다.
+     * 
+     * @param ast 깊이를 계산할 AST 객체
+     * @return AST의 최대 깊이 (루트에서 가장 깊은 리프 노드까지의 거리)
+     */
     private fun calculateASTDepth(ast: Any): Int {
-        // 실제 구현에서는 AST의 실제 구조를 분석
-        return ast.toString().count { it == '(' } + 1
+        return try {
+            val astNode = ast as? hs.kr.entrydsm.domain.ast.entities.ASTNode
+                ?: throw IllegalArgumentException("Invalid AST node type: ${ast.javaClass.simpleName}")
+            
+            calculateNodeDepth(astNode)
+            
+        } catch (e: IllegalArgumentException) {
+            throw DomainException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                message = "AST 깊이 계산 실패: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "astType" to ast.javaClass.simpleName,
+                    "operation" to "calculateASTDepth"
+                )
+            )
+        } catch (e: StackOverflowError) {
+            throw DomainException(
+                errorCode = ErrorCode.PROCESSING_ERROR,
+                message = "AST 깊이 계산 중 스택 오버플로우: AST가 너무 깊습니다",
+                cause = e,
+                context = mapOf(
+                    "astType" to ast.javaClass.simpleName,
+                    "operation" to "calculateASTDepth",
+                    "error" to "StackOverflow"
+                )
+            )
+        } catch (e: Exception) {
+            throw DomainException(
+                errorCode = ErrorCode.UNEXPECTED_ERROR,
+                message = "AST 깊이 계산 중 예상치 못한 오류: ${e.message}",
+                cause = e,
+                context = mapOf(
+                    "astType" to ast.javaClass.simpleName,
+                    "operation" to "calculateASTDepth",
+                    "exceptionType" to e.javaClass.simpleName
+                )
+            )
+        }
+    }
+    
+    /**
+     * AST 노드의 실제 깊이를 재귀적으로 계산합니다.
+     * 
+     * @param node 깊이를 계산할 AST 노드
+     * @return 해당 노드를 루트로 하는 서브트리의 최대 깊이
+     */
+    private fun calculateNodeDepth(node: hs.kr.entrydsm.domain.ast.entities.ASTNode): Int {
+        return when (node) {
+            // 리프 노드들은 깊이 1
+            is hs.kr.entrydsm.domain.ast.entities.NumberNode,
+            is hs.kr.entrydsm.domain.ast.entities.BooleanNode,
+            is hs.kr.entrydsm.domain.ast.entities.VariableNode -> 1
+            
+            // 단항 연산자 노드: 1 + 피연산자의 깊이
+            is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode -> {
+                1 + calculateNodeDepth(node.operand)
+            }
+            
+            // 이항 연산자 노드: 1 + max(왼쪽 자식, 오른쪽 자식)
+            is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> {
+                1 + maxOf(
+                    calculateNodeDepth(node.left),
+                    calculateNodeDepth(node.right)
+                )
+            }
+            
+            // 함수 호출 노드: 1 + 인수들 중 최대 깊이
+            is hs.kr.entrydsm.domain.ast.entities.FunctionCallNode -> {
+                if (node.args.isEmpty()) {
+                    1
+                } else {
+                    1 + node.args.maxOf { calculateNodeDepth(it) }
+                }
+            }
+            
+            // 조건문 노드 (IF): 1 + max(조건, 참값, 거짓값)
+            is hs.kr.entrydsm.domain.ast.entities.IfNode -> {
+                1 + maxOf(
+                    calculateNodeDepth(node.condition),
+                    calculateNodeDepth(node.trueValue),
+                    calculateNodeDepth(node.falseValue)
+                )
+            }
+            
+            // 인수 목록 노드: 1 + 인수들 중 최대 깊이
+            is hs.kr.entrydsm.domain.ast.entities.ArgumentsNode -> {
+                if (node.arguments.isEmpty()) {
+                    1
+                } else {
+                    1 + node.arguments.maxOf { calculateNodeDepth(it) }
+                }
+            }
+            
+            // 알 수 없는 노드 타입: getChildren() 메서드 활용
+            else -> {
+                try {
+                    val children = node.getChildren()
+                    if (children.isEmpty()) {
+                        1 // 자식이 없으면 리프 노드
+                    } else {
+                        1 + children.maxOf { calculateNodeDepth(it) }
+                    }
+                } catch (e: Exception) {
+                    throw DomainException(
+                        errorCode = ErrorCode.PROCESSING_ERROR,
+                        message = "알 수 없는 AST 노드 타입의 깊이 계산 실패: ${e.message}",
+                        cause = e,
+                        context = mapOf(
+                            "nodeType" to node.javaClass.simpleName,
+                            "operation" to "calculateNodeDepth",
+                            "exceptionType" to e.javaClass.simpleName
+                        )
+                    )
+                }
+            }
+        }
     }
 
     private fun estimateMemoryUsage(expression: String): Int {
