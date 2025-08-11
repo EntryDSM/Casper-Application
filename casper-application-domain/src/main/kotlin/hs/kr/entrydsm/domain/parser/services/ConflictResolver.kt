@@ -41,16 +41,16 @@ class ConflictResolver {
         stateId: Int
     ): ConflictResolutionResult {
         return when {
-            existing is LRAction.Shift && newAction is LRAction.Reduce -> {
-                resolveShiftReduceConflict(existing, newAction, lookahead, stateId)
+            isShiftReduceConflict(existing, newAction) -> {
+                resolveShiftReduceConflict(existing as LRAction.Shift, newAction as LRAction.Reduce, lookahead, stateId)
             }
-            existing is LRAction.Reduce && newAction is LRAction.Shift -> {
-                resolveShiftReduceConflict(newAction, existing, lookahead, stateId)
+            isShiftReduceConflict(newAction, existing) -> {
+                resolveShiftReduceConflict(newAction as LRAction.Shift, existing as LRAction.Reduce, lookahead, stateId)
             }
-            existing is LRAction.Reduce && newAction is LRAction.Reduce -> {
-                resolveReduceReduceConflict(existing, newAction, stateId)
+            isReduceReduceConflict(existing, newAction) -> {
+                resolveReduceReduceConflict(existing as LRAction.Reduce, newAction as LRAction.Reduce, stateId)
             }
-            existing == newAction -> {
+            areIdenticalActions(existing, newAction) -> {
                 ConflictResolutionResult.Resolved(existing, "동일한 액션")
             }
             else -> {
@@ -254,6 +254,23 @@ class ConflictResolver {
 
         return sb.toString()
     }
+
+    /**
+     * Shift/Reduce 충돌인지 확인합니다.
+     */
+    private fun isShiftReduceConflict(a: LRAction, b: LRAction): Boolean =
+        a is LRAction.Shift && b is LRAction.Reduce
+
+    /**
+     * Reduce/Reduce 충돌인지 확인합니다.
+     */
+    private fun isReduceReduceConflict(a: LRAction, b: LRAction): Boolean =
+        a is LRAction.Reduce && b is LRAction.Reduce
+
+    /**
+     * 두 액션이 동일한지 확인합니다.
+     */
+    private fun areIdenticalActions(a: LRAction, b: LRAction): Boolean = a == b
 
     companion object {
         /**
