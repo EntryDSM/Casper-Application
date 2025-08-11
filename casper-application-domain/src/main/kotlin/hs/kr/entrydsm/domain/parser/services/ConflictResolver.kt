@@ -51,10 +51,10 @@ class ConflictResolver {
                 resolveReduceReduceConflict(existing, newAction, stateId)
             }
             existing == newAction -> {
-                ConflictResolutionResult.resolved(existing, "동일한 액션")
+                ConflictResolutionResult.Resolved(existing, "동일한 액션")
             }
             else -> {
-                ConflictResolutionResult.unresolvable(
+                ConflictResolutionResult.Unresolved(
                     "지원하지 않는 충돌 유형: $existing vs $newAction"
                 )
             }
@@ -76,7 +76,7 @@ class ConflictResolver {
 
         if (lookaheadPrec == null || productionPrec == null) {
             // 우선순위 정보가 없으면 기본적으로 Shift 선택 (LR 파서의 기본 동작)
-            return ConflictResolutionResult.resolved(
+            return ConflictResolutionResult.Resolved(
                 shiftAction,
                 "우선순위 정보 없음, Shift 선택 (기본 규칙)"
             )
@@ -84,13 +84,13 @@ class ConflictResolver {
 
         return when {
             lookaheadPrec.hasHigherPrecedenceThan(productionPrec) -> {
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     shiftAction,
                     "Lookahead 우선순위가 높음 (${lookaheadPrec.precedence} > ${productionPrec.precedence})"
                 )
             }
             productionPrec.hasHigherPrecedenceThan(lookaheadPrec) -> {
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     reduceAction,
                     "Production 우선순위가 높음 (${productionPrec.precedence} > ${lookaheadPrec.precedence})"
                 )
@@ -99,31 +99,31 @@ class ConflictResolver {
                 // 같은 우선순위인 경우 결합성으로 결정
                 when {
                     lookaheadPrec.isLeftAssociative() -> {
-                        ConflictResolutionResult.resolved(
+                        ConflictResolutionResult.Resolved(
                             reduceAction,
                             "좌결합, Reduce 선택"
                         )
                     }
                     lookaheadPrec.isRightAssociative() -> {
-                        ConflictResolutionResult.resolved(
+                        ConflictResolutionResult.Resolved(
                             shiftAction,
                             "우결합, Shift 선택"
                         )
                     }
                     lookaheadPrec.isNonAssociative() -> {
-                        ConflictResolutionResult.unresolvable(
+                        ConflictResolutionResult.Unresolved(
                             "비결합 연산자 충돌, 해결 불가능"
                         )
                     }
                     else -> {
-                        ConflictResolutionResult.unresolvable(
+                        ConflictResolutionResult.Unresolved(
                             "알 수 없는 결합성: ${lookaheadPrec.associativity}"
                         )
                     }
                 }
             }
             else -> {
-                ConflictResolutionResult.unresolvable(
+                ConflictResolutionResult.Unresolved(
                     "우선순위 비교 실패"
                 )
             }
@@ -144,32 +144,32 @@ class ConflictResolver {
 
         return when {
             existing.length > new.length -> {
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     existingReduce,
                     "기존 생산 규칙이 더 김 (${existing.length} > ${new.length})"
                 )
             }
             new.length > existing.length -> {
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     newReduce,
                     "새 생산 규칙이 더 김 (${new.length} > ${existing.length})"
                 )
             }
             existing.id < new.id -> {
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     existingReduce,
                     "기존 생산 규칙이 먼저 정의됨 (ID: ${existing.id} < ${new.id})"
                 )
             }
             new.id < existing.id -> {
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     newReduce,
                     "새 생산 규칙이 먼저 정의됨 (ID: ${new.id} < ${existing.id})"
                 )
             }
             else -> {
                 // 길이와 ID가 모두 같은 경우 - 이는 일반적으로 발생하지 않아야 함
-                ConflictResolutionResult.resolved(
+                ConflictResolutionResult.Resolved(
                     existingReduce,
                     "동일한 생산 규칙, 기존 선택"
                 )
@@ -264,22 +264,14 @@ class ConflictResolver {
 }
 
 /**
- * 충돌 해결 결과를 나타내는 데이터 클래스입니다.
+ * 충돌 해결 결과를 나타내는 sealed class입니다.
+ * 
+ * 타입을 명확히 구분하여 모순되는 상태를 방지하고,
+ * when 식에서 smart cast가 가능하여 코드 안전성과 가독성을 향상시킵니다.
  */
-data class ConflictResolutionResult(
-    val action: LRAction?,
-    val resolved: Boolean,
-    val reason: String
-) {
-    companion object {
-        fun resolved(action: LRAction, reason: String): ConflictResolutionResult {
-            return ConflictResolutionResult(action, true, reason)
-        }
-
-        fun unresolvable(reason: String): ConflictResolutionResult {
-            return ConflictResolutionResult(null, false, reason)
-        }
-    }
+sealed class ConflictResolutionResult {
+    data class Resolved(val action: LRAction, val reason: String) : ConflictResolutionResult()
+    data class Unresolved(val reason: String) : ConflictResolutionResult()
 }
 
 /**

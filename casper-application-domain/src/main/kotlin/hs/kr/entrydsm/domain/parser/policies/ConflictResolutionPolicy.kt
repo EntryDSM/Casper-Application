@@ -4,6 +4,7 @@ import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
 import hs.kr.entrydsm.domain.parser.values.Associativity
 import hs.kr.entrydsm.domain.parser.values.LRAction
+import hs.kr.entrydsm.domain.parser.services.ConflictResolutionResult
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 
@@ -51,25 +52,27 @@ class ConflictResolutionPolicy {
     fun resolveShiftReduceConflict(
         state: ParsingState,
         shiftToken: TokenType,
-        reduceProductionId: Int
+        reduceProduction: hs.kr.entrydsm.domain.parser.entities.Production
     ): ConflictResolutionResult {
         val shiftPrecedence = getTokenPrecedence(shiftToken)
-        val reducePrecedence = getProductionPrecedence(reduceProductionId)
+        val reducePrecedence = getProductionPrecedence(reduceProduction.id)
         
         return when {
             shiftPrecedence > reducePrecedence -> {
-                ConflictResolutionResult.shift(
-                    reason = "Shift has higher precedence ($shiftPrecedence > $reducePrecedence)"
+                ConflictResolutionResult.Resolved(
+                    LRAction.Shift(state.id),
+                    "Shift has higher precedence ($shiftPrecedence > $reducePrecedence)"
                 )
             }
             shiftPrecedence < reducePrecedence -> {
-                ConflictResolutionResult.reduce(
-                    reason = "Reduce has higher precedence ($reducePrecedence > $shiftPrecedence)"
+                ConflictResolutionResult.Resolved(
+                    LRAction.Reduce(reduceProduction),
+                    "Reduce has higher precedence ($reducePrecedence > $shiftPrecedence)"
                 )
             }
             else -> {
                 // 우선순위가 같으면 결합성으로 판단
-                resolveByAssociativity(shiftToken, reduceProductionId)
+                resolveByAssociativity(state, shiftToken, reduceProduction)
             }
         }
     }
@@ -85,31 +88,32 @@ class ConflictResolutionPolicy {
      */
     fun resolveReduceReduceConflict(
         state: ParsingState,
-        productionId1: Int,
-        productionId2: Int,
+        production1: hs.kr.entrydsm.domain.parser.entities.Production,
+        production2: hs.kr.entrydsm.domain.parser.entities.Production,
         lookahead: TokenType
     ): ConflictResolutionResult {
-        val precedence1 = getProductionPrecedence(productionId1)
-        val precedence2 = getProductionPrecedence(productionId2)
+        val precedence1 = getProductionPrecedence(production1.id)
+        val precedence2 = getProductionPrecedence(production2.id)
         
         return when {
             precedence1 > precedence2 -> {
-                ConflictResolutionResult.reduceProduction(
-                    productionId1,
-                    "Production $productionId1 has higher precedence ($precedence1 > $precedence2)"
+                ConflictResolutionResult.Resolved(
+                    LRAction.Reduce(production1),
+                    "Production ${production1.id} has higher precedence ($precedence1 > $precedence2)"
                 )
             }
             precedence1 < precedence2 -> {
-                ConflictResolutionResult.reduceProduction(
-                    productionId2,
-                    "Production $productionId2 has higher precedence ($precedence2 > $precedence1)"
+                ConflictResolutionResult.Resolved(
+                    LRAction.Reduce(production2),
+                    "Production ${production2.id} has higher precedence ($precedence2 > $precedence1)"
                 )
             }
             else -> {
                 // 우선순위가 같으면 더 낮은 ID 선택 (정의된 순서 우선)
-                ConflictResolutionResult.reduceProduction(
-                    minOf(productionId1, productionId2),
-                    "Same precedence, choosing earlier defined production"
+                val earlierProduction = if (production1.id < production2.id) production1 else production2
+                ConflictResolutionResult.Resolved(
+                    LRAction.Reduce(earlierProduction),
+                    "Same precedence, choosing earlier defined production (ID: ${earlierProduction.id})"
                 )
             }
         }
@@ -196,29 +200,33 @@ class ConflictResolutionPolicy {
      * 결합성으로 충돌을 해결합니다.
      */
     private fun resolveByAssociativity(
+        state: ParsingState,
         shiftToken: TokenType,
-        reduceProductionId: Int
+        reduceProduction: hs.kr.entrydsm.domain.parser.entities.Production
     ): ConflictResolutionResult {
         val associativity = associativityTable[shiftToken]
         
         return when (associativity?.type) {
             Associativity.AssociativityType.LEFT -> {
-                ConflictResolutionResult.reduce(
+                ConflictResolutionResult.Resolved(
+                    LRAction.Reduce(reduceProduction),
                     "Left associative operator: prefer reduce"
                 )
             }
             Associativity.AssociativityType.RIGHT -> {
-                ConflictResolutionResult.shift(
+                ConflictResolutionResult.Resolved(
+                    LRAction.Shift(state.id),
                     "Right associative operator: prefer shift"
                 )
             }
             Associativity.AssociativityType.NONE -> {
-                ConflictResolutionResult.error(
+                ConflictResolutionResult.Unresolved(
                     "Non-associative operator: conflict cannot be resolved"
                 )
             }
             else -> {
-                ConflictResolutionResult.shift(
+                ConflictResolutionResult.Resolved(
+                    LRAction.Shift(state.id),
                     "No associativity defined: default to shift"
                 )
             }
@@ -294,30 +302,6 @@ class ConflictResolutionPolicy {
         setAssociativities(defaultRules)
     }
 
-    /**
-     * 충돌 해결 결과를 나타내는 데이터 클래스입니다.
-     */
-    data class ConflictResolutionResult(
-        val action: ResolutionAction,
-        val productionId: Int? = null,
-        val reason: String
-    ) {
-        enum class ResolutionAction {
-            SHIFT, REDUCE, ERROR
-        }
-        
-        companion object {
-            fun shift(reason: String) = ConflictResolutionResult(ResolutionAction.SHIFT, null, reason)
-            fun reduce(reason: String) = ConflictResolutionResult(ResolutionAction.REDUCE, null, reason)
-            fun reduceProduction(productionId: Int, reason: String) = 
-                ConflictResolutionResult(ResolutionAction.REDUCE, productionId, reason)
-            fun error(reason: String) = ConflictResolutionResult(ResolutionAction.ERROR, null, reason)
-        }
-        
-        fun isShift(): Boolean = action == ResolutionAction.SHIFT
-        fun isReduce(): Boolean = action == ResolutionAction.REDUCE
-        fun isError(): Boolean = action == ResolutionAction.ERROR
-    }
 
     /**
      * 정책의 설정 정보를 반환합니다.
