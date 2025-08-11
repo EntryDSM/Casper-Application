@@ -113,7 +113,7 @@ class ConflictResolverService(
                 resolveByAssociativity(shiftAction, reduceAction, conflictSymbol)
             
             ResolutionStrategy.HYBRID -> 
-                resolveByHybridStrategy(shiftAction, reduceAction, conflictSymbol)
+                resolveByprecedence(shiftAction, reduceAction, conflictSymbol)
             
             ResolutionStrategy.MANUAL -> 
                 resolveManually(state, shiftAction, reduceAction, conflictSymbol)
@@ -321,6 +321,7 @@ class ConflictResolverService(
         reduceAction: LRAction,
         conflictSymbol: TokenType
     ): LRAction {
+        // 우선순위를 먼저 확인하고, 같으면 결합성으로 해결 (PRECEDENCE_BASED, HYBRID 전략 공통 로직)
         val shiftPrecedence = getOperatorPrecedence(conflictSymbol)
         val reducePrecedence = getReduceOperatorPrecedence(reduceAction)
         
@@ -347,21 +348,6 @@ class ConflictResolverService(
         }
     }
 
-    private fun resolveByHybridStrategy(
-        shiftAction: LRAction,
-        reduceAction: LRAction,
-        conflictSymbol: TokenType
-    ): LRAction {
-        // 먼저 우선순위로 해결 시도
-        val shiftPrecedence = getOperatorPrecedence(conflictSymbol)
-        val reducePrecedence = getReduceOperatorPrecedence(reduceAction)
-        
-        return when {
-            shiftPrecedence > reducePrecedence -> shiftAction
-            shiftPrecedence < reducePrecedence -> reduceAction
-            else -> resolveByAssociativity(shiftAction, reduceAction, conflictSymbol)
-        }
-    }
 
     private fun resolveManually(
         state: ParsingState,
