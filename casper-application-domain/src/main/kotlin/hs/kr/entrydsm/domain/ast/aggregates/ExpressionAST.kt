@@ -9,6 +9,7 @@ import hs.kr.entrydsm.domain.ast.entities.ArgumentsNode
 import hs.kr.entrydsm.domain.ast.entities.NumberNode
 import hs.kr.entrydsm.domain.ast.entities.BooleanNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
+import hs.kr.entrydsm.domain.ast.events.DomainEvents
 import hs.kr.entrydsm.domain.ast.services.TreeTraverser
 import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
 import hs.kr.entrydsm.domain.ast.factories.ASTNodeFactory
@@ -16,14 +17,12 @@ import hs.kr.entrydsm.domain.ast.specifications.ASTValiditySpec
 import hs.kr.entrydsm.domain.ast.specifications.NodeStructureSpec
 import hs.kr.entrydsm.domain.ast.values.NodeSize
 import hs.kr.entrydsm.domain.ast.values.TreeDepth
-import hs.kr.entrydsm.domain.ast.values.NodeType
 import hs.kr.entrydsm.domain.ast.values.OptimizationLevel
 import hs.kr.entrydsm.domain.ast.values.ASTValidationResult
 import hs.kr.entrydsm.domain.ast.values.ASTOptimizationResult
 import hs.kr.entrydsm.domain.ast.values.TreeStatistics
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.aggregates.Aggregate
-import hs.kr.entrydsm.global.annotation.DomainEvent
 import java.time.LocalDateTime
 import java.util.*
 
@@ -119,9 +118,9 @@ class ExpressionAST private constructor(
         
         // 도메인 이벤트 발생
         addDomainEvent(mapOf(
-            "eventType" to "AST_MODIFIED",
+            "eventType" to DomainEvents.AST_MODIFIED,
             "aggregateId" to id,
-            "aggregateType" to "ExpressionAST",
+            "aggregateType" to DomainEvents.EXPRESSION_AST,
             "payload" to mapOf(
                 "oldRoot" to oldRoot.toString(),
                 "newRoot" to newRoot.toString(),
@@ -168,9 +167,9 @@ class ExpressionAST private constructor(
         
         // 도메인 이벤트 발생
         addDomainEvent(mapOf(
-            "eventType" to "AST_VALIDATED",
+            "eventType" to DomainEvents.AST_VALIDATED,
             "aggregateId" to id,
-            "aggregateType" to "ExpressionAST",
+            "aggregateType" to DomainEvents.EXPRESSION_AST,
             "payload" to mapOf(
                 "isValid" to result.isValid,
                 "violations" to result.violations,
@@ -218,9 +217,9 @@ class ExpressionAST private constructor(
         
         // 도메인 이벤트 발생
         addDomainEvent(mapOf(
-            "eventType" to "AST_OPTIMIZED",
+            "eventType" to DomainEvents.AST_OPTIMIZED,
             "aggregateId" to id,
-            "aggregateType" to "ExpressionAST",
+            "aggregateType" to DomainEvents.EXPRESSION_AST,
             "payload" to mapOf(
                 "originalRoot" to originalRoot.toString(),
                 "optimizedRoot" to optimizedRoot.toString(),
@@ -335,9 +334,9 @@ class ExpressionAST private constructor(
         if (newRoot != root) {
             setRoot(newRoot)
             addDomainEvent(mapOf(
-                "eventType" to "SUBTREE_REPLACED",
+                "eventType" to DomainEvents.SUBTREE_REPLACED,
                 "aggregateId" to id,
-                "aggregateType" to "ExpressionAST",
+                "aggregateType" to DomainEvents.EXPRESSION_AST,
                 "payload" to mapOf(
                     "target" to target.toString(),
                     "replacement" to replacement.toString(),
@@ -460,7 +459,6 @@ class ExpressionAST private constructor(
         return id.hashCode()
     }
     
-    
     companion object {
         /**
          * 새로운 ExpressionAST를 생성합니다.
@@ -478,9 +476,9 @@ class ExpressionAST private constructor(
             
             // 도메인 이벤트 발생
             ast.addDomainEvent(mapOf(
-                "eventType" to "AST_CREATED",
+                "eventType" to DomainEvents.AST_CREATED,
                 "aggregateId" to ast.id,
-                "aggregateType" to "ExpressionAST",
+                "aggregateType" to DomainEvents.EXPRESSION_AST,
                 "payload" to mapOf(
                     "root" to root.toString(),
                     "createdAt" to LocalDateTime.now().toString()
@@ -506,9 +504,9 @@ class ExpressionAST private constructor(
             
             // 도메인 이벤트 발생
             ast.addDomainEvent(mapOf(
-                "eventType" to "AST_CREATED",
+                "eventType" to DomainEvents.AST_CREATED,
                 "aggregateId" to id,
-                "aggregateType" to "ExpressionAST",
+                "aggregateType" to DomainEvents.EXPRESSION_AST,
                 "payload" to mapOf(
                     "root" to root.toString(),
                     "createdAt" to LocalDateTime.now().toString()
