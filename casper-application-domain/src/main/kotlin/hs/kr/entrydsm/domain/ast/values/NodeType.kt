@@ -99,8 +99,8 @@ enum class NodeType(
             UNARY_OP -> 1..1
             BINARY_OP -> 2..2
             IF -> 3..3
-            FUNCTION_CALL -> 0..Int.MAX_VALUE
-            ARGUMENTS -> 0..Int.MAX_VALUE
+            FUNCTION_CALL -> 0..UNLIMITED_CHILD_COUNT
+            ARGUMENTS -> 0..UNLIMITED_CHILD_COUNT
         }
     }
     
@@ -119,6 +119,8 @@ enum class NodeType(
     }
     
     companion object {
+        private const val UNLIMITED_CHILD_COUNT = Int.MAX_VALUE
+
         /**
          * 모든 리터럴 노드 타입을 반환합니다.
          */
