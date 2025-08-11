@@ -36,14 +36,6 @@ data class ArgumentsNode(
 
     override fun getNodeCount(): Int = 1 + arguments.sumOf { it.getNodeCount() }
 
-    override fun isLiteral(): Boolean = false
-
-    override fun isOperator(): Boolean = false
-
-    override fun isFunctionCall(): Boolean = false
-
-    override fun isConditional(): Boolean = false
-
     override fun copy(): ASTNode = ArgumentsNode(arguments.map { it.copy() })
 
     override fun toSimpleString(): String = arguments.joinToString(", ") { it.toSimpleString() }
