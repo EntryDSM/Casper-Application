@@ -3,12 +3,13 @@ package hs.kr.entrydsm.domain.parser.services
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
-import hs.kr.entrydsm.domain.parser.entities.Production
 import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.interfaces.GrammarProvider
 import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.parser.values.ParsingResult
 import hs.kr.entrydsm.domain.parser.values.ParsingTable
+import hs.kr.entrydsm.domain.parser.values.ParserState
+import hs.kr.entrydsm.domain.parser.values.ParsingTraceEntry
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 
@@ -40,25 +41,13 @@ class RealLRParserService(
         private const val MAX_ERROR_RECOVERY_ATTEMPTS = 100
     }
 
-    // 파싱 상태
-    private val stateStack = mutableListOf<Int>()
-    private val astStack = mutableListOf<ASTNode?>()
-    private var inputTokens = mutableListOf<Token>()
-    private var currentPosition = 0
+    // 파싱 상태를 캡슐화한 값 객체
+    private var parserState = ParserState()
     
     // 파싱 설정
     private var enableErrorRecovery = true
     private var enableDebugging = false
     private var maxStackSize = MAX_STACK_SIZE
-    
-    // 파싱 통계
-    private var parsingSteps = 0
-    private var shiftOperations = 0
-    private var reduceOperations = 0
-    private var errorRecoveryAttempts = 0
-    
-    // 디버깅 정보
-    private val parsingTrace = mutableListOf<ParsingTraceEntry>()
 
     /**
      * 토큰 목록을 LR 파싱하여 AST를 생성합니다.
@@ -115,7 +104,7 @@ class RealLRParserService(
      * @return 파싱이 완료되면 true, 계속해야 하면 false
      */
     fun parseStep(): Boolean {
-        if (currentPosition > inputTokens.size) {
+        if (parserState.currentPosition > parserState.inputTokens.size) {
             throw ParserException(
                 errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSER_STATE_ERROR,
                 message = "파싱이 이미 완료되었습니다"
@@ -123,7 +112,7 @@ class RealLRParserService(
         }
         
         val currentToken = getCurrentToken()
-        val currentState = stateStack.lastOrNull() ?: throw ParserException(
+        val currentState = parserState.stateStack.lastOrNull() ?: throw ParserException(
             errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSER_STATE_ERROR,
             message = "스택이 비어있습니다"
         )
@@ -141,7 +130,7 @@ class RealLRParserService(
                 } else {
                     throw ParserException(
                         errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.UNEXPECTED_EOF,
-                        message = "예상하지 못한 토큰: ${currentToken.type} at position $currentPosition"
+                        message = "예상하지 못한 토큰: ${currentToken.type} at position ${parserState.currentPosition}"
                     )
                 }
             }
@@ -171,15 +160,15 @@ class RealLRParserService(
      * @return 파싱 상태 정보
      */
     fun getCurrentState(): Map<String, Any> = mapOf(
-        "currentPosition" to currentPosition,
-        "inputSize" to inputTokens.size,
-        "stackSize" to stateStack.size,
-        "currentStateId" to (stateStack.lastOrNull() ?: -1),
+        "currentPosition" to parserState.currentPosition,
+        "inputSize" to parserState.inputTokens.size,
+        "stackSize" to parserState.stateStack.size,
+        "currentStateId" to (parserState.stateStack.lastOrNull() ?: -1),
         "currentToken" to (getCurrentToken().type.name),
-        "parsingSteps" to parsingSteps,
-        "shiftOperations" to shiftOperations,
-        "reduceOperations" to reduceOperations,
-        "errorRecoveryAttempts" to errorRecoveryAttempts
+        "parsingSteps" to parserState.parsingSteps,
+        "shiftOperations" to parserState.shiftOperations,
+        "reduceOperations" to parserState.reduceOperations,
+        "errorRecoveryAttempts" to parserState.errorRecoveryAttempts
     )
 
     /**
@@ -187,21 +176,21 @@ class RealLRParserService(
      *
      * @return 파싱 추적 목록
      */
-    fun getParsingTrace(): List<ParsingTraceEntry> = parsingTrace.toList()
+    fun getParsingTrace(): List<ParsingTraceEntry> = parserState.parsingTrace.toList()
 
     /**
      * 파서를 초기화합니다.
      */
     fun reset() {
-        stateStack.clear()
-        astStack.clear()
-        inputTokens.clear()
-        currentPosition = 0
-        parsingSteps = 0
-        shiftOperations = 0
-        reduceOperations = 0
-        errorRecoveryAttempts = 0
-        parsingTrace.clear()
+        parserState.stateStack.clear()
+        parserState.astStack.clear()
+        parserState.inputTokens.clear()
+        parserState.currentPosition = 0
+        parserState.parsingSteps = 0
+        parserState.shiftOperations = 0
+        parserState.reduceOperations = 0
+        parserState.errorRecoveryAttempts = 0
+        parserState.parsingTrace.clear()
     }
 
     /**
@@ -232,38 +221,36 @@ class RealLRParserService(
         this.maxStackSize = maxSize
     }
 
-    // Private helper methods
-
     /**
      * 파싱을 초기화합니다.
      */
     private fun initializeParsing(tokens: List<Token>) {
         reset()
-        inputTokens.addAll(tokens)
-        inputTokens.add(Token(TokenType.DOLLAR, "$", hs.kr.entrydsm.global.values.Position.of(0))) // EOF 토큰 추가
-        stateStack.add(parsingTable.startState)
-        currentPosition = 0
-        parsingSteps = 0
+        parserState.inputTokens.addAll(tokens)
+        parserState.inputTokens.add(Token(TokenType.DOLLAR, "$", hs.kr.entrydsm.global.values.Position.of(0))) // EOF 토큰 추가
+        parserState.stateStack.add(parsingTable.startState)
+        parserState.currentPosition = 0
+        parserState.parsingSteps = 0
     }
 
     /**
      * LR 파싱을 수행합니다.
      */
     private fun performLRParsing(): ASTNode {
-        while (parsingSteps < MAX_PARSING_STEPS) {
-            if (stateStack.size > maxStackSize) {
+        while (parserState.parsingSteps < MAX_PARSING_STEPS) {
+            if (parserState.stateStack.size > maxStackSize) {
                 throw ParserException(
                     errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSER_STATE_ERROR,
-                    message = "스택 오버플로우: ${stateStack.size} > $maxStackSize"
+                    message = "스택 오버플로우: ${parserState.stateStack.size} > $maxStackSize"
                 )
             }
             
             if (parseStep()) {
                 // 파싱 완료
-                return astStack.lastOrNull() ?: createEmptyAST()
+                return parserState.astStack.lastOrNull() ?: createEmptyAST()
             }
             
-            parsingSteps++
+            parserState.parsingSteps++
         }
         
         throw ParserException(
@@ -277,13 +264,13 @@ class RealLRParserService(
      */
     private fun performShift(action: LRAction, token: Token) {
         val nextState = (action as hs.kr.entrydsm.domain.parser.values.LRAction.Shift).state
-        stateStack.add(nextState)
-        astStack.add(createLeafNode(token))
-        currentPosition++
-        shiftOperations++
+        parserState.stateStack.add(nextState)
+        parserState.astStack.add(createLeafNode(token))
+        parserState.currentPosition++
+        parserState.shiftOperations++
         
         if (enableDebugging) {
-            println("SHIFT: state ${stateStack[stateStack.size - 2]} -> $nextState, token: ${token.type}")
+            println("SHIFT: state ${parserState.stateStack[parserState.stateStack.size - 2]} -> $nextState, token: ${token.type}")
         }
     }
 
@@ -297,16 +284,16 @@ class RealLRParserService(
         // 스택에서 심볼들 제거
         val children = mutableListOf<ASTNode?>()
         repeat(production.right.size) {
-            if (stateStack.isNotEmpty()) stateStack.removeLastOrNull()
-            children.add(0, astStack.removeLastOrNull()) // 역순으로 추가
+            if (parserState.stateStack.isNotEmpty()) parserState.stateStack.removeLastOrNull()
+            children.add(0, parserState.astStack.removeLastOrNull()) // 역순으로 추가
         }
         
         // AST 노드 생성
         val astNode = production.buildAST(children.filterNotNull() as List<Any>) as? hs.kr.entrydsm.domain.ast.entities.ASTNode
-        astStack.add(astNode)
+        parserState.astStack.add(astNode)
         
         // Goto 연산
-        val currentState = stateStack.lastOrNull() ?: throw ParserException(
+        val currentState = parserState.stateStack.lastOrNull() ?: throw ParserException(
             errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSER_STATE_ERROR,
             message = "Reduce 후 스택이 비어있습니다"
         )
@@ -316,8 +303,8 @@ class RealLRParserService(
             message = "Goto 상태를 찾을 수 없습니다: state $currentState, symbol ${production.left}"
         )
         
-        stateStack.add(gotoState)
-        reduceOperations++
+        parserState.stateStack.add(gotoState)
+        parserState.reduceOperations++
         
         if (enableDebugging) {
             println("REDUCE: production $productionId (${production.left} -> ${production.right.joinToString(" ")})")
@@ -329,9 +316,9 @@ class RealLRParserService(
      * 에러 복구를 수행합니다.
      */
     private fun performErrorRecovery(currentToken: Token) {
-        errorRecoveryAttempts++
+        parserState.errorRecoveryAttempts++
         
-        if (errorRecoveryAttempts > MAX_ERROR_RECOVERY_ATTEMPTS) {
+        if (parserState.errorRecoveryAttempts > MAX_ERROR_RECOVERY_ATTEMPTS) {
             throw ParserException(
                 errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSING_FAILED,
                 message = "에러 복구 시도 횟수 초과: $MAX_ERROR_RECOVERY_ATTEMPTS"
@@ -339,10 +326,10 @@ class RealLRParserService(
         }
         
         // 간단한 에러 복구: 현재 토큰 스킵
-        currentPosition++
+        parserState.currentPosition++
         
         if (enableDebugging) {
-            println("ERROR RECOVERY: skipping token ${currentToken.type} at position ${currentPosition - 1}")
+            println("ERROR RECOVERY: skipping token ${currentToken.type} at position ${parserState.currentPosition - 1}")
         }
     }
 
@@ -350,10 +337,10 @@ class RealLRParserService(
      * 현재 토큰을 반환합니다.
      */
     private fun getCurrentToken(): Token {
-        return if (currentPosition < inputTokens.size) {
-            inputTokens[currentPosition]
+        return if (parserState.currentPosition < parserState.inputTokens.size) {
+            parserState.inputTokens[parserState.currentPosition]
         } else {
-            inputTokens.last() // EOF 토큰
+            parserState.inputTokens.last() // EOF 토큰
         }
     }
 
@@ -399,13 +386,13 @@ class RealLRParserService(
      * 파싱 메타데이터를 생성합니다.
      */
     private fun createParsingMetadata(): Map<String, Any> = mapOf(
-        "parsingSteps" to parsingSteps,
-        "shiftOperations" to shiftOperations,
-        "reduceOperations" to reduceOperations,
-        "errorRecoveryAttempts" to errorRecoveryAttempts,
-        "maxStackDepth" to stateStack.size,
-        "finalPosition" to currentPosition,
-        "parsingTraceSize" to parsingTrace.size,
+        "parsingSteps" to parserState.parsingSteps,
+        "shiftOperations" to parserState.shiftOperations,
+        "reduceOperations" to parserState.reduceOperations,
+        "errorRecoveryAttempts" to parserState.errorRecoveryAttempts,
+        "maxStackDepth" to parserState.stateStack.size,
+        "finalPosition" to parserState.currentPosition,
+        "parsingTraceSize" to parserState.parsingTrace.size,
         "enableErrorRecovery" to enableErrorRecovery,
         "enableDebugging" to enableDebugging
     )
@@ -414,33 +401,22 @@ class RealLRParserService(
      * 파싱 추적 정보를 기록합니다.
      */
     private fun recordTrace(state: Int, token: Token, action: LRAction?) {
-        parsingTrace.add(
+        val actionStr = action?.getActionType() ?: "ERROR"
+        val traceEntry = if (action?.isShift() == true) {
+            ParsingTraceEntry.shift(state, token, parserState.stateStack.lastOrNull() ?: 0, parserState.parsingSteps)
+        } else {
             ParsingTraceEntry(
-                step = parsingSteps,
+                step = parserState.parsingSteps,
+                action = actionStr,
                 state = state,
-                token = token.type,
-                action = action?.getActionType() ?: "ERROR",
-                stackSize = stateStack.size,
-                position = currentPosition
+                token = token,
+                production = null,
+                stackSnapshot = parserState.stateStack.toList()
             )
-        )
+        }
+        parserState.parsingTrace.add(traceEntry)
     }
 
-    /**
-     * 파싱 추적 엔트리를 나타내는 데이터 클래스입니다.
-     */
-    data class ParsingTraceEntry(
-        val step: Int,
-        val state: Int,
-        val token: TokenType,
-        val action: String,
-        val stackSize: Int,
-        val position: Int
-    ) {
-        override fun toString(): String {
-            return "Step $step: State $state, Token $token, Action $action, Stack $stackSize, Pos $position"
-        }
-    }
 
     /**
      * 서비스의 설정 정보를 반환합니다.
@@ -465,11 +441,11 @@ class RealLRParserService(
     fun getStatistics(): Map<String, Any> = mapOf(
         "serviceName" to "RealLRParserService",
         "currentSessionStats" to getCurrentState(),
-        "totalTraceEntries" to parsingTrace.size,
+        "totalTraceEntries" to parserState.parsingTrace.size,
         "operationDistribution" to mapOf(
-            "shift" to shiftOperations,
-            "reduce" to reduceOperations,
-            "errorRecovery" to errorRecoveryAttempts
+            "shift" to parserState.shiftOperations,
+            "reduce" to parserState.reduceOperations,
+            "errorRecovery" to parserState.errorRecoveryAttempts
         )
     )
 
@@ -480,13 +456,13 @@ class RealLRParserService(
      */
     fun dumpParsingTrace(): String = buildString {
         appendLine("=== LR 파싱 추적 정보 ===")
-        appendLine("총 단계: $parsingSteps")
-        appendLine("Shift 연산: $shiftOperations")
-        appendLine("Reduce 연산: $reduceOperations")
-        appendLine("에러 복구: $errorRecoveryAttempts")
+        appendLine("총 단계: ${parserState.parsingSteps}")
+        appendLine("Shift 연산: ${parserState.shiftOperations}")
+        appendLine("Reduce 연산: ${parserState.reduceOperations}")
+        appendLine("에러 복구: ${parserState.errorRecoveryAttempts}")
         appendLine()
         
-        parsingTrace.forEach { entry ->
+        parserState.parsingTrace.forEach { entry ->
             appendLine(entry.toString())
         }
     }

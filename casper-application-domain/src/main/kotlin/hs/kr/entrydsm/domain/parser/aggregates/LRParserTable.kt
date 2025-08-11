@@ -6,6 +6,7 @@ import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.Production
 import hs.kr.entrydsm.domain.parser.entities.CompressedLRState
 import hs.kr.entrydsm.domain.parser.services.ConflictResolver
+import hs.kr.entrydsm.domain.parser.services.ConflictResolutionResult
 import hs.kr.entrydsm.domain.parser.services.OptimizedParsingTable
 import hs.kr.entrydsm.domain.parser.services.StateCacheManager
 import hs.kr.entrydsm.domain.parser.values.FirstFollowSets
@@ -225,10 +226,13 @@ class LRParserTable private constructor(
                             val result = conflictResolver.resolveConflict(
                                 existing, newAction, item.lookahead, stateId
                             )
-                            if (result.resolved) {
-                                actionMap[key] = result.action!!
-                            } else {
-                                conflicts.add("Unresolvable conflict in state $stateId: ${result.reason}")
+                            when (result) {
+                                is ConflictResolutionResult.Resolved -> {
+                                    actionMap[key] = result.action
+                                }
+                                is ConflictResolutionResult.Unresolved -> {
+                                    conflicts.add("Unresolvable conflict in state $stateId: ${result.reason}")
+                                }
                             }
                         } else {
                             actionMap[key] = newAction
