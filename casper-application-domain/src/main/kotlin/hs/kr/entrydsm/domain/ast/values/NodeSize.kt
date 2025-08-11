@@ -149,7 +149,8 @@ data class NodeSize private constructor(val value: Int) {
             value <= MEDIUM_SIZE -> SizeLevel.MEDIUM
             value <= LARGE_SIZE -> SizeLevel.LARGE
             value <= WARNING_SIZE -> SizeLevel.VERY_LARGE
-            else -> SizeLevel.CRITICAL
+            value > WARNING_SIZE -> SizeLevel.CRITICAL
+            else -> SizeLevel.EMPTY
         }
     }
     
