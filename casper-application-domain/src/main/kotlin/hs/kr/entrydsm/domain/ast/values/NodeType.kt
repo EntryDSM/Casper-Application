@@ -83,14 +83,11 @@ enum class NodeType(
     /**
      * 특정 노드 타입과 호환되는지 확인합니다.
      */
-    fun isCompatibleWith(other: NodeType): Boolean {
-        return when {
-            this.isLiteral && other.isLiteral -> true
-            this.isOperator && other.isOperator -> true
-            this == VARIABLE && other.isLiteral -> true
-            this.isLiteral && other == VARIABLE -> true
-            else -> false
-        }
+    fun isCompatibleWith(other: NodeType): Boolean = when {
+        this.isLiteral && other.isLiteral -> true
+        this.isOperator && other.isOperator -> true
+        (this == VARIABLE && other.isLiteral) || (this.isLiteral && other == VARIABLE) -> true
+        else -> false
     }
     
     /**
