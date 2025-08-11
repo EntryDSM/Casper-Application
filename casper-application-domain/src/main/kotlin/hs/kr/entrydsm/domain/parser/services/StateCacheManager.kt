@@ -27,16 +27,18 @@ class StateCacheManager {
 
     // 상태 캐시: 상태 집합 -> 상태 ID 매핑
     private val stateCache = ConcurrentHashMap<Set<LRItem>, Int>()
-    
+    private val reverseStateCache = ConcurrentHashMap<Int, Set<LRItem>>() // 역방향 조회용
+
     // 압축된 상태 캐시: 시그니처 -> 상태 ID 매핑
     private val compressedStateCache = ConcurrentHashMap<String, Int>()
-    
+    private val reverseCompressedStateCache = ConcurrentHashMap<Int, String>() // 역방향 조회용
+
     // 상태별 참조 카운트
     private val referenceCount = ConcurrentHashMap<Int, AtomicLong>()
-    
+
     // 상태 생성 통계
     private val creationStats = CacheStatistics()
-    
+
     // 메모리 사용량 추적
     private val memoryTracker = MemoryTracker()
 
@@ -49,7 +51,7 @@ class StateCacheManager {
      */
     fun getOrCacheState(state: Set<LRItem>, stateId: Int): CacheResult {
         val existingId = stateCache[state]
-        
+
         return if (existingId != null) {
             // 캐시 히트
             incrementReference(existingId)
@@ -58,6 +60,7 @@ class StateCacheManager {
         } else {
             // 캐시 미스 - 새 상태 등록
             stateCache[state] = stateId
+            reverseStateCache[stateId] = state // 역방향 캐시 추가
             referenceCount[stateId] = AtomicLong(1)
             memoryTracker.recordStateCreation(state)
             creationStats.recordMiss()
@@ -78,7 +81,7 @@ class StateCacheManager {
     ): CacheResult {
         val signature = compressedState.signature
         val existingId = compressedStateCache[signature]
-        
+
         return if (existingId != null) {
             // 캐시 히트
             incrementReference(existingId)
@@ -87,6 +90,7 @@ class StateCacheManager {
         } else {
             // 캐시 미스 - 새 상태 등록
             compressedStateCache[signature] = stateId
+            reverseCompressedStateCache[stateId] = signature // 역방향 캐시 추가
             referenceCount[stateId] = AtomicLong(1)
             memoryTracker.recordCompressedStateCreation(compressedState)
             creationStats.recordCompressedMiss()
@@ -102,15 +106,15 @@ class StateCacheManager {
      */
     fun findMergeableState(newState: CompressedLRState): Int? {
         val signature = newState.signature
-        
+
         for ((cachedSignature, stateId) in compressedStateCache) {
             if (cachedSignature != signature) continue
-            
+
             // 동일한 시그니처를 가진 상태를 찾았으므로 병합 가능성 확인
             // 실제로는 더 정교한 LALR 병합 조건 검사가 필요
             return stateId
         }
-        
+
         return null
     }
 
@@ -132,12 +136,12 @@ class StateCacheManager {
     fun decrementReference(stateId: Int): Long {
         val counter = referenceCount[stateId] ?: return 0
         val newCount = counter.decrementAndGet()
-        
+
         if (newCount <= 0) {
             // 참조가 없으면 정리 대상으로 마킹
             markForCleanup(stateId)
         }
-        
+
         return newCount
     }
 
@@ -189,9 +193,10 @@ class StateCacheManager {
      * @param stateId 제거할 상태 ID
      */
     private fun cleanupState(stateId: Int) {
-        // 역방향 참조를 통해 캐시에서 제거
-        stateCache.entries.removeIf { it.value == stateId }
-        compressedStateCache.entries.removeIf { it.value == stateId }
+        // 역방향 캐시를 사용하여 O(1) 시간 복잡도로 제거
+        reverseStateCache.remove(stateId)?.let { stateCache.remove(it) }
+        reverseCompressedStateCache.remove(stateId)?.let { compressedStateCache.remove(it) }
+
         referenceCount.remove(stateId)
         memoryTracker.recordStateCleanup(stateId)
     }
@@ -204,7 +209,7 @@ class StateCacheManager {
     fun getCacheStatistics(): Map<String, Any> {
         val hitRate = creationStats.getHitRate()
         val compressedHitRate = creationStats.getCompressedHitRate()
-        
+
         return mapOf(
             "totalStates" to stateCache.size,
             "compressedStates" to compressedStateCache.size,
@@ -225,10 +230,10 @@ class StateCacheManager {
     private fun calculateCacheEfficiency(): Double {
         val totalRequests = creationStats.hits + creationStats.misses
         if (totalRequests == 0L) return 0.0
-        
+
         val hitRate = creationStats.hits.toDouble() / totalRequests
         val memoryEfficiency = 1.0 - (stateCache.size.toDouble() / maxOf(1, totalRequests))
-        
+
         return (hitRate + memoryEfficiency) / 2
     }
 
@@ -237,7 +242,9 @@ class StateCacheManager {
      */
     fun clearCache() {
         stateCache.clear()
+        reverseStateCache.clear()
         compressedStateCache.clear()
+        reverseCompressedStateCache.clear()
         referenceCount.clear()
         creationStats.reset()
         memoryTracker.reset()
