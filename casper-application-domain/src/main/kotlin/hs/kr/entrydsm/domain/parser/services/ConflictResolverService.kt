@@ -8,8 +8,6 @@ import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.parser.values.ParsingTable
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
-import hs.kr.entrydsm.domain.parser.services.FirstFollowCalculatorService
-import hs.kr.entrydsm.domain.parser.services.LRParserTableService
 import hs.kr.entrydsm.global.configuration.interfaces.ConfigurationProvider
 
 /**
@@ -106,14 +104,14 @@ class ConflictResolverService(
         conflictSymbol: TokenType
     ): LRAction {
         val resolution = when (resolutionStrategy) {
-            ResolutionStrategy.PRECEDENCE_BASED -> 
-                resolveByprecedence(shiftAction, reduceAction, conflictSymbol)
+            ResolutionStrategy.PRECEDENCE_BASED ->
+                resolveByPrecedence(shiftAction, reduceAction, conflictSymbol)
             
             ResolutionStrategy.ASSOCIATIVITY_BASED -> 
                 resolveByAssociativity(shiftAction, reduceAction, conflictSymbol)
             
-            ResolutionStrategy.HYBRID -> 
-                resolveByprecedence(shiftAction, reduceAction, conflictSymbol)
+            ResolutionStrategy.HYBRID ->
+                resolveByPrecedence(shiftAction, reduceAction, conflictSymbol)
             
             ResolutionStrategy.MANUAL -> 
                 resolveManually(state, shiftAction, reduceAction, conflictSymbol)
@@ -316,7 +314,7 @@ class ConflictResolverService(
         }
     }
 
-    private fun resolveByprecedence(
+    private fun resolveByPrecedence(
         shiftAction: LRAction,
         reduceAction: LRAction,
         conflictSymbol: TokenType
@@ -355,8 +353,46 @@ class ConflictResolverService(
         reduceAction: LRAction,
         conflictSymbol: TokenType
     ): LRAction {
-        // 수동 해결 로직 (현재는 우선순위 기반으로 폴백)
-        return resolveByprecedence(shiftAction, reduceAction, conflictSymbol)
+        return when {
+            conflictSymbol == TokenType.LEFT_PAREN -> shiftAction
+            conflictSymbol == TokenType.RIGHT_PAREN -> reduceAction
+            conflictSymbol == TokenType.COMMA && isInFunctionCall(state) -> shiftAction
+            conflictSymbol == TokenType.IF -> shiftAction
+            isArithmeticOperator(conflictSymbol) -> reduceAction
+            conflictSymbol == TokenType.AND -> shiftAction
+            conflictSymbol == TokenType.OR -> reduceAction
+            isComparisonOperator(conflictSymbol) -> reduceAction
+            else -> resolveByPrecedence(shiftAction, reduceAction, conflictSymbol)
+        }
+    }
+    
+    /**
+     * 현재 상태가 함수 호출 내부인지 확인합니다.
+     */
+    private fun isInFunctionCall(state: ParsingState): Boolean {
+        // 함수 호출 패턴 감지 로직
+        return state.items.any { item ->
+            item.production.right.contains(TokenType.LEFT_PAREN) &&
+            item.production.right.contains(TokenType.RIGHT_PAREN)
+        }
+    }
+    
+    /**
+     * 산술 연산자인지 확인합니다.
+     */
+    private fun isArithmeticOperator(token: TokenType): Boolean {
+        return when (token) {
+            TokenType.PLUS, TokenType.MINUS, TokenType.MULTIPLY, TokenType.DIVIDE,
+            TokenType.POWER, TokenType.MODULO -> true
+            else -> false
+        }
+    }
+    
+    /**
+     * 비교 연산자인지 확인합니다.
+     */
+    private fun isComparisonOperator(token: TokenType): Boolean {
+        return token.isComparisonOperator()
     }
 
     private fun resolveReduceConflictByPrecedence(
