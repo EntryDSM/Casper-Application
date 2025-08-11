@@ -311,11 +311,14 @@ class OptimizedParsingTable private constructor(
         private val ERROR_ACTION = LRAction.Error()
 
         /**
-         * 빌더를 사용하여 OptimizedParsingTable을 생성합니다.
+         * Kotlin DSL을 사용하여 OptimizedParsingTable을 생성합니다.
          *
-         * @return 테이블 빌더
+         * @param block DSL 구성 블록
+         * @return 최적화된 파싱 테이블
          */
-        fun builder(): Builder = Builder()
+        fun build(block: Builder.() -> Unit): OptimizedParsingTable {
+            return Builder().apply(block).build()
+        }
 
         /**
          * 맵 기반 테이블로부터 2D 배열 테이블을 생성합니다.
@@ -334,18 +337,18 @@ class OptimizedParsingTable private constructor(
             nonTerminals: Set<TokenType>,
             numStates: Int
         ): OptimizedParsingTable {
-            return builder()
-                .withDimensions(numStates, terminals.size, nonTerminals.size)
-                .withTerminals(terminals)
-                .withNonTerminals(nonTerminals)
-                .withActionMap(actionMap)
-                .withGotoMap(gotoMap)
-                .build()
+            return build {
+                dimensions(numStates, terminals.size, nonTerminals.size)
+                terminals(terminals)
+                nonTerminals(nonTerminals)
+                actions(actionMap)
+                gotos(gotoMap)
+            }
         }
     }
 
     /**
-     * OptimizedParsingTable을 생성하기 위한 빌더 클래스입니다.
+     * OptimizedParsingTable을 생성하기 위한 DSL 빌더 클래스입니다.
      */
     class Builder {
         private var numStates: Int = 0
@@ -356,49 +359,63 @@ class OptimizedParsingTable private constructor(
         private val actions = mutableListOf<Triple<Int, TokenType, LRAction>>()
         private val gotos = mutableListOf<Triple<Int, TokenType, Int>>()
 
-        fun withDimensions(states: Int, terminals: Int, nonTerminals: Int): Builder {
+        /**
+         * 테이블의 차원을 설정합니다.
+         */
+        fun dimensions(states: Int, terminals: Int, nonTerminals: Int) {
             this.numStates = states
             this.numTerminals = terminals
             this.numNonTerminals = nonTerminals
-            return this
         }
 
-        fun withTerminals(terminals: Set<TokenType>): Builder {
+        /**
+         * 터미널 심볼들을 설정합니다.
+         */
+        fun terminals(terminals: Set<TokenType>) {
             terminals.forEachIndexed { index, terminal ->
                 terminalToIndex[terminal] = index
             }
-            return this
         }
 
-        fun withNonTerminals(nonTerminals: Set<TokenType>): Builder {
+        /**
+         * 논터미널 심볼들을 설정합니다.
+         */
+        fun nonTerminals(nonTerminals: Set<TokenType>) {
             nonTerminals.forEachIndexed { index, nonTerminal ->
                 nonTerminalToIndex[nonTerminal] = index
             }
-            return this
         }
 
-        fun withAction(state: Int, terminal: TokenType, action: LRAction): Builder {
+        /**
+         * 개별 액션을 추가합니다.
+         */
+        fun action(state: Int, terminal: TokenType, action: LRAction) {
             actions.add(Triple(state, terminal, action))
-            return this
         }
 
-        fun withGoto(state: Int, nonTerminal: TokenType, nextState: Int): Builder {
+        /**
+         * 개별 GOTO를 추가합니다.
+         */
+        fun goto(state: Int, nonTerminal: TokenType, nextState: Int) {
             gotos.add(Triple(state, nonTerminal, nextState))
-            return this
         }
 
-        fun withActionMap(actionMap: Map<Pair<Int, TokenType>, LRAction>): Builder {
+        /**
+         * 액션 맵을 일괄 설정합니다.
+         */
+        fun actions(actionMap: Map<Pair<Int, TokenType>, LRAction>) {
             for ((key, action) in actionMap) {
-                withAction(key.first, key.second, action)
+                action(key.first, key.second, action)
             }
-            return this
         }
 
-        fun withGotoMap(gotoMap: Map<Pair<Int, TokenType>, Int>): Builder {
+        /**
+         * GOTO 맵을 일괄 설정합니다.
+         */
+        fun gotos(gotoMap: Map<Pair<Int, TokenType>, Int>) {
             for ((key, nextState) in gotoMap) {
-                withGoto(key.first, key.second, nextState)
+                goto(key.first, key.second, nextState)
             }
-            return this
         }
 
         fun build(): OptimizedParsingTable {
