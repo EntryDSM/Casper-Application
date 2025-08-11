@@ -45,17 +45,17 @@ class OptimizedParsingTable private constructor(
      */
     fun getAction(state: Int, terminal: TokenType): LRAction {
         if (state < 0 || state >= numStates) {
-            return LRAction.Error()
+            return ERROR_ACTION
         }
 
         val terminalIndex = terminalToIndex[terminal]
-            ?: return LRAction.Error()
+            ?: return ERROR_ACTION
 
         if (terminalIndex < 0 || terminalIndex >= numTerminals) {
-            return LRAction.Error()
+            return ERROR_ACTION
         }
 
-        return actionTable2D[state][terminalIndex] ?: LRAction.Error()
+        return actionTable2D[state][terminalIndex] ?: ERROR_ACTION
     }
 
     /**
@@ -306,6 +306,9 @@ class OptimizedParsingTable private constructor(
 
     companion object {
         private const val EMPTY_GOTO_ENTRY = -1
+        
+        // Error 액션 인스턴스를 싱글턴으로 재사용
+        private val ERROR_ACTION = LRAction.Error()
 
         /**
          * 빌더를 사용하여 OptimizedParsingTable을 생성합니다.
