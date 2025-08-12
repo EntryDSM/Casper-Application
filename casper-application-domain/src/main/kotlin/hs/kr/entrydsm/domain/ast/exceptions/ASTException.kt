@@ -214,13 +214,24 @@ class ASTException(
         }
 
         /**
-         * 연산자 값이 비어 있을 때의 예외를 생성합니다.
+         * 연산자 값이 비어 있을 때의 오류를 생성합니다.
          *
          * @return ASTException 인스턴스
          */
         fun operatorEmpty(): ASTException {
             return ASTException(
                 errorCode = ErrorCode.AST_OPERATOR_EMPTY
+            )
+        }
+
+        /**
+         * 지원하지 않는 연산자일 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun unsupportedOperator(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_UNSUPPORTED_OPERATOR
             )
         }
     }
