@@ -977,6 +977,15 @@ class ASTException(
         fun zeroPowerZero(): ASTException = ASTException(
             errorCode = ErrorCode.AST_ZERO_POWER_ZERO_UNDEFINED,
         )
+
+        /**
+         * 논리 연산자의 피연산자가 논리적으로 호환되지 않을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun logicalIncompatibleOperand(): ASTException = ASTException(
+            errorCode = ErrorCode.AST_LOGICAL_INCOMPATIBLE_OPERAND,
+        )
     }
 
     /**
