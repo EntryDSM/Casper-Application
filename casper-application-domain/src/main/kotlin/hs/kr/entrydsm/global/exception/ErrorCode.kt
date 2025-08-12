@@ -100,6 +100,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_VARIABLE_FIRST_NOT_TOKEN("AST058", "Variable 빌더 첫 번째 자식이 Token 타입이 아닙니다"),
     AST_NUMBER_IS_NAN("AST059", "숫자 값은 NaN이 될 수 없습니다"),
     AST_NUMBER_TOO_SMALL("AST060", "숫자 값이 최소값 미만입니다"),
+    AST_NUMBER_TOO_LARGE("AST061", "숫자 값이 최대값을 초과합니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
