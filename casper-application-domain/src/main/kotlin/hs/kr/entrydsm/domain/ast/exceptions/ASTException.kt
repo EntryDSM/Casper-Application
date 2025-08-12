@@ -307,6 +307,21 @@ class ASTException(
                 nodeName = nodeName,
             )
         }
+
+        /**
+         * 단순화 로직에서 처리하지 못한 예상치 못한 케이스가 발생했을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun simplificationUnexpectedCase(
+            nodeName: String? = "IfNode"
+        ): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_SIMPLIFICATION_UNEXPECTED_CASE,
+                nodeType = "IfNode",
+                nodeName = nodeName,
+            )
+        }
     }
 
     /**
