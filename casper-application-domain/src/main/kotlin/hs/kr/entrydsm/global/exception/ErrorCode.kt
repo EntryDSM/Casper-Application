@@ -77,6 +77,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_NOT_ARITHMETIC_OPERATOR("AST035", "산술 연산자가 아닙니다"),
     AST_NOT_COMPARISON_OPERATOR("AST036", "비교 연산자가 아닙니다"),
     AST_NOT_LOGICAL_OPERATOR("AST037", "논리 연산자가 아닙니다"),
+    AST_UNSUPPORTED_MATH_FUNCTION("AST038", "지원되지 않는 수학 함수입니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
