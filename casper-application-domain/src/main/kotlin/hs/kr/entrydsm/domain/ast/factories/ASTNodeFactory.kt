@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factories
 
 import hs.kr.entrydsm.domain.ast.entities.*
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.specifications.ASTValiditySpec
 import hs.kr.entrydsm.domain.ast.specifications.NodeStructureSpec
 import hs.kr.entrydsm.domain.ast.policies.ASTValidationPolicy
@@ -87,8 +88,10 @@ class ASTNodeFactory {
         val node = NumberNode(value)
         
         // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 숫자 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
+        if (!validitySpec.isSatisfiedBy(node)) {
+            throw ASTException.nodeValidationFailed(
+                reason = validitySpec.getWhyNotSatisfied(node)
+            )
         }
         
         createdNumberCount.incrementAndGet()
@@ -109,8 +112,11 @@ class ASTNodeFactory {
         val node = BooleanNode(value)
         
         // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 불리언 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
+        // 숫자/불리언/변수/연산/함수 호출/조건문/인수 목록 노드 생성 후 유효성
+        if (!validitySpec.isSatisfiedBy(node)) {
+            throw ASTException.nodeValidationFailed(
+                reason = validitySpec.getWhyNotSatisfied(node)
+            )
         }
         
         createdBooleanCount.incrementAndGet()
@@ -132,10 +138,12 @@ class ASTNodeFactory {
         val node = VariableNode(name)
         
         // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 변수 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
+        if (!validitySpec.isSatisfiedBy(node)) {
+            throw ASTException.nodeValidationFailed(
+                reason = validitySpec.getWhyNotSatisfied(node)
+            )
         }
-        
+
         createdVariableCount.incrementAndGet()
         
         return node
@@ -155,17 +163,8 @@ class ASTNodeFactory {
         creationPolicy.validateBinaryOpCreation(left, operator, right)
         
         val node = BinaryOpNode(left, operator, right)
-        
-        // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 이항 연산 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
-        }
-        
-        // 구조 검증
-        require(structureSpec.isSatisfiedBy(node)) { 
-            "생성된 이항 연산 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
-        }
-        
+        validateNodeAfterBuild(node)
+
         createdBinaryOpCount.incrementAndGet()
         
         return node
@@ -184,17 +183,8 @@ class ASTNodeFactory {
         creationPolicy.validateUnaryOpCreation(operator, operand)
         
         val node = UnaryOpNode(operator, operand)
-        
-        // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 단항 연산 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
-        }
-        
-        // 구조 검증
-        require(structureSpec.isSatisfiedBy(node)) { 
-            "생성된 단항 연산 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
-        }
-        
+        validateNodeAfterBuild(node)
+
         createdUnaryOpCount.incrementAndGet()
         
         return node
@@ -213,17 +203,8 @@ class ASTNodeFactory {
         creationPolicy.validateFunctionCallCreation(name, args)
         
         val node = FunctionCallNode(name, args)
-        
-        // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 함수 호출 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
-        }
-        
-        // 구조 검증
-        require(structureSpec.isSatisfiedBy(node)) { 
-            "생성된 함수 호출 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
-        }
-        
+        validateNodeAfterBuild(node)
+
         createdFunctionCallCount.incrementAndGet()
         
         return node
@@ -243,16 +224,7 @@ class ASTNodeFactory {
         creationPolicy.validateIfCreation(condition, trueValue, falseValue)
         
         val node = IfNode(condition, trueValue, falseValue)
-        
-        // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 조건문 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
-        }
-        
-        // 구조 검증
-        require(structureSpec.isSatisfiedBy(node)) { 
-            "생성된 조건문 노드가 구조 사양을 만족하지 않습니다: ${structureSpec.getWhyNotSatisfied(node)}" 
-        }
+        validateNodeAfterBuild(node)
         
         createdIfCount.incrementAndGet()
         
@@ -273,8 +245,10 @@ class ASTNodeFactory {
         val node = ArgumentsNode(arguments)
         
         // 생성 후 유효성 검증
-        require(validitySpec.isSatisfiedBy(node)) { 
-            "생성된 인수 목록 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(node)}" 
+        if (!validitySpec.isSatisfiedBy(node)) {
+            throw ASTException.nodeValidationFailed(
+                reason = validitySpec.getWhyNotSatisfied(node)
+            )
         }
         
         createdArgumentsCount.incrementAndGet()
@@ -315,7 +289,7 @@ class ASTNodeFactory {
      */
     fun createNumberFromString(value: String): NumberNode {
         val doubleValue = value.toDoubleOrNull()
-            ?: throw NumberFormatException("유효하지 않은 숫자 형식: $value")
+            ?: throw ASTException.invalidNumberLiteral(value)
         return createNumber(doubleValue)
     }
 
@@ -330,7 +304,7 @@ class ASTNodeFactory {
         val booleanValue = when (value.lowercase()) {
             "true", "1", "yes", "y", "on" -> true
             "false", "0", "no", "n", "off" -> false
-            else -> throw IllegalArgumentException("유효하지 않은 불리언 형식: $value")
+            else -> throw ASTException.invalidBooleanValue(value)
         }
         return createBoolean(booleanValue)
     }
@@ -344,8 +318,8 @@ class ASTNodeFactory {
      * @return BinaryOpNode 인스턴스
      */
     fun createArithmeticOp(left: ASTNode, operator: String, right: ASTNode): BinaryOpNode {
-        require(setOf("+", "-", "*", "/", "^", "%").contains(operator)) { 
-            "산술 연산자가 아닙니다: $operator" 
+        if (operator !in setOf("+","-","*","/","^","%")) {
+            throw ASTException.notArithmeticOperator(operator)
         }
         return createBinaryOp(left, operator, right)
     }
@@ -359,8 +333,8 @@ class ASTNodeFactory {
      * @return BinaryOpNode 인스턴스
      */
     fun createComparisonOp(left: ASTNode, operator: String, right: ASTNode): BinaryOpNode {
-        require(setOf("==", "!=", "<", "<=", ">", ">=").contains(operator)) { 
-            "비교 연산자가 아닙니다: $operator" 
+        if (operator !in setOf("==","!=", "<","<=" ,">",">=")) {
+            throw ASTException.notComparisonOperator(operator)
         }
         return createBinaryOp(left, operator, right)
     }
@@ -374,8 +348,8 @@ class ASTNodeFactory {
      * @return BinaryOpNode 인스턴스
      */
     fun createLogicalOp(left: ASTNode, operator: String, right: ASTNode): BinaryOpNode {
-        require(setOf("&&", "||").contains(operator)) { 
-            "논리 연산자가 아닙니다: $operator" 
+        if (operator !in setOf("&&","||")) {
+            throw ASTException.notLogicalOperator(operator)
         }
         return createBinaryOp(left, operator, right)
     }
@@ -412,8 +386,8 @@ class ASTNodeFactory {
      * @return FunctionCallNode 인스턴스
      */
     fun createMathFunction(name: String, args: List<ASTNode>): FunctionCallNode {
-        require(SUPPORTED_MATH_FUNCTIONS.contains(name.uppercase())) { 
-            "지원되지 않는 수학 함수입니다: $name" 
+        if (!SUPPORTED_MATH_FUNCTIONS.contains(name.uppercase())) {
+            throw ASTException.unsupportedMathFunction(name)
         }
         return createFunctionCall(name.uppercase(), args)
     }
@@ -468,5 +442,21 @@ class ASTNodeFactory {
 
     init {
         createdNodeCount.incrementAndGet()
+    }
+
+    private fun validateNodeAfterBuild(node: ASTNode) {
+        // 생성 후 유효성 검증
+        if (!validitySpec.isSatisfiedBy(node)) {
+            throw ASTException.nodeValidationFailed(
+                reason = validitySpec.getWhyNotSatisfied(node)
+            )
+        }
+
+        // 구조 검증
+        if (!structureSpec.isSatisfiedBy(node)) {
+            throw ASTException.nodeStructureFailed(
+                reason = structureSpec.getWhyNotSatisfied(node)
+            )
+        }
     }
 }
