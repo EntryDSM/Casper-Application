@@ -878,6 +878,18 @@ class ASTException(
                 errorCode = ErrorCode.AST_VARIABLE_CHILDREN_MISMATCH,
                 reason = "expected: $expected, actual: $actual"
             )
+
+        /**
+         * Variable 빌더 첫 번째 자식 타입 오류를 생성합니다.
+         *
+         * @param actualType 실제 타입명
+         * @return ASTException 인스턴스
+         */
+        fun variableFirstNotToken(actualType: String?): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_VARIABLE_FIRST_NOT_TOKEN,
+                reason = "actualType: $actualType"
+            )
     }
 
     /**
