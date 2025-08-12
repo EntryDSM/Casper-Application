@@ -373,6 +373,29 @@ class ASTException(
                 nodeType = "NumberNode",
                 reason = "denominator=0"
             )
+
+        /**
+         * 지원하지 않는 단항 연산자일 때의 예외를 생성합니다.
+         *
+         * 적용 오류 코드: [ErrorCode.AST_UNSUPPORTED_UNARY_OPERATOR]
+         *
+         * @param operator 전달된 연산자 문자열(예: "!", "-")
+         * @param nodeName 노드 이름 또는 식별자(선택)
+         * @return 생성된 `ASTException`
+         */
+        fun unsupportedUnaryOperator(
+            operator: String,
+            nodeName: String? = null
+        ): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_UNSUPPORTED_UNARY_OPERATOR,
+                nodeType = "UnaryOpNode",
+                nodeName = nodeName,
+                reason = "operator: $operator"
+            )
+        }
+
+
     }
 
     /**
