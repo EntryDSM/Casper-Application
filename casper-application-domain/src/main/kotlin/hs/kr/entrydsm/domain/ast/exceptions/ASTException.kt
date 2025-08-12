@@ -25,7 +25,8 @@ class ASTException(
     val nodeName: String? = null,
     val expectedType: String? = null,
     val actualType: String? = null,
-    message: String = buildASTMessage(errorCode, nodeType, nodeName, expectedType, actualType),
+    val reason: String? = null,
+    message: String = buildASTMessage(errorCode, nodeType, nodeName, expectedType, actualType, reason),
     cause: Throwable? = null
 ) : DomainException(errorCode, message, cause) {
 
@@ -45,7 +46,8 @@ class ASTException(
             nodeType: String?,
             nodeName: String?,
             expectedType: String?,
-            actualType: String?
+            actualType: String?,
+            reason: String?
         ): String {
             val baseMessage = errorCode.description
             val details = mutableListOf<String>()
@@ -54,6 +56,7 @@ class ASTException(
             nodeName?.let { details.add("노드명: $it") }
             expectedType?.let { details.add("예상타입: $it") }
             actualType?.let { details.add("실제타입: $it") }
+            reason?.let { details.add("사유: $it") }
             
             return if (details.isNotEmpty()) {
                 "$baseMessage (${details.joinToString(", ")})"
@@ -134,6 +137,13 @@ class ASTException(
                 expectedType = expectedType,
                 actualType = actualType,
                 nodeName = nodeName
+            )
+        }
+
+        fun invalidRootNode(reason: String): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.INVALID_ROOT_NODE,
+                reason = reason
             )
         }
     }
