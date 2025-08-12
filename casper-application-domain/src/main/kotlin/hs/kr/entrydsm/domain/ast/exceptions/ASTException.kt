@@ -1114,6 +1114,20 @@ class ASTException(
                 nodeType = "Tree",
                 reason = "actual=$actual"
             )
+
+        /**
+         * 트리 깊이가 최대 허용값을 초과할 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 깊이 값
+         * @param max 최대 허용 깊이
+         * @return ASTException 인스턴스
+         */
+        fun treeDepthTooLarge(actual: Int, max: Int): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_TREE_DEPTH_TOO_LARGE,
+                nodeType = "Tree",
+                reason = "actual=$actual, max=$max"
+            )
     }
 
     /**
