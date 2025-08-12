@@ -336,6 +336,18 @@ class ASTException(
                 reason = "value: $value"
             )
 
+        /**
+         * 정수가 아닌 값을 Int로 변환하려 할 때의 오류를 생성합니다.
+         *
+         * @param value 변환 대상 값
+         * @return ASTException 인스턴스
+         */
+        fun notIntegerForInt(value: Double): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_NON_INTEGER_TO_INT,
+                nodeType = "NumberNode",
+                reason = "value: $value"
+            )
 
 
     }
