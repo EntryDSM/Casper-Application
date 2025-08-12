@@ -36,56 +36,16 @@ class LRParserTable private constructor(
     private val terminals: Set<TokenType>,
     private val nonTerminals: Set<TokenType>,
     private val startSymbol: TokenType,
-    private val augmentedProduction: Production
+    private val augmentedProduction: Production,
+    private val firstFollowSets: FirstFollowSets,
+    private val conflictResolver: ConflictResolver,
+    private val stateCache: StateCacheManager
 ) {
 
-    // 계산된 구성요소들
-    private lateinit var firstFollowSets: FirstFollowSets
-    private lateinit var states: List<Set<LRItem>>
-    private lateinit var optimizedTable: OptimizedParsingTable
-    private lateinit var conflictResolver: ConflictResolver
-    private lateinit var stateCache: StateCacheManager
-
-    // 구축 상태
-    private var isInitialized = false
+    // 계산된 구성요소들 (lazy로 초기화)
+    private val states: List<Set<LRItem>> by lazy { buildLRStates() }
+    private val optimizedTable: OptimizedParsingTable by lazy { buildParsingTable() }
     private val conflicts = mutableListOf<String>()
-
-    /**
-     * LR 파서 테이블을 lazy 초기화합니다.
-     */
-    private fun ensureInitialized() {
-        if (!isInitialized) {
-            synchronized(this) {
-                if (!isInitialized) {
-                    buildParserTable()
-                    isInitialized = true
-                }
-            }
-        }
-    }
-
-    /**
-     * 파서 테이블을 구축합니다.
-     */
-    private fun buildParserTable() {
-        // 1. FIRST/FOLLOW 집합 계산
-        firstFollowSets = FirstFollowSets.compute(
-            productions = productions,
-            terminals = terminals,
-            nonTerminals = nonTerminals,
-            startSymbol = startSymbol
-        )
-
-        // 2. 서비스 인스턴스 초기화
-        conflictResolver = ConflictResolver.create()
-        stateCache = StateCacheManager.create()
-
-        // 3. LR(1) 상태 구축
-        states = buildLRStates()
-
-        // 4. 파싱 테이블 구축
-        optimizedTable = buildParsingTable()
-    }
 
     /**
      * LR(1) 상태들을 구축합니다.
@@ -279,7 +239,6 @@ class LRParserTable private constructor(
      * 주어진 상태와 터미널 심볼에 대한 파싱 액션을 반환합니다.
      */
     fun getAction(state: Int, terminal: TokenType): LRAction {
-        ensureInitialized()
         return optimizedTable.getAction(state, terminal)
     }
 
@@ -287,7 +246,6 @@ class LRParserTable private constructor(
      * 주어진 상태와 논터미널 심볼에 대한 GOTO 상태를 반환합니다.
      */
     fun getGoto(state: Int, nonTerminal: TokenType): Int? {
-        ensureInitialized()
         return optimizedTable.getGoto(state, nonTerminal)
     }
 
@@ -295,7 +253,6 @@ class LRParserTable private constructor(
      * 파서 테이블의 상태 개수를 반환합니다.
      */
     fun getStateCount(): Int {
-        ensureInitialized()
         return states.size
     }
 
@@ -303,7 +260,6 @@ class LRParserTable private constructor(
      * 발견된 충돌 목록을 반환합니다.
      */
     fun getConflicts(): List<String> {
-        ensureInitialized()
         return conflicts.toList()
     }
 
@@ -311,7 +267,6 @@ class LRParserTable private constructor(
      * 파서 테이블의 메모리 사용량 통계를 반환합니다.
      */
     fun getMemoryStats(): Map<String, Any> {
-        ensureInitialized()
         return mapOf(
             "totalStates" to states.size,
             "totalProductions" to productions.size,
@@ -329,7 +284,6 @@ class LRParserTable private constructor(
      * 파서 테이블 보고서를 생성합니다.
      */
     fun generateTableReport(): String {
-        ensureInitialized()
         val sb = StringBuilder()
 
         sb.appendLine("=== LR(1) 파서 테이블 보고서 ===")
@@ -391,12 +345,28 @@ class LRParserTable private constructor(
                 right = listOf(startSymbol, TokenType.DOLLAR)
             )
 
+            val extendedNonTerminals = nonTerminals + TokenType.START
+
+            // 의존성 생성
+            val firstFollowSets = FirstFollowSets.compute(
+                productions = productions,
+                terminals = terminals,
+                nonTerminals = extendedNonTerminals,
+                startSymbol = startSymbol
+            )
+
+            val conflictResolver = ConflictResolver.create()
+            val stateCache = StateCacheManager.create()
+
             return LRParserTable(
                 productions = productions,
                 terminals = terminals,
-                nonTerminals = nonTerminals + TokenType.START,
+                nonTerminals = extendedNonTerminals,
                 startSymbol = startSymbol,
-                augmentedProduction = augmentedProduction
+                augmentedProduction = augmentedProduction,
+                firstFollowSets = firstFollowSets,
+                conflictResolver = conflictResolver,
+                stateCache = stateCache
             )
         }
 
