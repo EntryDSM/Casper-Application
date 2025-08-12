@@ -1138,6 +1138,19 @@ class ASTException(
             ASTException(
                 errorCode = ErrorCode.AST_RUNTIME_RULE_NOT_SUPPORTED
             )
+
+        /**
+         * 노드 크기가 0 미만일 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 크기 값
+         * @return ASTException 인스턴스
+         */
+        fun nodeSizeNegative(actual: Int): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_NODE_SIZE_NEGATIVE,
+                reason = "actual=$actual"
+            )
+
     }
 
     /**
