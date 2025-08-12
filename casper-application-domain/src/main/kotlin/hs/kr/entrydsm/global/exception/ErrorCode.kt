@@ -113,6 +113,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_IF_TOTAL_DEPTH_EXCEEDED("AST071", "조건문의 총 깊이가 최대값을 초과합니다"),
     AST_ARGUMENTS_EXCEEDED("AST072", "인수 개수가 최대값을 초과합니다"),
     AST_ARGUMENTS_DUPLICATED("AST073", "중복된 인수가 발견되었습니다"),
+    AST_NODE_SIZE_EXCEEDED("AST074", "노드 크기가 최대값을 초과합니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
