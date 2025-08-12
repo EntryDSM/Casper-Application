@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -25,7 +26,9 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 )
 object ArgsSingleBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): List<ASTNode> {
-        require(children.size == 1) { "ArgsSingle 빌더는 정확히 1개의 자식이 필요합니다: ${children.size}" }
+        if (children.size != 1) {
+            throw ASTException.argsSingleChildMismatch(actual = children.size)
+        }
         return listOf(children[0] as ASTNode)
     }
     
