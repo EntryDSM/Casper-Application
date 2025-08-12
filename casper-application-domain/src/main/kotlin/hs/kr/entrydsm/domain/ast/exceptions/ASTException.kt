@@ -813,6 +813,16 @@ class ASTException(
             errorCode = ErrorCode.AST_PARENTHESIZED_CHILDREN_MISMATCH,
             reason = "expected: $expected, actual: $actual"
         )
+
+        /**
+         * Parenthesized 빌더 두 번째 자식 타입 오류를 생성합니다.
+         *
+         * @param actualType 실제 타입명
+         */
+        fun parenthesizedSecondNotAst(actualType: String?): ASTException = ASTException(
+            errorCode = ErrorCode.AST_PARENTHESIZED_SECOND_NOT_AST,
+            reason = "actualType: $actualType"
+        )
     }
 
     /**
