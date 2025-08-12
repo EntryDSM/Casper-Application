@@ -117,6 +117,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_NODE_DEPTH_EXCEEDED("AST075", "노드 깊이가 최대값을 초과합니다"),
     AST_NODE_VARIABLES_EXCEEDED("AST076", "노드의 변수 개수가 최대값을 초과합니다"),
     AST_TREE_DEPTH_NEGATIVE("AST077", "트리 깊이는 0 이상이어야 합니다"),
+    AST_TREE_DEPTH_TOO_LARGE("AST078", "트리 깊이가 최대값을 초과합니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
