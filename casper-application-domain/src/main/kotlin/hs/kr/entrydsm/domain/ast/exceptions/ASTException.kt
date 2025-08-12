@@ -660,6 +660,21 @@ class ASTException(
             errorCode = ErrorCode.NOT_AST_NODE, // AST002 재사용
             reason = "operand: $side, actualType: $actualType"
         )
+
+        /**
+         * FunctionCall 빌더의 자식 개수가 예상과 다를 때 오류를 생성합니다.
+         *
+         * @param expected 기대하는 자식 개수 (기본: 3)
+         * @param actual 실제 자식 개수
+         * @return ASTException 인스턴스
+         */
+        fun functionCallChildrenMismatch(
+            expected: Int = 3,
+            actual: Int,
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_CALL_CHILDREN_MISMATCH,
+            reason = "expected: $expected, actual: $actual"
+        )
     }
 
     /**
