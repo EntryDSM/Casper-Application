@@ -254,7 +254,7 @@ class ASTException(
          */
         fun invalidBooleanValue(value: String): ASTException {
             return ASTException(
-                errorCode = ErrorCode.AST_OPERATOR_NOT_COMMUTATIVE,
+                errorCode = ErrorCode.INVALID_BOOLEAN_VALUE,
                 reason = "value: $value"
             )
         }
