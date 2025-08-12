@@ -221,8 +221,8 @@ data class ParsingState(
         val itemSymbols = items.mapNotNull { it.nextSymbol() }.toSet()
         val transitionSymbols = transitions.keys
         
-        // 아이템에서 나올 수 있는 심볼들이 전이에 포함되어야 함
-        return true
+        // 아이템에서 나올 수 있는 심볼들이 모두 전이에 포함되어야 함
+        return itemSymbols.all { symbol -> symbol in transitionSymbols }
     }
 
     /**
