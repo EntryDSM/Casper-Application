@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
-import hs.kr.entrydsm.domain.ast.entities.VariableNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -23,7 +23,9 @@ data class ArgumentsNode(
 ) : ASTNode() {
     
     init {
-        require(arguments.size <= MAX_ARGUMENTS) { "인수 개수가 최대 허용량을 초과했습니다: ${arguments.size} > $MAX_ARGUMENTS" }
+        if (arguments.size > MAX_ARGUMENTS) {
+            throw ASTException.argumentCountExceeded()
+        }
     }
     
     override fun <T> accept(visitor: ASTVisitor<T>): T = visitor.visitArguments(this)
@@ -118,7 +120,9 @@ data class ArgumentsNode(
      * @return 새로운 ArgumentsNode
      */
     fun insertArgument(index: Int, argument: ASTNode): ArgumentsNode {
-        require(index in 0..arguments.size) { "인덱스가 범위를 벗어났습니다: $index" }
+        if (index !in 0..arguments.size) {
+            throw ASTException.indexOutOfRange()
+        }
         val newArguments = arguments.toMutableList()
         newArguments.add(index, argument)
         return ArgumentsNode(newArguments)
@@ -131,7 +135,9 @@ data class ArgumentsNode(
      * @return 새로운 ArgumentsNode
      */
     fun removeArgument(index: Int): ArgumentsNode {
-        require(index in 0 until arguments.size) { "인덱스가 범위를 벗어났습니다: $index" }
+        if (index !in 0..arguments.size) {
+            throw ASTException.indexOutOfRange()
+        }
         return ArgumentsNode(arguments.filterIndexed { i, _ -> i != index })
     }
 
@@ -143,7 +149,9 @@ data class ArgumentsNode(
      * @return 새로운 ArgumentsNode
      */
     fun replaceArgument(index: Int, newArgument: ASTNode): ArgumentsNode {
-        require(index in 0 until arguments.size) { "인덱스가 범위를 벗어났습니다: $index" }
+        if (index !in 0..arguments.size) {
+            throw ASTException.indexOutOfRange()
+        }
         val newArguments = arguments.toMutableList()
         newArguments[index] = newArgument
         return ArgumentsNode(newArguments)
