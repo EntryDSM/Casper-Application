@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.domain.ast.factory
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 
