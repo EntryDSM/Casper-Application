@@ -1128,6 +1128,16 @@ class ASTException(
                 nodeType = "Tree",
                 reason = "actual=$actual, max=$max"
             )
+
+        /**
+         * 현재 버전에서 런타임 규칙 추가를 지원하지 않을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun runtimeRuleNotSupported(): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_RUNTIME_RULE_NOT_SUPPORTED
+            )
     }
 
     /**
