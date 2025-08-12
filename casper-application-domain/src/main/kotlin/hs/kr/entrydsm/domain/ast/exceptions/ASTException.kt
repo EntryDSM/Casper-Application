@@ -270,6 +270,17 @@ class ASTException(
             )
         }
 
+        /**
+         * 유효하지 않은 함수명일 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun invalidFunctionName(name: String): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_INVALID_FUNCTION_NAME,
+                reason = "function name: $name"
+            )
+        }
     }
 
     /**
