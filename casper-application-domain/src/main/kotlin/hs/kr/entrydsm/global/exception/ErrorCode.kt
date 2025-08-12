@@ -82,6 +82,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_ARGS_SINGLE_CHILD_MISMATCH("AST040", "ArgsSingle 빌더 자식 개수가 잘못되었습니다"),
     AST_BINARY_CHILDREN_INSUFFICIENT("AST041", "BinaryOp 빌더 자식 개수가 부족합니다"),
     AST_FUNCTION_CALL_CHILDREN_MISMATCH("AST042", "FunctionCall 빌더 자식 개수가 잘못되었습니다"),
+    AST_FUNCTION_CALL_FIRST_NOT_TOKEN("AST043", "FunctionCall 빌더의 첫 번째 자식은 Token이어야 합니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
