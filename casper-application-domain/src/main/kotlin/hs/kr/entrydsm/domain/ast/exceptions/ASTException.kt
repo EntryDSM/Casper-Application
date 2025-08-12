@@ -1051,6 +1051,17 @@ class ASTException(
             errorCode = ErrorCode.AST_ARGUMENTS_EXCEEDED,
             reason = "args=$size, max=$max"
         )
+
+        /**
+         * 중복된 인수가 존재할 때의 오류를 생성합니다.
+         *
+         * @param duplicates 중복된 인수 목록
+         * @return ASTException 인스턴스
+         */
+        fun argumentsDuplicated(duplicates: Collection<*>): ASTException = ASTException(
+            errorCode = ErrorCode.AST_ARGUMENTS_DUPLICATED,
+            reason = "duplicates=$duplicates"
+        )
     }
 
     /**
