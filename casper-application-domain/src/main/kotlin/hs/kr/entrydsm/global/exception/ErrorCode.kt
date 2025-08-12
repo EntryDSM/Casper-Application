@@ -67,6 +67,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_NON_INTEGER_TO_INT("AST025", "정수가 아닌 값을 정수로 변환할 수 없습니다"),
     AST_NON_INTEGER_TO_LONG("AST026", "정수가 아닌 값을 Long으로 변환할 수 없습니다"),
     AST_DIVISION_BY_ZERO("AST027", "0으로 나눌 수 없습니다"),
+    AST_UNSUPPORTED_UNARY_OPERATOR("AST028", "지원하지 않는 단항 연산자입니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
