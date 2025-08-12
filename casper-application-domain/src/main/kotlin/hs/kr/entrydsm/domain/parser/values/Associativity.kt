@@ -68,6 +68,24 @@ data class Associativity(
 
     companion object {
         /**
+         * 공통 Associativity 생성 로직입니다.
+         *
+         * @param type 결합성 타입
+         * @param operator 연산자 토큰
+         * @param precedence 우선순위
+         * @param description 설명
+         * @return 생성된 Associativity
+         */
+        private fun create(
+            type: AssociativityType,
+            operator: TokenType,
+            precedence: Int,
+            description: String = ""
+        ): Associativity {
+            return Associativity(type, operator, precedence, description)
+        }
+
+        /**
          * 좌결합 연산자를 생성합니다.
          *
          * @param operator 연산자 토큰
@@ -79,9 +97,7 @@ data class Associativity(
             operator: TokenType, 
             precedence: Int, 
             description: String = ""
-        ): Associativity {
-            return Associativity(AssociativityType.LEFT, operator, precedence, description)
-        }
+        ): Associativity = create(AssociativityType.LEFT, operator, precedence, description)
 
         /**
          * 우결합 연산자를 생성합니다.
@@ -95,9 +111,7 @@ data class Associativity(
             operator: TokenType, 
             precedence: Int, 
             description: String = ""
-        ): Associativity {
-            return Associativity(AssociativityType.RIGHT, operator, precedence, description)
-        }
+        ): Associativity = create(AssociativityType.RIGHT, operator, precedence, description)
 
         /**
          * 비결합 연산자를 생성합니다.
@@ -111,9 +125,7 @@ data class Associativity(
             operator: TokenType, 
             precedence: Int, 
             description: String = ""
-        ): Associativity {
-            return Associativity(AssociativityType.NONE, operator, precedence, description)
-        }
+        ): Associativity = create(AssociativityType.NONE, operator, precedence, description)
 
         /**
          * 체인결합 연산자를 생성합니다.
@@ -127,9 +139,7 @@ data class Associativity(
             operator: TokenType, 
             precedence: Int, 
             description: String = ""
-        ): Associativity {
-            return Associativity(AssociativityType.CHAIN, operator, precedence, description)
-        }
+        ): Associativity = create(AssociativityType.CHAIN, operator, precedence, description)
 
         /**
          * 기본 연산자들의 결합성 규칙을 반환합니다.
