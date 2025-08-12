@@ -448,6 +448,26 @@ class ASTException(
             nodeType = nodeType,
             nodeName = nodeName
         )
+
+        /**
+         * 유효하지 않은 변수명일 때의 예외를 생성합니다.
+         *
+         * @param name 검증 실패한 변수명
+         * @param nodeType 노드 타입(기본: "VariableNode")
+         * @param nodeName 노드 이름 또는 식별자(선택)
+         * @return ASTException 인스턴스
+         */
+        fun invalidVariableName(
+            name: String,
+            nodeType: String? = "VariableNode",
+            nodeName: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_INVALID_VARIABLE_NAME,
+            nodeType = nodeType,
+            nodeName = nodeName,
+            reason = "name: $name"
+        )
+
     }
 
     /**
