@@ -56,6 +56,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_INDEX_OUT_OF_RANGE("AST014", "인덱스가 범위를 벗어났습니다"),
     AST_OPERATOR_EMPTY("AST015", "연산자는 비어있을 수 없습니다"),
     AST_UNSUPPORTED_OPERATOR("AST016", "지원하지 않는 연산자입니다"),
+    AST_OPERATOR_NOT_COMMUTATIVE("AST017", "교환법칙이 성립하지 않는 연산자입니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
