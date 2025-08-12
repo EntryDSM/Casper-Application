@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -21,7 +22,9 @@ import hs.kr.entrydsm.global.annotation.entities.Entity
 data class NumberNode(val value: Double) : ASTNode() {
     
     init {
-        require(value.isFinite()) { "숫자 값은 유한해야 합니다: $value" }
+        if (!value.isFinite()) {
+            throw ASTException.numberNotFinite(value)
+        }
     }
 
     override fun getVariables(): Set<String> = emptySet()
@@ -107,7 +110,9 @@ data class NumberNode(val value: Double) : ASTNode() {
      * @throws IllegalStateException 정수가 아닌 경우
      */
     fun toInt(): Int {
-        check(isInteger()) { "정수가 아닌 값을 정수로 변환할 수 없습니다: $value" }
+        if (!isInteger()) {
+            throw ASTException.notIntegerForInt(value)
+        }
         return value.toInt()
     }
 
@@ -118,7 +123,9 @@ data class NumberNode(val value: Double) : ASTNode() {
      * @throws IllegalStateException 정수가 아닌 경우
      */
     fun toLong(): Long {
-        check(isInteger()) { "정수가 아닌 값을 Long으로 변환할 수 없습니다: $value" }
+        if (!isInteger()) {
+            throw ASTException.notIntegerForLong(value)
+        }
         return value.toLong()
     }
 
@@ -165,10 +172,11 @@ data class NumberNode(val value: Double) : ASTNode() {
      *
      * @param other 나눌 NumberNode
      * @return 몫을 가진 새로운 NumberNode
-     * @throws IllegalArgumentException 0으로 나누는 경우
      */
     operator fun div(other: NumberNode): NumberNode {
-        require(!other.isZero()) { "0으로 나눌 수 없습니다" }
+        if (other.isZero()) {
+            throw ASTException.divisionByZero()
+        }
         return NumberNode(value / other.value)
     }
 
