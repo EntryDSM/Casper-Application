@@ -55,15 +55,15 @@ class FirstFollowSets private constructor(
 
         for (symbol in symbols) {
             val firstOfSymbol = firstSets[symbol] ?: setOf()
-            result.addAll(firstOfSymbol - TokenType.DOLLAR) // epsilon 제외하고 결과에 추가
-            if (TokenType.DOLLAR !in firstOfSymbol) {
+            result.addAll(firstOfSymbol - TokenType.EPSILON) // epsilon 제외하고 결과에 추가
+            if (TokenType.EPSILON !in firstOfSymbol) {
                 derivesEmpty = false // epsilon을 파생할 수 없으면 중단
                 break
             }
         }
 
         if (derivesEmpty) {
-            result.add(TokenType.DOLLAR) // 모든 심볼이 epsilon을 파생할 수 있으면 epsilon 추가
+            result.add(TokenType.EPSILON) // 모든 심볼이 epsilon을 파생할 수 있으면 epsilon 추가
         }
 
         return result
@@ -185,7 +185,7 @@ class FirstFollowSets private constructor(
                             val before = followSets[symbol]!!.size
                             val beta = production.right.drop(i + 1)
                             val firstOfBeta = firstOfSequence(beta, firstSets)
-                            followSets[symbol]!!.addAll(firstOfBeta - TokenType.DOLLAR)
+                            followSets[symbol]!!.addAll(firstOfBeta - TokenType.EPSILON)
 
                             if (beta.isEmpty() || canDeriveEmpty(beta, firstSets)) {
                                 followSets[symbol]!!.addAll(followSets[production.left]!!)
@@ -216,15 +216,15 @@ class FirstFollowSets private constructor(
 
             for (symbol in symbols) {
                 val firstOfSymbol = firstSets[symbol] ?: setOf()
-                result.addAll(firstOfSymbol - TokenType.DOLLAR)
-                if (TokenType.DOLLAR !in firstOfSymbol) {
+                result.addAll(firstOfSymbol - TokenType.EPSILON)
+                if (TokenType.EPSILON !in firstOfSymbol) {
                     derivesEmpty = false
                     break
                 }
             }
 
             if (derivesEmpty) {
-                result.add(TokenType.DOLLAR)
+                result.add(TokenType.EPSILON)
             }
 
             return result
@@ -238,7 +238,7 @@ class FirstFollowSets private constructor(
             firstSets: Map<TokenType, Set<TokenType>>
         ): Boolean {
             return symbols.all {
-                TokenType.DOLLAR in (firstSets[it] ?: emptySet())
+                TokenType.EPSILON in (firstSets[it] ?: emptySet())
             }
         }
     }

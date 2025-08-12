@@ -82,7 +82,7 @@ data class ParsingState(
          */
         fun createEmpty(id: Int): ParsingState {
             val emptyItem = LRItem(
-                production = Production(-1, TokenType.DOLLAR, emptyList()),
+                production = Production(-1, TokenType.START, listOf(TokenType.EPSILON)),
                 dotPos = 0,
                 lookahead = TokenType.DOLLAR
             )

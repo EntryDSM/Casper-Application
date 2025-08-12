@@ -139,7 +139,7 @@ class ParsingStateFactory {
     ): ParsingState {
         val stateId = id ?: generateNextId()
         val errorItem = LRItem(
-            production = Production(-1, TokenType.DOLLAR, emptyList()),
+            production = Production(-1, TokenType.START, listOf(TokenType.EPSILON)),
             dotPos = 0,
             lookahead = TokenType.DOLLAR
         )
