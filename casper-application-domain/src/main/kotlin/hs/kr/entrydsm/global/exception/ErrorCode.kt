@@ -109,6 +109,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_LOGICAL_INCOMPATIBLE_OPERAND("AST067", "논리 연산자는 논리적으로 호환되는 피연산자만 허용합니다"),
     AST_FUNCTION_NAME_TOO_LONG("AST068", "함수명이 최대 길이를 초과합니다"),
     AST_FUNCTION_ARGUMENTS_EXCEEDED("AST069", "함수 인수 개수가 최대값을 초과합니다"),
+    AST_FUNCTION_ARGUMENT_COUNT_MISMATCH("AST070", "함수 인수 개수가 요구사항과 일치하지 않습니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
