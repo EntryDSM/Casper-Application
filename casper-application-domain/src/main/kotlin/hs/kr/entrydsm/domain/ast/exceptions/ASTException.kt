@@ -212,6 +212,17 @@ class ASTException(
                 errorCode = ErrorCode.AST_INDEX_OUT_OF_RANGE
             )
         }
+
+        /**
+         * 연산자 값이 비어 있을 때의 예외를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun operatorEmpty(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_OPERATOR_EMPTY
+            )
+        }
     }
 
     /**
