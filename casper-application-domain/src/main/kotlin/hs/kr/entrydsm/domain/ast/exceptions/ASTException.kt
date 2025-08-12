@@ -948,6 +948,17 @@ class ASTException(
             errorCode = ErrorCode.AST_VARIABLE_RESERVED_WORD,
             reason = "name=$name"
         )
+
+        /**
+         * 지원되지 않는 이항 연산자일 때의 오류를 생성합니다.
+         *
+         * @param operator 연산자 기호
+         * @return ASTException 인스턴스
+         */
+        fun unsupportedBinaryOperator(operator: String): ASTException = ASTException(
+            errorCode = ErrorCode.AST_UNSUPPORTED_BINARY_OPERATOR,
+            reason = "operator=$operator"
+        )
     }
 
     /**
