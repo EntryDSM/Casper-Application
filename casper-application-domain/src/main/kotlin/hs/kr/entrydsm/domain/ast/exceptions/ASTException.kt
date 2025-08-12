@@ -507,6 +507,23 @@ class ASTException(
             nodeName = nodeName,
             reason = reason
         )
+
+        /**
+         * 노드 구조 검증 실패 오류를 생성합니다.
+         *
+         * @param nodeType 노드 타입
+         * @param nodeName 노드 이름/식별자(선택)
+         * @param reason 실패 사유(선택)
+         * @return ASTException 인스턴스
+         */
+        fun nodeStructureFailed(
+            nodeName: String? = null,
+            reason: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.INVALID_NODE_STRUCTURE,
+            nodeName = nodeName,
+            reason = reason
+        )
     }
 
     /**
