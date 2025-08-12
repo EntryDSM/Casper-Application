@@ -201,6 +201,17 @@ class ASTException(
                 errorCode = ErrorCode.AST_ARGUMENT_COUNT_EXCEEDED
             )
         }
+
+        /**
+         * 인덱스가 허용 범위를 벗어났을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun indexOutOfRange(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_INDEX_OUT_OF_RANGE
+            )
+        }
     }
 
     /**
