@@ -1101,6 +1101,19 @@ class ASTException(
             errorCode = ErrorCode.AST_NODE_VARIABLES_EXCEEDED,
             reason = "$context variables=$count, max=$max"
         )
+
+        /**
+         * 트리 깊이가 0 미만일 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 깊이 값
+         * @return ASTException 인스턴스
+         */
+        fun treeDepthNegative(actual: Int): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_TREE_DEPTH_NEGATIVE,
+                nodeType = "Tree",
+                reason = "actual=$actual"
+            )
     }
 
     /**
