@@ -913,6 +913,18 @@ class ASTException(
             errorCode = ErrorCode.AST_NUMBER_TOO_SMALL,
             reason = "value=$value, min=$min"
         )
+
+        /**
+         * 숫자 값이 최대값을 초과할 때의 오류를 생성합니다.
+         *
+         * @param value 실제 숫자 값
+         * @param max 최대 허용값
+         * @return ASTException 인스턴스
+         */
+        fun numberTooLarge(value: Double, max: Double): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NUMBER_TOO_LARGE,
+            reason = "value=$value, max=$max"
+        )
     }
 
     /**
