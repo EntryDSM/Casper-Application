@@ -754,6 +754,21 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_CALL_EMPTY_THIRD_NOT_TOKEN,
             reason = "actualType: $actualType"
         )
+
+        /**
+         * Identity 빌더의 자식 목록이 비어 있을 때 오류를 생성합니다.
+         *
+         * @param expectedAtLeast 최소 필요 개수(기본: 1)
+         * @param actual 실제 자식 개수
+         * @return ASTException 인스턴스
+         */
+        fun identityChildrenEmpty(
+            expectedAtLeast: Int = 1,
+            actual: Int
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_IDENTITY_CHILDREN_EMPTY,
+            reason = "expected≥$expectedAtLeast, actual=$actual"
+        )
     }
 
     /**
