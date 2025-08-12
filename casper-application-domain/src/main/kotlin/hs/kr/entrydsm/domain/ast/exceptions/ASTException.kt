@@ -998,6 +998,18 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_NAME_TOO_LONG,
             reason = "length=$length, max=$max"
         )
+
+        /**
+         * 함수 인수 개수가 최대 허용 개수를 초과할 때의 오류를 생성합니다.
+         *
+         * @param size 실제 인수 개수
+         * @param max 최대 허용 개수
+         * @return ASTException 인스턴스
+         */
+        fun functionArgumentsExceeded(size: Int, max: Int): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_ARGUMENTS_EXCEEDED,
+            reason = "args=$size, max=$max"
+        )
     }
 
     /**
