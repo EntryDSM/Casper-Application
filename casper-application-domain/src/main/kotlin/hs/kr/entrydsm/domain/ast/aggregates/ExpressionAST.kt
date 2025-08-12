@@ -10,6 +10,7 @@ import hs.kr.entrydsm.domain.ast.entities.NumberNode
 import hs.kr.entrydsm.domain.ast.entities.BooleanNode
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.ast.events.DomainEvents
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.services.TreeTraverser
 import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
 import hs.kr.entrydsm.domain.ast.factories.ASTNodeFactory
@@ -106,8 +107,9 @@ class ExpressionAST private constructor(
      * 루트 노드를 설정합니다.
      */
     fun setRoot(newRoot: ASTNode) {
-        require(validitySpec.isSatisfiedBy(newRoot)) { 
-            "새로운 루트 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(newRoot)}" 
+        if(!validitySpec.isSatisfiedBy(newRoot)) {
+            val reason = validitySpec.getWhyNotSatisfied(newRoot)
+            throw ASTException.invalidRootNode(reason)
         }
         
         val oldRoot = this.root
@@ -134,25 +136,27 @@ class ExpressionAST private constructor(
      */
     fun validate(): ASTValidationResult {
         val violations = mutableListOf<String>()
-        
+
         // 유효성 검증
         if (!validitySpec.isSatisfiedBy(root)) {
-            violations.add("AST 유효성 검증 실패: ${validitySpec.getWhyNotSatisfied(root)}")
+            val reason = validitySpec.getWhyNotSatisfied(root)
+            throw ASTException.invalidRootNode(reason)
         }
         
         // 구조 검증
         if (!structureSpec.isSatisfiedBy(root)) {
-            violations.add("AST 구조 검증 실패: ${structureSpec.getWhyNotSatisfied(root)}")
+            val reason = structureSpec.getWhyNotSatisfied(root)
+            throw ASTException.invalidNodeStructure(root.toString(), reason)
         }
         
         // 크기 제한 검증
         if (getSize().isAtLimit()) {
-            violations.add("AST 크기가 제한을 초과합니다: ${getSize().value}")
+            throw ASTException.sizeLimitExceeded()
         }
         
         // 깊이 제한 검증
         if (getDepth().isAtLimit()) {
-            violations.add("AST 깊이가 제한을 초과합니다: ${getDepth().value}")
+            throw ASTException.depthLimitExceeded()
         }
         
         val result = ASTValidationResult(
@@ -325,8 +329,9 @@ class ExpressionAST private constructor(
      * 서브트리를 교체합니다.
      */
     fun replaceSubtree(target: ASTNode, replacement: ASTNode) {
-        require(validitySpec.isSatisfiedBy(replacement)) { 
-            "교체할 노드가 유효하지 않습니다: ${validitySpec.getWhyNotSatisfied(replacement)}" 
+        if (!validitySpec.isSatisfiedBy(replacement)) {
+            val reason = validitySpec.getWhyNotSatisfied(replacement)
+            throw ASTException.invalidReplacementNode(reason, replacement.toString())
         }
         
         val newRoot = replaceSubtreeHelper(root, target, replacement)
