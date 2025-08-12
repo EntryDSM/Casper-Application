@@ -74,6 +74,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_INVALID_VARIABLE_NAME("AST032", "유효하지 않은 변수명입니다"),
     AST_VARIABLE_NOT_BRACKETED("AST033", "변수는 중괄호로 둘러싸여야 합니다"),
     AST_INVALID_NUMBER_LITERAL("AST034", "유효하지 않은 숫자 형식입니다"),
+    AST_NOT_ARITHMETIC_OPERATOR("AST035", "산술 연산자가 아닙니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
