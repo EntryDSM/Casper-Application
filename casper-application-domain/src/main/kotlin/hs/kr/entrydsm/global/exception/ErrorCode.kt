@@ -52,6 +52,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_DEPTH_EXCEEDED("AST010", "AST 깊이가 제한을 초과했습니다"),
     INVALID_ROOT_NODE("AST011", "AST 루트 노드가 유효하지 않습니다"),
     INVALID_REPLACEMENT_NODE("AST012", "교체할 노드가 유효하지 않습니다"),
+    AST_ARGUMENT_COUNT_EXCEEDED("AST013", "인수 개수가 최대 허용량을 초과했습니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
