@@ -890,6 +890,17 @@ class ASTException(
                 errorCode = ErrorCode.AST_VARIABLE_FIRST_NOT_TOKEN,
                 reason = "actualType: $actualType"
             )
+
+        /**
+         * 숫자 값이 NaN일 때의 오류를 생성합니다.
+         *
+         * @param value NaN인 숫자 값
+         * @return ASTException 인스턴스
+         */
+        fun numberIsNaN(value: Double): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NUMBER_IS_NAN,
+            reason = "value=$value"
+        )
     }
 
     /**
