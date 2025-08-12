@@ -414,6 +414,24 @@ class ASTException(
             )
         }
 
+        /**
+         * 이중 논리 부정(예: `!!x`)을 단순화할 수 없을 때의 예외를 생성합니다.
+         *
+         * @param detail 불가 사유 상세(선택)
+         * @param nodeName 노드 이름 또는 식별자(기본값: `"UnaryOpNode"`)
+         * @return ASTException 인스턴스
+         */
+        fun doubleLogicalNegationNotSimplifiable(
+            detail: String? = null,
+            nodeName: String? = "UnaryOpNode"
+        ): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_DOUBLE_LOGICAL_NEGATION_NOT_SIMPLIFIABLE,
+                nodeType = "UnaryOpNode",
+                nodeName = nodeName,
+                reason = detail
+            )
+        }
     }
 
     /**
