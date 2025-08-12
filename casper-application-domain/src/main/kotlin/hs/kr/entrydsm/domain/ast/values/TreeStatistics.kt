@@ -33,13 +33,13 @@ data class TreeStatistics(
      * 리프 노드들의 개수를 반환합니다.
      */
     fun getLeafNodeCount(): Int {
-        return NodeType.getLeafTypes().sumOf { getNodeCount(it) }
+        return NodeType.leafTypes.sumOf { getNodeCount(it) }
     }
     
     /**
      * 연산자 노드들의 개수를 반환합니다.
      */
     fun getOperatorNodeCount(): Int {
-        return NodeType.getOperatorTypes().sumOf { getNodeCount(it) }
+        return NodeType.operatorTypes.sumOf { getNodeCount(it) }
     }
 }

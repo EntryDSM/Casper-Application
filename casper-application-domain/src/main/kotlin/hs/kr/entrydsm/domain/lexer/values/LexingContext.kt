@@ -121,12 +121,6 @@ data class LexingContext(
         if (isAtEnd()) null else input[currentPosition.index]
     }
 
-    /**
-     * 현재 위치의 문자를 반환합니다.
-     *
-     * @return 현재 문자 또는 null (끝에 도달한 경우)
-     */
-    fun getCurrentChar(): Char? = currentChar
 
     /**
      * 다음 위치의 문자를 미리 확인합니다.

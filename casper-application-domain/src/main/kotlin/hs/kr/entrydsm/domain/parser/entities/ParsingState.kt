@@ -99,7 +99,7 @@ data class ParsingState(
      * 커널 아이템들 (캐시됨)
      * 커널 아이템은 상태를 고유하게 식별하는 아이템들입니다.
      */
-    private val kernelItems: Set<LRItem> by lazy {
+    val kernelItems: Set<LRItem> by lazy {
         items.filter { it.isKernelItem() }.toSet()
     }
 
@@ -107,24 +107,24 @@ data class ParsingState(
      * 비커널 아이템들 (캐시됨)
      * 비커널 아이템은 클로저 연산으로 추가된 아이템들입니다.
      */
-    private val nonKernelItems: Set<LRItem> by lazy {
+    val nonKernelItems: Set<LRItem> by lazy {
         items.filter { !it.isKernelItem() }.toSet()
     }
 
     /**
-     * 커널 아이템들을 반환합니다.
-     * 커널 아이템은 상태를 고유하게 식별하는 아이템들입니다.
-     *
-     * @return 커널 아이템 집합
+     * 커널 아이템들을 반환합니다 (메소드 형태).
+     * 
+     * @return 커널 아이템들의 집합
      */
+    @JvmName("getKernelItemsMethod")
     fun getKernelItems(): Set<LRItem> = kernelItems
 
     /**
-     * 비커널 아이템들을 반환합니다.
-     * 비커널 아이템은 클로저 연산으로 추가된 아이템들입니다.
-     *
-     * @return 비커널 아이템 집합
+     * 비커널 아이템들을 반환합니다 (메소드 형태).
+     * 
+     * @return 비커널 아이템들의 집합
      */
+    @JvmName("getNonKernelItemsMethod")
     fun getNonKernelItems(): Set<LRItem> = nonKernelItems
 
     /**
@@ -279,8 +279,8 @@ data class ParsingState(
     fun getStatistics(): Map<String, Any> = mapOf(
         "id" to id,
         "itemCount" to items.size,
-        "kernelItemCount" to getKernelItems().size,
-        "nonKernelItemCount" to getNonKernelItems().size,
+        "kernelItemCount" to kernelItems.size,
+        "nonKernelItemCount" to nonKernelItems.size,
         "transitionCount" to transitions.size,
         "actionCount" to actions.size,
         "gotoCount" to gotos.size,

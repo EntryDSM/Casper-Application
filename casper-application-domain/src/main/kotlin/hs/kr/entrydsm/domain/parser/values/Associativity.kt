@@ -296,10 +296,10 @@ data class Associativity(
      * @return 충돌 해결 방법
      */
     private fun resolveSamePrecedenceConflict(other: Associativity): ConflictResolution = when {
-        isLeftAssociative() && other.isLeftAssociative() -> ConflictResolution.REDUCE
-        isRightAssociative() && other.isRightAssociative() -> ConflictResolution.SHIFT
-        isNonAssociative() || other.isNonAssociative() -> ConflictResolution.ERROR
-        isChainAssociative() && other.isChainAssociative() -> ConflictResolution.SPECIAL
+        isLeftAssociative && other.isLeftAssociative -> ConflictResolution.REDUCE
+        isRightAssociative && other.isRightAssociative -> ConflictResolution.SHIFT
+        isNonAssociative || other.isNonAssociative -> ConflictResolution.ERROR
+        isChainAssociative && other.isChainAssociative -> ConflictResolution.SPECIAL
         else -> ConflictResolution.ERROR
     }
 
@@ -357,10 +357,10 @@ data class Associativity(
         "associativity" to type.description,
         "precedence" to precedence,
         "description" to description,
-        "isLeftAssoc" to isLeftAssociative(),
-        "isRightAssoc" to isRightAssociative(),
-        "isNonAssoc" to isNonAssociative(),
-        "isChainAssoc" to isChainAssociative(),
+        "isLeftAssoc" to isLeftAssociative,
+        "isRightAssoc" to isRightAssociative,
+        "isNonAssoc" to isNonAssociative,
+        "isChainAssoc" to isChainAssociative,
         "symbol" to type.symbol,
         "isValid" to isValid()
     )

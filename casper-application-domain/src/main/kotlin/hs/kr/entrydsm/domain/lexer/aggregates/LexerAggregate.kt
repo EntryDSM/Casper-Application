@@ -114,7 +114,7 @@ class LexerAggregate : LexerContract {
             return null to currentContext
         }
 
-        val currentChar = currentContext.getCurrentChar()!!
+        val currentChar = currentContext.currentChar!!
         
         return when {
             characterRecognitionPolicy.isDigit(currentChar) -> parseNumber(currentContext)
@@ -185,7 +185,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val currentChar = currentContext.getCurrentChar()!!
+            val currentChar = currentContext.currentChar!!
             if (characterRecognitionPolicy.isWhitespace(currentChar)) {
                 currentContext = currentContext.advance()
             } else {
@@ -203,7 +203,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val currentChar = currentContext.getCurrentChar()!!
+            val currentChar = currentContext.currentChar!!
             
             if (characterRecognitionPolicy.isCommentStart(currentChar)) {
                 currentContext = when (currentChar) {
@@ -325,7 +325,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val char = currentContext.getCurrentChar()!!
+            val char = currentContext.currentChar!!
             if (characterRecognitionPolicy.isValidInNumber(char, value.isEmpty())) {
                 value.append(char)
                 currentContext = currentContext.advance()
@@ -344,7 +344,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val char = currentContext.getCurrentChar()!!
+            val char = currentContext.currentChar!!
             if (characterRecognitionPolicy.isIdentifierBody(char)) {
                 value.append(char)
                 currentContext = currentContext.advance()
@@ -363,7 +363,7 @@ class LexerAggregate : LexerContract {
         
         val value = StringBuilder()
         while (currentContext.hasNext()) {
-            val char = currentContext.getCurrentChar()!!
+            val char = currentContext.currentChar!!
             if (char == '}') {
                 currentContext = currentContext.advance() // '}' 건너뛰기
                 break
@@ -385,13 +385,13 @@ class LexerAggregate : LexerContract {
 
     private fun parseOperator(context: LexingContext): Pair<Token, LexingContext> {
         val startPosition = context.currentPosition
-        val currentChar = context.getCurrentChar()!!
+        val currentChar = context.currentChar!!
         var operator = currentChar.toString()
         var currentContext = context.advance()
         
         // 2문자 연산자 확인
         if (currentContext.hasNext()) {
-            val nextChar = currentContext.getCurrentChar()!!
+            val nextChar = currentContext.currentChar!!
             val twoCharOperator = operator + nextChar
             
             if (tokenFactory.isOperator(twoCharOperator)) {
@@ -406,7 +406,7 @@ class LexerAggregate : LexerContract {
 
     private fun parseDelimiter(context: LexingContext): Pair<Token, LexingContext> {
         val startPosition = context.currentPosition
-        val delimiter = context.getCurrentChar()!!.toString()
+        val delimiter = context.currentChar!!.toString()
         val currentContext = context.advance()
         
         val token = tokenFactory.createDelimiterToken(delimiter, startPosition)
@@ -417,7 +417,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val char = currentContext.getCurrentChar()!!
+            val char = currentContext.currentChar!!
             currentContext = currentContext.advance()
             if (char == '\n') break
         }
@@ -429,7 +429,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context.advance(2) // "/*" 건너뛰기
         
         while (currentContext.hasNext()) {
-            val char = currentContext.getCurrentChar()!!
+            val char = currentContext.currentChar!!
             if (char == '*' && currentContext.peekChar() == '/') {
                 currentContext = currentContext.advance(2) // "*/" 건너뛰기
                 break
