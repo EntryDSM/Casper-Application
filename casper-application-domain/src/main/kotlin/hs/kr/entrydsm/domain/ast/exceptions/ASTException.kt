@@ -175,6 +175,21 @@ class ASTException(
                 errorCode = ErrorCode.AST_DEPTH_EXCEEDED
             )
         }
+
+        /**
+         * 교체 노드 유효성 실패 오류를 생성합니다.
+         *
+         * @param reason 유효하지 않은 사유
+         * @param nodeType 문제가 있는 노드 타입
+         * @return ASTException 인스턴스
+         */
+        fun invalidReplacementNode(reason: String, nodeType: String) : ASTException {
+            return ASTException(
+                errorCode = ErrorCode.INVALID_REPLACEMENT_NODE,
+                reason = reason,
+                nodeType = nodeType
+            )
+        }
     }
 
     /**
