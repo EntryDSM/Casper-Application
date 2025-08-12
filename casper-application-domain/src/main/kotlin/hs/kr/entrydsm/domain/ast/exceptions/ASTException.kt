@@ -959,6 +959,15 @@ class ASTException(
             errorCode = ErrorCode.AST_UNSUPPORTED_BINARY_OPERATOR,
             reason = "operator=$operator"
         )
+
+        /**
+         * 0으로 나머지 연산을 시도했을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun moduloByZero(): ASTException = ASTException(
+            errorCode = ErrorCode.AST_MODULO_BY_ZERO,
+        )
     }
 
     /**
