@@ -848,6 +848,23 @@ class ASTException(
                 errorCode = ErrorCode.NOT_AST_NODE, // 재사용
                 reason = "child=first, actualType: $actualType"
             )
+
+        /**
+         * UnaryOp 빌더 자식 개수 부족 오류를 생성합니다.
+         *
+         * @param required 최소 필요 자식 개수
+         * @param actual 실제 자식 개수
+         * @param operandIndex 피연산자 인덱스
+         * @return ASTException 인스턴스
+         */
+        fun unaryChildrenInsufficient(
+            required: Int,
+            actual: Int,
+            operandIndex: Int
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_UNARY_CHILDREN_INSUFFICIENT,
+            reason = "required: $required, actual: $actual, operandIndex: $operandIndex"
+        )
     }
 
     /**
