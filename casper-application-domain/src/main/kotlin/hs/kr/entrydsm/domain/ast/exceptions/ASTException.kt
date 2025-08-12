@@ -589,6 +589,24 @@ class ASTException(
                 nodeType = "FunctionCallNode",
                 reason = "name=$name"
             )
+
+        /**
+         * ArgsMultiple 빌더 자식 개수 불일치 오류를 생성합니다.
+         *
+         * @param expected 기대 자식 개수(기본: 3)
+         * @param actual   실제 자식 개수
+         * @param nodeName 노드 이름/식별자(선택)
+         * @return ASTException 인스턴스
+         */
+        fun argsMultipleChildrenMismatch(
+            expected: Int = 3,
+            actual: Int,
+            nodeName: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_ARGS_MULTIPLE_CHILDREN_MISMATCH,
+            nodeName = nodeName,
+            reason = "expected: $expected, actual: $actual"
+        )
     }
 
     /**
