@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -22,9 +22,13 @@ import hs.kr.entrydsm.global.annotation.entities.Entity
 data class VariableNode(val name: String) : ASTNode() {
     
     init {
-        require(name.isNotBlank()) { "변수명은 비어있을 수 없습니다" }
-        require(isValidVariableName(name)) { "유효하지 않은 변수명입니다: $name" }
-    }
+        if (name.isBlank()) {
+            throw ASTException.variableNameEmpty()
+        }
+
+        if (!isValidVariableName(name)) {
+            throw ASTException.invalidVariableName(name)
+        }    }
 
     override fun getVariables(): Set<String> = setOf(name)
 
@@ -199,8 +203,8 @@ data class VariableNode(val name: String) : ASTNode() {
          * @throws IllegalArgumentException 잘못된 형식인 경우
          */
         fun fromBracketedString(bracketedString: String): VariableNode {
-            require(bracketedString.startsWith("{") && bracketedString.endsWith("}")) {
-                "변수는 중괄호로 둘러싸여야 합니다: $bracketedString"
+            if (!(bracketedString.startsWith("{") && bracketedString.endsWith("}"))) {
+                throw ASTException.variableNotBracketed(bracketedString)
             }
             
             val variableName = bracketedString.substring(1, bracketedString.length - 1)
