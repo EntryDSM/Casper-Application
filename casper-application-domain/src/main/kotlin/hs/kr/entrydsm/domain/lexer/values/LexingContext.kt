@@ -115,12 +115,18 @@ data class LexingContext(
     fun hasNext(): Boolean = !isAtEnd()
 
     /**
+     * 현재 위치의 문자 (캐시됨)
+     */
+    val currentChar: Char? by lazy {
+        if (isAtEnd()) null else input[currentPosition.index]
+    }
+
+    /**
      * 현재 위치의 문자를 반환합니다.
      *
      * @return 현재 문자 또는 null (끝에 도달한 경우)
      */
-    fun getCurrentChar(): Char? = 
-        if (isAtEnd()) null else input[currentPosition.index]
+    fun getCurrentChar(): Char? = currentChar
 
     /**
      * 다음 위치의 문자를 미리 확인합니다.
@@ -217,7 +223,7 @@ data class LexingContext(
      * @param char 확인할 문자
      * @return 일치하면 true
      */
-    fun isCurrentChar(char: Char): Boolean = getCurrentChar() == char
+    fun isCurrentChar(char: Char): Boolean = currentChar == char
 
     /**
      * 현재 위치가 특정 문자들 중 하나인지 확인합니다.
@@ -226,28 +232,28 @@ data class LexingContext(
      * @return 일치하는 문자가 있으면 true
      */
     fun isCurrentCharIn(chars: Set<Char>): Boolean = 
-        getCurrentChar()?.let { it in chars } ?: false
+        currentChar?.let { it in chars } ?: false
 
     /**
      * 현재 위치가 숫자인지 확인합니다.
      *
      * @return 숫자이면 true
      */
-    fun isCurrentDigit(): Boolean = getCurrentChar()?.isDigit() ?: false
+    fun isCurrentDigit(): Boolean = currentChar?.isDigit() ?: false
 
     /**
      * 현재 위치가 문자인지 확인합니다.
      *
      * @return 문자이면 true
      */
-    fun isCurrentLetter(): Boolean = getCurrentChar()?.isLetter() ?: false
+    fun isCurrentLetter(): Boolean = currentChar?.isLetter() ?: false
 
     /**
      * 현재 위치가 공백 문자인지 확인합니다.
      *
      * @return 공백 문자이면 true
      */
-    fun isCurrentWhitespace(): Boolean = getCurrentChar()?.isWhitespace() ?: false
+    fun isCurrentWhitespace(): Boolean = currentChar?.isWhitespace() ?: false
 
     /**
      * 다음 N개 문자가 특정 문자열과 일치하는지 확인합니다.
