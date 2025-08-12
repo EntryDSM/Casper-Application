@@ -836,6 +836,18 @@ class ASTException(
                 errorCode = ErrorCode.AST_START_CHILDREN_MISMATCH,
                 reason = "expected: $expected, actual: $actual"
             )
+
+        /**
+         * Start 빌더 첫 번째 자식 타입 오류를 생성합니다.
+         *
+         * @param actualType 실제 타입명
+         * @return ASTException 인스턴스
+         */
+        fun startFirstNotAst(actualType: String?): ASTException =
+            ASTException(
+                errorCode = ErrorCode.NOT_AST_NODE, // 재사용
+                reason = "child=first, actualType: $actualType"
+            )
     }
 
     /**
