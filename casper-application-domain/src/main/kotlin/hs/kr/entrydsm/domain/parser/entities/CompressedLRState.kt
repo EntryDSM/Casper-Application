@@ -157,27 +157,61 @@ data class CompressedLRState(
          * @return 병합 가능하면 true
          */
         fun canMergeLALR(state1: CompressedLRState, state2: CompressedLRState): Boolean {
-            // Core 시그니처가 동일한지 확인
             if (!state1.hasSameCore(state2)) {
                 return false
             }
 
-            // 동일한 core를 가진 아이템들의 lookahead 집합이 겹치지 않는지 확인
-            val lookaheadMap1 = state1.coreItems.groupBy { "${it.production.id}:${it.dotPos}" }
-                .mapValues { it.value.map { item -> item.lookahead }.toSet() }
-            val lookaheadMap2 = state2.coreItems.groupBy { "${it.production.id}:${it.dotPos}" }
-                .mapValues { it.value.map { item -> item.lookahead }.toSet() }
+            return !hasLookaheadConflicts(state1.coreItems, state2.coreItems)
+        }
 
-            // 각 core 아이템에 대해 lookahead 집합이 겹치지 않는지 확인
-            for (coreKey in lookaheadMap1.keys) {
-                val lookaheads1 = lookaheadMap1[coreKey] ?: emptySet()
-                val lookaheads2 = lookaheadMap2[coreKey] ?: emptySet()
-                if (lookaheads1.intersect(lookaheads2).isNotEmpty()) {
-                    return false // lookahead가 겹치면 병합 불가능
-                }
+        /**
+         * 두 아이템 집합 간의 lookahead 충돌이 있는지 확인합니다.
+         * 최적화된 알고리즘으로 조기 종료가 가능합니다.
+         *
+         * @param items1 첫 번째 아이템 집합
+         * @param items2 두 번째 아이템 집합
+         * @return 충돌이 있으면 true
+         */
+        private fun hasLookaheadConflicts(items1: Set<LRItem>, items2: Set<LRItem>): Boolean {
+            // 더 작은 집합을 외부 루프로 사용하여 성능 최적화
+            val (smaller, larger) = if (items1.size <= items2.size) {
+                items1 to items2
+            } else {
+                items2 to items1
             }
 
-            return true
+            for (item1 in smaller) {
+                if (hasConflictingLookahead(item1, larger)) {
+                    return true // 첫 충돌 발견 시 즉시 종료
+                }
+            }
+            return false
+        }
+
+        /**
+         * 주어진 아이템이 아이템 집합과 lookahead 충돌이 있는지 확인합니다.
+         *
+         * @param targetItem 확인할 아이템
+         * @param itemSet 비교할 아이템 집합
+         * @return 충돌이 있으면 true
+         */
+        private fun hasConflictingLookahead(targetItem: LRItem, itemSet: Set<LRItem>): Boolean {
+            val targetCore = getCoreKey(targetItem)
+            
+            return itemSet.any { item ->
+                getCoreKey(item) == targetCore && item.lookahead == targetItem.lookahead
+            }
+        }
+
+        /**
+         * 아이템의 core key를 생성합니다.
+         * Core는 production과 dot position으로 구성됩니다.
+         *
+         * @param item LR 아이템
+         * @return core key 문자열
+         */
+        private fun getCoreKey(item: LRItem): String {
+            return "${item.production.id}:${item.dotPos}"
         }
 
         /**

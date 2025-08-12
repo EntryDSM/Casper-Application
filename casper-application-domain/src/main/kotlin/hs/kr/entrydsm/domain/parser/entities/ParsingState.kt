@@ -96,14 +96,28 @@ data class ParsingState(
     }
 
     /**
+     * 커널 아이템들 (캐시됨)
+     * 커널 아이템은 상태를 고유하게 식별하는 아이템들입니다.
+     */
+    private val kernelItems: Set<LRItem> by lazy {
+        items.filter { it.isKernelItem() }.toSet()
+    }
+
+    /**
+     * 비커널 아이템들 (캐시됨)
+     * 비커널 아이템은 클로저 연산으로 추가된 아이템들입니다.
+     */
+    private val nonKernelItems: Set<LRItem> by lazy {
+        items.filter { !it.isKernelItem() }.toSet()
+    }
+
+    /**
      * 커널 아이템들을 반환합니다.
      * 커널 아이템은 상태를 고유하게 식별하는 아이템들입니다.
      *
      * @return 커널 아이템 집합
      */
-    fun getKernelItems(): Set<LRItem> {
-        return items.filter { it.isKernelItem() }.toSet()
-    }
+    fun getKernelItems(): Set<LRItem> = kernelItems
 
     /**
      * 비커널 아이템들을 반환합니다.
@@ -111,9 +125,7 @@ data class ParsingState(
      *
      * @return 비커널 아이템 집합
      */
-    fun getNonKernelItems(): Set<LRItem> {
-        return items.filter { !it.isKernelItem() }.toSet()
-    }
+    fun getNonKernelItems(): Set<LRItem> = nonKernelItems
 
     /**
      * 특정 심볼로 전이할 수 있는지 확인합니다.
@@ -167,10 +179,13 @@ data class ParsingState(
     fun getConflicts(): Map<String, List<String>> {
         val conflicts = mutableMapOf<String, MutableList<String>>()
         
+        // 완료된 아이템들을 미리 계산하여 재활용
+        val reduceItems = items.filter { it.isComplete() }
+        
         // Shift/Reduce 충돌 검사
         for ((terminal, action) in actions) {
             if (action is LRAction.Shift) {
-                val reduceActions = items.filter { it.isComplete() && it.lookahead == terminal }
+                val reduceActions = reduceItems.filter { it.lookahead == terminal }
                 if (reduceActions.isNotEmpty()) {
                     conflicts.getOrPut("shift_reduce") { mutableListOf() }
                         .add("$terminal: shift vs reduce with ${reduceActions.map { it.production.id }}")
@@ -179,7 +194,6 @@ data class ParsingState(
         }
         
         // Reduce/Reduce 충돌 검사
-        val reduceItems = items.filter { it.isComplete() }
         for (terminal in actions.keys) {
             val conflictingReduces = reduceItems.filter { it.lookahead == terminal }
             if (conflictingReduces.size > 1) {

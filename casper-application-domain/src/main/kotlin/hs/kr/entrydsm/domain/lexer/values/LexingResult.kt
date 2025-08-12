@@ -179,16 +179,28 @@ data class LexingResult(
      *
      * @return 통계 정보 맵
      */
-    fun getStatistics(): Map<String, Any> = mapOf(
-        "success" to isSuccess,
-        "tokenCount" to tokenCount,
-        "inputLength" to inputLength,
-        "duration" to duration,
-        "operatorCount" to getOperatorTokens().size,
-        "literalCount" to getLiteralTokens().size,
-        "keywordCount" to getKeywordTokens().size,
-        "errorMessage" to (error?.message ?: "None")
-    )
+    fun getStatistics(): Map<String, Any> {
+        var operatorCount = 0
+        var literalCount = 0
+        var keywordCount = 0
+        
+        for (token in tokens) {
+            if (token.type.isOperator) operatorCount++
+            if (token.type.isLiteral) literalCount++
+            if (token.type.isKeyword) keywordCount++
+        }
+        
+        return buildMap {
+            put("success", isSuccess)
+            put("tokenCount", tokenCount)
+            put("inputLength", inputLength)
+            put("duration", duration)
+            put("operatorCount", operatorCount)
+            put("literalCount", literalCount)
+            put("keywordCount", keywordCount)
+            if (!isSuccess) put("errorMessage", error?.message ?: "Unknown error")
+        }
+    }
 
     /**
      * 토큰 목록을 문자열로 표현합니다.
