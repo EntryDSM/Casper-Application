@@ -1,5 +1,7 @@
 package hs.kr.entrydsm.domain.ast.values
 
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
+
 /**
  * AST 노드의 크기를 나타내는 값 객체입니다.
  *
@@ -14,8 +16,13 @@ package hs.kr.entrydsm.domain.ast.values
 data class NodeSize private constructor(val value: Int) {
     
     init {
-        require(value >= 0) { "노드 크기는 0 이상이어야 합니다: $value" }
-        require(value <= MAX_SIZE) { "노드 크기가 최대값을 초과합니다: $value > $MAX_SIZE" }
+        if (value < 0) {
+            throw ASTException.nodeSizeNegative(value)
+        }
+        if (value > MAX_SIZE) {
+            throw ASTException.nodeSizeTooLarge(value, MAX_SIZE)
+        }
+
     }
     
     /**
