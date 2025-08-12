@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.FunctionCallNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.global.annotation.factory.Factory
@@ -26,11 +27,20 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 )
 object FunctionCallEmptyBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): FunctionCallNode {
-        require(children.size == 3) { "FunctionCallEmpty 빌더는 정확히 3개의 자식이 필요합니다: ${children.size}" }
-        require(children[0] is Token) { "첫 번째 자식은 Token이어야 합니다: ${children[0]::class.simpleName}" }
-        require(children[1] is Token) { "두 번째 자식은 Token이어야 합니다: ${children[1]::class.simpleName}" }
-        require(children[2] is Token) { "세 번째 자식은 Token이어야 합니다: ${children[2]::class.simpleName}" }
-        
+        if (children.size != 3) {
+            throw ASTException.functionCallEmptyChildrenMismatch(actual = children.size)
+        }
+        if (children[0] !is Token) {
+            throw ASTException.functionCallEmptyFirstNotToken(children[0]::class.simpleName)
+        }
+        if (children[1] !is Token) {
+            throw ASTException.functionCallEmptySecondNotToken(children[1]::class.simpleName)
+        }
+        if (children[2] !is Token) {
+            throw ASTException.functionCallEmptyThirdNotToken(children[2]::class.simpleName)
+        }
+
+
         val nameToken = children[0] as Token
         return FunctionCallNode(nameToken.value, emptyList())
     }
