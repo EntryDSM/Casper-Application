@@ -375,13 +375,11 @@ class ASTException(
             )
 
         /**
-         * 지원하지 않는 단항 연산자일 때의 예외를 생성합니다.
-         *
-         * 적용 오류 코드: [ErrorCode.AST_UNSUPPORTED_UNARY_OPERATOR]
+         * 지원하지 않는 단항 연산자일 때의 오류를 생성합니다.
          *
          * @param operator 전달된 연산자 문자열(예: "!", "-")
          * @param nodeName 노드 이름 또는 식별자(선택)
-         * @return 생성된 `ASTException`
+         * @return ASTException 인스턴스
          */
         fun unsupportedUnaryOperator(
             operator: String,
@@ -395,6 +393,26 @@ class ASTException(
             )
         }
 
+        /**
+         * 이중 음수(예: `--x`)를 단순화할 수 없을 때의 오류를 생성합니다.
+         *
+         * 적용 오류 코드: [ErrorCode.AST_DOUBLE_NEGATION_NOT_SIMPLIFIABLE]
+         *
+         * @param detail 불가 사유 상세(선택)
+         * @param nodeName 노드 이름 또는 식별자(기본값: `"UnaryOpNode"`)
+         * @return ASTException 인스턴스
+         */
+        fun doubleNegationNotSimplifiable(
+            detail: String? = null,
+            nodeName: String? = "UnaryOpNode"
+        ): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_DOUBLE_NEGATION_NOT_SIMPLIFIABLE,
+                nodeType = "UnaryOpNode",
+                nodeName = nodeName,
+                reason = detail
+            )
+        }
 
     }
 
