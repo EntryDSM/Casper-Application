@@ -164,6 +164,17 @@ class ASTException(
                 errorCode = ErrorCode.AST_SIZE_EXCEEDED
             )
         }
+
+        /**
+         * AST 깊이 제한 초과 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun depthLimitExceeded(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_DEPTH_EXCEEDED
+            )
+        }
     }
 
     /**
