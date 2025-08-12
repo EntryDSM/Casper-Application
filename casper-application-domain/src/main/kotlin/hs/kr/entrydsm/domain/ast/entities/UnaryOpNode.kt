@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -26,8 +26,13 @@ data class UnaryOpNode(
 ) : ASTNode() {
     
     init {
-        require(operator.isNotBlank()) { "연산자는 비어있을 수 없습니다" }
-        require(isSupportedOperator(operator)) { "지원하지 않는 단항 연산자입니다: $operator" }
+        if (operator.isBlank()) {
+            throw ASTException.operatorEmpty()
+        }
+
+        if (!isSupportedOperator(operator)) {
+            throw ASTException.unsupportedUnaryOperator(operator)
+        }
     }
 
     override fun getVariables(): Set<String> = operand.getVariables()
@@ -151,7 +156,9 @@ data class UnaryOpNode(
      * @throws IllegalStateException 단순화할 수 없는 경우
      */
     fun simplifyDoubleNegation(): ASTNode {
-        check(canSimplifyDoubleNegation()) { "이중 음수를 단순화할 수 없습니다" }
+        if (!canSimplifyDoubleNegation()) {
+            throw ASTException.doubleNegationNotSimplifiable()
+        }
         return (operand as UnaryOpNode).operand
     }
 
@@ -162,7 +169,9 @@ data class UnaryOpNode(
      * @throws IllegalStateException 단순화할 수 없는 경우
      */
     fun simplifyDoubleLogicalNegation(): ASTNode {
-        check(canSimplifyDoubleNegationLogical()) { "이중 논리 부정을 단순화할 수 없습니다" }
+        if (!canSimplifyDoubleNegationLogical()) {
+            throw ASTException.doubleLogicalNegationNotSimplifiable()
+        }
         return (operand as UnaryOpNode).operand
     }
 
