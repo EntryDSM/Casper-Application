@@ -1027,6 +1027,18 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_ARGUMENT_COUNT_MISMATCH,
             reason = "name=$name, expected=$expectedDesc, actual=$actual"
         )
+
+        /**
+         * 조건문의 총 깊이가 최대 허용 깊이를 초과할 때의 오류를 생성합니다.
+         *
+         * @param totalDepth 실제 총 깊이
+         * @param max 최대 허용 깊이
+         * @return ASTException 인스턴스
+         */
+        fun ifTotalDepthExceeded(totalDepth: Int, max: Int): ASTException = ASTException(
+            errorCode = ErrorCode.AST_IF_TOTAL_DEPTH_EXCEEDED,
+            reason = "totalDepth=$totalDepth, max=$max"
+        )
     }
 
     /**
