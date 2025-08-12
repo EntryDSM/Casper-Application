@@ -148,8 +148,7 @@ data class LexingResult(
      * @param index 토큰 인덱스
      * @return 해당 인덱스의 토큰 또는 null
      */
-    fun getTokenAt(index: Int): Token? = 
-        if (index in tokens.indices) tokens[index] else null
+    fun getTokenAt(index: Int): Token? = tokens.getOrNull(index)
 
     /**
      * 연산자 토큰들만 추출합니다.
