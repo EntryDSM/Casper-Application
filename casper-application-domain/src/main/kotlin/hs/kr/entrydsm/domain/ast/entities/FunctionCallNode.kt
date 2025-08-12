@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -26,9 +26,15 @@ data class FunctionCallNode(
 ) : ASTNode() {
     
     init {
-        require(name.isNotBlank()) { "함수명은 비어있을 수 없습니다" }
-        require(isValidFunctionName(name)) { "유효하지 않은 함수명입니다: $name" }
-        require(args.size <= MAX_ARGUMENTS) { "인수가 너무 많습니다: ${args.size} > $MAX_ARGUMENTS" }
+        if (name.isBlank()) {
+            throw ASTException.functionNameEmpty()
+        }
+        if (!isValidFunctionName(name)) {
+            throw ASTException.invalidFunctionName(name)
+        }
+        if (args.size > MAX_ARGUMENTS) {
+            throw ASTException.argumentCountExceeded()
+        }
     }
 
     override fun getVariables(): Set<String> = args.flatMap { it.getVariables() }.toSet()
@@ -105,7 +111,9 @@ data class FunctionCallNode(
      * @throws IndexOutOfBoundsException 인덱스가 범위를 벗어난 경우
      */
     fun getArgument(index: Int): ASTNode {
-        require(index in args.indices) { "인수 인덱스가 범위를 벗어났습니다: $index, 범위: 0-${args.size - 1}" }
+        if (index !in args.indices) {
+            throw ASTException.indexOutOfRange()
+        }
         return args[index]
     }
 
@@ -116,7 +124,9 @@ data class FunctionCallNode(
      * @throws IllegalStateException 인수가 없는 경우
      */
     fun getFirstArgument(): ASTNode {
-        check(args.isNotEmpty()) { "인수가 없습니다" }
+        if (args.isEmpty()) {
+            throw ASTException.argumentsEmpty()
+        }
         return args[0]
     }
 
@@ -127,7 +137,9 @@ data class FunctionCallNode(
      * @throws IllegalStateException 인수가 없는 경우
      */
     fun getLastArgument(): ASTNode {
-        check(args.isNotEmpty()) { "인수가 없습니다" }
+        if (args.isEmpty()) {
+            throw ASTException.argumentsEmpty()
+        }
         return args.last()
     }
 
@@ -179,7 +191,9 @@ data class FunctionCallNode(
      * @return 새로운 FunctionCallNode
      */
     fun withArgument(index: Int, newArgument: ASTNode): FunctionCallNode {
-        require(index in args.indices) { "인수 인덱스가 범위를 벗어났습니다: $index" }
+        if (index !in args.indices) {
+            throw ASTException.indexOutOfRange()
+        }
         val newArgs = args.toMutableList()
         newArgs[index] = newArgument
         return FunctionCallNode(name, newArgs)
@@ -192,7 +206,9 @@ data class FunctionCallNode(
      * @return 새로운 FunctionCallNode
      */
     fun withAddedArgument(newArgument: ASTNode): FunctionCallNode {
-        require(args.size < MAX_ARGUMENTS) { "최대 인수 개수를 초과했습니다: ${args.size + 1} > $MAX_ARGUMENTS" }
+        if (args.size > MAX_ARGUMENTS) {
+            throw ASTException.argumentCountExceeded()
+        }
         return FunctionCallNode(name, args + newArgument)
     }
 
