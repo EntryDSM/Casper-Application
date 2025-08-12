@@ -625,6 +625,26 @@ class ASTException(
             nodeName = nodeName,
             reason = "expected: $expected, actual: $actual"
         )
+
+        /**
+         * BinaryOp 빌더의 자식 수가 요구사항에 못 미칠 때 오류를 생성합니다.
+         *
+         * @param required 필요한 최소 자식 수
+         * @param actual 실제 자식 수
+         * @param leftIndex 왼쪽 피연산자 인덱스
+         * @param rightIndex 오른쪽 피연산자 인덱스
+         * @return ASTException 인스턴스
+         */
+        fun binaryChildrenInsufficient(
+            required: Int,
+            actual: Int,
+            leftIndex: Int,
+            rightIndex: Int
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_BINARY_CHILDREN_INSUFFICIENT,
+            reason = "required: $required(actual indices need 0..${required-1}), " +
+                    "actual: $actual, leftIndex: $leftIndex, rightIndex: $rightIndex"
+        )
     }
 
     /**
