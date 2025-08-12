@@ -743,6 +743,17 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_CALL_EMPTY_SECOND_NOT_TOKEN,
             reason = "actualType: $actualType"
         )
+
+        /**
+         * FunctionCallEmpty 빌더의 세 번째 자식이 Token이 아닐 때 오류를 생성합니다.
+         *
+         * @param actualType 실제 타입 이름
+         * @return ASTException 인스턴스
+         */
+        fun functionCallEmptyThirdNotToken(actualType: String?): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_CALL_EMPTY_THIRD_NOT_TOKEN,
+            reason = "actualType: $actualType"
+        )
     }
 
     /**
