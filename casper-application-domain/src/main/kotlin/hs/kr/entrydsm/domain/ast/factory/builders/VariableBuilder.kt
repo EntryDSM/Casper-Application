@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.VariableNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.global.annotation.factory.Factory
@@ -25,9 +26,14 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 object VariableBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): VariableNode {
-        require(children.size == 1) { "Variable 빌더는 정확히 1개의 자식이 필요합니다: ${children.size}" }
-        require(children[0] is Token) { "첫 번째 자식은 Token 타입이어야 합니다: ${children[0]::class.simpleName}" }
-        
+        if (children.size != 1) {
+            throw ASTException.variableChildrenMismatch(1, children.size)
+        }
+        if (children[0] !is Token) {
+            throw ASTException.variableFirstNotToken(children[0]::class.simpleName)
+        }
+
+
         val token = children[0] as Token
         return VariableNode(token.value)
     }
