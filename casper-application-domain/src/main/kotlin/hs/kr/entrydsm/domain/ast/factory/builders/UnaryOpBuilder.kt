@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.entities.UnaryOpNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -30,10 +31,11 @@ class UnaryOpBuilder(
 ) : ASTBuilderContract {
     
     override fun build(children: List<Any>): UnaryOpNode {
-        require(children.size >= operandIndex + 1) { 
-            "UnaryOp 빌더는 최소 ${operandIndex + 1}개의 자식이 필요합니다: ${children.size}" 
+        val required = operandIndex + 1
+        if (children.size < required) {
+            throw ASTException.unaryChildrenInsufficient(required, children.size, operandIndex)
         }
-        
+
         val operand = children[operandIndex] as ASTNode
         return UnaryOpNode(operator, operand)
     }
