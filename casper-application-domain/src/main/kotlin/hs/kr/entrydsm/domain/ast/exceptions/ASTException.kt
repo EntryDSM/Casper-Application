@@ -1010,6 +1010,23 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_ARGUMENTS_EXCEEDED,
             reason = "args=$size, max=$max"
         )
+
+        /**
+         * 함수 호출 인수 개수가 요구사항과 일치하지 않을 때의 오류를 생성합니다.
+         *
+         * @param name 함수명
+         * @param expectedDesc 요구되는 인수 개수 설명
+         * @param actual 실제 인수 개수
+         * @return ASTException 인스턴스
+         */
+        fun functionArgumentCountMismatch(
+            name: String,
+            expectedDesc: String,
+            actual: Int
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_ARGUMENT_COUNT_MISMATCH,
+            reason = "name=$name, expected=$expectedDesc, actual=$actual"
+        )
     }
 
     /**
