@@ -524,6 +524,19 @@ class ASTException(
             nodeName = nodeName,
             reason = reason
         )
+
+        /**
+         * 유효하지 않은 숫자 리터럴 오류를 생성합니다.
+         *
+         * @param value 원본 문자열
+         * @return ASTException 인스턴스
+         */
+        fun invalidNumberLiteral(value: String): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_INVALID_NUMBER_LITERAL,
+                nodeType = "NumberNode",
+                reason = "value=$value"
+            )
     }
 
     /**
