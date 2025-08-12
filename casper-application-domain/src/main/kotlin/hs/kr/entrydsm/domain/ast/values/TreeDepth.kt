@@ -1,5 +1,7 @@
 package hs.kr.entrydsm.domain.ast.values
 
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
+
 /**
  * AST 트리의 깊이를 나타내는 값 객체입니다.
  *
@@ -14,8 +16,13 @@ package hs.kr.entrydsm.domain.ast.values
 data class TreeDepth private constructor(val value: Int) {
     
     init {
-        require(value >= 0) { "트리 깊이는 0 이상이어야 합니다: $value" }
-        require(value <= MAX_DEPTH) { "트리 깊이가 최대값을 초과합니다: $value > $MAX_DEPTH" }
+        if (value < 0) {
+            throw ASTException.treeDepthNegative(value)
+        }
+
+        if (value > MAX_DEPTH) {
+            throw ASTException.treeDepthTooLarge(value, MAX_DEPTH)
+        }
     }
     
     /**
