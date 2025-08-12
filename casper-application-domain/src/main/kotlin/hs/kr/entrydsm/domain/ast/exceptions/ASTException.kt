@@ -901,6 +901,18 @@ class ASTException(
             errorCode = ErrorCode.AST_NUMBER_IS_NAN,
             reason = "value=$value"
         )
+
+        /**
+         * 숫자 값이 최소값 미만일 때의 오류를 생성합니다.
+         *
+         * @param value 실제 숫자 값
+         * @param min 최소 허용값
+         * @return ASTException 인스턴스
+         */
+        fun numberTooSmall(value: Double, min: Double): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NUMBER_TOO_SMALL,
+            reason = "value=$value, min=$min"
+        )
     }
 
     /**
