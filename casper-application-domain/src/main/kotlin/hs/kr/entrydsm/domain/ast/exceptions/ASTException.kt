@@ -236,7 +236,7 @@ class ASTException(
         }
 
         /**
-         * 교환법칙을 요구하는 문맥에서 교환법칙이 성립하지 않는 연산자일 때 예외를 생성합니다.
+         * 교환법칙을 요구하는 문맥에서 교환법칙이 성립하지 않는 연산자일 때 오류를 생성합니다.
          *
          * @return ASTException 인스턴스
          */
@@ -244,6 +244,18 @@ class ASTException(
             return ASTException(
                 errorCode = ErrorCode.AST_OPERATOR_NOT_COMMUTATIVE,
                 reason = "operator: $operator"
+            )
+        }
+
+        /**
+         * 불린 리터럴이 유효하지 않을 때 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun invalidBooleanValue(value: String): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_OPERATOR_NOT_COMMUTATIVE,
+                reason = "value: $value"
             )
         }
     }
