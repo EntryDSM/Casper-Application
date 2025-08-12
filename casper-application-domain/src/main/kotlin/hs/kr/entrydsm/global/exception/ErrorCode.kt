@@ -54,6 +54,7 @@ enum class ErrorCode(val code: String, val description: String) {
     INVALID_REPLACEMENT_NODE("AST012", "교체할 노드가 유효하지 않습니다"),
     AST_ARGUMENT_COUNT_EXCEEDED("AST013", "인수 개수가 최대 허용량을 초과했습니다"),
     AST_INDEX_OUT_OF_RANGE("AST014", "인덱스가 범위를 벗어났습니다"),
+    AST_OPERATOR_EMPTY("AST015", "연산자는 비어있을 수 없습니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
