@@ -322,6 +322,22 @@ class ASTException(
                 nodeName = nodeName,
             )
         }
+
+        /**
+         * 숫자 값이 유한하지 않을 때의 오류를 생성합니다.
+         *
+         * @param value 검사한 원본 값
+         * @return ASTException 인스턴스
+         */
+        fun numberNotFinite(value: Double): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_NON_FINITE_NUMBER,
+                nodeType = "NumberNode",
+                reason = "value: $value"
+            )
+
+
+
     }
 
     /**
