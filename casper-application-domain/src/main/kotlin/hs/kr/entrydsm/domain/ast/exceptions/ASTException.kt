@@ -1151,6 +1151,19 @@ class ASTException(
                 reason = "actual=$actual"
             )
 
+        /**
+         * 노드 크기가 최대 허용값을 초과할 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 크기 값
+         * @param max 최대 허용 크기
+         * @return ASTException 인스턴스
+         */
+        fun nodeSizeTooLarge(actual: Int, max: Int): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_NODE_SIZE_TOO_LARGE,
+                reason = "actual=$actual, max=$max"
+            )
+
     }
 
     /**
