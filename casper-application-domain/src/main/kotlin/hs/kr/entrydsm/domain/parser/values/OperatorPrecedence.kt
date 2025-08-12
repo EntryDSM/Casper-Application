@@ -48,21 +48,28 @@ data class OperatorPrecedence(
      *
      * @return 좌결합이면 true
      */
-    fun isLeftAssociative(): Boolean = associativity == Associativity.AssociativityType.LEFT
+    fun isLeftAssociative(): Boolean = associativity.isLeft()
 
     /**
      * 우결합 연산자인지 확인합니다.
      *
      * @return 우결합이면 true
      */
-    fun isRightAssociative(): Boolean = associativity == Associativity.AssociativityType.RIGHT
+    fun isRightAssociative(): Boolean = associativity.isRight()
 
     /**
      * 비결합 연산자인지 확인합니다.
      *
      * @return 비결합이면 true
      */
-    fun isNonAssociative(): Boolean = associativity == Associativity.AssociativityType.NONE
+    fun isNonAssociative(): Boolean = associativity.isNone()
+
+    /**
+     * 체인결합 연산자인지 확인합니다.
+     *
+     * @return 체인결합이면 true
+     */
+    fun isChainAssociative(): Boolean = associativity.isChain()
 
     companion object {
         /** 가장 낮은 우선순위 */

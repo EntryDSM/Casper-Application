@@ -50,6 +50,34 @@ data class Associativity(
         
         /** 체인결합: a op b op c = a op b && b op c (비교 연산자용) */
         CHAIN("C", "체인결합");
+
+        /**
+         * 좌결합 타입인지 확인합니다.
+         * 
+         * @return 좌결합이면 true
+         */
+        fun isLeft(): Boolean = this == LEFT
+
+        /**
+         * 우결합 타입인지 확인합니다.
+         * 
+         * @return 우결합이면 true
+         */
+        fun isRight(): Boolean = this == RIGHT
+
+        /**
+         * 비결합 타입인지 확인합니다.
+         * 
+         * @return 비결합이면 true
+         */
+        fun isNone(): Boolean = this == NONE
+
+        /**
+         * 체인결합 타입인지 확인합니다.
+         * 
+         * @return 체인결합이면 true
+         */
+        fun isChain(): Boolean = this == CHAIN
         
         companion object {
             /**
@@ -255,24 +283,32 @@ data class Associativity(
 
     /**
      * 충돌 해결 방법을 결정합니다.
-     * 동일한 우선순위의 연산자들이 연속으로 나타날 때 사용됩니다.
+     * 우선순위를 먼저 비교하고, 동일할 경우 결합성 규칙을 적용합니다.
      *
      * @param other 충돌하는 다른 결합성 규칙
      * @return 충돌 해결 방법
      */
     fun resolveConflict(other: Associativity): ConflictResolution {
         return when {
-            hasHigherPrecedence(other) -> ConflictResolution.SHIFT
-            hasLowerPrecedence(other) -> ConflictResolution.REDUCE
-            hasSamePrecedence(other) -> when {
-                isLeftAssociative() && other.isLeftAssociative() -> ConflictResolution.REDUCE
-                isRightAssociative() && other.isRightAssociative() -> ConflictResolution.SHIFT
-                isNonAssociative() || other.isNonAssociative() -> ConflictResolution.ERROR
-                isChainAssociative() && other.isChainAssociative() -> ConflictResolution.SPECIAL
-                else -> ConflictResolution.ERROR
-            }
-            else -> ConflictResolution.ERROR
+            precedence > other.precedence -> ConflictResolution.SHIFT
+            precedence < other.precedence -> ConflictResolution.REDUCE
+            else -> resolveSamePrecedenceConflict(other)
         }
+    }
+
+    /**
+     * 동일한 우선순위에서의 충돌을 해결합니다.
+     * 결합성 타입에 따라 적절한 해결 방법을 결정합니다.
+     *
+     * @param other 충돌하는 다른 결합성 규칙
+     * @return 충돌 해결 방법
+     */
+    private fun resolveSamePrecedenceConflict(other: Associativity): ConflictResolution = when {
+        isLeftAssociative() && other.isLeftAssociative() -> ConflictResolution.REDUCE
+        isRightAssociative() && other.isRightAssociative() -> ConflictResolution.SHIFT
+        isNonAssociative() || other.isNonAssociative() -> ConflictResolution.ERROR
+        isChainAssociative() && other.isChainAssociative() -> ConflictResolution.SPECIAL
+        else -> ConflictResolution.ERROR
     }
 
     /**
