@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.entities.IfNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -26,8 +27,9 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 object IfBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): IfNode {
-        require(children.size == 8) { "If 빌더는 정확히 8개의 자식이 필요합니다: ${children.size}" }
-        
+        if (children.size != 8) {
+            throw ASTException.ifChildrenMismatch(8, children.size)
+        }
         val condition = children[2] as ASTNode
         val trueValue = children[4] as ASTNode
         val falseValue = children[6] as ASTNode
