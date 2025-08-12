@@ -645,6 +645,21 @@ class ASTException(
             reason = "required: $required(actual indices need 0..${required-1}), " +
                     "actual: $actual, leftIndex: $leftIndex, rightIndex: $rightIndex"
         )
+
+        /**
+         * BinaryOp 빌더의 피연산자가 AST 노드가 아닐 때 오류를 생성합니다.
+         *
+         * @param side "left" 또는 "right"
+         * @param actualType 런타임 타입명
+         * @return ASTException 인스턴스
+         */
+        fun operandNotAst(
+            side: String,
+            actualType: String?
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.NOT_AST_NODE, // AST002 재사용
+            reason = "operand: $side, actualType: $actualType"
+        )
     }
 
     /**
