@@ -59,6 +59,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_OPERATOR_NOT_COMMUTATIVE("AST017", "교환법칙이 성립하지 않는 연산자입니다"),
     INVALID_BOOLEAN_VALUE("AST018", "잘못된 불린 값입니다"),
     AST_FUNCTION_NAME_EMPTY("AST019", "함수명은 비어있을 수 없습니다"),
+    AST_INVALID_FUNCTION_NAME("AST020", "유효하지 않은 함수명입니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
