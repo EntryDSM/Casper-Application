@@ -153,6 +153,17 @@ class ASTException(
                 reason = reason
             )
         }
+
+        /**
+         * AST 크기 제한 초과 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun sizeLimitExceeded(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_SIZE_EXCEEDED
+            )
+        }
     }
 
     /**
