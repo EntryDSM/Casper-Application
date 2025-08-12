@@ -258,6 +258,18 @@ class ASTException(
                 reason = "value: $value"
             )
         }
+
+        /**
+         * 함수명이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun functionNameEmpty(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_FUNCTION_NAME_EMPTY
+            )
+        }
+
     }
 
     /**
