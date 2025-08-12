@@ -791,6 +791,17 @@ class ASTException(
             errorCode = ErrorCode.AST_IF_CHILDREN_MISMATCH,
             reason = "expected: $expected, actual: $actual"
         )
+
+        /**
+         * Number 빌더 자식 개수 불일치 오류를 생성합니다.
+         *
+         * @param expected 기대 자식 개수
+         * @param actual 실제 자식 개수
+         */
+        fun numberChildrenMismatch(expected: Int, actual: Int): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NUMBER_CHILDREN_MISMATCH,
+            reason = "expected: $expected, actual: $actual"
+        )
     }
 
     /**
