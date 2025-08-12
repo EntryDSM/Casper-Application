@@ -968,6 +968,15 @@ class ASTException(
         fun moduloByZero(): ASTException = ASTException(
             errorCode = ErrorCode.AST_MODULO_BY_ZERO,
         )
+
+        /**
+         * 0^0 연산을 시도했을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun zeroPowerZero(): ASTException = ASTException(
+            errorCode = ErrorCode.AST_ZERO_POWER_ZERO_UNDEFINED,
+        )
     }
 
     /**
