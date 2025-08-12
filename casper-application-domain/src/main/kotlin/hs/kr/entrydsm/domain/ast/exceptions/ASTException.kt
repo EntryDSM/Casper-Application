@@ -415,7 +415,7 @@ class ASTException(
         }
 
         /**
-         * 이중 논리 부정(예: `!!x`)을 단순화할 수 없을 때의 예외를 생성합니다.
+         * 이중 논리 부정(예: `!!x`)을 단순화할 수 없을 때의 오류를 생성합니다.
          *
          * @param detail 불가 사유 상세(선택)
          * @param nodeName 노드 이름 또는 식별자(기본값: `"UnaryOpNode"`)
@@ -434,7 +434,7 @@ class ASTException(
         }
 
         /**
-         * 변수명이 비어 있을 때의 예외를 생성합니다.
+         * 변수명이 비어 있을 때의 오류를 생성합니다.
          *
          * @param nodeType 노드 타입(기본: "VariableNode")
          * @param nodeName 노드 이름 또는 식별자(선택)
@@ -450,7 +450,7 @@ class ASTException(
         )
 
         /**
-         * 유효하지 않은 변수명일 때의 예외를 생성합니다.
+         * 유효하지 않은 변수명일 때의 오류를 생성합니다.
          *
          * @param name 검증 실패한 변수명
          * @param nodeType 노드 타입(기본: "VariableNode")
@@ -469,7 +469,7 @@ class ASTException(
         )
 
         /**
-         * 변수 표기 문자열이 중괄호로 둘러싸여 있지 않을 때의 예외를 생성합니다.
+         * 변수 표기 문자열이 중괄호로 둘러싸여 있지 않을 때의 오류를 생성합니다.
          *
          * @param value 원본 문자열(예: "{USER_NAME}")
          * @param expectedOpen 기대 여는 괄호(기본: "{")
@@ -489,6 +489,23 @@ class ASTException(
             nodeType = nodeType,
             nodeName = nodeName,
             reason = "value: $value, expected: $expectedOpen...$expectedClose"
+        )
+
+        /**
+         * 노드 유효성 검증 실패 오류를 생성합니다.
+         *
+         * @param nodeType 노드 타입
+         * @param nodeName 노드 이름/식별자(선택)
+         * @param reason 실패 사유(선택)
+         * @return ASTException 인스턴스
+         */
+        fun nodeValidationFailed(
+            nodeName: String? = null,
+            reason: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_VALIDATION_FAILED,
+            nodeName = nodeName,
+            reason = reason
         )
     }
 
