@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.utils
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 
 /**
  * 함수 호출 검증 규칙을 중앙에서 관리하는 유틸리티 클래스입니다.
@@ -113,7 +114,7 @@ object FunctionValidationRules {
     fun addValidationRule(name: String, rule: ValidationRule) {
         // 런타임에 규칙을 추가할 수 있도록 MutableMap으로 변경 가능
         // 현재는 읽기 전용으로 설계됨
-        throw UnsupportedOperationException("현재 버전에서는 런타임 규칙 추가를 지원하지 않습니다")
+        throw ASTException.runtimeRuleNotSupported()
     }
 
     /**
