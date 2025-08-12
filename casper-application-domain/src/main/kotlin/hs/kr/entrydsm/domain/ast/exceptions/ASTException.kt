@@ -1062,6 +1062,19 @@ class ASTException(
             errorCode = ErrorCode.AST_ARGUMENTS_DUPLICATED,
             reason = "duplicates=$duplicates"
         )
+
+        /**
+         * 노드 크기가 최대 허용 크기를 초과할 때의 오류를 생성합니다.
+         *
+         * @param size 실제 크기
+         * @param max 최대 허용 크기
+         * @param context 컨텍스트 라벨
+         * @return ASTException 인스턴스
+         */
+        fun nodeSizeExceeded(size: Int, max: Int, context: String): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NODE_SIZE_EXCEEDED,
+            reason = "$context size=$size, max=$max"
+        )
     }
 
     /**
