@@ -362,6 +362,17 @@ class ASTException(
                 reason = "value: $value"
             )
 
+        /**
+         * 0으로 나누려 할 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun divisionByZero(): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_DIVISION_BY_ZERO,
+                nodeType = "NumberNode",
+                reason = "denominator=0"
+            )
     }
 
     /**
