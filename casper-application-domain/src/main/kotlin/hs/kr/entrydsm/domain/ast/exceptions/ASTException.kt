@@ -115,11 +115,12 @@ class ASTException(
          * @param nodeName 노드 이름
          * @return ASTException 인스턴스
          */
-        fun invalidNodeStructure(nodeType: String, nodeName: String? = null): ASTException {
+        fun invalidNodeStructure(nodeType: String, reason: String, nodeName: String? = null): ASTException {
             return ASTException(
                 errorCode = ErrorCode.INVALID_NODE_STRUCTURE,
                 nodeType = nodeType,
-                nodeName = nodeName
+                nodeName = nodeName,
+                reason = reason
             )
         }
 
@@ -140,6 +141,12 @@ class ASTException(
             )
         }
 
+        /**
+         * 루트 노드 유효성 실패 오류를 생성합니다.
+         *
+         * @param reason 유효하지 않은 사유
+         * @return ASTException 인스턴스
+         */
         fun invalidRootNode(reason: String): ASTException {
             return ASTException(
                 errorCode = ErrorCode.INVALID_ROOT_NODE,
