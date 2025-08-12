@@ -292,6 +292,21 @@ class ASTException(
                 errorCode = ErrorCode.AST_ARGUMENTS_EMPTY
             )
         }
+
+        /**
+         * IF 노드를 단순화할 수 없을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun ifNotSimplifiable(
+            nodeName: String? = "IfNode"
+        ): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_IF_NOT_SIMPLIFIABLE,
+                nodeType = "IfNode",
+                nodeName = nodeName,
+            )
+        }
     }
 
     /**
