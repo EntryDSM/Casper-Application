@@ -537,6 +537,19 @@ class ASTException(
                 nodeType = "NumberNode",
                 reason = "value=$value"
             )
+
+        /**
+         * 산술 연산자가 아닐 때의 오류를 생성합니다.
+         *
+         * @param operator 전달된 연산자
+         * @return ASTException 인스턴스
+         */
+        fun notArithmeticOperator(operator: String): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_NOT_ARITHMETIC_OPERATOR,
+                nodeType = "BinaryOpNode",
+                reason = "operator=$operator"
+            )
     }
 
     /**
