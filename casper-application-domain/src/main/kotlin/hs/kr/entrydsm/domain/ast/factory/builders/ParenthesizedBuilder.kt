@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -25,9 +26,13 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 object ParenthesizedBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): ASTNode {
-        require(children.size == 3) { "Parenthesized 빌더는 정확히 3개의 자식이 필요합니다: ${children.size}" }
-        require(children[1] is ASTNode) { "두 번째 자식은 ASTNode 타입이어야 합니다: ${children[1]::class.simpleName}" }
-        
+        if (children.size != 3) {
+            throw ASTException.parenthesizedChildrenMismatch(3, children.size)
+        }
+        if (children[1] !is ASTNode) {
+            throw ASTException.parenthesizedSecondNotAst(children[1]::class.simpleName)
+        }
+
         return children[1] as ASTNode
     }
     
