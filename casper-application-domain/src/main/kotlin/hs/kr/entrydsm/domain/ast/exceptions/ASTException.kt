@@ -468,6 +468,28 @@ class ASTException(
             reason = "name: $name"
         )
 
+        /**
+         * 변수 표기 문자열이 중괄호로 둘러싸여 있지 않을 때의 예외를 생성합니다.
+         *
+         * @param value 원본 문자열(예: "{USER_NAME}")
+         * @param expectedOpen 기대 여는 괄호(기본: "{")
+         * @param expectedClose 기대 닫는 괄호(기본: "}")
+         * @param nodeType 노드 타입(기본: "VariableNode")
+         * @param nodeName 노드 이름 또는 식별자(선택)
+         * @return ASTException 인스턴스
+         */
+        fun variableNotBracketed(
+            value: String,
+            expectedOpen: String = "{",
+            expectedClose: String = "}",
+            nodeType: String? = "VariableNode",
+            nodeName: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_VARIABLE_NOT_BRACKETED,
+            nodeType = nodeType,
+            nodeName = nodeName,
+            reason = "value: $value, expected: $expectedOpen...$expectedClose"
+        )
     }
 
     /**
