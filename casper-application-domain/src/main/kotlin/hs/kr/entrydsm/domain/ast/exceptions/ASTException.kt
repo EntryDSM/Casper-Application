@@ -607,6 +607,24 @@ class ASTException(
             nodeName = nodeName,
             reason = "expected: $expected, actual: $actual"
         )
+
+        /**
+         * ArgsSingle 빌더 자식 개수 불일치 오류를 생성합니다.
+         *
+         * @param expected 기대 자식 개수(기본: 1)
+         * @param actual   실제 자식 개수
+         * @param nodeName 노드 이름/식별자(선택)
+         * @return ASTException 인스턴스
+         */
+        fun argsSingleChildMismatch(
+            expected: Int = 1,
+            actual: Int,
+            nodeName: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_ARGS_SINGLE_CHILD_MISMATCH,
+            nodeName = nodeName,
+            reason = "expected: $expected, actual: $actual"
+        )
     }
 
     /**
