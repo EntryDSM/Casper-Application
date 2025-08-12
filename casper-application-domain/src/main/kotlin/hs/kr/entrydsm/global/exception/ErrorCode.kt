@@ -103,6 +103,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_NUMBER_TOO_LARGE("AST061", "숫자 값이 최대값을 초과합니다"),
     AST_VARIABLE_NAME_TOO_LONG("AST062", "변수명이 최대 길이를 초과합니다"),
     AST_VARIABLE_RESERVED_WORD("AST063", "예약어는 변수명으로 사용할 수 없습니다"),
+    AST_UNSUPPORTED_BINARY_OPERATOR("AST064", "지원되지 않는 이항 연산자입니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
