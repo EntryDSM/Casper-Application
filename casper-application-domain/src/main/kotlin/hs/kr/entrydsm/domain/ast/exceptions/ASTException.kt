@@ -1039,6 +1039,18 @@ class ASTException(
             errorCode = ErrorCode.AST_IF_TOTAL_DEPTH_EXCEEDED,
             reason = "totalDepth=$totalDepth, max=$max"
         )
+
+        /**
+         * 인수 개수가 최대 허용 개수를 초과할 때의 오류를 생성합니다.
+         *
+         * @param size 실제 인수 개수
+         * @param max 최대 허용 개수
+         * @return ASTException 인스턴스
+         */
+        fun argumentsExceeded(size: Int, max: Int): ASTException = ASTException(
+            errorCode = ErrorCode.AST_ARGUMENTS_EXCEEDED,
+            reason = "args=$size, max=$max"
+        )
     }
 
     /**
