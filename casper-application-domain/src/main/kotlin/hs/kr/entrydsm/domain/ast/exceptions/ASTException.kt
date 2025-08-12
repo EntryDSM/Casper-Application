@@ -51,13 +51,13 @@ class ASTException(
         ): String {
             val baseMessage = errorCode.description
             val details = mutableListOf<String>()
-            
+
             nodeType?.let { details.add("노드타입: $it") }
             nodeName?.let { details.add("노드명: $it") }
             expectedType?.let { details.add("예상타입: $it") }
             actualType?.let { details.add("실제타입: $it") }
             reason?.let { details.add("사유: $it") }
-            
+
             return if (details.isNotEmpty()) {
                 "$baseMessage (${details.joinToString(", ")})"
             } else {
@@ -232,6 +232,18 @@ class ASTException(
         fun unsupportedOperator(): ASTException {
             return ASTException(
                 errorCode = ErrorCode.AST_UNSUPPORTED_OPERATOR
+            )
+        }
+
+        /**
+         * 교환법칙을 요구하는 문맥에서 교환법칙이 성립하지 않는 연산자일 때 예외를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun operatorNotCommutative(operator: String): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_OPERATOR_NOT_COMMUTATIVE,
+                reason = "operator: $operator"
             )
         }
     }
