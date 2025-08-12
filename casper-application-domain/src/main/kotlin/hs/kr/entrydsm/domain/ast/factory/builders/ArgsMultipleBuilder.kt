@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -25,8 +26,9 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 object ArgsMultipleBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): List<ASTNode> {
-        require(children.size == 3) { "ArgsMultiple 빌더는 정확히 3개의 자식이 필요합니다: ${children.size}" }
-        
+        if (children.size != 3) {
+            throw ASTException.argsMultipleChildrenMismatch(actual = children.size)
+        }
         @Suppress("UNCHECKED_CAST")
         val existingArgs = children[0] as List<ASTNode>
         val newArg = children[2] as ASTNode
