@@ -769,6 +769,17 @@ class ASTException(
             errorCode = ErrorCode.AST_IDENTITY_CHILDREN_EMPTY,
             reason = "expected≥$expectedAtLeast, actual=$actual"
         )
+
+        /**
+         * Identity 빌더의 첫 번째 자식이 ASTNode가 아닐 때 오류를 생성합니다.
+         *
+         * @param actualType 실제 타입 이름
+         * @return ASTException 인스턴스
+         */
+        fun identityFirstNotAstNode(actualType: String?): ASTException = ASTException(
+            errorCode = ErrorCode.NOT_AST_NODE, // 재사용
+            reason = "child=first, actualType=$actualType"
+        )
     }
 
     /**
