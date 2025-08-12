@@ -89,6 +89,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_FUNCTION_CALL_EMPTY_FIRST_NOT_TOKEN("AST047", "FunctionCallEmpty 빌더의 첫 번째 자식이 Token이 아닙니다"),
     AST_FUNCTION_CALL_EMPTY_SECOND_NOT_TOKEN("AST048", "FunctionCallEmpty 빌더의 두 번째 자식이 Token이 아닙니다"),
     AST_FUNCTION_CALL_EMPTY_THIRD_NOT_TOKEN("AST049", "FunctionCallEmpty 빌더의 세 번째 자식이 Token이 아닙니다"),
+    AST_IDENTITY_CHILDREN_EMPTY("AST050", "Identity 빌더 자식이 비어 있습니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
