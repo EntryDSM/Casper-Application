@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -25,9 +26,13 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 object StartBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): ASTNode {
-        require(children.size == 1) { "Start 빌더는 정확히 1개의 자식이 필요합니다: ${children.size}" }
-        require(children[0] is ASTNode) { "첫 번째 자식은 ASTNode 타입이어야 합니다: ${children[0]::class.simpleName}" }
-        
+        if (children.size != 1) {
+            throw ASTException.startChildrenMismatch(1, children.size)
+        }
+        if (children[0] !is ASTNode) {
+            throw ASTException.startFirstNotAst(children[0]::class.simpleName)
+        }
+
         return children[0] as ASTNode
     }
     
