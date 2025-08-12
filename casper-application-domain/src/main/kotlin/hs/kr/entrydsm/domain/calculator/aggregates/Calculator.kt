@@ -170,7 +170,7 @@ class Calculator(
         "maxFormulaLength" to maxFormulaLength,
         "maxVariables" to maxVariables,
         "lexerConfiguration" to lexer.getConfiguration(),
-        "supportedTokenTypes" to "ALL_CALCULATOR_TOKENS",
+        "supportedTokenTypes" to ALL_CALCULATOR_TOKENS,
         "grammarStatistics" to Grammar.getGrammarStatistics()
     )
 
@@ -216,7 +216,8 @@ class Calculator(
     )
 
     companion object {
-        
+
+        private const val ALL_CALCULATOR_TOKENS = "ALL_CALCULATOR_TOKENS"
         private const val STEP_VARIABLE_PREFIX = "__entry_calc_step_"
         /**
          * 기본 설정으로 계산기를 생성합니다.
