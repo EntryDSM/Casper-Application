@@ -576,6 +576,19 @@ class ASTException(
                 nodeType = "BinaryOpNode",
                 reason = "operator=$operator"
             )
+
+        /**
+         * 지원되지 않는 수학 함수일 때의 오류를 생성합니다.
+         *
+         * @param name 함수명
+         * @return ASTException 인스턴스
+         */
+        fun unsupportedMathFunction(name: String): ASTException =
+            ASTException(
+                errorCode = ErrorCode.AST_UNSUPPORTED_MATH_FUNCTION,
+                nodeType = "FunctionCallNode",
+                reason = "name=$name"
+            )
     }
 
     /**
