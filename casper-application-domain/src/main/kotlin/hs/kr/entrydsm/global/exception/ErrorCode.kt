@@ -64,6 +64,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_IF_NOT_SIMPLIFIABLE("AST022", "단순화할 수 없는 IF 노드입니다"),
     AST_SIMPLIFICATION_UNEXPECTED_CASE("AST023", "예상치 못한 단순화 케이스"),
     AST_NON_FINITE_NUMBER("AST024", "숫자 값은 유한해야 합니다"),
+    AST_NON_INTEGER_TO_INT("AST025", "정수가 아닌 값을 정수로 변환할 수 없습니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
