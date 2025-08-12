@@ -65,50 +65,123 @@ class LRParserTable private constructor(
         while (workList.isNotEmpty()) {
             val stateId = workList.removeFirst()
             val state = states[stateId]
-
-            // 각 심볼에 대한 전이 계산
-            val transitions = computeTransitions(state)
-
-            for ((symbol, itemSet) in transitions) {
-                val newState = closure(itemSet)
-                
-                // 상태 캐싱 시스템 사용
-                val cacheResult = stateCache.getOrCacheState(newState, states.size)
-                
-                val targetStateId = if (cacheResult.isHit) {
-                    cacheResult.stateId
-                } else {
-                    // 새 상태 추가
-                    val newStateId = states.size
-                    states.add(newState)
-                    stateMap[newState] = newStateId
-                    workList.add(newStateId)
-
-                    // LALR 병합 시도
-                    val compressedState = CompressedLRState.fromItems(newState)
-                    val mergeableStateId = stateCache.findMergeableState(compressedState)
-                    
-                    if (mergeableStateId != null && 
-                        CompressedLRState.canMergeLALR(
-                            CompressedLRState.fromItems(states[mergeableStateId]), 
-                            compressedState
-                        )) {
-                        // LALR 병합 수행
-                        val mergedState = CompressedLRState.mergeLALR(
-                            CompressedLRState.fromItems(states[mergeableStateId]),
-                            compressedState
-                        )
-                        states[mergeableStateId] = mergedState.coreItems
-                        states.removeAt(newStateId)
-                        mergeableStateId
-                    } else {
-                        newStateId
-                    }
-                }
-            }
+            
+            processStateTransitions(state, states, stateMap, workList)
         }
 
         return states
+    }
+
+    /**
+     * 단일 상태의 모든 전이를 처리합니다.
+     *
+     * @param state 처리할 상태
+     * @param states 전체 상태 목록
+     * @param stateMap 상태 맵핑
+     * @param workList 작업 대기열
+     */
+    private fun processStateTransitions(
+        state: Set<LRItem>,
+        states: MutableList<Set<LRItem>>,
+        stateMap: MutableMap<Set<LRItem>, Int>,
+        workList: MutableList<Int>
+    ) {
+        val transitions = computeTransitions(state)
+        
+        for ((symbol, itemSet) in transitions) {
+            val newState = closure(itemSet)
+            processNewState(newState, states, stateMap, workList)
+        }
+    }
+
+    /**
+     * 새로운 상태를 처리하고 캐싱/병합을 수행합니다.
+     *
+     * @param newState 새로 생성된 상태
+     * @param states 전체 상태 목록
+     * @param stateMap 상태 맵핑
+     * @param workList 작업 대기열
+     */
+    private fun processNewState(
+        newState: Set<LRItem>,
+        states: MutableList<Set<LRItem>>,
+        stateMap: MutableMap<Set<LRItem>, Int>,
+        workList: MutableList<Int>
+    ) {
+        val cacheResult = stateCache.getOrCacheState(newState, states.size)
+        
+        if (cacheResult.isHit) {
+            return // 이미 존재하는 상태
+        }
+        
+        val newStateId = addNewState(newState, states, stateMap, workList)
+        attemptLALRMerge(newState, newStateId, states)
+    }
+
+    /**
+     * 새로운 상태를 상태 목록에 추가합니다.
+     *
+     * @param newState 추가할 상태
+     * @param states 전체 상태 목록
+     * @param stateMap 상태 맵핑
+     * @param workList 작업 대기열
+     * @return 새 상태의 ID
+     */
+    private fun addNewState(
+        newState: Set<LRItem>,
+        states: MutableList<Set<LRItem>>,
+        stateMap: MutableMap<Set<LRItem>, Int>,
+        workList: MutableList<Int>
+    ): Int {
+        val newStateId = states.size
+        states.add(newState)
+        stateMap[newState] = newStateId
+        workList.add(newStateId)
+        return newStateId
+    }
+
+    /**
+     * LALR 병합을 시도합니다.
+     *
+     * @param newState 새로운 상태
+     * @param newStateId 새 상태의 ID
+     * @param states 전체 상태 목록
+     */
+    private fun attemptLALRMerge(
+        newState: Set<LRItem>,
+        newStateId: Int,
+        states: MutableList<Set<LRItem>>
+    ) {
+        val compressedState = CompressedLRState.fromItems(newState)
+        val mergeableStateId = stateCache.findMergeableState(compressedState)
+        
+        if (mergeableStateId != null && canMergeStates(states[mergeableStateId], compressedState)) {
+            performLALRMerge(mergeableStateId, compressedState, newStateId, states)
+        }
+    }
+
+    /**
+     * 두 상태가 LALR 병합 가능한지 확인합니다.
+     */
+    private fun canMergeStates(existingState: Set<LRItem>, newCompressedState: CompressedLRState): Boolean {
+        val existingCompressed = CompressedLRState.fromItems(existingState)
+        return CompressedLRState.canMergeLALR(existingCompressed, newCompressedState)
+    }
+
+    /**
+     * LALR 병합을 수행합니다.
+     */
+    private fun performLALRMerge(
+        mergeableStateId: Int,
+        compressedState: CompressedLRState,
+        newStateId: Int,
+        states: MutableList<Set<LRItem>>
+    ) {
+        val existingCompressed = CompressedLRState.fromItems(states[mergeableStateId])
+        val mergedState = CompressedLRState.mergeLALR(existingCompressed, compressedState)
+        
+        states[mergeableStateId] = mergedState.coreItems
+        states.removeAt(newStateId)
     }
 
     /**
