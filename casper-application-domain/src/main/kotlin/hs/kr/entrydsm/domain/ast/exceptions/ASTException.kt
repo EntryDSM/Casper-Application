@@ -281,6 +281,17 @@ class ASTException(
                 reason = "function name: $name"
             )
         }
+
+        /**
+         * 인수 목록이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun argumentsEmpty(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_ARGUMENTS_EMPTY
+            )
+        }
     }
 
     /**
