@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -157,7 +158,7 @@ data class BooleanNode(val value: Boolean) : ASTNode() {
         fun parse(value: String): BooleanNode = when (value.lowercase()) {
             "true" -> TRUE
             "false" -> FALSE
-            else -> throw IllegalArgumentException("잘못된 불린 값입니다: $value")
+            else -> throw ASTException.invalidBooleanValue(value)
         }
 
         /**
