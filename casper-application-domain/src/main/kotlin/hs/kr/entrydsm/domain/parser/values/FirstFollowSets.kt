@@ -131,11 +131,14 @@ class FirstFollowSets private constructor(
             while (changed) {
                 changed = false
                 for (production in productions) {
-                    val before = firstSets[production.left]!!.size
-                    val firstOfRight = firstOfSequence(production.right, firstSets)
-                    firstSets[production.left]!!.addAll(firstOfRight)
-                    if (firstSets[production.left]!!.size > before) {
-                        changed = true
+                    val currentFirstSet = firstSets[production.left]
+                    if (currentFirstSet != null) {
+                        val before = currentFirstSet.size
+                        val firstOfRight = firstOfSequence(production.right, firstSets)
+                        currentFirstSet.addAll(firstOfRight)
+                        if (currentFirstSet.size > before) {
+                            changed = true
+                        }
                     }
                 }
             }
@@ -155,7 +158,7 @@ class FirstFollowSets private constructor(
             nonTerminals.forEach { followSets[it] = mutableSetOf() }
             
             // 시작 심볼의 FOLLOW 집합에는 EOF($)가 포함
-            followSets[startSymbol]!!.add(TokenType.DOLLAR)
+            followSets[startSymbol]?.add(TokenType.DOLLAR)
 
             var changed = true
             while (changed) {
@@ -164,17 +167,22 @@ class FirstFollowSets private constructor(
                     for (i in production.right.indices) {
                         val symbol = production.right[i]
                         if (symbol in nonTerminals) {
-                            val before = followSets[symbol]!!.size
-                            val beta = production.right.drop(i + 1)
-                            val firstOfBeta = firstOfSequence(beta, firstSets)
-                            followSets[symbol]!!.addAll(firstOfBeta - TokenType.EPSILON)
+                            val currentFollowSet = followSets[symbol]
+                            val productionFollowSet = followSets[production.left]
+                            
+                            if (currentFollowSet != null && productionFollowSet != null) {
+                                val before = currentFollowSet.size
+                                val beta = production.right.drop(i + 1)
+                                val firstOfBeta = firstOfSequence(beta, firstSets)
+                                currentFollowSet.addAll(firstOfBeta - TokenType.EPSILON)
 
-                            if (beta.isEmpty() || canDeriveEmpty(beta, firstSets)) {
-                                followSets[symbol]!!.addAll(followSets[production.left]!!)
-                            }
+                                if (beta.isEmpty() || canDeriveEmpty(beta, firstSets)) {
+                                    currentFollowSet.addAll(productionFollowSet)
+                                }
 
-                            if (followSets[symbol]!!.size > before) {
-                                changed = true
+                                if (currentFollowSet.size > before) {
+                                    changed = true
+                                }
                             }
                         }
                     }

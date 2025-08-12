@@ -114,7 +114,7 @@ class LexerAggregate : LexerContract {
             return null to currentContext
         }
 
-        val currentChar = currentContext.currentChar!!
+        val currentChar = currentContext.currentChar ?: return null to currentContext
         
         return when {
             characterRecognitionPolicy.isDigit(currentChar) -> parseNumber(currentContext)
@@ -185,8 +185,8 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val currentChar = currentContext.currentChar!!
-            if (characterRecognitionPolicy.isWhitespace(currentChar)) {
+            val currentChar = currentContext.currentChar
+            if (currentChar != null && characterRecognitionPolicy.isWhitespace(currentChar)) {
                 currentContext = currentContext.advance()
             } else {
                 break
@@ -203,7 +203,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val currentChar = currentContext.currentChar!!
+            val currentChar = currentContext.currentChar ?: break
             
             if (characterRecognitionPolicy.isCommentStart(currentChar)) {
                 currentContext = when (currentChar) {
@@ -325,8 +325,8 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val char = currentContext.currentChar!!
-            if (characterRecognitionPolicy.isValidInNumber(char, value.isEmpty())) {
+            val char = currentContext.currentChar
+            if (char != null && characterRecognitionPolicy.isValidInNumber(char, value.isEmpty())) {
                 value.append(char)
                 currentContext = currentContext.advance()
             } else {
@@ -344,8 +344,8 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val char = currentContext.currentChar!!
-            if (characterRecognitionPolicy.isIdentifierBody(char)) {
+            val char = currentContext.currentChar
+            if (char != null && characterRecognitionPolicy.isIdentifierBody(char)) {
                 value.append(char)
                 currentContext = currentContext.advance()
             } else {
@@ -363,8 +363,10 @@ class LexerAggregate : LexerContract {
         
         val value = StringBuilder()
         while (currentContext.hasNext()) {
-            val char = currentContext.currentChar!!
-            if (char == '}') {
+            val char = currentContext.currentChar
+            if (char == null) {
+                throw LexerException(ErrorCode.VALIDATION_FAILED, message = "변수 종료 전에 입력이 끝났습니다")
+            } else if (char == '}') {
                 currentContext = currentContext.advance() // '}' 건너뛰기
                 break
             } else if (characterRecognitionPolicy.isIdentifierBody(char)) {
@@ -385,18 +387,20 @@ class LexerAggregate : LexerContract {
 
     private fun parseOperator(context: LexingContext): Pair<Token, LexingContext> {
         val startPosition = context.currentPosition
-        val currentChar = context.currentChar!!
+        val currentChar = context.currentChar ?: throw LexerException(ErrorCode.VALIDATION_FAILED, message = "연산자 파싱 중 비어있는 문자")
         var operator = currentChar.toString()
         var currentContext = context.advance()
         
         // 2문자 연산자 확인
         if (currentContext.hasNext()) {
-            val nextChar = currentContext.currentChar!!
-            val twoCharOperator = operator + nextChar
-            
-            if (tokenFactory.isOperator(twoCharOperator)) {
-                operator = twoCharOperator
-                currentContext = currentContext.advance()
+            val nextChar = currentContext.currentChar
+            if (nextChar != null) {
+                val twoCharOperator = operator + nextChar
+                
+                if (tokenFactory.isOperator(twoCharOperator)) {
+                    operator = twoCharOperator
+                    currentContext = currentContext.advance()
+                }
             }
         }
         
@@ -406,7 +410,7 @@ class LexerAggregate : LexerContract {
 
     private fun parseDelimiter(context: LexingContext): Pair<Token, LexingContext> {
         val startPosition = context.currentPosition
-        val delimiter = context.currentChar!!.toString()
+        val delimiter = context.currentChar?.toString() ?: throw LexerException(ErrorCode.VALIDATION_FAILED, message = "구분자 파싱 중 비어있는 문자")
         val currentContext = context.advance()
         
         val token = tokenFactory.createDelimiterToken(delimiter, startPosition)
@@ -417,7 +421,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context
         
         while (currentContext.hasNext()) {
-            val char = currentContext.currentChar!!
+            val char = currentContext.currentChar
             currentContext = currentContext.advance()
             if (char == '\n') break
         }
@@ -429,7 +433,7 @@ class LexerAggregate : LexerContract {
         var currentContext = context.advance(2) // "/*" 건너뛰기
         
         while (currentContext.hasNext()) {
-            val char = currentContext.currentChar!!
+            val char = currentContext.currentChar
             if (char == '*' && currentContext.peekChar() == '/') {
                 currentContext = currentContext.advance(2) // "*/" 건너뛰기
                 break
