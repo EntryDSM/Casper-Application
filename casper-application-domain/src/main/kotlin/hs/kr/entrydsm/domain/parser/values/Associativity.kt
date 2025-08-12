@@ -214,32 +214,24 @@ data class Associativity(
     }
 
     /**
-     * 좌결합인지 확인합니다.
-     *
-     * @return 좌결합이면 true
+     * 좌결합인지 나타냅니다.
      */
-    fun isLeftAssociative(): Boolean = type == AssociativityType.LEFT
+    val isLeftAssociative: Boolean get() = type == AssociativityType.LEFT
 
     /**
-     * 우결합인지 확인합니다.
-     *
-     * @return 우결합이면 true
+     * 우결합인지 나타냅니다.
      */
-    fun isRightAssociative(): Boolean = type == AssociativityType.RIGHT
+    val isRightAssociative: Boolean get() = type == AssociativityType.RIGHT
 
     /**
-     * 비결합인지 확인합니다.
-     *
-     * @return 비결합이면 true
+     * 비결합인지 나타냅니다.
      */
-    fun isNonAssociative(): Boolean = type == AssociativityType.NONE
+    val isNonAssociative: Boolean get() = type == AssociativityType.NONE
 
     /**
-     * 체인결합인지 확인합니다.
-     *
-     * @return 체인결합이면 true
+     * 체인결합인지 나타냅니다.
      */
-    fun isChainAssociative(): Boolean = type == AssociativityType.CHAIN
+    val isChainAssociative: Boolean get() = type == AssociativityType.CHAIN
 
     /**
      * 다른 연산자와의 우선순위를 비교합니다.
