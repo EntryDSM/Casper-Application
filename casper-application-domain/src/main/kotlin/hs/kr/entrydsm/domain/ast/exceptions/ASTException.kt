@@ -1075,6 +1075,19 @@ class ASTException(
             errorCode = ErrorCode.AST_NODE_SIZE_EXCEEDED,
             reason = "$context size=$size, max=$max"
         )
+
+        /**
+         * 노드 깊이가 최대 허용 깊이를 초과할 때의 오류를 생성합니다.
+         *
+         * @param depth 실제 깊이
+         * @param max 최대 허용 깊이
+         * @param context 컨텍스트 라벨
+         * @return ASTException 인스턴스
+         */
+        fun nodeDepthExceeded(depth: Int, max: Int, context: String): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NODE_DEPTH_EXCEEDED,
+            reason = "$context depth=$depth, max=$max"
+        )
     }
 
     /**
