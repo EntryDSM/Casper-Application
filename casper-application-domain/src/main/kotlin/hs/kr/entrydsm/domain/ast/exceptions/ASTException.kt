@@ -432,6 +432,22 @@ class ASTException(
                 reason = detail
             )
         }
+
+        /**
+         * 변수명이 비어 있을 때의 예외를 생성합니다.
+         *
+         * @param nodeType 노드 타입(기본: "VariableNode")
+         * @param nodeName 노드 이름 또는 식별자(선택)
+         * @return ASTException 인스턴스
+         */
+        fun variableNameEmpty(
+            nodeType: String? = "VariableNode",
+            nodeName: String? = null
+        ): ASTException = ASTException(
+            errorCode = ErrorCode.AST_VARIABLE_NAME_EMPTY,
+            nodeType = nodeType,
+            nodeName = nodeName
+        )
     }
 
     /**
