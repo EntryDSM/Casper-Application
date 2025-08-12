@@ -124,43 +124,43 @@ enum class NodeType(
         /**
          * 모든 리터럴 노드 타입을 반환합니다.
          */
-        fun getLiteralTypes(): Set<NodeType> {
-            return values().filter { it.isLiteral }.toSet()
+        val literalTypes: Set<NodeType> by lazy {
+            entries.filter { it.isLiteral }.toSet()
         }
         
         /**
          * 모든 연산자 노드 타입을 반환합니다.
          */
-        fun getOperatorTypes(): Set<NodeType> {
-            return values().filter { it.isOperator }.toSet()
+        val operatorTypes: Set<NodeType> by lazy {
+            entries.filter { it.isOperator }.toSet()
         }
         
         /**
          * 모든 리프 노드 타입을 반환합니다.
          */
-        fun getLeafTypes(): Set<NodeType> {
-            return values().filter { it.isLeaf }.toSet()
+        val leafTypes: Set<NodeType> by lazy {
+            entries.filter { it.isLeaf }.toSet()
         }
         
         /**
          * 모든 복합 노드 타입을 반환합니다.
          */
-        fun getComplexTypes(): Set<NodeType> {
-            return values().filter { !it.isLeaf }.toSet()
+        val complexTypes: Set<NodeType> by lazy {
+            entries.filter { !it.isLeaf }.toSet()
         }
         
         /**
          * 우선순위 순으로 정렬된 노드 타입을 반환합니다.
          */
-        fun getSortedByPriority(): List<NodeType> {
-            return values().sortedBy { it.priority }
+        val sortedByPriority: List<NodeType> by lazy {
+            entries.sortedBy { it.priority }
         }
         
         /**
          * 설명으로 노드 타입을 찾습니다.
          */
         fun findByDescription(description: String): NodeType? {
-            return values().find { it.description == description }
+            return entries.find { it.description == description }
         }
     }
 }

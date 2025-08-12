@@ -42,12 +42,13 @@ data class LexingContext(
          * 기본 설정으로 컨텍스트를 생성합니다.
          *
          * @param input 분석할 입력 텍스트
+         * @param startTime 분석 시작 시간 (기본값: 현재 시간)
          * @return 기본 LexingContext
          */
-        fun of(input: String): LexingContext = LexingContext(
+        fun of(input: String, startTime: Long = System.currentTimeMillis()): LexingContext = LexingContext(
             input = input,
             currentPosition = Position.START,
-            startTime = System.currentTimeMillis()
+            startTime = startTime
         )
 
         /**
@@ -78,6 +79,7 @@ data class LexingContext(
          * @param skipWhitespace 공백 스킵 여부
          * @param allowUnicode 유니코드 허용 여부
          * @param maxTokenLength 최대 토큰 길이
+         * @param startTime 분석 시작 시간 (기본값: 현재 시간)
          * @return 설정된 LexingContext
          */
         fun create(
@@ -85,11 +87,12 @@ data class LexingContext(
             strictMode: Boolean = true,
             skipWhitespace: Boolean = true,
             allowUnicode: Boolean = false,
-            maxTokenLength: Int = 1000
+            maxTokenLength: Int = 1000,
+            startTime: Long = System.currentTimeMillis()
         ): LexingContext = LexingContext(
             input = input,
             currentPosition = Position.START,
-            startTime = System.currentTimeMillis(),
+            startTime = startTime,
             strictMode = strictMode,
             skipWhitespace = skipWhitespace,
             allowUnicode = allowUnicode,
@@ -151,19 +154,25 @@ data class LexingContext(
     fun advance(steps: Int = 1): LexingContext {
         require(steps >= 0) { "이동 거리는 0 이상이어야 합니다: $steps" }
         
-        var newPosition = currentPosition
-        repeat(steps) {
-            if (newPosition.index < input.length) {
-                val currentChar = input[newPosition.index]
-                newPosition = if (currentChar == '\n') {
-                    newPosition.nextLine()
-                } else {
-                    newPosition.nextColumn()
-                }
+        var index = currentPosition.index
+        var line = currentPosition.line
+        var column = currentPosition.column
+        
+        val maxIndex = input.length
+        var moved = 0
+        
+        while (moved < steps && index < maxIndex) {
+            val currentChar = input[index++]
+            moved++
+            if (currentChar == '\n') {
+                line++
+                column = 1
+            } else {
+                column++
             }
         }
         
-        return copy(currentPosition = newPosition)
+        return copy(currentPosition = Position(index, line, column))
     }
 
     /**
