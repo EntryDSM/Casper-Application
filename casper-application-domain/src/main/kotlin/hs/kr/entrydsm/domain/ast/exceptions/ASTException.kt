@@ -697,6 +697,15 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_CALL_THIRD_NOT_LIST,
             reason = "actualType: $actualType"
         )
+
+        /**
+         * FunctionCall 빌더의 인수 목록에 ASTNode가 아닌 요소가 포함되어 있을 때 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun functionCallArgsNotAstNode(): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_CALL_ARGS_NOT_AST_NODE,
+        )
     }
 
     /**
