@@ -925,6 +925,18 @@ class ASTException(
             errorCode = ErrorCode.AST_NUMBER_TOO_LARGE,
             reason = "value=$value, max=$max"
         )
+
+        /**
+         * 변수명이 최대 길이를 초과할 때의 오류를 생성합니다.
+         *
+         * @param length 실제 변수명 길이
+         * @param max 최대 허용 길이
+         * @return ASTException 인스턴스
+         */
+        fun variableNameTooLong(length: Int, max: Int): ASTException = ASTException(
+            errorCode = ErrorCode.AST_VARIABLE_NAME_TOO_LONG,
+            reason = "length=$length, max=$max"
+        )
     }
 
     /**
