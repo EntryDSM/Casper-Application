@@ -1088,6 +1088,19 @@ class ASTException(
             errorCode = ErrorCode.AST_NODE_DEPTH_EXCEEDED,
             reason = "$context depth=$depth, max=$max"
         )
+
+        /**
+         * 노드의 변수 개수가 최대 허용 개수를 초과할 때의 오류를 생성합니다.
+         *
+         * @param count 실제 변수 개수
+         * @param max 최대 허용 개수
+         * @param context 컨텍스트 라벨
+         * @return ASTException 인스턴스
+         */
+        fun nodeVariablesExceeded(count: Int, max: Int, context: String): ASTException = ASTException(
+            errorCode = ErrorCode.AST_NODE_VARIABLES_EXCEEDED,
+            reason = "$context variables=$count, max=$max"
+        )
     }
 
     /**
