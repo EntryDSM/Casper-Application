@@ -986,6 +986,18 @@ class ASTException(
         fun logicalIncompatibleOperand(): ASTException = ASTException(
             errorCode = ErrorCode.AST_LOGICAL_INCOMPATIBLE_OPERAND,
         )
+
+        /**
+         * 함수명이 최대 길이를 초과할 때의 오류를 생성합니다.
+         *
+         * @param length 실제 함수명 길이
+         * @param max 최대 허용 길이
+         * @return ASTException 인스턴스
+         */
+        fun functionNameTooLong(length: Int, max: Int): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_NAME_TOO_LONG,
+            reason = "length=$length, max=$max"
+        )
     }
 
     /**
