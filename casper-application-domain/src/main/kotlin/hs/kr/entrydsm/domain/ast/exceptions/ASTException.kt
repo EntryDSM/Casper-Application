@@ -183,11 +183,22 @@ class ASTException(
          * @param nodeType 문제가 있는 노드 타입
          * @return ASTException 인스턴스
          */
-        fun invalidReplacementNode(reason: String, nodeType: String) : ASTException {
+        fun invalidReplacementNode(reason: String, nodeType: String): ASTException {
             return ASTException(
                 errorCode = ErrorCode.INVALID_REPLACEMENT_NODE,
                 reason = reason,
                 nodeType = nodeType
+            )
+        }
+
+        /**
+         * 인수 개수 제한 초과 오류를 생성합니다.
+         *
+         * @return ASTException 인스턴스
+         */
+        fun argumentCountExceeded(): ASTException {
+            return ASTException(
+                errorCode = ErrorCode.AST_ARGUMENT_COUNT_EXCEEDED
             )
         }
     }
