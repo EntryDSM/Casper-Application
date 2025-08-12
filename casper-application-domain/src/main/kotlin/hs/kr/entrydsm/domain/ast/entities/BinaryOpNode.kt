@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.ast.entities
 
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import kotlin.math.pow
@@ -28,8 +29,13 @@ data class BinaryOpNode(
 ) : ASTNode() {
     
     init {
-        require(operator.isNotBlank()) { "연산자는 비어있을 수 없습니다" }
-        require(isSupportedOperator(operator)) { "지원하지 않는 연산자입니다: $operator" }
+        if (operator.isBlank()) {
+            throw ASTException.operatorEmpty()
+        }
+
+        if (!isSupportedOperator(operator)) {
+            throw ASTException.unsupportedOperator()
+        }
     }
 
     override fun getVariables(): Set<String> = left.getVariables() + right.getVariables()
@@ -189,7 +195,9 @@ data class BinaryOpNode(
      * @throws IllegalStateException 교환법칙이 성립하지 않는 연산자인 경우
      */
     fun commute(): BinaryOpNode {
-        check(isCommutative()) { "교환법칙이 성립하지 않는 연산자입니다: $operator" }
+        if (!isCommutative()) {
+            throw ASTException.operatorNotCommutative(operator)
+        }
         return BinaryOpNode(right, operator, left)
     }
 
