@@ -41,32 +41,14 @@ class FirstFollowSets private constructor(
 
     /**
      * 심볼 시퀀스의 FIRST 집합을 계산합니다.
+     * 
+     * companion object의 정적 메서드에 위임하여 코드 중복을 방지합니다.
      *
      * @param symbols FIRST 집합을 계산할 심볼 시퀀스
      * @return 심볼 시퀀스의 FIRST 집합
      */
     fun firstOfSequence(symbols: List<TokenType>): Set<TokenType> {
-        if (symbols.isEmpty()) {
-            return setOf() // 빈 시퀀스는 epsilon (빈 집합) 반환
-        }
-
-        val result = mutableSetOf<TokenType>()
-        var derivesEmpty = true
-
-        for (symbol in symbols) {
-            val firstOfSymbol = firstSets[symbol] ?: setOf()
-            result.addAll(firstOfSymbol - TokenType.EPSILON) // epsilon 제외하고 결과에 추가
-            if (TokenType.EPSILON !in firstOfSymbol) {
-                derivesEmpty = false // epsilon을 파생할 수 없으면 중단
-                break
-            }
-        }
-
-        if (derivesEmpty) {
-            result.add(TokenType.EPSILON) // 모든 심볼이 epsilon을 파생할 수 있으면 epsilon 추가
-        }
-
-        return result
+        return firstOfSequence(symbols, firstSets)
     }
 
     /**
