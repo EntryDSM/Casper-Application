@@ -92,6 +92,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_IDENTITY_CHILDREN_EMPTY("AST050", "Identity 빌더 자식이 비어 있습니다"),
     AST_IF_CHILDREN_MISMATCH("AST051", "If 빌더 자식 개수가 올바르지 않습니다"),
     AST_NUMBER_CHILDREN_MISMATCH("AST052", "Number 빌더 자식 개수가 올바르지 않습니다"),
+    AST_PARENTHESIZED_CHILDREN_MISMATCH("AST053", "Parenthesized 빌더 자식 개수가 올바르지 않습니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
