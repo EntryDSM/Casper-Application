@@ -72,6 +72,7 @@ enum class ErrorCode(val code: String, val description: String) {
     AST_DOUBLE_LOGICAL_NEGATION_NOT_SIMPLIFIABLE("AST030", "이중 논리 부정을 단순화할 수 없습니다"),
     AST_VARIABLE_NAME_EMPTY("AST031", "변수명은 비어있을 수 없습니다"),
     AST_INVALID_VARIABLE_NAME("AST032", "유효하지 않은 변수명입니다"),
+    AST_VARIABLE_NOT_BRACKETED("AST033", "변수는 중괄호로 둘러싸여야 합니다"),
 
     // Evaluator 도메인 오류 (EVA)
     EVALUATION_ERROR("EVA001", "표현식 평가 중 오류가 발생했습니다"),
