@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.ast.factory.builders
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.entities.FunctionCallNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.global.annotation.factory.Factory
@@ -27,11 +28,20 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 object FunctionCallBuilder : ASTBuilderContract {
     override fun build(children: List<Any>): FunctionCallNode {
-        require(children.size == 3) { "FunctionCall 빌더는 정확히 3개의 자식이 필요합니다: ${children.size}" }
-        require(children[0] is Token) { "첫 번째 자식은 Token이어야 합니다: ${children[0]::class.simpleName}" }
-        require(children[2] is List<*>) { "세 번째 자식은 List여야 합니다: ${children[2]::class.simpleName}" }
-        require((children[2] as List<*>).all { it is ASTNode }) { "인수 목록의 모든 요소는 ASTNode여야 합니다" }
-        
+        if (children.size != 3) {
+            throw ASTException.functionCallChildrenMismatch(actual = children.size)
+        }
+        if (children[0] !is Token) {
+            throw ASTException.functionCallFirstNotToken(children[0]::class.simpleName)
+        }
+        if (children[2] !is List<*>) {
+            throw ASTException.functionCallThirdNotList(children[2]::class.simpleName)
+        }
+        if (!(children[2] as List<*>).all { it is ASTNode }) {
+            throw ASTException.functionCallArgsNotAstNode()
+        }
+
+
         val nameToken = children[0] as Token
         val args = children[2] as List<ASTNode>
         
