@@ -686,6 +686,17 @@ class ASTException(
             errorCode = ErrorCode.AST_FUNCTION_CALL_FIRST_NOT_TOKEN,
             reason = "actualType: $actualType"
         )
+
+        /**
+         * FunctionCall 빌더의 세 번째 자식이 List가 아닐 때 오류를 생성합니다.
+         *
+         * @param actualType 실제 타입 이름
+         * @return ASTException 인스턴스
+         */
+        fun functionCallThirdNotList(actualType: String?): ASTException = ASTException(
+            errorCode = ErrorCode.AST_FUNCTION_CALL_THIRD_NOT_LIST,
+            reason = "actualType: $actualType"
+        )
     }
 
     /**
