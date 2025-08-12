@@ -937,6 +937,17 @@ class ASTException(
             errorCode = ErrorCode.AST_VARIABLE_NAME_TOO_LONG,
             reason = "length=$length, max=$max"
         )
+
+        /**
+         * 예약어를 변수명으로 사용할 때의 오류를 생성합니다.
+         *
+         * @param name 예약어 변수명
+         * @return ASTException 인스턴스
+         */
+        fun variableReservedWord(name: String): ASTException = ASTException(
+            errorCode = ErrorCode.AST_VARIABLE_RESERVED_WORD,
+            reason = "name=$name"
+        )
     }
 
     /**
