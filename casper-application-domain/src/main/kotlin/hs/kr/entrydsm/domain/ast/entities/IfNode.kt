@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.ast.entities
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.entities.BooleanNode
 import hs.kr.entrydsm.domain.ast.entities.NumberNode
+import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
@@ -176,8 +177,9 @@ data class IfNode(
      * @throws IllegalStateException 단순화할 수 없는 경우
      */
     fun simplify(): ASTNode {
-        check(canSimplify()) { "단순화할 수 없는 IF 노드입니다" }
-        
+        if (!canSimplify()) {
+            throw ASTException.ifNotSimplifiable()
+        }
         return when {
             hasSameValues() -> trueValue
             hasBooleanCondition() -> {
@@ -188,7 +190,7 @@ data class IfNode(
                 val numCondition = condition as NumberNode
                 if (!numCondition.isZero()) trueValue else falseValue
             }
-            else -> throw IllegalStateException("예상치 못한 단순화 케이스")
+            else -> throw ASTException.simplificationUnexpectedCase()
         }
     }
 
