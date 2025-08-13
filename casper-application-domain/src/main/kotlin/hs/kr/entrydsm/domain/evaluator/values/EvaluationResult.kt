@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.evaluator.values
 
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import java.time.LocalDateTime
 
 /**
@@ -25,6 +26,9 @@ data class EvaluationResult private constructor(
     
     /**
      * 숫자 값을 반환합니다.
+     *
+     * @return Double 숫자 값
+     * @throws EvaluatorException 결과가 숫자가 아닌 경우
      */
     fun asNumber(): Double {
         return when (value) {
@@ -32,19 +36,22 @@ data class EvaluationResult private constructor(
             is Int -> value.toDouble()
             is Float -> value.toDouble()
             is Long -> value.toDouble()
-            else -> throw IllegalStateException("결과가 숫자가 아닙니다: $value")
+            else -> throw EvaluatorException.numberConversionError(value)
         }
     }
     
     /**
      * 불리언 값을 반환합니다.
+     *
+     * @return Boolean 값
+     * @throws EvaluatorException 결과가 불리언으로 변환할 수 없는 경우
      */
     fun asBoolean(): Boolean {
         return when (value) {
             is Boolean -> value
             is Double -> value != 0.0
             is Int -> value != 0
-            else -> throw IllegalStateException("결과가 불리언으로 변환할 수 없습니다: $value")
+            else -> throw EvaluatorException.unsupportedType("Boolean", value)
         }
     }
     

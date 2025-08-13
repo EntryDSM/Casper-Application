@@ -46,8 +46,14 @@ data class EvaluationContext(
      * @return 새로운 컨텍스트
      */
     fun addVariable(name: String, value: Any): EvaluationContext {
-        require(name.isNotBlank()) { "변수 이름은 비어있을 수 없습니다" }
-        require(variables.size < maxVariables) { "최대 변수 개수를 초과했습니다: $maxVariables" }
+        if (name.isBlank()) {
+            throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.invalidVariableName(name)
+        }
+        if (variables.size >= maxVariables) {
+            throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.evaluationError(
+                RuntimeException("최대 변수 개수를 초과했습니다: $maxVariables")
+            )
+        }
         
         return copy(
             variables = variables + (name to value),
@@ -62,8 +68,10 @@ data class EvaluationContext(
      * @return 새로운 컨텍스트
      */
     fun addVariables(newVariables: Map<String, Any>): EvaluationContext {
-        require(variables.size + newVariables.size <= maxVariables) { 
-            "최대 변수 개수를 초과했습니다: $maxVariables" 
+        if (variables.size + newVariables.size > maxVariables) {
+            throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.evaluationError(
+                RuntimeException("최대 변수 개수를 초과했습니다: $maxVariables")
+            )
         }
         
         return copy(
@@ -169,7 +177,11 @@ data class EvaluationContext(
      * @return 새로운 컨텍스트
      */
     fun withMaxDepth(depth: Int): EvaluationContext {
-        require(depth > 0) { "최대 깊이는 양수여야 합니다: $depth" }
+        if (depth <= 0) {
+            throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.evaluationError(
+                IllegalArgumentException("최대 깊이는 양수여야 합니다: $depth")
+            )
+        }
         return copy(
             maxDepth = depth,
             lastModified = Instant.now()
@@ -253,7 +265,9 @@ data class EvaluationContext(
          * @return 기본 컨텍스트
          */
         fun create(id: String): EvaluationContext {
-            require(id.isNotBlank()) { "컨텍스트 ID는 비어있을 수 없습니다" }
+            if (id.isBlank()) {
+                throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.invalidVariableName(id)
+            }
             return EvaluationContext(
                 id = id,
                 variables = emptyMap()

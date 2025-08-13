@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.evaluator.entities
 
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import java.time.Instant
 
@@ -38,10 +39,10 @@ data class MathFunction(
 ) {
 
     init {
-        require(name.isNotBlank()) { "함수 이름은 비어있을 수 없습니다" }
-        require(minArguments >= 0) { "최소 인수 개수는 음수일 수 없습니다: $minArguments" }
-        require(maxArguments >= minArguments) { "최대 인수 개수는 최소 인수 개수보다 작을 수 없습니다: $maxArguments < $minArguments" }
-        require(description.isNotBlank()) { "함수 설명은 비어있을 수 없습니다" }
+        if (name.isBlank()) throw EvaluatorException.invalidVariableName("함수 이름은 비어있을 수 없습니다")
+        if (minArguments < 0) throw EvaluatorException.wrongArgumentCount("minArguments", 0, minArguments)
+        if (maxArguments < minArguments) throw EvaluatorException.wrongArgumentCount("maxArguments", minArguments, maxArguments)
+        if (description.isBlank()) throw EvaluatorException.invalidVariableName("함수 설명은 비어있을 수 없습니다")
     }
 
     /**
@@ -76,14 +77,11 @@ data class MathFunction(
      * 인수 개수를 검증합니다.
      *
      * @param arguments 인수 목록
-     * @throws IllegalArgumentException 인수 개수가 유효하지 않은 경우
+     * @throws EvaluatorException 인수 개수가 유효하지 않은 경우
      */
     fun validateArgumentCount(arguments: List<Any>) {
         if (!isValidArgumentCount(arguments.size)) {
-            throw IllegalArgumentException(
-                "함수 '$name'의 인수 개수가 잘못되었습니다. " +
-                "기대값: $minArguments-$maxArguments, 실제값: ${arguments.size}"
-            )
+            throw EvaluatorException.wrongArgumentCount(name, minArguments, arguments.size)
         }
     }
 
@@ -92,14 +90,16 @@ data class MathFunction(
      *
      * @param arguments 인수 목록
      * @return 실행 결과
-     * @throws IllegalArgumentException 인수 개수가 유효하지 않은 경우
+     * @throws EvaluatorException 인수 개수가 유효하지 않거나 실행 중 오류 발생 시
      */
     fun execute(arguments: List<Any>): Any {
         validateArgumentCount(arguments)
         return try {
             implementation(arguments)
+        } catch (e: EvaluatorException) {
+            throw e
         } catch (e: Exception) {
-            throw RuntimeException("함수 '$name' 실행 중 오류 발생: ${e.message}", e)
+            throw EvaluatorException.functionExecutionFailed(name, e)
         }
     }
 

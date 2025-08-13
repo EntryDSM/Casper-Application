@@ -16,8 +16,7 @@ interface FunctionEvaluator {
      *
      * @param args 함수 인수 목록
      * @return 평가 결과
-     * @throws IllegalArgumentException 잘못된 인수가 전달된 경우
-     * @throws ArithmeticException 수학적 오류가 발생한 경우
+     * @throws hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException 잘못된 인수가 전달되거나 수학적 오류가 발생한 경우
      */
     fun evaluate(args: List<Any?>): Any?
     

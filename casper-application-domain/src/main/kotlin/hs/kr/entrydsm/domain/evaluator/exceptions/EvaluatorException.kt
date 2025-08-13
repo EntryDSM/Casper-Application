@@ -205,6 +205,103 @@ class EvaluatorException(
                 message = message
             )
         }
+
+        /**
+         * 평가 실패 오류를 생성합니다.
+         *
+         * @param cause 원인 예외
+         * @return EvaluatorException 인스턴스
+         */
+        fun evaluationFailed(cause: Throwable? = null): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.EVALUATION_FAILED,
+                cause = cause
+            )
+        }
+
+        /**
+         * 연산자 평가 실패 오류를 생성합니다.
+         *
+         * @param operator 실패한 연산자
+         * @param cause 원인 예외
+         * @return EvaluatorException 인스턴스
+         */
+        fun operatorEvaluationFailed(operator: String, cause: Throwable? = null): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.OPERATOR_EVALUATION_FAILED,
+                operator = operator,
+                cause = cause
+            )
+        }
+
+        /**
+         * 함수 실행 실패 오류를 생성합니다.
+         *
+         * @param function 실패한 함수명
+         * @param cause 원인 예외
+         * @return EvaluatorException 인스턴스
+         */
+        fun functionExecutionFailed(function: String, cause: Throwable? = null): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.FUNCTION_EXECUTION_FAILED,
+                function = function,
+                cause = cause
+            )
+        }
+
+        /**
+         * 유효하지 않은 변수명 오류를 생성합니다.
+         *
+         * @param variable 유효하지 않은 변수명
+         * @return EvaluatorException 인스턴스
+         */
+        fun invalidVariableName(variable: String): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.VARIABLE_NAME_INVALID,
+                variable = variable
+            )
+        }
+
+        /**
+         * 평가 깊이 초과 오류를 생성합니다.
+         *
+         * @param maxDepth 최대 허용 깊이
+         * @param actualDepth 실제 깊이
+         * @return EvaluatorException 인스턴스
+         */
+        fun evaluationDepthExceeded(maxDepth: Int, actualDepth: Int): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.EVALUATION_DEPTH_EXCEEDED,
+                message = "평가 깊이가 제한을 초과했습니다 (최대: $maxDepth, 실제: $actualDepth)"
+            )
+        }
+
+        /**
+         * 평가 복잡도 초과 오류를 생성합니다.
+         *
+         * @param maxComplexity 최대 허용 복잡도
+         * @param actualComplexity 실제 복잡도
+         * @return EvaluatorException 인스턴스
+         */
+        fun evaluationComplexityExceeded(maxComplexity: Int, actualComplexity: Int): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.EVALUATION_COMPLEXITY_EXCEEDED,
+                message = "평가 복잡도가 제한을 초과했습니다 (최대: $maxComplexity, 실제: $actualComplexity)"
+            )
+        }
+
+        /**
+         * 보안 정책 위반 오류를 생성합니다.
+         *
+         * @param reason 위반 사유
+         * @return EvaluatorException 인스턴스
+         */
+        fun securityViolation(reason: String): EvaluatorException {
+            return EvaluatorException(
+                errorCode = ErrorCode.EVALUATION_SECURITY_VIOLATION,
+                message = "보안 정책 위반: $reason"
+            )
+        }
     }
 
     /**

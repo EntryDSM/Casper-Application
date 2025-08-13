@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.evaluator.functions
 
 import hs.kr.entrydsm.domain.evaluator.interfaces.FunctionEvaluator
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import kotlin.math.*
 
 /**
@@ -25,7 +26,7 @@ class SqrtFunction : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
         validateArgumentCount(args, 1)
         val value = toDouble(args[0])
-        if (value < 0) throw ArithmeticException("SQRT of negative number")
+        if (value < 0) throw EvaluatorException.mathError("SQRT of negative number")
         return sqrt(value)
     }
     
@@ -44,7 +45,7 @@ class RoundFunction : FunctionEvaluator {
                 val multiplier = 10.0.pow(places.toDouble())
                 round(value * multiplier) / multiplier
             }
-            else -> throw IllegalArgumentException("Wrong argument count for ROUND: expected 1-2, got ${args.size}")
+            else -> throw EvaluatorException.wrongArgumentCount("ROUND", 1, args.size)
         }
     }
     
@@ -55,7 +56,7 @@ class RoundFunction : FunctionEvaluator {
 
 class MinFunction : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
-        if (args.isEmpty()) throw IllegalArgumentException("MIN requires at least 1 argument")
+        if (args.isEmpty()) throw EvaluatorException.wrongArgumentCount("MIN", 1, 0)
         return args.map { toDouble(it) }.minOrNull() ?: 0.0
     }
     
@@ -66,7 +67,7 @@ class MinFunction : FunctionEvaluator {
 
 class MaxFunction : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
-        if (args.isEmpty()) throw IllegalArgumentException("MAX requires at least 1 argument")
+        if (args.isEmpty()) throw EvaluatorException.wrongArgumentCount("MAX", 1, 0)
         return args.map { toDouble(it) }.maxOrNull() ?: 0.0
     }
     
@@ -87,7 +88,7 @@ class SumFunction : FunctionEvaluator {
 
 class AvgFunction : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
-        if (args.isEmpty()) throw IllegalArgumentException("AVG requires at least 1 argument")
+        if (args.isEmpty()) throw EvaluatorException.wrongArgumentCount("AVG", 1, 0)
         return args.map { toDouble(it) }.average()
     }
     
@@ -98,7 +99,7 @@ class AvgFunction : FunctionEvaluator {
 
 class AverageFunction : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
-        if (args.isEmpty()) throw IllegalArgumentException("AVERAGE requires at least 1 argument")
+        if (args.isEmpty()) throw EvaluatorException.wrongArgumentCount("AVERAGE", 1, 0)
         return args.map { toDouble(it) }.average()
     }
     
@@ -169,7 +170,7 @@ class LogFunction : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
         validateArgumentCount(args, 1)
         val value = toDouble(args[0])
-        if (value <= 0) throw ArithmeticException("LOG of non-positive number")
+        if (value <= 0) throw EvaluatorException.mathError("LOG of non-positive number")
         return ln(value)
     }
     
@@ -182,7 +183,7 @@ class Log10Function : FunctionEvaluator {
     override fun evaluate(args: List<Any?>): Any? {
         validateArgumentCount(args, 1)
         val value = toDouble(args[0])
-        if (value <= 0) throw ArithmeticException("LOG10 of non-positive number")
+        if (value <= 0) throw EvaluatorException.mathError("LOG10 of non-positive number")
         return log10(value)
     }
     
@@ -205,7 +206,7 @@ class ExpFunction : FunctionEvaluator {
 // Helper functions
 private fun validateArgumentCount(args: List<Any?>, expectedCount: Int) {
     if (args.size != expectedCount) {
-        throw IllegalArgumentException("Wrong argument count: expected $expectedCount, got ${args.size}")
+        throw EvaluatorException.wrongArgumentCount("function", expectedCount, args.size)
     }
 }
 
@@ -215,8 +216,9 @@ private fun toDouble(value: Any?): Double {
         is Int -> value.toDouble()
         is Float -> value.toDouble()
         is Long -> value.toDouble()
-        is String -> value.toDoubleOrNull() ?: throw IllegalArgumentException("Cannot convert string to number: $value")
-        else -> throw IllegalArgumentException("Cannot convert ${value?.javaClass?.simpleName ?: "null"} to number")
+        is String -> value.toDoubleOrNull() 
+            ?: throw EvaluatorException.numberConversionError(value)
+        else -> throw EvaluatorException.numberConversionError(value)
     }
 }
 

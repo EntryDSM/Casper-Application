@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.evaluator.values
 
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import java.time.LocalDateTime
 
 /**
@@ -22,13 +23,16 @@ data class VariableBinding private constructor(
 ) {
     
     init {
-        require(name.isNotBlank()) { "변수명은 비어있을 수 없습니다" }
-        require(isValidVariableName(name)) { "유효하지 않은 변수명입니다: $name" }
-        require(isValidValue(value, type)) { "값이 지정된 타입과 일치하지 않습니다: $value ($type)" }
+        if (name.isBlank()) throw EvaluatorException.invalidVariableName(name)
+        if (!isValidVariableName(name)) throw EvaluatorException.invalidVariableName(name)
+        if (!isValidValue(value, type)) throw EvaluatorException.unsupportedType(type.toString(), value)
     }
     
     /**
      * 숫자 값을 반환합니다.
+     *
+     * @return Double 숫자 값
+     * @throws EvaluatorException 값이 숫자가 아닌 경우
      */
     fun asNumber(): Double {
         return when (value) {
@@ -36,19 +40,22 @@ data class VariableBinding private constructor(
             is Int -> value.toDouble()
             is Float -> value.toDouble()
             is Long -> value.toDouble()
-            else -> throw IllegalStateException("변수 '$name'의 값이 숫자가 아닙니다: $value")
+            else -> throw EvaluatorException.numberConversionError(value)
         }
     }
     
     /**
      * 불리언 값을 반환합니다.
+     *
+     * @return Boolean 값
+     * @throws EvaluatorException 값이 불리언으로 변환할 수 없는 경우
      */
     fun asBoolean(): Boolean {
         return when (value) {
             is Boolean -> value
             is Double -> value != 0.0
             is Int -> value != 0
-            else -> throw IllegalStateException("변수 '$name'의 값이 불리언으로 변환할 수 없습니다: $value")
+            else -> throw EvaluatorException.unsupportedType("Boolean", value)
         }
     }
     
@@ -82,9 +89,13 @@ data class VariableBinding private constructor(
     
     /**
      * 변수를 새로운 값으로 바인딩합니다.
+     *
+     * @param newValue 새로운 값
+     * @return 새로운 VariableBinding
+     * @throws EvaluatorException 읽기 전용 변수를 수정하려는 경우
      */
     fun withValue(newValue: Any?): VariableBinding {
-        require(!isReadonly) { "읽기 전용 변수는 수정할 수 없습니다: $name" }
+        if (isReadonly) throw EvaluatorException.invalidVariableName("읽기 전용 변수는 수정할 수 없습니다: $name")
         val newType = determineType(newValue)
         return VariableBinding(
             name = name,

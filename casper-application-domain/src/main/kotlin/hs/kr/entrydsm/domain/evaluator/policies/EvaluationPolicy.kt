@@ -69,11 +69,24 @@ class EvaluationPolicy {
      */
     fun canEvaluate(node: ASTNode, context: EvaluationContext): Boolean {
         return try {
-            validateDepth(node, context.maxDepth) &&
-            validateNodeCount(node, DEFAULT_MAX_NODES) &&
-            validateFunctions(node) &&
-            validateOperators(node) &&
-            validateVariables(node, context)
+            if (!validateDepth(node, context.maxDepth)) {
+                throw EvaluatorException.evaluationDepthExceeded(context.maxDepth, calculateDepth(node))
+            }
+            if (!validateNodeCount(node, DEFAULT_MAX_NODES)) {
+                throw EvaluatorException.evaluationComplexityExceeded(DEFAULT_MAX_NODES, countNodes(node))
+            }
+            if (!validateFunctions(node)) {
+                throw EvaluatorException.securityViolation("허용되지 않은 함수 사용")
+            }
+            if (!validateOperators(node)) {
+                throw EvaluatorException.securityViolation("허용되지 않은 연산자 사용")
+            }
+            if (!validateVariables(node, context)) {
+                throw EvaluatorException.securityViolation("정의되지 않은 변수 사용")
+            }
+            true
+        } catch (e: EvaluatorException) {
+            throw e
         } catch (e: Exception) {
             throw EvaluatorException.evaluationError(e)
         }

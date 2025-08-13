@@ -76,9 +76,8 @@ class ExpressionValiditySpec {
             validateStructure(node) &&
             validateSecurity(node)
         } catch (e: Exception) {
-            throw ValidationException(
-                message = "표현식 유효성 검증 실패: ${e.message}",
-                cause = e
+            throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.evaluationFailed(
+                RuntimeException("표현식 유효성 검증 실패: ${e.message}", e)
             )
         }
     }
@@ -95,9 +94,8 @@ class ExpressionValiditySpec {
             validateStructure(node) &&
             validateSecurity(node)
         } catch (e: Exception) {
-            throw ValidationException(
-                message = "표현식 유효성 검증 실패: ${e.message}",
-                cause = e
+            throw hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException.evaluationFailed(
+                RuntimeException("표현식 유효성 검증 실패: ${e.message}", e)
             )
         }
     }
