@@ -231,23 +231,7 @@ class ExpressionFormatter(
      * 수학적 스타일의 변수를 포맷팅합니다.
      */
     private fun formatMathematicalVariable(name: String): String {
-        // 그리스 문자 변환
-        return when (name.lowercase()) {
-            "pi" -> "π"
-            "e" -> "e"
-            "alpha" -> "α"
-            "beta" -> "β"
-            "gamma" -> "γ"
-            "delta" -> "δ"
-            "epsilon" -> "ε"
-            "theta" -> "θ"
-            "lambda" -> "λ"
-            "mu" -> "μ"
-            "sigma" -> "σ"
-            "phi" -> "φ"
-            "omega" -> "ω"
-            else -> name
-        }
+        return MATHEMATICAL_VARIABLE_MAPPINGS[name.lowercase()] ?: name
     }
 
     /**
@@ -259,22 +243,7 @@ class ExpressionFormatter(
      * LaTeX 스타일의 변수를 포맷팅합니다.
      */
     private fun formatLatexVariable(name: String): String {
-        return when (name.lowercase()) {
-            "pi" -> "\\pi"
-            "e" -> "e"
-            "alpha" -> "\\alpha"
-            "beta" -> "\\beta"
-            "gamma" -> "\\gamma"
-            "delta" -> "\\delta"
-            "epsilon" -> "\\epsilon"
-            "theta" -> "\\theta"
-            "lambda" -> "\\lambda"
-            "mu" -> "\\mu"
-            "sigma" -> "\\sigma"
-            "phi" -> "\\phi"
-            "omega" -> "\\omega"
-            else -> name
-        }
+        return LATEX_VARIABLE_MAPPINGS[name.lowercase()] ?: name
     }
 
     /**
@@ -286,18 +255,7 @@ class ExpressionFormatter(
      * 수학적 스타일의 이항 연산을 포맷팅합니다.
      */
     private fun formatMathematicalBinaryOp(left: String, operator: String, right: String, node: BinaryOpNode): String {
-        val op = when (operator) {
-            "*" -> "×"
-            "/" -> "÷"
-            "==" -> "="
-            "!=" -> "≠"
-            "<=" -> "≤"
-            ">=" -> "≥"
-            "&&" -> "∧"
-            "||" -> "∨"
-            "^" -> "^"
-            else -> operator
-        }
+        val op = MATHEMATICAL_OPERATOR_MAPPINGS[operator] ?: operator
         
         return if (needsParentheses(node)) {
             "($left $op $right)"
@@ -322,18 +280,7 @@ class ExpressionFormatter(
      * LaTeX 스타일의 이항 연산을 포맷팅합니다.
      */
     private fun formatLatexBinaryOp(left: String, operator: String, right: String, node: BinaryOpNode): String {
-        val op = when (operator) {
-            "*" -> "\\times"
-            "/" -> "\\div"
-            "==" -> "="
-            "!=" -> "\\neq"
-            "<=" -> "\\leq"
-            ">=" -> "\\geq"
-            "&&" -> "\\land"
-            "||" -> "\\lor"
-            "^" -> "^"
-            else -> operator
-        }
+        val op = LATEX_OPERATOR_MAPPINGS[operator] ?: operator
         
         return if (operator == "^") {
             "$left^{$right}"
@@ -359,24 +306,7 @@ class ExpressionFormatter(
      * 상세한 스타일의 이항 연산을 포맷팅합니다.
      */
     private fun formatVerboseBinaryOp(left: String, operator: String, right: String, node: BinaryOpNode): String {
-        val opName = when (operator) {
-            "+" -> "더하기"
-            "-" -> "빼기"
-            "*" -> "곱하기"
-            "/" -> "나누기"
-            "%" -> "나머지"
-            "^" -> "거듭제곱"
-            "==" -> "같다"
-            "!=" -> "다르다"
-            "<" -> "작다"
-            "<=" -> "작거나 같다"
-            ">" -> "크다"
-            ">=" -> "크거나 같다"
-            "&&" -> "그리고"
-            "||" -> "또는"
-            else -> operator
-        }
-        
+        val opName = VERBOSE_OPERATOR_MAPPINGS[operator] ?: operator
         return "($left $opName $right)"
     }
 
@@ -420,12 +350,7 @@ class ExpressionFormatter(
      * 상세한 스타일의 단항 연산을 포맷팅합니다.
      */
     private fun formatVerboseUnaryOp(operator: String, operand: String, node: UnaryOpNode): String {
-        val opName = when (operator) {
-            "+" -> "양수"
-            "-" -> "음수"
-            "!" -> "NOT"
-            else -> operator
-        }
+        val opName = VERBOSE_UNARY_OPERATOR_MAPPINGS[operator] ?: operator
         return "($opName $operand)"
     }
 
@@ -433,15 +358,7 @@ class ExpressionFormatter(
      * 수학적 스타일의 함수를 포맷팅합니다.
      */
     private fun formatMathematicalFunction(name: String, args: List<String>): String {
-        val funcName = when (name.lowercase()) {
-            "sin" -> "sin"
-            "cos" -> "cos"
-            "tan" -> "tan"
-            "sqrt" -> "√"
-            "log" -> "ln"
-            "exp" -> "e^"
-            else -> name
-        }
+        val funcName = MATHEMATICAL_FUNCTION_MAPPINGS[name.lowercase()] ?: name
         
         return when (name.lowercase()) {
             "sqrt" -> "√(${args.joinToString(", ")})"
@@ -463,15 +380,7 @@ class ExpressionFormatter(
      * LaTeX 스타일의 함수를 포맷팅합니다.
      */
     private fun formatLatexFunction(name: String, args: List<String>): String {
-        val funcName = when (name.lowercase()) {
-            "sin" -> "\\sin"
-            "cos" -> "\\cos"
-            "tan" -> "\\tan"
-            "sqrt" -> "\\sqrt"
-            "log" -> "\\ln"
-            "exp" -> "\\exp"
-            else -> "\\text{$name}"
-        }
+        val funcName = LATEX_FUNCTION_MAPPINGS[name.lowercase()] ?: "\\text{$name}"
         
         return when (name.lowercase()) {
             "sqrt" -> "\\sqrt{${args.joinToString(", ")}}"
@@ -491,23 +400,7 @@ class ExpressionFormatter(
      * 상세한 스타일의 함수를 포맷팅합니다.
      */
     private fun formatVerboseFunction(name: String, args: List<String>): String {
-        val funcName = when (name.lowercase()) {
-            "sin" -> "사인"
-            "cos" -> "코사인"
-            "tan" -> "탄젠트"
-            "sqrt" -> "제곱근"
-            "log" -> "자연로그"
-            "exp" -> "지수"
-            "abs" -> "절댓값"
-            "floor" -> "내림"
-            "ceil" -> "올림"
-            "round" -> "반올림"
-            "min" -> "최솟값"
-            "max" -> "최댓값"
-            "pow" -> "거듭제곱"
-            else -> name
-        }
-        
+        val funcName = VERBOSE_FUNCTION_MAPPINGS[name.lowercase()] ?: name
         return "함수_${funcName}(${args.joinToString(", ")})"
     }
 
@@ -609,6 +502,146 @@ class ExpressionFormatter(
     )
 
     companion object {
+        /**
+         * 수학적 변수명 매핑
+         */
+        private val MATHEMATICAL_VARIABLE_MAPPINGS = mapOf(
+            "pi" to "π",
+            "e" to "e",
+            "alpha" to "α",
+            "beta" to "β",
+            "gamma" to "γ",
+            "delta" to "δ",
+            "epsilon" to "ε",
+            "theta" to "θ",
+            "lambda" to "λ",
+            "mu" to "μ",
+            "sigma" to "σ",
+            "phi" to "φ",
+            "omega" to "ω"
+        )
+        
+        /**
+         * LaTeX 변수명 매핑
+         */
+        private val LATEX_VARIABLE_MAPPINGS = mapOf(
+            "pi" to "\\pi",
+            "e" to "e",
+            "alpha" to "\\alpha",
+            "beta" to "\\beta",
+            "gamma" to "\\gamma",
+            "delta" to "\\delta",
+            "epsilon" to "\\epsilon",
+            "theta" to "\\theta",
+            "lambda" to "\\lambda",
+            "mu" to "\\mu",
+            "sigma" to "\\sigma",
+            "phi" to "\\phi",
+            "omega" to "\\omega"
+        )
+        
+        /**
+         * 수학적 스타일 연산자 매핑
+         */
+        private val MATHEMATICAL_OPERATOR_MAPPINGS = mapOf(
+            "*" to "×",
+            "/" to "÷",
+            "==" to "=",
+            "!=" to "≠",
+            "<=" to "≤",
+            ">=" to "≥",
+            "&&" to "∧",
+            "||" to "∨",
+            "^" to "^"
+        )
+        
+        /**
+         * LaTeX 연산자 매핑
+         */
+        private val LATEX_OPERATOR_MAPPINGS = mapOf(
+            "*" to "\\times",
+            "/" to "\\div",
+            "==" to "=",
+            "!=" to "\\neq",
+            "<=" to "\\leq",
+            ">=" to "\\geq",
+            "&&" to "\\land",
+            "||" to "\\lor",
+            "^" to "^"
+        )
+        
+        /**
+         * 수학적 스타일 함수명 매핑
+         */
+        private val MATHEMATICAL_FUNCTION_MAPPINGS = mapOf(
+            "sin" to "sin",
+            "cos" to "cos",
+            "tan" to "tan",
+            "sqrt" to "√",
+            "log" to "ln",
+            "exp" to "e^"
+        )
+        
+        /**
+         * LaTeX 함수명 매핑
+         */
+        private val LATEX_FUNCTION_MAPPINGS = mapOf(
+            "sin" to "\\sin",
+            "cos" to "\\cos",
+            "tan" to "tan",
+            "sqrt" to "\\sqrt",
+            "log" to "\\ln",
+            "exp" to "\\exp"
+        )
+        
+        /**
+         * 상세 스타일 연산자명 매핑
+         */
+        private val VERBOSE_OPERATOR_MAPPINGS = mapOf(
+            "+" to "더하기",
+            "-" to "빼기",
+            "*" to "곱하기",
+            "/" to "나누기",
+            "%" to "나머지",
+            "^" to "거듭제곱",
+            "==" to "같다",
+            "!=" to "다르다",
+            "<" to "작다",
+            "<=" to "작거나 같다",
+            ">" to "크다",
+            ">=" to "크거나 같다",
+            "&&" to "그리고",
+            "||" to "또는"
+        )
+        
+        /**
+         * 상세 스타일 단항 연산자명 매핑
+         */
+        private val VERBOSE_UNARY_OPERATOR_MAPPINGS = mapOf(
+            "+" to "양수",
+            "-" to "음수",
+            "!" to "NOT"
+        )
+        
+        /**
+         * 상세 스타일 함수명 매핑
+         */
+        private val VERBOSE_FUNCTION_MAPPINGS = mapOf(
+            "sin" to "사인",
+            "cos" to "코사인",
+            "tan" to "탄젠트",
+            "sqrt" to "제곱근",
+            "log" to "자연로그",
+            "exp" to "지수",
+            "abs" to "절댓값",
+            "floor" to "내림",
+            "ceil" to "올림",
+            "round" to "반올림",
+            "min" to "최솟값",
+            "max" to "최댓값",
+            "pow" to "거듭제곱"
+        )
+        
         /**
          * 기본 옵션으로 포맷터를 생성합니다.
          */
