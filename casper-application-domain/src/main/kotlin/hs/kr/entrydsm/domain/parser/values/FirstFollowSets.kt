@@ -119,6 +119,18 @@ class FirstFollowSets private constructor(
             terminals: Set<TokenType>,
             nonTerminals: Set<TokenType>
         ) {
+            initializeFirstSets(firstSets, terminals, nonTerminals)
+            applyFixedPoint { applyFirstSetRules(productions, firstSets) }
+        }
+
+        /**
+         * FIRST 집합을 초기화합니다.
+         */
+        private fun initializeFirstSets(
+            firstSets: MutableMap<TokenType, MutableSet<TokenType>>,
+            terminals: Set<TokenType>,
+            nonTerminals: Set<TokenType>
+        ) {
             // 모든 터미널 심볼의 FIRST 집합은 자기 자신
             terminals.forEach { terminal ->
                 firstSets[terminal] = mutableSetOf(terminal)
@@ -126,21 +138,36 @@ class FirstFollowSets private constructor(
             
             // 모든 논터미널 심볼의 FIRST 집합은 초기에 비어 있음
             nonTerminals.forEach { firstSets[it] = mutableSetOf() }
+        }
 
-            var changed = true
-            while (changed) {
-                changed = false
-                for (production in productions) {
-                    val currentFirstSet = firstSets[production.left]
-                    if (currentFirstSet != null) {
-                        val before = currentFirstSet.size
-                        val firstOfRight = firstOfSequence(production.right, firstSets)
-                        currentFirstSet.addAll(firstOfRight)
-                        if (currentFirstSet.size > before) {
-                            changed = true
-                        }
+        /**
+         * FIRST 집합 규칙을 적용하고 변경이 있었는지 반환합니다.
+         */
+        private fun applyFirstSetRules(
+            productions: List<Production>,
+            firstSets: MutableMap<TokenType, MutableSet<TokenType>>
+        ): Boolean {
+            var changed = false
+            for (production in productions) {
+                val currentFirstSet = firstSets[production.left]
+                if (currentFirstSet != null) {
+                    val before = currentFirstSet.size
+                    val firstOfRight = firstOfSequence(production.right, firstSets)
+                    currentFirstSet.addAll(firstOfRight)
+                    if (currentFirstSet.size > before) {
+                        changed = true
                     }
                 }
+            }
+            return changed
+        }
+
+        /**
+         * 고정점에 도달할 때까지 규칙을 반복 적용합니다.
+         */
+        private fun applyFixedPoint(applyRules: () -> Boolean) {
+            while (applyRules()) {
+                // 변경이 없을 때까지 반복
             }
         }
 
@@ -154,40 +181,60 @@ class FirstFollowSets private constructor(
             nonTerminals: Set<TokenType>,
             startSymbol: TokenType
         ) {
+            initializeFollowSets(followSets, nonTerminals, startSymbol)
+            applyFixedPoint { applyFollowSetRules(productions, followSets, firstSets, nonTerminals) }
+        }
+
+        /**
+         * FOLLOW 집합을 초기화합니다.
+         */
+        private fun initializeFollowSets(
+            followSets: MutableMap<TokenType, MutableSet<TokenType>>,
+            nonTerminals: Set<TokenType>,
+            startSymbol: TokenType
+        ) {
             // 모든 논터미널 심볼의 FOLLOW 집합은 초기에 비어 있음
             nonTerminals.forEach { followSets[it] = mutableSetOf() }
             
             // 시작 심볼의 FOLLOW 집합에는 EOF($)가 포함
             followSets[startSymbol]?.add(TokenType.DOLLAR)
+        }
 
-            var changed = true
-            while (changed) {
-                changed = false
-                for (production in productions) {
-                    for (i in production.right.indices) {
-                        val symbol = production.right[i]
-                        if (symbol in nonTerminals) {
-                            val currentFollowSet = followSets[symbol]
-                            val productionFollowSet = followSets[production.left]
-                            
-                            if (currentFollowSet != null && productionFollowSet != null) {
-                                val before = currentFollowSet.size
-                                val beta = production.right.drop(i + 1)
-                                val firstOfBeta = firstOfSequence(beta, firstSets)
-                                currentFollowSet.addAll(firstOfBeta - TokenType.EPSILON)
+        /**
+         * FOLLOW 집합 규칙을 적용하고 변경이 있었는지 반환합니다.
+         */
+        private fun applyFollowSetRules(
+            productions: List<Production>,
+            followSets: MutableMap<TokenType, MutableSet<TokenType>>,
+            firstSets: Map<TokenType, Set<TokenType>>,
+            nonTerminals: Set<TokenType>
+        ): Boolean {
+            var changed = false
+            for (production in productions) {
+                for (i in production.right.indices) {
+                    val symbol = production.right[i]
+                    if (symbol in nonTerminals) {
+                        val currentFollowSet = followSets[symbol]
+                        val productionFollowSet = followSets[production.left]
+                        
+                        if (currentFollowSet != null && productionFollowSet != null) {
+                            val before = currentFollowSet.size
+                            val beta = production.right.drop(i + 1)
+                            val firstOfBeta = firstOfSequence(beta, firstSets)
+                            currentFollowSet.addAll(firstOfBeta - TokenType.EPSILON)
 
-                                if (beta.isEmpty() || canDeriveEmpty(beta, firstSets)) {
-                                    currentFollowSet.addAll(productionFollowSet)
-                                }
+                            if (beta.isEmpty() || canDeriveEmpty(beta, firstSets)) {
+                                currentFollowSet.addAll(productionFollowSet)
+                            }
 
-                                if (currentFollowSet.size > before) {
-                                    changed = true
-                                }
+                            if (currentFollowSet.size > before) {
+                                changed = true
                             }
                         }
                     }
                 }
             }
+            return changed
         }
 
         /**
