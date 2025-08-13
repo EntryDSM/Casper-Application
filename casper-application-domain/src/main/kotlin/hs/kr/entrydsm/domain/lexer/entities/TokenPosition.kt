@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.lexer.entities
 
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import hs.kr.entrydsm.global.values.Position
 
@@ -28,8 +29,13 @@ data class TokenPosition(
 ) {
     
     init {
-        require(start.index <= end.index) { "시작 위치가 끝 위치보다 늦을 수 없습니다: ${start.index} > ${end.index}" }
-        require(length >= 0) { "토큰 길이는 0 이상이어야 합니다: $length" }
+        if (start.index > end.index) {
+            throw LexerException.invalidPositionOrder(start.index, end.index)
+        }
+
+        if (length < 0) {
+            throw LexerException.negativeTokenLength(length)
+        }
     }
 
     companion object {
@@ -144,7 +150,10 @@ data class TokenPosition(
      * @return 확장된 TokenPosition 인스턴스
      */
     fun extend(additionalLength: Int): TokenPosition {
-        require(additionalLength >= 0) { "추가 길이는 0 이상이어야 합니다: $additionalLength" }
+        if (additionalLength < 0) {
+            throw LexerException.negativeAdditionalLength(additionalLength)
+        }
+
         val newEnd = end.advance(additionalLength)
         return TokenPosition(start, newEnd, length + additionalLength)
     }
