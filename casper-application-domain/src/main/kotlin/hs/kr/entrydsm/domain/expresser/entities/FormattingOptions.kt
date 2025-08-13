@@ -43,8 +43,16 @@ data class FormattingOptions(
 ) {
     
     init {
-        require(decimalPlaces >= 0) { "소수점 자릿수는 0 이상이어야 합니다: $decimalPlaces" }
-        require(decimalPlaces <= 15) { "소수점 자릿수는 15 이하여야 합니다: $decimalPlaces" }
+        if (decimalPlaces < 0) {
+            throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.invalidFormatOption(
+                "decimalPlaces=$decimalPlaces", "소수점 자릿수는 0 이상이어야 합니다"
+            )
+        }
+        if (decimalPlaces > 15) {
+            throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.invalidFormatOption(
+                "decimalPlaces=$decimalPlaces", "소수점 자릿수는 15 이하여야 합니다"
+            )
+        }
     }
 
     /**
@@ -62,8 +70,16 @@ data class FormattingOptions(
      * @return 새로운 FormattingOptions 인스턴스
      */
     fun withDecimalPlaces(places: Int): FormattingOptions {
-        require(places >= 0) { "소수점 자릿수는 0 이상이어야 합니다: $places" }
-        require(places <= 15) { "소수점 자릿수는 15 이하여야 합니다: $places" }
+        if (places < 0) {
+            throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.invalidFormatOption(
+                "decimalPlaces=$places", "소수점 자릿수는 0 이상이어야 합니다"
+            )
+        }
+        if (places > 15) {
+            throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.invalidFormatOption(
+                "decimalPlaces=$places", "소수점 자릿수는 15 이하여야 합니다"
+            )
+        }
         return copy(decimalPlaces = places)
     }
 
