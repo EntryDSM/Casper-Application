@@ -43,6 +43,67 @@ class ExpresserService(
     private val configurationProvider: ConfigurationProvider
 ) : ExpresserContract {
 
+    companion object {
+        /**
+         * 포맷별 팩토리 메서드 매핑
+         */
+        private val FORMAT_FACTORY_MAPPINGS = mapOf(
+            "mathematical" to { factory: ExpresserFactory -> factory.createBasicFormatter() },
+            "latex" to { factory: ExpresserFactory -> factory.createLaTeXFormatter() },
+            "mathml" to { factory: ExpresserFactory -> factory.createMathMLFormatter() },
+            "html" to { factory: ExpresserFactory -> factory.createHTMLFormatter() },
+            "unicode" to { factory: ExpresserFactory -> factory.createUnicodeFormatter() },
+            "ascii" to { factory: ExpresserFactory -> factory.createASCIIFormatter() }
+        )
+        
+        /**
+         * 출력 크기 추정 배율
+         */
+        private val OUTPUT_SIZE_MULTIPLIERS = mapOf(
+            "latex" to 1.5,
+            "mathml" to 2.0,
+            "html" to 1.8,
+            "xml" to 2.2,
+            "json" to 1.3
+        )
+        
+        /**
+         * 지원되는 출력 형식들
+         */
+        private val SUPPORTED_FORMATS = setOf(
+            "mathematical", "latex", "mathml", "html", "json", "xml", "unicode", "ascii", "text"
+        )
+        
+        /**
+         * 지원되는 색상 스키마들
+         */
+        private val SUPPORTED_COLOR_SCHEMES = setOf(
+            "default", "dark", "light", "high-contrast", "colorblind"
+        )
+        
+        /**
+         * 캐시 관련 상수들
+         */
+        private const val CACHE_VALIDITY_MS = 3600000L // 1시간
+        private const val MAX_CACHE_SIZE = 1000
+        
+        /**
+         * 단계별 분해 템플릿
+         */
+        private val BREAKDOWN_STEPS = listOf(
+            "Step 1: Parse",
+            "Step 2: Format"
+        )
+        
+        /**
+         * 구문 강조 CSS 클래스 매핑
+         */
+        private val SYNTAX_HIGHLIGHT_CLASSES = mapOf(
+            "dark" to mapOf("number" to "number-dark"),
+            "light" to mapOf("number" to "number-light")
+        )
+    }
+
     private val config: ExpresserConfiguration
         get() = configurationProvider.getExpresserConfiguration()
 
@@ -126,16 +187,10 @@ class ExpresserService(
      * AST를 특정 형식으로 출력합니다.
      */
     override fun express(ast: ASTNode, format: String): FormattedExpression {
-        val formatter = when (format.lowercase()) {
-            "mathematical" -> factory.createBasicFormatter()
-            "latex" -> factory.createLaTeXFormatter()
-            "mathml" -> factory.createMathMLFormatter()
-            "html" -> factory.createHTMLFormatter()
-            "unicode" -> factory.createUnicodeFormatter()
-            "ascii" -> factory.createASCIIFormatter()
-            else -> throw ExpresserException.unsupportedFormat(format)
-        }
+        val factoryMethod = FORMAT_FACTORY_MAPPINGS[format.lowercase()]
+            ?: throw ExpresserException.unsupportedFormat(format)
         
+        val formatter = factoryMethod(factory)
         return formatter.format(ast)
     }
 
@@ -271,27 +326,24 @@ class ExpresserService(
      * 표현식을 단계별로 분해하여 표시합니다.
      */
     override fun breakdownSteps(ast: ASTNode): List<FormattedExpression> {
-        // 간단한 단계별 분해 시뮬레이션
         val mainFormatted = format(ast)
-        return listOf(
-            factory.createFormattedExpression("Step 1: Parse", "step"),
-            factory.createFormattedExpression("Step 2: Format", "step"),
-            mainFormatted
-        )
+        return BREAKDOWN_STEPS.map { step ->
+            factory.createFormattedExpression(step, "step")
+        } + mainFormatted
     }
 
     /**
      * 지원되는 출력 형식 목록을 반환합니다.
      */
     override fun getSupportedFormats(): Set<String> {
-        return setOf("mathematical", "latex", "mathml", "html", "json", "xml", "unicode", "ascii", "text")
+        return SUPPORTED_FORMATS
     }
 
     /**
      * 지원되는 색상 스키마 목록을 반환합니다.
      */
     override fun getSupportedColorSchemes(): Set<String> {
-        return setOf("default", "dark", "light", "high-contrast", "colorblind")
+        return SUPPORTED_COLOR_SCHEMES
     }
 
     /**
@@ -312,16 +364,9 @@ class ExpresserService(
      * 표현식의 예상 출력 크기를 추정합니다.
      */
     override fun estimateOutputSize(ast: ASTNode, format: String): Int {
-        // 간단한 크기 추정
         val baseSize = ast.toString().length
-        return when (format.lowercase()) {
-            "latex" -> (baseSize * 1.5).toInt()
-            "mathml" -> (baseSize * 2.0).toInt()
-            "html" -> (baseSize * 1.8).toInt()
-            "xml" -> (baseSize * 2.2).toInt()
-            "json" -> (baseSize * 1.3).toInt()
-            else -> baseSize
-        }
+        val multiplier = OUTPUT_SIZE_MULTIPLIERS[format.lowercase()] ?: 1.0
+        return (baseSize * multiplier).toInt()
     }
 
     /**
@@ -498,12 +543,12 @@ class ExpresserService(
 
     private fun getCachedFormatting(key: String): CachedFormatting? {
         return formattingCache[key]?.takeIf { 
-            System.currentTimeMillis() - it.timestamp < 3600000 // 1시간 유효
+            System.currentTimeMillis() - it.timestamp < CACHE_VALIDITY_MS
         }
     }
 
     private fun cacheFormatting(key: String, formatted: FormattedExpression) {
-        if (formattingCache.size < 1000) { // 캐시 크기 제한
+        if (formattingCache.size < MAX_CACHE_SIZE) {
             formattingCache[key] = CachedFormatting(
                 formatted = formatted,
                 timestamp = System.currentTimeMillis()
@@ -512,13 +557,13 @@ class ExpresserService(
     }
 
     private fun applyDarkSyntaxHighlight(content: String): String {
-        // 간단한 다크 모드 구문 강조
-        return content.replace(Regex("\\d+")) { "<span class=\"number-dark\">${it.value}</span>" }
+        val numberClass = SYNTAX_HIGHLIGHT_CLASSES["dark"]?.get("number") ?: "number-dark"
+        return content.replace(Regex("\\d+")) { "<span class=\"$numberClass\">${it.value}</span>" }
     }
 
     private fun applyLightSyntaxHighlight(content: String): String {
-        // 간단한 라이트 모드 구문 강조
-        return content.replace(Regex("\\d+")) { "<span class=\"number-light\">${it.value}</span>" }
+        val numberClass = SYNTAX_HIGHLIGHT_CLASSES["light"]?.get("number") ?: "number-light"
+        return content.replace(Regex("\\d+")) { "<span class=\"$numberClass\">${it.value}</span>" }
     }
 
     private fun addEvaluationOrder(content: String): String {
