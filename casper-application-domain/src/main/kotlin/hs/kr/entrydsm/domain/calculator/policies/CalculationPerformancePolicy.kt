@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.calculator.policies
 
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import hs.kr.entrydsm.domain.calculator.values.MultiStepCalculationRequest
@@ -94,6 +95,16 @@ class CalculationPerformancePolicy {
         private val slowCalculations = AtomicLong(0)
         private val failedCalculations = AtomicLong(0)
         private val totalExecutionTime = AtomicLong(0)
+
+        private const val POLICY_NAME = "CalculationPerformancePolicy"
+        private const val BASED_ON = "POC_CalculatorService_Performance"
+
+        private val DEFAULT_FEATURES = listOf(
+            "caching",
+            "performance_monitoring",
+            "timeout_handling",
+            "memory_management"
+        )
     }
 
     // POC 코드의 @Cacheable 기능을 구현하는 캐시
@@ -401,7 +412,7 @@ class CalculationPerformancePolicy {
                         // 단계별 실행 시간 체크 (전체 타임아웃의 일부)
                         val remainingTime = timeout - totalStepTime
                         if (remainingTime <= 0) {
-                            throw CancellationException("Step $index exceeded overall timeout")
+                            throw CalculatorException.stepTimeoutExceeded(index, remainingTime)
                         }
                         
                         // 단계 실행 시간 측정 (실제로는 각 단계를 실행)
@@ -549,22 +560,22 @@ class CalculationPerformancePolicy {
      * 정책의 설정 정보를 반환합니다.
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "name" to "CalculationPerformancePolicy",
-        "based_on" to "POC_CalculatorService_Performance",
+        "name" to POLICY_NAME,
+        "based_on" to BASED_ON,
         "defaultCacheTtlSeconds" to DEFAULT_CACHE_TTL_SECONDS,
         "defaultMaxExecutionTimeMs" to DEFAULT_MAX_EXECUTION_TIME_MS,
         "defaultMaxMemoryMB" to DEFAULT_MAX_MEMORY_MB,
         "defaultMaxCacheSize" to DEFAULT_MAX_CACHE_SIZE,
         "slowCalculationThresholdMs" to SLOW_CALCULATION_THRESHOLD_MS,
         "memoryWarningThresholdMB" to MEMORY_WARNING_THRESHOLD_MB,
-        "features" to listOf("caching", "performance_monitoring", "timeout_handling", "memory_management")
+        "features" to DEFAULT_FEATURES
     )
 
     /**
      * 정책의 통계 정보를 반환합니다.
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "policyName" to "CalculationPerformancePolicy",
+        "policyName" to POLICY_NAME,
         "totalCalculations" to totalCalculations.get(),
         "cachedCalculations" to cachedCalculations.get(),
         "slowCalculations" to slowCalculations.get(),
