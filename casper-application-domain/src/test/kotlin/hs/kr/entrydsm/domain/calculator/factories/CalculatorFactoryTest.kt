@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.calculator.factories
 
 import hs.kr.entrydsm.domain.calculator.aggregates.Calculator
 import hs.kr.entrydsm.domain.calculator.entities.CalculationSession
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
@@ -411,29 +412,29 @@ class CalculatorFactoryTest {
 
     @Test
     fun `createUserSession이 빈 사용자 ID로 예외를 발생시키는지 테스트`() {
-        assertThrows<IllegalArgumentException> {
+        assertThrows<CalculatorException> {
             factory.createUserSession("")
         }
         
-        assertThrows<IllegalArgumentException> {
+        assertThrows<CalculatorException> {
             factory.createUserSession("   ")
         }
     }
 
     @Test
     fun `createRequest가 빈 수식으로 예외를 발생시키는지 테스트`() {
-        assertThrows<IllegalArgumentException> {
+        assertThrows<CalculatorException> {
             factory.createRequest("")
         }
         
-        assertThrows<IllegalArgumentException> {
+        assertThrows<CalculatorException> {
             factory.createRequest("   ")
         }
     }
 
     @Test
     fun `createBatchRequests가 빈 표현식 목록으로 예외를 발생시키는지 테스트`() {
-        assertThrows<IllegalArgumentException> {
+        assertThrows<CalculatorException> {
             factory.createBatchRequests(emptyList())
         }
     }
