@@ -14,6 +14,7 @@ import hs.kr.entrydsm.global.exception.ErrorCode
  * @property variableCount 변수 개수 (선택사항)
  * @property maxAllowed 허용된 최대값 (선택사항)
  * @property missingVariables 누락된 변수 리스트 (선택사항)
+ * @property reason 사유 (선택사항)
  *
  * @see <a href="https://devblog.kakaostyle.com/ko/2025-03-21-1-domain-driven-hexagonal-architecture-by-example/">코드 사례로 보는 Domain-Driven 헥사고날 아키텍처</a>
  *
@@ -27,7 +28,8 @@ class CalculatorException(
     val variableCount: Int? = null,
     val maxAllowed: Int? = null,
     val missingVariables: List<String> = emptyList(),
-    message: String = buildCalculatorMessage(errorCode, formula, step, variableCount, maxAllowed, missingVariables),
+    val reason: String? = null,
+    message: String = buildCalculatorMessage(errorCode, formula, step, variableCount, maxAllowed, missingVariables, reason),
     cause: Throwable? = null
 ) : DomainException(errorCode, message, cause) {
 
@@ -41,6 +43,7 @@ class CalculatorException(
          * @param variableCount 변수 개수
          * @param maxAllowed 최대 허용값
          * @param missingVariables 누락된 변수들
+         * @param reason 사유
          * @return 구성된 메시지
          */
         private fun buildCalculatorMessage(
@@ -49,7 +52,8 @@ class CalculatorException(
             step: Int?,
             variableCount: Int?,
             maxAllowed: Int?,
-            missingVariables: List<String>
+            missingVariables: List<String>,
+            reason: String?
         ): String {
             val baseMessage = errorCode.description
             val details = mutableListOf<String>()
@@ -197,6 +201,55 @@ class CalculatorException(
                 cause = cause
             )
         }
+
+        /**
+         * 세션 ID가 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 세션 ID
+         * @return CalculatorException 인스턴스
+         */
+        fun sessionIdEmpty(actual: String?): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.SESSION_ID_EMPTY,
+                reason = "actual=${actual ?: "null"}"
+            )
+
+        /**
+         * 계산 이력 개수가 최대 크기를 초과했을 때의 오류를 생성합니다.
+         *
+         * @param actual 현재 계산 이력 크기
+         * @param max 허용되는 최대 크기
+         * @return CalculatorException 인스턴스
+         */
+        fun calculationHistoryTooLarge(actual: Int, max: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.CALCULATION_HISTORY_TOO_LARGE,
+                reason = "actual=$actual, max=$max"
+            )
+
+        /**
+         * 변수 이름이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 변수명
+         * @return CalculatorException 인스턴스
+         */
+        fun variableNameEmpty(actual: String?): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.VARIABLE_NAME_EMPTY,
+                reason = "actual=${actual ?: "null"}"
+            )
+
+        /**
+         * 사용자 ID가 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 사용자 ID
+         * @return CalculatorException 인스턴스
+         */
+        fun userIdEmpty(actual: String?): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.USER_ID_EMPTY,
+                reason = "actual=${actual ?: "null"}"
+            )
     }
 
     /**
