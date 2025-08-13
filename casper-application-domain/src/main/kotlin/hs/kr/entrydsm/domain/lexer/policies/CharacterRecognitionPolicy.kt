@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.lexer.policies
 
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 
@@ -18,7 +19,7 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 @Policy(
     name = "CharacterRecognition",
     description = "어휘 분석 과정에서 문자 분류 및 처리에 대한 정책",
-    domain = "lexer", 
+    domain = "lexer",
     scope = Scope.DOMAIN
 )
 class CharacterRecognitionPolicy {
@@ -33,7 +34,7 @@ class CharacterRecognitionPolicy {
         private val IDENTIFIER_BODY_CHARS = IDENTIFIER_START_CHARS + DIGIT_CHARS.toSet()
         private val SPECIAL_CHARS = setOf('.', ';', ':', '"', '\'', '\\', '@', '#', '$')
         private val COMMENT_START_CHARS = setOf('/', '#')
-        
+
         // 유니코드 범위 (기본적으로 ASCII만 허용)
         private const val MAX_ASCII_VALUE = 127
     }
@@ -70,7 +71,7 @@ class CharacterRecognitionPolicy {
      * @return 공백 문자이면 true
      */
     fun isWhitespace(char: Char): Boolean {
-        return char in WHITESPACE_CHARS || 
+        return char in WHITESPACE_CHARS ||
                (allowUnicode && char.isWhitespace())
     }
 
@@ -205,14 +206,12 @@ class CharacterRecognitionPolicy {
      */
     fun validateChar(char: Char): Boolean {
         val codePoint = char.code
-        
+
         when {
             codePoint <= MAX_ASCII_VALUE -> return true // ASCII 범위
             allowExtendedASCII && codePoint <= 255 -> return true // 확장 ASCII
             allowUnicode -> return true // 유니코드 전체
-            else -> throw IllegalArgumentException(
-                "허용되지 않은 문자입니다: '$char' (코드: $codePoint)"
-            )
+            else -> throw LexerException.unallowedCharacter(char, codePoint)
         }
     }
 
