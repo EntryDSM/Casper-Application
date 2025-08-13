@@ -60,6 +60,8 @@ class CalculatorException(
             
             formula?.let { details.add("수식: $it") }
             step?.let { details.add("단계: $it") }
+            reason?.let { details.add("사유: $it") }
+
             if (variableCount != null && maxAllowed != null) {
                 details.add("변수: $variableCount (최대: $maxAllowed)")
             } else {
