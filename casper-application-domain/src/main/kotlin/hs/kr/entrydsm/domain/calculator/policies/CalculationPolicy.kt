@@ -53,6 +53,20 @@ class CalculationPolicy {
             Regex("\\bimport\\b", RegexOption.IGNORE_CASE),
             Regex("__.*__") // Python dunder methods
         )
+
+        private const val POLICY_NAME = "CalculationPolicy"
+
+        private val SECURITY_RULES = listOf(
+            "expression_patterns",
+            "resource_limits",
+            "rate_limiting"
+        )
+
+        private val PERFORMANCE_RULES = listOf(
+            "execution_time",
+            "memory_usage",
+            "concurrency_limits"
+        )
     }
 
     private val sessionMetrics = mutableMapOf<String, SessionMetrics>()
@@ -423,10 +437,10 @@ class CalculationPolicy {
      * @return 통계 정보 맵
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "policyName" to "CalculationPolicy",
+        "policyName" to POLICY_NAME,
         "activeSessions" to sessionMetrics.size,
         "activeRateLimiters" to rateLimiters.size,
-        "securityRules" to listOf("expression_patterns", "resource_limits", "rate_limiting"),
-        "performanceRules" to listOf("execution_time", "memory_usage", "concurrency_limits")
+        "securityRules" to SECURITY_RULES,
+        "performanceRules" to PERFORMANCE_RULES
     )
 }
