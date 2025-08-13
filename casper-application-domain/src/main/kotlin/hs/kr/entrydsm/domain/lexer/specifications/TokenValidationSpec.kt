@@ -25,6 +25,35 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 )
 class TokenValidationSpec {
 
+    companion object {
+        // 스펙 관련 상수들
+        private const val SPEC_NAME = "TokenValidationSpec"
+        private const val MAX_IDENTIFIER_LENGTH_VALUE = 255
+        private const val MAX_VARIABLE_LENGTH_VALUE = 100
+        private const val MAX_NUMBER_LENGTH_VALUE = 50
+
+        // 스펙 키 상수들
+        private const val SPEC_KEY_NAME = "name"
+        private const val SPEC_KEY_SUPPORTED_TOKEN_TYPES = "supportedTokenTypes"
+        private const val SPEC_KEY_VALIDATION_RULES = "validationRules"
+        private const val SPEC_KEY_MAX_IDENTIFIER_LENGTH = "maxIdentifierLength"
+        private const val SPEC_KEY_MAX_VARIABLE_LENGTH = "maxVariableLength"
+        private const val SPEC_KEY_MAX_NUMBER_LENGTH = "maxNumberLength"
+
+        // 검증 규칙 상수들
+        private const val RULE_HAS_VALID_STRUCTURE = "hasValidStructure"
+        private const val RULE_HAS_CONSISTENT_TYPE_AND_VALUE = "hasConsistentTypeAndValue"
+        private const val RULE_HAS_VALID_LENGTH = "hasValidLength"
+        private const val RULE_FOLLOWS_NAMING_CONVENTIONS = "followsNamingConventions"
+
+        private val ALL_VALIDATION_RULES = listOf(
+            RULE_HAS_VALID_STRUCTURE,
+            RULE_HAS_CONSISTENT_TYPE_AND_VALUE,
+            RULE_HAS_VALID_LENGTH,
+            RULE_FOLLOWS_NAMING_CONVENTIONS
+        )
+    }
+
     /**
      * 토큰이 유효한지 검증합니다.
      *
@@ -329,16 +358,11 @@ class TokenValidationSpec {
      * @return 설정 정보 맵
      */
     fun getSpecificationInfo(): Map<String, Any> = mapOf(
-        "name" to "TokenValidationSpec",
-        "supportedTokenTypes" to TokenType.values().map { it.name },
-        "validationRules" to listOf(
-            "hasValidStructure",
-            "hasConsistentTypeAndValue", 
-            "hasValidLength",
-            "followsNamingConventions"
-        ),
-        "maxIdentifierLength" to 255,
-        "maxVariableLength" to 100,
-        "maxNumberLength" to 50
+        SPEC_KEY_NAME to SPEC_NAME,
+        SPEC_KEY_SUPPORTED_TOKEN_TYPES to TokenType.values().map { it.name },
+        SPEC_KEY_VALIDATION_RULES to ALL_VALIDATION_RULES,
+        SPEC_KEY_MAX_IDENTIFIER_LENGTH to MAX_IDENTIFIER_LENGTH_VALUE,
+        SPEC_KEY_MAX_VARIABLE_LENGTH to MAX_VARIABLE_LENGTH_VALUE,
+        SPEC_KEY_MAX_NUMBER_LENGTH to MAX_NUMBER_LENGTH_VALUE
     )
 }
