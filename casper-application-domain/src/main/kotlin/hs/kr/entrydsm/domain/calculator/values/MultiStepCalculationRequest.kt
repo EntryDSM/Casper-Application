@@ -24,13 +24,23 @@ data class MultiStepCalculationRequest(
 ) {
     
     init {
-        require(steps.isNotEmpty()) { "계산 단계는 최소 1개 이상이어야 합니다" }
-        require(steps.size <= 100) { "계산 단계는 최대 100개까지 허용됩니다: ${steps.size}" }
-        require(variables.size <= 1000) { "변수는 최대 1000개까지 허용됩니다: ${variables.size}" }
-        
+        if (steps.isEmpty()) {
+            throw CalculatorException.stepsEmpty()
+        }
+
+        if (steps.size > MAX_STEP_SIZE) {
+            throw CalculatorException.stepsTooMany(steps.size, MAX_STEP_SIZE)
+        }
+
+        if (variables.size > MAX_VARIABLES_SIZE) {
+            throw CalculatorException.variablesTooMany(variables.size, MAX_VARIABLES_SIZE)
+        }
+
         // 단계별 유효성 검사
         steps.forEachIndexed { index, step ->
-            require(step.formula.isNotBlank()) { "단계 ${index + 1}의 수식이 비어있습니다" }
+            if (step.formula.isBlank()) {
+                throw CalculatorException.stepFormulaEmpty(index + 1)
+            }
         }
     }
 
@@ -42,7 +52,9 @@ data class MultiStepCalculationRequest(
      * @return 새로운 MultiStepCalculationRequest
      */
     fun withVariable(name: String, value: Any?): MultiStepCalculationRequest {
-        require(name.isNotBlank()) { "변수 이름은 비어있을 수 없습니다" }
+        if (name.isBlank()) {
+            throw CalculatorException.variableNameEmpty(name)
+        }
         return copy(variables = variables + (name to value))
     }
 
@@ -84,7 +96,9 @@ data class MultiStepCalculationRequest(
      * @return 새로운 MultiStepCalculationRequest
      */
     fun insertStep(index: Int, step: CalculationStep): MultiStepCalculationRequest {
-        require(index in 0..steps.size) { "인덱스가 범위를 벗어났습니다: $index (0-${steps.size})" }
+        if (index < 0 || index > steps.size) {
+            throw CalculatorException.indexOutOfRangeInclusive(index, steps.size)
+        }
         val newSteps = steps.toMutableList()
         newSteps.add(index, step)
         return copy(steps = newSteps)
@@ -97,8 +111,14 @@ data class MultiStepCalculationRequest(
      * @return 새로운 MultiStepCalculationRequest
      */
     fun removeStep(index: Int): MultiStepCalculationRequest {
-        require(index in steps.indices) { "인덱스가 범위를 벗어났습니다: $index (0-${steps.size - 1})" }
-        require(steps.size > 1) { "최소 1개의 단계는 유지되어야 합니다" }
+        if (index !in steps.indices) {
+            throw CalculatorException.indexOutOfRangeExclusive(index, steps.size)
+        }
+
+        if (steps.size <= 1) {
+            throw CalculatorException.minStepsRequired(steps.size, 2)
+        }
+
         return copy(steps = steps.filterIndexed { i, _ -> i != index })
     }
 
@@ -135,7 +155,10 @@ data class MultiStepCalculationRequest(
      * @return 계산 단계
      */
     fun getStep(index: Int): CalculationStep {
-        require(index in steps.indices) { "인덱스가 범위를 벗어났습니다: $index (0-${steps.size - 1})" }
+        if (index !in steps.indices) {
+            throw CalculatorException.indexOutOfRangeExclusive(index, steps.size)
+        }
+
         return steps[index]
     }
 
@@ -452,6 +475,9 @@ data class MultiStepCalculationRequest(
         fun builder(): MultiStepCalculationRequestBuilder {
             return MultiStepCalculationRequestBuilder()
         }
+
+        private const val MAX_STEP_SIZE = 100
+        private const val MAX_VARIABLES_SIZE = 1000
     }
 
     /**
