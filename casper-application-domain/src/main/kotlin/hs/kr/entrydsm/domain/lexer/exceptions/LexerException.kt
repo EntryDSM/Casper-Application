@@ -12,6 +12,7 @@ import hs.kr.entrydsm.global.exception.ErrorCode
  * @property position 오류가 발생한 입력 위치 (선택사항)
  * @property character 오류를 발생시킨 문자 (선택사항)
  * @property token 오류와 관련된 토큰 정보 (선택사항)
+ * @property reason 사유 (선택사항)
  *
  * @see <a href="https://devblog.kakaostyle.com/ko/2025-03-21-1-domain-driven-hexagonal-architecture-by-example/">코드 사례로 보는 Domain-Driven 헥사고날 아키텍처</a>
  *
@@ -23,7 +24,8 @@ class LexerException(
     val position: Int? = null,
     val character: Char? = null,
     val token: String? = null,
-    message: String = buildLexerMessage(errorCode, position, character, token),
+    val reason: String? = null,
+    message: String = buildLexerMessage(errorCode, position, character, token, reason),
     cause: Throwable? = null
 ) : DomainException(errorCode, message, cause) {
 
@@ -35,13 +37,15 @@ class LexerException(
          * @param position 오류 발생 위치
          * @param character 오류 문자
          * @param token 관련 토큰
+         * @param reason 사유
          * @return 구성된 메시지
          */
         private fun buildLexerMessage(
             errorCode: ErrorCode,
             position: Int?,
             character: Char?,
-            token: String?
+            token: String?,
+            reason: String?
         ): String {
             val baseMessage = errorCode.description
             val details = mutableListOf<String>()
@@ -49,7 +53,8 @@ class LexerException(
             position?.let { details.add("위치: $it") }
             character?.let { details.add("문자: '$it'") }
             token?.let { details.add("토큰: $it") }
-            
+            reason?.let { details.add("사유: $it") }
+
             return if (details.isNotEmpty()) {
                 "$baseMessage (${details.joinToString(", ")})"
             } else {
