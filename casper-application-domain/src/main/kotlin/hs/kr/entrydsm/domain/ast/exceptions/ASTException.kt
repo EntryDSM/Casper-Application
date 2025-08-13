@@ -13,6 +13,7 @@ import hs.kr.entrydsm.global.exception.DomainException
  * @property nodeName 오류가 발생한 노드 이름 (선택사항)
  * @property expectedType 예상된 노드 타입 (선택사항)
  * @property actualType 실제 노드 타입 (선택사항)
+ * @property reason 사유 (선택사항)
  *
  * @see <a href="https://devblog.kakaostyle.com/ko/2025-03-21-1-domain-driven-hexagonal-architecture-by-example/">코드 사례로 보는 Domain-Driven 헥사고날 아키텍처</a>
  *
@@ -39,6 +40,7 @@ class ASTException(
          * @param nodeName 노드 이름
          * @param expectedType 예상 타입
          * @param actualType 실제 타입
+         * @param reason 사유
          * @return 구성된 메시지
          */
         private fun buildASTMessage(
