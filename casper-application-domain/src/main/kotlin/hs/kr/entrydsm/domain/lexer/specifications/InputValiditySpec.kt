@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.lexer.specifications
 
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.domain.lexer.values.LexingContext
 import hs.kr.entrydsm.global.annotation.specification.Specification
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
@@ -154,10 +155,9 @@ class InputValiditySpec {
      */
     private fun hasValidLength(input: String): Boolean {
         if (input.length > maxInputLength) {
-            throw IllegalArgumentException(
-                "입력 길이가 제한을 초과했습니다: ${input.length} > $maxInputLength"
-            )
+            throw LexerException.inputLengthExceeded(input.length, maxInputLength)
         }
+
         return true
     }
 
@@ -172,16 +172,12 @@ class InputValiditySpec {
                 codePoint <= 127 -> continue // ASCII
                 allowExtendedASCII && codePoint <= 255 -> continue // 확장 ASCII
                 allowUnicode -> continue // 유니코드
-                else -> throw IllegalArgumentException(
-                    "허용되지 않은 문자입니다: '$char' (코드: $codePoint)"
-                )
+                else -> throw LexerException.disallowedCharacter(char, codePoint)
             }
             
             // 금지된 제어 문자 검사
             if (codePoint in FORBIDDEN_CONTROL_CHARS) {
-                throw IllegalArgumentException(
-                    "금지된 제어 문자입니다: 코드 $codePoint"
-                )
+                throw LexerException.forbiddenControlCharacter(codePoint)
             }
         }
         return true
@@ -194,16 +190,12 @@ class InputValiditySpec {
         val lines = input.split('\n', '\r')
         
         if (lines.size > maxLineCount) {
-            throw IllegalArgumentException(
-                "라인 수가 제한을 초과했습니다: ${lines.size} > $maxLineCount"
-            )
+            throw LexerException.lineCountExceeded(lines.size, maxLineCount)
         }
         
         lines.forEachIndexed { index, line ->
             if (line.length > maxLineLength) {
-                throw IllegalArgumentException(
-                    "라인 ${index + 1}의 길이가 제한을 초과했습니다: ${line.length} > $maxLineLength"
-                )
+                throw LexerException.lineLengthExceeded(index, line.length, maxLineLength)
             }
         }
         
@@ -217,13 +209,13 @@ class InputValiditySpec {
         // BOM (Byte Order Mark) 검사
         if (input.startsWith('\uFEFF')) {
             if (strictMode) {
-                throw IllegalArgumentException("BOM 문자가 감지되었습니다")
+                throw LexerException.bomCharacterDetected()
             }
         }
         
         // 널 문자 검사
         if (input.contains('\u0000')) {
-            throw IllegalArgumentException("널 문자가 포함되어 있습니다")
+            throw LexerException.nullCharacterDetected()
         }
         
         return true
@@ -248,9 +240,7 @@ class InputValiditySpec {
             }
             
             if (maxDepth > MAX_NESTING_DEPTH) {
-                throw IllegalArgumentException(
-                    "중첩 깊이가 제한을 초과했습니다: $maxDepth > $MAX_NESTING_DEPTH"
-                )
+                throw LexerException.maxNestingDepthExceeded(maxDepth, MAX_NESTING_DEPTH)
             }
         }
         
@@ -264,14 +254,14 @@ class InputValiditySpec {
         // 연속된 공백이 너무 많은 경우
         if (input.contains(Regex("\\s{100,}"))) {
             if (strictMode) {
-                throw IllegalArgumentException("과도한 연속 공백이 감지되었습니다")
+                throw LexerException.excessiveWhitespaceDetected()
             }
         }
         
         // 의심스러운 반복 패턴
         if (input.contains(Regex("(.{1,10})\\1{50,}"))) {
             if (strictMode) {
-                throw IllegalArgumentException("의심스러운 반복 패턴이 감지되었습니다")
+                throw LexerException.suspiciousRepeatPattern()
             }
         }
         
@@ -283,23 +273,17 @@ class InputValiditySpec {
      */
     private fun hasValidPosition(context: LexingContext): Boolean {
         val position = context.currentPosition
-        
-        if (position.index < 0) {
-            throw IllegalArgumentException("위치 인덱스가 음수입니다: ${position.index}")
+
+        if (position.index < 0 || position.index > context.input.length) {
+            throw LexerException.invalidPositionIndex(position.index, context.input.length)
         }
-        
-        if (position.index > context.input.length) {
-            throw IllegalArgumentException(
-                "위치 인덱스가 입력 길이를 초과했습니다: ${position.index} > ${context.input.length}"
-            )
-        }
-        
+
         if (position.line < 1) {
-            throw IllegalArgumentException("라인 번호가 1보다 작습니다: ${position.line}")
+            throw LexerException.invalidPositionLine(position.line)
         }
         
         if (position.column < 1) {
-            throw IllegalArgumentException("열 번호가 1보다 작습니다: ${position.column}")
+            throw LexerException.invalidPositionColumn(position.column)
         }
         
         return true
@@ -310,15 +294,11 @@ class InputValiditySpec {
      */
     private fun hasValidConfiguration(context: LexingContext): Boolean {
         if (context.maxTokenLength <= 0) {
-            throw IllegalArgumentException(
-                "최대 토큰 길이가 0 이하입니다: ${context.maxTokenLength}"
-            )
+            throw LexerException.invalidMaxTokenLength(context.maxTokenLength)
         }
         
         if (context.maxTokenLength > MAX_TOKEN_LENGTH) {
-            throw IllegalArgumentException(
-                "최대 토큰 길이가 제한을 초과했습니다: ${context.maxTokenLength} > $MAX_TOKEN_LENGTH"
-            )
+            throw LexerException.maxTokenLengthExceeded(context.maxTokenLength, MAX_TOKEN_LENGTH)
         }
         
         return true
