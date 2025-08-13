@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.calculator.factories
 
 import hs.kr.entrydsm.domain.calculator.aggregates.Calculator
 import hs.kr.entrydsm.domain.calculator.entities.CalculationSession
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.domain.calculator.values.CalculationRequest
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import hs.kr.entrydsm.domain.factories.EnvironmentFactory
@@ -140,7 +141,10 @@ class CalculatorFactory {
      * @return 사용자 세션
      */
     fun createUserSession(userId: String): CalculationSession {
-        require(userId.isNotBlank()) { "사용자 ID는 비어있을 수 없습니다" }
+        if (userId.isBlank()) {
+            throw CalculatorException.userIdEmpty(userId)
+        }
+
         createdSessionCount.incrementAndGet()
         return CalculationSession.createForUser(userId)
     }
@@ -190,7 +194,9 @@ class CalculatorFactory {
         formula: String,
         variables: Map<String, Any> = emptyMap()
     ): CalculationRequest {
-        require(formula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
+        if (formula.isBlank()) {
+            throw CalculatorException.emptyFormula()
+        }
         createdRequestCount.incrementAndGet()
         
         return CalculationRequest(
@@ -232,8 +238,10 @@ class CalculatorFactory {
         expressions: List<String>,
         variables: Map<String, Any> = emptyMap()
     ): List<CalculationRequest> {
-        require(expressions.isNotEmpty()) { "수식 목록은 비어있을 수 없습니다" }
-        
+        if (expressions.isEmpty()) {
+            throw CalculatorException.emptyExpressions()
+        }
+
         return expressions.map { expression ->
             createRequest(expression, variables)
         }
@@ -410,5 +418,4 @@ class CalculatorFactory {
         "defaultCacheSize" to 1000,
         "securityMode" to "standard"
     )
-
 }
