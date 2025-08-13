@@ -110,6 +110,49 @@ class TokenizationPolicy {
         private const val MAX_TOKEN_LENGTH = 1000
         private const val MAX_NUMBER_PRECISION = 15
         private const val MAX_IDENTIFIER_LENGTH = 100
+
+        private const val POLICY_NAME = "TokenizationPolicy"
+        private const val BASED_ON = "POC_CalculatorLexer"
+        private const val VALIDATION_RULES_COUNT = 3
+        private const val POC_COMPATIBILITY = true
+
+        // 설정 키 상수들
+        private const val KEY_NAME = "name"
+        private const val KEY_BASED_ON = "based_on"
+        private const val KEY_MAX_TOKEN_LENGTH = "maxTokenLength"
+        private const val KEY_MAX_NUMBER_PRECISION = "maxNumberPrecision"
+        private const val KEY_MAX_IDENTIFIER_LENGTH = "maxIdentifierLength"
+        private const val KEY_SUPPORTED_KEYWORDS = "supportedKeywords"
+        private const val KEY_SUPPORTED_OPERATORS = "supportedOperators"
+        private const val KEY_FEATURES = "features"
+
+        // 통계 키 상수들
+        private const val STAT_POLICY_NAME = "policyName"
+        private const val STAT_KEYWORD_COUNT = "keywordCount"
+        private const val STAT_SINGLE_CHAR_OPERATOR_COUNT = "singleCharOperatorCount"
+        private const val STAT_TWO_CHAR_OPERATOR_COUNT = "twoCharOperatorCount"
+        private const val STAT_SUPPORTED_TOKEN_TYPES = "supportedTokenTypes"
+        private const val STAT_VALIDATION_RULES = "validationRules"
+        private const val STAT_POC_COMPATIBILITY = "pocCompatibility"
+
+        // 기능 목록 상수
+        private const val FEATURE_CHARACTER_TOKENIZATION = "character_tokenization"
+        private const val FEATURE_NUMBER_RECOGNITION = "number_recognition"
+        private const val FEATURE_IDENTIFIER_RECOGNITION = "identifier_recognition"
+        private const val FEATURE_OPERATOR_RECOGNITION = "operator_recognition"
+        private const val FEATURE_SEQUENCE_VALIDATION = "sequence_validation"
+        private const val FEATURE_QUALITY_EVALUATION = "quality_evaluation"
+
+        private val ALL_FEATURES = listOf(
+            FEATURE_CHARACTER_TOKENIZATION,
+            FEATURE_NUMBER_RECOGNITION,
+            FEATURE_IDENTIFIER_RECOGNITION,
+            FEATURE_OPERATOR_RECOGNITION,
+            FEATURE_SEQUENCE_VALIDATION,
+            FEATURE_QUALITY_EVALUATION
+        )
+
+        private fun calculateOperatorCount() = OPERATORS.size + TWO_CHAR_OPERATORS.size
     }
 
     /**
@@ -497,29 +540,26 @@ class TokenizationPolicy {
      * 정책의 설정 정보를 반환합니다.
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "name" to "TokenizationPolicy",
-        "based_on" to "POC_CalculatorLexer",
-        "maxTokenLength" to MAX_TOKEN_LENGTH,
-        "maxNumberPrecision" to MAX_NUMBER_PRECISION,
-        "maxIdentifierLength" to MAX_IDENTIFIER_LENGTH,
-        "supportedKeywords" to KEYWORDS.size,
-        "supportedOperators" to (OPERATORS.size + TWO_CHAR_OPERATORS.size),
-        "features" to listOf(
-            "character_tokenization", "number_recognition", "identifier_recognition",
-            "operator_recognition", "sequence_validation", "quality_evaluation"
-        )
+        KEY_NAME to POLICY_NAME,
+        KEY_BASED_ON to BASED_ON,
+        KEY_MAX_TOKEN_LENGTH to MAX_TOKEN_LENGTH,
+        KEY_MAX_NUMBER_PRECISION to MAX_NUMBER_PRECISION,
+        KEY_MAX_IDENTIFIER_LENGTH to MAX_IDENTIFIER_LENGTH,
+        KEY_SUPPORTED_KEYWORDS to KEYWORDS.size,
+        KEY_SUPPORTED_OPERATORS to calculateOperatorCount(),
+        KEY_FEATURES to ALL_FEATURES
     )
 
     /**
      * 정책의 통계 정보를 반환합니다.
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "policyName" to "TokenizationPolicy",
-        "keywordCount" to KEYWORDS.size,
-        "singleCharOperatorCount" to OPERATORS.size,
-        "twoCharOperatorCount" to TWO_CHAR_OPERATORS.size,
-        "supportedTokenTypes" to TokenType.values().size,
-        "validationRules" to 3,
-        "pocCompatibility" to true
+        STAT_POLICY_NAME to POLICY_NAME,
+        STAT_KEYWORD_COUNT to KEYWORDS.size,
+        STAT_SINGLE_CHAR_OPERATOR_COUNT to OPERATORS.size,
+        STAT_TWO_CHAR_OPERATOR_COUNT to TWO_CHAR_OPERATORS.size,
+        STAT_SUPPORTED_TOKEN_TYPES to TokenType.values().size,
+        STAT_VALIDATION_RULES to VALIDATION_RULES_COUNT,
+        STAT_POC_COMPATIBILITY to POC_COMPATIBILITY
     )
 }
