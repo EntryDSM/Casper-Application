@@ -4,6 +4,7 @@ import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.ast.utils.ASTValidationUtils
 import hs.kr.entrydsm.domain.ast.utils.FunctionValidationRules
 import hs.kr.entrydsm.domain.ast.exceptions.ASTException
+import hs.kr.entrydsm.domain.ast.policies.validation.*
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.PolicyResult
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
@@ -27,6 +28,16 @@ import java.util.concurrent.atomic.AtomicLong
     scope = Scope.AGGREGATE
 )
 class NodeCreationPolicy {
+    
+    // 연산자별 검증 전략들
+    private val validationStrategies: Map<String, BinaryOperatorValidationStrategy> = mapOf(
+        "/" to DivisionValidationStrategy(),
+        "%" to ModuloValidationStrategy(),
+        "^" to PowerValidationStrategy(),
+        "*" to MultiplicationValidationStrategy(),
+        "+" to DefaultValidationStrategy("+"),
+        "-" to DefaultValidationStrategy("-")
+    )
 
     /**
      * 숫자 노드 생성 정책을 검증합니다.
@@ -103,75 +114,14 @@ class NodeCreationPolicy {
         validateNodeForOperation(left,  "좌측 피연산자")
         validateNodeForOperation(right, "우측 피연산자")
         
-        // 연산자별 특별 검증
+        // 연산자별 특별 검증 - Strategy 패턴 적용
+        val strategy = validationStrategies[operator]
+        if (strategy != null) {
+            strategy.validate(left, right, zeroConstantOptimizationCount)
+        }
+        
+        // 추가 고급 최적화 로직 (논리 연산자, 비교 연산자 등)
         when (operator) {
-            "/" -> {
-                if (isZeroConstant(right)) {
-                    throw ASTException.divisionByZero()
-                }
-                if (isOneConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-            }
-            "%" -> {
-                if (isZeroConstant(right)) {
-                    throw ASTException.moduloByZero()
-                }
-                if (isOneConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-            }
-            "^" -> {
-                if (isZeroConstant(left) && isZeroConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                    throw ASTException.zeroPowerZero()
-                }
-                // 거듭제곱 최적화 감지
-                if (isOneConstant(left)) {
-                    // 1^x = 1
-                    zeroConstantOptimizationCount.incrementAndGet()
-                } else if (isZeroConstant(right)) {
-                    // x^0 = 1 (x != 0)
-                    zeroConstantOptimizationCount.incrementAndGet()
-                } else if (isOneConstant(right)) {
-                    // x^1 = x
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-            }
-            "*" -> {
-                // 0과의 곱셈 최적화 감지 (x * 0 = 0, 0 * x = 0)
-                if (isZeroConstant(left) || isZeroConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-                // 1과의 곱셈 최적화 감지 (x * 1 = x, 1 * x = x)
-                if (isOneConstant(left) || isOneConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-            }
-            "+" -> {
-                // 0과의 덧셈 최적화 감지 (x + 0 = x, 0 + x = x)
-                if (isZeroConstant(left) || isZeroConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-                // 같은 피연산자 최적화 감지 (x + x = 2*x)
-                if (left.isStructurallyEqual(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-            }
-            "-" -> {
-                // 0과의 뺄셈 최적화 감지 (x - 0 = x)
-                if (isZeroConstant(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-                // 0에서 빼기 최적화 감지 (0 - x = -x)
-                if (isZeroConstant(left)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-                // 같은 피연산자 최적화 감지 (x - x = 0)
-                if (left.isStructurallyEqual(right)) {
-                    zeroConstantOptimizationCount.incrementAndGet()
-                }
-            }
             "&&" -> {
                 if (isTrueConstant(left)  || isFalseConstant(left) ||
                     isTrueConstant(right) || isFalseConstant(right) ||
