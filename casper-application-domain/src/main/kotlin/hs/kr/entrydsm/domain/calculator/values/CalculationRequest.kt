@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.calculator.values
 
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -31,9 +32,17 @@ data class CalculationRequest(
 ) {
     
     init {
-        require(formula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
-        require(formula.length <= 10000) { "수식이 너무 깁니다: ${formula.length}자 (최대 10000자)" }
-        require(variables.size <= 1000) { "변수가 너무 많습니다: ${variables.size}개 (최대 1000개)" }
+        if (formula.isBlank()) {
+            throw CalculatorException.emptyFormula()
+        }
+
+        if (formula.length > MAX_FORMULAR_LENGTH) {
+            throw CalculatorException.formulaTooLong(formula, MAX_FORMULAR_LENGTH)
+        }
+
+        if (variables.size > 1000) {
+            throw CalculatorException.tooManyVariables(variables.size, MAX_VARIABLES_SIZE)
+        }
     }
 
     /**
@@ -44,7 +53,9 @@ data class CalculationRequest(
      * @return 새로운 CalculationRequest
      */
     fun withVariable(name: String, value: Any): CalculationRequest {
-        require(name.isNotBlank()) { "변수 이름은 비어있을 수 없습니다" }
+        if (name.isBlank()) {
+            throw CalculatorException.variableNameEmpty(name)
+        }
         return copy(variables = variables + (name to value))
     }
 
@@ -66,7 +77,9 @@ data class CalculationRequest(
      * @return 새로운 CalculationRequest
      */
     fun withOption(key: String, value: Any): CalculationRequest {
-        require(key.isNotBlank()) { "옵션 키는 비어있을 수 없습니다" }
+        if (key.isBlank()) {
+            throw CalculatorException.optionKeyEmpty(key)
+        }
         return copy(options = options + (key to value))
     }
 
@@ -77,7 +90,9 @@ data class CalculationRequest(
      * @return 새로운 CalculationRequest
      */
     fun withFormula(newFormula: String): CalculationRequest {
-        require(newFormula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
+        if (newFormula.isBlank()) {
+            throw CalculatorException.emptyFormula()
+        }
         return copy(formula = newFormula)
     }
 
@@ -349,6 +364,10 @@ data class CalculationRequest(
     }
 
     companion object {
+
+        private const val MAX_FORMULAR_LENGTH = 10000
+        private const val MAX_VARIABLES_SIZE = 1000
+
         /**
          * 수식만으로 간단한 요청을 생성합니다.
          *
