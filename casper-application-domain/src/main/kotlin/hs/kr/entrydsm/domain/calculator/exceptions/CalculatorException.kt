@@ -250,6 +250,253 @@ class CalculatorException(
                 errorCode = ErrorCode.USER_ID_EMPTY,
                 reason = "actual=${actual ?: "null"}"
             )
+
+        /**
+         * 수식 목록이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @return CalculatorException 인스턴스
+         */
+        fun emptyExpressions(): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.EMPTY_EXPRESSIONS
+            )
+
+        /**
+         * 계산 단계가 전체 타임아웃을 초과했을 때의 오류를 생성합니다.
+         *
+         * @param stepIndex 초과한 단계 인덱스
+         * @param remainingTime 남은 시간(ms)
+         * @return CalculatorException 인스턴스
+         */
+        fun stepTimeoutExceeded(stepIndex: Int, remainingTime: Long): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.STEP_TIMEOUT_EXCEEDED,
+                reason = "stepIndex=$stepIndex, remainingTime=$remainingTime"
+            )
+
+        /**
+         * 계산 요청 목록이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @return CalculatorException 인스턴스
+         */
+        fun requestListEmpty(): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.REQUEST_LIST_EMPTY
+            )
+
+        /**
+         * 동시성 수준이 0 이하일 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 동시성 수준
+         * @return CalculatorException 인스턴스
+         */
+        fun invalidConcurrencyLevel(actual: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.INVALID_CONCURRENCY_LEVEL,
+                reason = "actual=$actual"
+            )
+
+        /**
+         * 버퍼 크기가 0 이하일 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 버퍼 크기
+         * @return CalculatorException 인스턴스
+         */
+        fun invalidBufferSize(actual: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.INVALID_BUFFER_SIZE,
+                reason = "actual=$actual"
+            )
+
+        /**
+         * 최대 재시도 횟수를 초과했을 때의 오류를 생성합니다.
+         *
+         * @return CalculatorException 인스턴스
+         */
+        fun maxRetryExceeded(): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.MAX_RETRY_EXCEEDED
+            )
+
+        /**
+         * 유효하지 않은 AST 노드 타입 오류를 생성합니다.
+         *
+         * @param actualType 입력된 AST 노드 타입
+         * @return CalculatorException 인스턴스
+         */
+        fun invalidAstNodeType(actualType: String): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.INVALID_AST_NODE_TYPE,
+                reason = "actualType=$actualType"
+            )
+
+        /**
+         * 옵션 키가 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 옵션 키
+         * @return CalculatorException 인스턴스
+         */
+        fun optionKeyEmpty(actual: String?): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.OPTION_KEY_EMPTY,
+                reason = "actual=${actual ?: "null"}"
+            )
+
+        /**
+         * 실행 시간이 0보다 작을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 실행 시간(ms)
+         * @return CalculatorException 인스턴스
+         */
+        fun executionTimeNegative(actual: Long): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.EXECUTION_TIME_NEGATIVE,
+                reason = "actual=$actual"
+            )
+
+        /**
+         * 병합할 결과가 없을 때의 오류를 생성합니다.
+         *
+         * @return CalculatorException 인스턴스
+         */
+        fun mergeResultsEmpty(): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.MERGE_RESULTS_EMPTY
+            )
+
+        /**
+         * 단계 이름이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 단계 이름
+         * @return CalculatorException 인스턴스
+         */
+        fun stepNameEmpty(actual: String?): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.STEP_NAME_EMPTY,
+                reason = "actual=${actual ?: "null"}"
+            )
+
+        /**
+         * 단계 이름이 너무 길 때의 오류를 생성합니다.
+         *
+         * @param actualLength 실제 길이
+         * @param maxLength 허용되는 최대 길이
+         * @return CalculatorException 인스턴스
+         */
+        fun stepNameTooLong(actualLength: Int, maxLength: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.STEP_NAME_TOO_LONG,
+                reason = "length=$actualLength, max=$maxLength"
+            )
+
+        /**
+         * 결과 변수명이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 변수명
+         * @return CalculatorException 인스턴스
+         */
+        fun resultVariableNameEmpty(actual: String?): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.RESULT_VARIABLE_NAME_EMPTY,
+                reason = "actual=${actual ?: "null"}"
+            )
+
+        /**
+         * 결과 변수명이 유효하지 않을 때의 오류를 생성합니다.
+         *
+         * @param actual 입력된 변수명
+         * @return CalculatorException 인스턴스
+         */
+        fun resultVariableNameInvalid(actual: String): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.RESULT_VARIABLE_NAME_INVALID,
+                reason = "actual=$actual"
+            )
+
+        /**
+         * 계산 단계 목록이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @return CalculatorException 인스턴스
+         */
+        fun stepsEmpty(): CalculatorException =
+            CalculatorException(errorCode = ErrorCode.STEPS_EMPTY)
+
+        /**
+         * 계산 단계 개수가 최대 허용치를 초과했을 때의 오류를 생성합니다.
+         *
+         * @param actual 실제 계산 단계 개수
+         * @param max 허용되는 최대 계산 단계 개수
+         * @return CalculatorException 인스턴스
+         */
+        fun stepsTooMany(actual: Int, max: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.STEPS_TOO_MANY,
+                reason = "actual=$actual, max=$max"
+            )
+
+        /**
+         * 변수 개수가 최대 허용치를 초과했을 때의 오류를 생성합니다.
+         *
+         * @param actual 실제 변수 개수
+         * @param max 허용되는 최대 변수 개수
+         * @return CalculatorException 인스턴스
+         */
+        fun variablesTooMany(actual: Int, max: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.VARIABLES_TOO_MANY,
+                reason = "actual=$actual, max=$max"
+            )
+
+        /**
+         * 특정 단계의 수식이 비어 있을 때의 오류를 생성합니다.
+         *
+         * @param stepIndex 수식이 비어 있는 단계의 인덱스 (0부터 시작)
+         * @return CalculatorException 인스턴스
+         */
+        fun stepFormulaEmpty(stepIndex: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.STEP_FORMULA_EMPTY,
+                reason = "stepIndex=$stepIndex"
+            )
+
+        /**
+         * 인덱스가 [0..maxInclusive] 범위를 벗어났을 때의 오류를 생성합니다.
+         *
+         * @param actual 전달된 인덱스 값
+         * @param maxInclusive 허용되는 최대 인덱스 값 (포함)
+         * @return CalculatorException 인스턴스
+         */
+        fun indexOutOfRangeInclusive(actual: Int, maxInclusive: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.INDEX_OUT_OF_RANGE_INCLUSIVE,
+                reason = "index=$actual, range=0..$maxInclusive"
+            )
+
+        /**
+         * 인덱스가 [0..maxExclusive) 범위를 벗어났을 때의 오류를 생성합니다.
+         *
+         * @param actual 전달된 인덱스 값
+         * @param maxExclusive 허용되는 최대 인덱스 값 (미포함)
+         * @return CalculatorException 인스턴스
+         */
+        fun indexOutOfRangeExclusive(actual: Int, maxExclusive: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.INDEX_OUT_OF_RANGE_EXCLUSIVE,
+                reason = "index=$actual, range=0..${maxExclusive - 1}"
+            )
+
+        /**
+         * 최소 단계 개수 요건을 충족하지 못했을 때의 오류를 생성합니다.
+         *
+         * @param actual 실제 단계 개수
+         * @param min 요구되는 최소 단계 개수
+         * @return CalculatorException 인스턴스
+         */
+        fun minStepsRequired(actual: Int, min: Int): CalculatorException =
+            CalculatorException(
+                errorCode = ErrorCode.MIN_STEPS_REQUIRED,
+                reason = "actual=$actual, min=$min"
+            )
     }
 
     /**
