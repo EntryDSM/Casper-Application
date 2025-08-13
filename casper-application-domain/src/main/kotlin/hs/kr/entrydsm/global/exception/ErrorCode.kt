@@ -155,6 +155,10 @@ enum class ErrorCode(val code: String, val description: String) {
     SERIALIZATION_FAILED("CAL011", "역직렬화에 실패했습니다"),
     PERFORMANCE_WARNING("CAL012", "성능 경고가 발생했습니다"),
     VALIDATION_EXCEPTION("CAL013", "계산 유효성 검증 중 예외가 발생했습니다"),
+    SESSION_ID_EMPTY("CAL014", "세션 ID는 비어있을 수 없습니다"),
+    CALCULATION_HISTORY_TOO_LARGE("CAL015", "계산 이력이 최대 크기를 초과했습니다"),
+    VARIABLE_NAME_EMPTY("CAL016", "변수 이름은 비어있을 수 없습니다"),
+    USER_ID_EMPTY("CAL017", "사용자 ID는 비어있을 수 없습니다"),
 
     // Expresser 도메인 오류 (EXP)
     FORMATTING_ERROR("EXP001", "포맷팅 중 오류가 발생했습니다"),
