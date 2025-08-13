@@ -9,6 +9,7 @@ import hs.kr.entrydsm.domain.evaluator.aggregates.ExpressionEvaluator
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
 import hs.kr.entrydsm.domain.parser.aggregates.LRParser
 import hs.kr.entrydsm.domain.ast.services.TreeOptimizer
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.exception.DomainException
 import hs.kr.entrydsm.global.exception.ErrorCode
@@ -46,6 +47,13 @@ class CalculatorService(
     private val configurationProvider: ConfigurationProvider
 ) {
 
+    companion object {
+        private const val CALCULATION_SERVICE = "CalculationService"
+        private const val ANONYMOUS = "anonymous"
+        private const val UNKNOWN_ERROR = "Unknown error"
+        private const val CALCULATOR_SERVICE = "CalculatorService"
+    }
+
     // 설정은 ConfigurationProvider를 통해 동적으로 접근
     private val config: CalculatorConfiguration
         get() = configurationProvider.getCalculatorConfiguration()
@@ -56,7 +64,7 @@ class CalculatorService(
     
     // 코루틴 스코프 및 디스패처 설정
     private val calculationScope = CoroutineScope(
-        Dispatchers.Default + SupervisorJob() + CoroutineName("CalculationService")
+        Dispatchers.Default + SupervisorJob() + CoroutineName(CALCULATION_SERVICE)
     )
     private val calculationDispatcher: CoroutineDispatcher
         get() = Dispatchers.Default.limitedParallelism(config.concurrency)
@@ -117,7 +125,7 @@ class CalculatorService(
                 cause = e,
                 context = mapOf(
                     "formula" to request.formula,
-                    "sessionId" to (session?.sessionId ?: "anonymous")
+                    "sessionId" to (session?.sessionId ?: ANONYMOUS)
                 )
             )
             
@@ -130,7 +138,7 @@ class CalculatorService(
                 cause = e,
                 context = mapOf(
                     "formula" to request.formula,
-                    "sessionId" to (session?.sessionId ?: "anonymous")
+                    "sessionId" to (session?.sessionId ?: ANONYMOUS)
                 )
             )
             
@@ -143,7 +151,7 @@ class CalculatorService(
                 cause = e,
                 context = mapOf(
                     "formula" to request.formula,
-                    "sessionId" to (session?.sessionId ?: "anonymous"),
+                    "sessionId" to (session?.sessionId ?: ANONYMOUS),
                     "exceptionType" to e.javaClass.simpleName
                 )
             )
@@ -158,8 +166,10 @@ class CalculatorService(
      * @return 계산 결과들
      */
     fun calculateBatch(requests: List<CalculationRequest>, session: CalculationSession? = null): List<CalculationResult> {
-        require(requests.isNotEmpty()) { "계산 요청 목록은 비어있을 수 없습니다" }
-        
+        if (requests.isEmpty()) {
+            throw CalculatorException.requestListEmpty()
+        }
+
         return requests.map { request ->
             calculate(request, session)
         }
@@ -179,8 +189,13 @@ class CalculatorService(
         session: CalculationSession? = null,
         concurrency: Int = DEFAULT_CONCURRENCY
     ): List<CalculationResult> {
-        require(requests.isNotEmpty()) { "계산 요청 목록은 비어있을 수 없습니다" }
-        require(concurrency > 0) { "동시성 수준은 0보다 커야 합니다: $concurrency" }
+        if (requests.isEmpty()) {
+            throw CalculatorException.requestListEmpty()
+        }
+
+        if (concurrency <= 0) {
+            throw CalculatorException.invalidConcurrencyLevel(concurrency)
+        }
         
         return runBlocking(calculationDispatcher.limitedParallelism(concurrency)) {
             requests.map { request ->
@@ -212,10 +227,18 @@ class CalculatorService(
         concurrency: Int = DEFAULT_CONCURRENCY,
         bufferSize: Int = 50
     ): Flow<CalculationResult> {
-        require(requests.isNotEmpty()) { "계산 요청 목록은 비어있을 수 없습니다" }
-        require(concurrency > 0) { "동시성 수준은 0보다 커야 합니다: $concurrency" }
-        require(bufferSize > 0) { "버퍼 크기는 0보다 커야 합니다: $bufferSize" }
-        
+        if (requests.isEmpty()) {
+            throw CalculatorException.requestListEmpty()
+        }
+
+        if (concurrency <= 0) {
+            throw CalculatorException.invalidConcurrencyLevel(concurrency)
+        }
+
+        if (bufferSize <= 0) {
+            throw CalculatorException.invalidBufferSize(bufferSize)
+        }
+
         return requests.asFlow()
             .buffer(capacity = bufferSize)
             .map { request ->
@@ -266,7 +289,7 @@ class CalculatorService(
             )
         } catch (e: Exception) {
             return mapOf(
-                "error" to (e.message ?: "Unknown error"),
+                "error" to (e.message ?: UNKNOWN_ERROR),
                 "isValid" to false
             )
         }
@@ -377,14 +400,14 @@ class CalculatorService(
                 delay(100)
             }
         }
-        throw RuntimeException("최대 재시도 횟수 초과")
+        throw CalculatorException.maxRetryExceeded()
     }
 
     private fun evaluateAST(ast: Any, variables: Map<String, Any>): Any? {
         return try {
             val astNode = ast as? hs.kr.entrydsm.domain.ast.entities.ASTNode
-                ?: throw IllegalArgumentException("Invalid AST node type: ${ast.javaClass.simpleName}")
-            
+                ?: throw CalculatorException.invalidAstNodeType(ast.javaClass.simpleName)
+
             val evaluatorWithVariables = if (variables.isNotEmpty()) {
                 evaluator.withVariables(variables)
             } else {
@@ -572,8 +595,8 @@ class CalculatorService(
     private fun calculateASTDepth(ast: Any): Int {
         return try {
             val astNode = ast as? hs.kr.entrydsm.domain.ast.entities.ASTNode
-                ?: throw IllegalArgumentException("Invalid AST node type: ${ast.javaClass.simpleName}")
-            
+                ?: throw CalculatorException.invalidAstNodeType(ast.javaClass.simpleName)
+
             calculateNodeDepth(astNode)
             
         } catch (e: IllegalArgumentException) {
@@ -749,7 +772,7 @@ class CalculatorService(
      * @return 설정 정보 맵
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "serviceName" to "CalculatorService",
+        "serviceName" to CALCULATOR_SERVICE,
         "defaultTimeoutMs" to config.defaultTimeoutMs,
         "maxRetries" to config.maxRetries,
         "cacheEnabled" to true,
@@ -859,7 +882,7 @@ class CalculatorService(
      */
     private fun updateMetrics(request: CalculationRequest, session: CalculationSession?, executionTime: Long) {
         calculationPolicy.updateSessionMetrics(
-            session?.sessionId ?: "anonymous",
+            session?.sessionId ?: ANONYMOUS,
             executionTime,
             estimateMemoryUsage(request.formula)
         )
