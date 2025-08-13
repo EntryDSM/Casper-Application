@@ -152,7 +152,7 @@ class ExpresserException(
          */
         fun resultFormattingError(result: Any?, cause: Throwable? = null): ExpresserException {
             return ExpresserException(
-                errorCode = ErrorCode.INVALID_INPUT,
+                errorCode = ErrorCode.FORMATTING_ERROR,
                 data = result,
                 cause = cause
             )
@@ -166,8 +166,34 @@ class ExpresserException(
          */
         fun reportGenerationError(cause: Throwable? = null): ExpresserException {
             return ExpresserException(
-                errorCode = ErrorCode.INVALID_INPUT,
+                errorCode = ErrorCode.OUTPUT_GENERATION_ERROR,
                 cause = cause
+            )
+        }
+
+        /**
+         * 지원하지 않는 스타일 오류를 생성합니다.
+         *
+         * @param style 지원하지 않는 스타일
+         * @return ExpresserException 인스턴스
+         */
+        fun unsupportedStyle(style: String): ExpresserException {
+            return ExpresserException(
+                errorCode = ErrorCode.UNSUPPORTED_STYLE,
+                format = style
+            )
+        }
+
+        /**
+         * 잘못된 노드 타입 오류를 생성합니다.
+         *
+         * @param nodeType 잘못된 노드 타입
+         * @return ExpresserException 인스턴스
+         */
+        fun invalidNodeType(nodeType: String): ExpresserException {
+            return ExpresserException(
+                errorCode = ErrorCode.INVALID_NODE_TYPE,
+                data = nodeType
             )
         }
     }
