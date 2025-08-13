@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.domain.calculator.values
 
-
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 
 /**
  * 다단계 계산의 개별 단계를 나타내는 값 객체입니다.
@@ -24,17 +24,32 @@ data class CalculationStep(
 ) {
     
     init {
-        require(formula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
-        require(formula.length <= 10000) { "수식이 너무 깁니다: ${formula.length}자 (최대 10000자)" }
-        
+        if (formula.isBlank()) {
+            throw CalculatorException.emptyFormula()
+        }
+
+        if (formula.length > MAX_FORMULAR_LENGTH) {
+            throw CalculatorException.formulaTooLong(formula, MAX_FORMULAR_LENGTH)
+        }
+
         stepName?.let { name ->
-            require(name.isNotBlank()) { "단계 이름은 비어있을 수 없습니다" }
-            require(name.length <= 100) { "단계 이름이 너무 깁니다: ${name.length}자 (최대 100자)" }
+            if (name.isBlank()) {
+                throw CalculatorException.stepNameEmpty(name)
+            }
+
+            if (name.length > MAX_STEP_LENGTH) {
+                throw CalculatorException.stepNameTooLong(name.length, MAX_STEP_LENGTH)
+            }
         }
         
         resultVariable?.let { varName ->
-            require(varName.isNotBlank()) { "결과 변수명은 비어있을 수 없습니다" }
-            require(isValidVariableName(varName)) { "결과 변수명이 유효하지 않습니다: $varName" }
+            if (varName.isBlank()) {
+                throw CalculatorException.resultVariableNameEmpty(varName)
+            }
+
+            if (!isValidVariableName(varName)) {
+                throw CalculatorException.resultVariableNameInvalid(varName)
+            }
         }
     }
 
@@ -55,7 +70,9 @@ data class CalculationStep(
      * @return 새로운 CalculationStep
      */
     fun withFormula(newFormula: String): CalculationStep {
-        require(newFormula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
+        if (newFormula.isBlank()) {
+            throw CalculatorException.emptyFormula()
+        }
         return copy(formula = newFormula)
     }
 
@@ -67,7 +84,9 @@ data class CalculationStep(
      */
     fun withResultVariable(newResultVariable: String?): CalculationStep {
         newResultVariable?.let { varName ->
-            require(isValidVariableName(varName)) { "결과 변수명이 유효하지 않습니다: $varName" }
+            if (!isValidVariableName(varName)) {
+                throw CalculatorException.resultVariableNameInvalid(varName)
+            }
         }
         return copy(resultVariable = newResultVariable)
     }
@@ -332,6 +351,9 @@ data class CalculationStep(
         fun builder(): CalculationStepBuilder {
             return CalculationStepBuilder()
         }
+
+        private const val MAX_FORMULAR_LENGTH = 10000
+        private const val MAX_STEP_LENGTH = 100
     }
 
     /**
