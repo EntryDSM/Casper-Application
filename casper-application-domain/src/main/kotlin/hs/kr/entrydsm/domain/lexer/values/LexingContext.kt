@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.lexer.values
 
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.global.values.Position
 
 /**
@@ -33,8 +34,14 @@ data class LexingContext(
 ) {
     
     init {
-        require(maxTokenLength > 0) { "최대 토큰 길이는 1 이상이어야 합니다: $maxTokenLength" }
-        require(startTime > 0) { "시작 시간은 유효해야 합니다: $startTime" }
+        if (maxTokenLength <= 0) {
+            throw LexerException.maxTokenLengthInvalid(maxTokenLength)
+        }
+
+        if (startTime <= 0) {
+            throw LexerException.startTimeInvalid(startTime)
+        }
+
     }
 
     companion object {
@@ -152,8 +159,10 @@ data class LexingContext(
      * @return 이동된 LexingContext
      */
     fun advance(steps: Int = 1): LexingContext {
-        require(steps >= 0) { "이동 거리는 0 이상이어야 합니다: $steps" }
-        
+        if (steps < 0) {
+            throw LexerException.stepsNegative(steps)
+        }
+
         var index = currentPosition.index
         var line = currentPosition.line
         var column = currentPosition.column
