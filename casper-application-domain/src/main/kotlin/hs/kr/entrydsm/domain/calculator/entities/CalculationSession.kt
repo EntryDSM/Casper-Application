@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.domain.calculator.entities
 
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import java.time.Instant
@@ -62,9 +63,15 @@ data class CalculationSession(
     }
 
     init {
-        require(sessionId.isNotBlank()) { "세션 ID는 비어있을 수 없습니다" }
-        require(calculations.size <= settings.maxHistorySize) { 
-            "계산 이력이 최대 크기를 초과했습니다: ${calculations.size} > ${settings.maxHistorySize}" 
+        if (sessionId.isBlank()) {
+            throw CalculatorException.sessionIdEmpty(sessionId)
+        }
+
+        if (calculations.size > settings.maxHistorySize) {
+            throw CalculatorException.calculationHistoryTooLarge(
+                calculations.size,
+                settings.maxHistorySize
+            )
         }
     }
 
@@ -95,8 +102,10 @@ data class CalculationSession(
      * @return 업데이트된 세션
      */
     fun setVariable(name: String, value: Any): CalculationSession {
-        require(name.isNotBlank()) { "변수 이름은 비어있을 수 없습니다" }
-        
+        if (name.isBlank()) {
+            throw CalculatorException.variableNameEmpty(name)
+        }
+
         return copy(
             variables = variables + (name to value),
             lastActivity = Instant.now()
@@ -348,7 +357,10 @@ data class CalculationSession(
          * @return 새로운 세션
          */
         fun create(sessionId: String, userId: String? = null): CalculationSession {
-            require(sessionId.isNotBlank()) { "세션 ID는 비어있을 수 없습니다" }
+            if (sessionId.isBlank()) {
+                throw CalculatorException.sessionIdEmpty(sessionId)
+            }
+
             return CalculationSession(sessionId = sessionId, userId = userId)
         }
 
@@ -371,7 +383,10 @@ data class CalculationSession(
          * @return 사용자 세션
          */
         fun createForUser(userId: String): CalculationSession {
-            require(userId.isNotBlank()) { "사용자 ID는 비어있을 수 없습니다" }
+            if (userId.isBlank()) {
+                throw CalculatorException.userIdEmpty(userId)
+            }
+
             val sessionId = generateUniqueSessionId("user_${userId}", includeUuid = false)
             return create(sessionId, userId)
         }
