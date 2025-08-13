@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.lexer.policies
 
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 
@@ -56,8 +57,10 @@ class TokenValidationPolicy {
      * @return 모든 토큰이 유효하면 true
      */
     fun validateTokens(tokens: List<Token>): Boolean {
-        require(tokens.isNotEmpty()) { "검증할 토큰 목록이 비어있습니다" }
-        
+        if (tokens.isEmpty()) {
+            throw LexerException.tokensEmpty()
+        }
+
         tokens.forEach { token ->
             validate(token)
         }
@@ -74,8 +77,8 @@ class TokenValidationPolicy {
      * @return 유효하면 true
      */
     fun validateTokenType(token: Token, expectedType: TokenType): Boolean {
-        require(token.type == expectedType) {
-            "토큰 타입이 일치하지 않습니다. 기대: $expectedType, 실제: ${token.type}"
+        if (token.type != expectedType) {
+            throw LexerException.tokenTypeMismatch(expected = expectedType.name, actual = token.type.name)
         }
         
         validate(token)
@@ -89,22 +92,23 @@ class TokenValidationPolicy {
      * @return 유효하면 true
      */
     fun validateNumberToken(token: Token): Boolean {
-        require(token.type == TokenType.NUMBER) {
-            "숫자 토큰이 아닙니다: ${token.type}"
+        if (token.type != TokenType.NUMBER) {
+            throw LexerException.notNumberToken(token.type.name) // (LEX008 재사용)
         }
         
         val value = try {
             token.value.toDouble()
         } catch (e: NumberFormatException) {
-            throw IllegalArgumentException("유효하지 않은 숫자 형식: ${token.value}", e)
+            throw LexerException.invalidNumberFormat(token.value)
         }
-        
-        require(value.isFinite()) {
-            "숫자 값이 유한하지 않습니다: $value"
+
+        val parsed = token.value.toDouble()
+        if (!parsed.isFinite()) {
+            throw LexerException.numberNotFinite(parsed)
         }
-        
-        require(value in MIN_NUMBER_VALUE..MAX_NUMBER_VALUE) {
-            "숫자 값이 허용 범위를 벗어났습니다: $value (범위: $MIN_NUMBER_VALUE ~ $MAX_NUMBER_VALUE)"
+
+        if (parsed < MIN_NUMBER_VALUE || parsed > MAX_NUMBER_VALUE) {
+            throw LexerException.numberOutOfRange(parsed, MIN_NUMBER_VALUE, MAX_NUMBER_VALUE)
         }
         
         return true
@@ -117,20 +121,20 @@ class TokenValidationPolicy {
      * @return 유효하면 true
      */
     fun validateIdentifierToken(token: Token): Boolean {
-        require(token.type == TokenType.IDENTIFIER) {
-            "식별자 토큰이 아닙니다: ${token.type}"
+        if (token.type != TokenType.IDENTIFIER) {
+            throw LexerException.notIdentifierToken(token.type.name)
         }
-        
-        require(token.value.isNotEmpty()) {
-            "식별자 값이 비어있습니다"
+
+        if (token.value.isEmpty()) {
+            throw LexerException.identifierEmpty()
         }
-        
-        require(token.value.length <= MAX_IDENTIFIER_LENGTH) {
-            "식별자 길이가 제한을 초과했습니다: ${token.value.length} > $MAX_IDENTIFIER_LENGTH"
+
+        if (token.value.length > MAX_IDENTIFIER_LENGTH) {
+            throw LexerException.identifierTooLong(token.value.length, MAX_IDENTIFIER_LENGTH)
         }
-        
-        require(token.value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))) {
-            "유효하지 않은 식별자 형식: ${token.value}"
+
+        if (!token.value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))) {
+            throw LexerException.identifierInvalidFormat(token.value)
         }
         
         return true
@@ -143,20 +147,20 @@ class TokenValidationPolicy {
      * @return 유효하면 true
      */
     fun validateVariableToken(token: Token): Boolean {
-        require(token.type == TokenType.VARIABLE) {
-            "변수 토큰이 아닙니다: ${token.type}"
+        if (token.type != TokenType.VARIABLE) {
+            throw LexerException.notVariableToken(token.type.name)
         }
-        
-        require(token.value.isNotEmpty()) {
-            "변수명이 비어있습니다"
+
+        if (token.value.isEmpty()) {
+            throw LexerException.variableNameEmpty(token.value) // (LEX006 재사용)
         }
-        
-        require(token.value.length <= MAX_VARIABLE_NAME_LENGTH) {
-            "변수명 길이가 제한을 초과했습니다: ${token.value.length} > $MAX_VARIABLE_NAME_LENGTH"
+
+        if (token.value.length > MAX_VARIABLE_NAME_LENGTH) {
+            throw LexerException.variableNameTooLong(token.value.length, MAX_VARIABLE_NAME_LENGTH)
         }
-        
-        require(token.value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))) {
-            "유효하지 않은 변수명 형식: ${token.value}"
+
+        if (!token.value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))) {
+            throw LexerException.variableNameInvalidFormat(token.value)
         }
         
         return true
@@ -169,12 +173,12 @@ class TokenValidationPolicy {
      * @return 유효하면 true
      */
     fun validateOperatorToken(token: Token): Boolean {
-        require(token.type.isOperator) {
-            "연산자 토큰이 아닙니다: ${token.type}"
+        if (!token.type.isOperator) {
+            throw LexerException.notOperatorType(token.type.name)
         }
-        
-        require(token.value.isNotEmpty()) {
-            "연산자 값이 비어있습니다"
+
+        if (token.value.isEmpty()) {
+            throw LexerException.operatorValueEmpty()
         }
         
         val validOperators = setOf(
@@ -182,11 +186,11 @@ class TokenValidationPolicy {
             "==", "!=", "<", "<=", ">", ">=",
             "&&", "||", "!"
         )
-        
-        require(token.value in validOperators) {
-            "지원하지 않는 연산자입니다: ${token.value}"
+
+        if (token.value !in validOperators) {
+            throw LexerException.unsupportedOperator(token.value) // (LEX013 재사용)
         }
-        
+
         return true
     }
 
@@ -197,10 +201,10 @@ class TokenValidationPolicy {
      * @return 유효하면 true
      */
     fun validateKeywordToken(token: Token): Boolean {
-        require(token.type.isKeyword) {
-            "키워드 토큰이 아닙니다: ${token.type}"
+        if (!token.type.isKeyword) {
+            throw LexerException.notKeywordToken(token.type.name)
         }
-        
+
         val validKeywords = mapOf(
             TokenType.IF to "if",
             TokenType.TRUE to "true",
@@ -211,10 +215,11 @@ class TokenValidationPolicy {
         )
         
         val expectedValue = validKeywords[token.type]
-        require(token.value.equals(expectedValue, ignoreCase = true)) {
-            "키워드 값이 일치하지 않습니다. 기대: $expectedValue, 실제: ${token.value}"
+
+        if (!token.value.equals(expectedValue, ignoreCase = true)) {
+            throw LexerException.keywordValueMismatch(expectedValue, token.value)
         }
-        
+
         return true
     }
 
@@ -222,8 +227,8 @@ class TokenValidationPolicy {
      * 토큰의 기본 구조를 검증합니다.
      */
     private fun validateBasicStructure(token: Token) {
-        require(token.value.length <= MAX_TOKEN_LENGTH) {
-            "토큰 길이가 제한을 초과했습니다: ${token.value.length} > $MAX_TOKEN_LENGTH"
+        if (token.value.length > MAX_TOKEN_LENGTH) {
+            throw LexerException.tokenTooLong(token.value.length, MAX_TOKEN_LENGTH)
         }
     }
 
@@ -232,16 +237,23 @@ class TokenValidationPolicy {
      */
     private fun validateTypeConsistency(token: Token) {
         when (token.type) {
-            TokenType.NUMBER -> require(token.value.toDoubleOrNull() != null) {
-                "NUMBER 타입이지만 숫자가 아닙니다: ${token.value}"
+            TokenType.NUMBER -> {
+                if (token.value.toDoubleOrNull() == null) {
+                    throw LexerException.numberTokenNotNumeric(token.value)
+                }
             }
-            TokenType.TRUE, TokenType.FALSE -> require(
-                token.value.lowercase() in listOf("true", "false")
-            ) {
-                "불린 타입이지만 불린 값이 아닙니다: ${token.value}"
+
+            TokenType.TRUE, TokenType.FALSE -> {
+                val v = token.value.lowercase()
+                if (v != "true" && v != "false") {
+                    throw LexerException.booleanTokenInvalid(token.value) // (LEX020 재사용)
+                }
             }
-            TokenType.DOLLAR -> require(token.value == "$") {
-                "EOF 타입이지만 '$' 값이 아닙니다: ${token.value}"
+
+            TokenType.DOLLAR -> {
+                if (token.value != "$") {
+                    throw LexerException.dollarTokenInvalidValue(token.value)
+                }
             }
             else -> { /* 다른 타입들은 추가 검증 없음 */ }
         }
@@ -252,15 +264,15 @@ class TokenValidationPolicy {
      */
     private fun validateValueFormat(token: Token) {
         when (token.type) {
-            TokenType.IDENTIFIER, TokenType.VARIABLE -> require(
-                token.value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))
-            ) {
-                "유효하지 않은 식별자/변수 형식: ${token.value}"
+            TokenType.IDENTIFIER, TokenType.VARIABLE -> {
+                if (!token.value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))) {
+                    throw LexerException.invalidIdentifierFormat(token.value)
+                }
             }
-            TokenType.NUMBER -> require(
-                token.value.matches(Regex("""^-?\d+(\.\d+)?$"""))
-            ) {
-                "유효하지 않은 숫자 형식: ${token.value}"
+            TokenType.NUMBER -> {
+                if (!token.value.matches(Regex("""^-?\d+(\.\d+)?$"""))) {
+                    throw LexerException.invalidNumberFormat(token.value)
+                }
             }
             else -> { /* 다른 타입들은 형식 검증 없음 */ }
         }
@@ -271,11 +283,16 @@ class TokenValidationPolicy {
      */
     private fun validateLength(token: Token) {
         when (token.type) {
-            TokenType.IDENTIFIER -> require(token.value.length <= MAX_IDENTIFIER_LENGTH) {
-                "식별자 길이 초과: ${token.value.length} > $MAX_IDENTIFIER_LENGTH"
+            TokenType.IDENTIFIER -> {
+                if (token.value.length > MAX_IDENTIFIER_LENGTH) {
+                    throw LexerException.identifierTooLong(token.value.length, MAX_IDENTIFIER_LENGTH)
+                }
             }
-            TokenType.VARIABLE -> require(token.value.length <= MAX_VARIABLE_NAME_LENGTH) {
-                "변수명 길이 초과: ${token.value.length} > $MAX_VARIABLE_NAME_LENGTH"
+
+            TokenType.VARIABLE -> {
+                if (token.value.length > MAX_VARIABLE_NAME_LENGTH) {
+                    throw LexerException.variableNameTooLong(token.value.length, MAX_VARIABLE_NAME_LENGTH)
+                }
             }
             else -> { /* 다른 타입들은 길이 제한 없음 */ }
         }
@@ -293,9 +310,7 @@ class TokenValidationPolicy {
             if (current.type.isOperator && next.type.isOperator) {
                 // 일부 연산자 조합은 허용 (예: !, ++)
                 if (!isValidOperatorSequence(current, next)) {
-                    throw IllegalArgumentException(
-                        "유효하지 않은 연산자 시퀀스: ${current.value} ${next.value}"
-                    )
+                    throw LexerException.invalidOperatorSequence(current.value, next.value)
                 }
             }
         }
@@ -303,11 +318,12 @@ class TokenValidationPolicy {
         // EOF 토큰은 마지막에만 위치해야 함
         val eofTokens = tokens.filter { it.type == TokenType.DOLLAR }
         if (eofTokens.isNotEmpty()) {
-            require(eofTokens.size == 1) {
-                "EOF 토큰이 여러 개 존재합니다: ${eofTokens.size}개"
+            if (eofTokens.size != 1) {
+                throw LexerException.multipleEofTokens(eofTokens.size)
             }
-            require(tokens.last().type == TokenType.DOLLAR) {
-                "EOF 토큰이 마지막 위치에 있지 않습니다"
+
+            if (tokens.last().type != TokenType.DOLLAR) {
+                throw LexerException.eofNotAtEnd()
             }
         }
     }
