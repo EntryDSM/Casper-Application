@@ -51,33 +51,6 @@ class FirstFollowSets private constructor(
         return firstOfSequence(symbols, firstSets)
     }
 
-    /**
-     * 계산된 FIRST 집합의 통계 정보를 반환합니다.
-     *
-     * @return FIRST 집합 통계 맵
-     */
-    fun getFirstStats(): Map<String, Any> = mapOf(
-        "totalSymbols" to firstSets.size,
-        "nonEmptyFirstSets" to firstSets.values.count { it.isNotEmpty() },
-        "averageFirstSetSize" to if (firstSets.isNotEmpty()) {
-            firstSets.values.map { it.size }.average()
-        } else 0.0,
-        "maxFirstSetSize" to (firstSets.values.maxOfOrNull { it.size } ?: 0)
-    )
-
-    /**
-     * 계산된 FOLLOW 집합의 통계 정보를 반환합니다.
-     *
-     * @return FOLLOW 집합 통계 맵
-     */
-    fun getFollowStats(): Map<String, Any> = mapOf(
-        "totalSymbols" to followSets.size,
-        "nonEmptyFollowSets" to followSets.values.count { it.isNotEmpty() },
-        "averageFollowSetSize" to if (followSets.isNotEmpty()) {
-            followSets.values.map { it.size }.average()
-        } else 0.0,
-        "maxFollowSetSize" to (followSets.values.maxOfOrNull { it.size } ?: 0)
-    )
 
     companion object {
         /**
