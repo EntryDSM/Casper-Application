@@ -1,5 +1,7 @@
 package hs.kr.entrydsm.domain.parser.aggregates
 
+import hs.kr.entrydsm.global.extensions.*
+
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.parser.entities.LRItem

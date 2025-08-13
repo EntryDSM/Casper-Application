@@ -1,5 +1,7 @@
 package hs.kr.entrydsm.domain.parser.services
 
+import hs.kr.entrydsm.global.extensions.*
+
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
