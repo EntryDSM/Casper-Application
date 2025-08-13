@@ -83,6 +83,11 @@ class CalculationValiditySpec {
         
         // 유효한 숫자 패턴
         private val VALID_NUMBER_PATTERN = Regex("^-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?$")
+
+        private const val SPEC_NAME = "CalculationValiditySpec"
+        private const val VALIDATION_RULE_COUNT = 6
+        private val VALIDATION_LAYERS = listOf("syntax", "security", "complexity", "variables", "functions", "semantics")
+        private val RISK_FACTORS = listOf("length", "complexity", "functions", "forbidden_patterns")
     }
 
     /**
@@ -487,7 +492,7 @@ class CalculationValiditySpec {
         "allowedFunctions" to ALLOWED_FUNCTIONS.size,
         "allowedOperators" to ALLOWED_OPERATORS.size,
         "forbiddenPatterns" to FORBIDDEN_PATTERNS.size,
-        "validationLayers" to listOf("syntax", "security", "complexity", "variables", "functions", "semantics")
+        "validationLayers" to VALIDATION_LAYERS
     )
 
     /**
@@ -496,11 +501,11 @@ class CalculationValiditySpec {
      * @return 통계 정보 맵
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "specificationName" to "CalculationValiditySpec",
-        "validationRules" to 6,
+        "specificationName" to SPEC_NAME,
+        "validationRules" to VALIDATION_RULE_COUNT,
         "securityChecks" to FORBIDDEN_PATTERNS.size,
         "supportedFunctions" to ALLOWED_FUNCTIONS.size,
         "supportedOperators" to ALLOWED_OPERATORS.size,
-        "riskFactors" to listOf("length", "complexity", "functions", "forbidden_patterns")
+        "riskFactors" to RISK_FACTORS
     )
 }
