@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.lexer.factories
 
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 import hs.kr.entrydsm.global.values.Position
@@ -91,8 +92,10 @@ class TokenFactory {
      * @throws IllegalArgumentException 유효하지 않은 숫자 형식인 경우
      */
     fun createNumberToken(value: String, startPosition: Position): Token {
-        require(isValidNumber(value)) { "유효하지 않은 숫자 형식입니다: $value" }
-        
+        if (!isValidNumber(value)) {
+            throw LexerException.invalidNumberFormat(value)
+        }
+
         val position = startPosition
         return Token(TokenType.NUMBER, value, position)
     }
@@ -105,11 +108,13 @@ class TokenFactory {
      * @return 식별자 Token (키워드인 경우 해당 키워드 토큰)
      */
     fun createIdentifierToken(value: String, startPosition: Position): Token {
-        require(isValidIdentifier(value)) { "유효하지 않은 식별자입니다: $value" }
-        
+        if (!isValidIdentifier(value)) {
+            throw LexerException.invalidIdentifier(value)
+        }
+
         val position = startPosition
         val type = KEYWORD_MAP[value.lowercase()] ?: TokenType.IDENTIFIER
-        
+
         return Token(type, value, position)
     }
 
@@ -121,9 +126,14 @@ class TokenFactory {
      * @return 변수 Token
      */
     fun createVariableToken(variableName: String, startPosition: Position): Token {
-        require(variableName.isNotEmpty()) { "변수명은 비어있을 수 없습니다" }
-        require(isValidIdentifier(variableName)) { "유효하지 않은 변수명입니다: $variableName" }
-        
+        if (variableName.isEmpty()) {
+            throw LexerException.variableNameEmpty(variableName)
+        }
+
+        if (!isValidIdentifier(variableName)) {
+            throw LexerException.invalidVariableName(variableName)
+        }
+
         val position = startPosition // {변수명} 포함
         return Token(TokenType.VARIABLE, variableName, position)
     }
@@ -137,9 +147,9 @@ class TokenFactory {
      * @throws IllegalArgumentException 지원하지 않는 연산자인 경우
      */
     fun createOperatorToken(operator: String, startPosition: Position): Token {
-        val type = OPERATOR_MAP[operator] 
-            ?: throw IllegalArgumentException("지원하지 않는 연산자입니다: $operator")
-        
+        val type = OPERATOR_MAP[operator]
+            ?: throw LexerException.unsupportedOperator(operator)
+
         val position = startPosition
         return Token(type, operator, position)
     }
@@ -154,8 +164,8 @@ class TokenFactory {
      */
     fun createDelimiterToken(delimiter: String, startPosition: Position): Token {
         val type = DELIMITER_MAP[delimiter]
-            ?: throw IllegalArgumentException("지원하지 않는 구분자입니다: $delimiter")
-        
+            ?: throw LexerException.unsupportedDelimiter(delimiter)
+
         val position = startPosition
         return Token(type, delimiter, position)
     }
@@ -183,9 +193,9 @@ class TokenFactory {
         val type = when (value.lowercase()) {
             "true" -> TokenType.TRUE
             "false" -> TokenType.FALSE
-            else -> throw IllegalArgumentException("유효하지 않은 불린 값입니다: $value")
+            else -> throw LexerException.invalidBooleanValue(value)
         }
-        
+
         val position = startPosition
         return Token(type, value, position)
     }
@@ -197,14 +207,14 @@ class TokenFactory {
      * @return 결정된 TokenType
      */
     private fun determineTokenType(value: String): TokenType = when {
-        value.isEmpty() -> throw IllegalArgumentException("토큰 값은 비어있을 수 없습니다")
+        value.isEmpty() -> throw LexerException.tokenValueEmptyExceptEof(value)
         isValidNumber(value) -> TokenType.NUMBER
         KEYWORD_MAP.containsKey(value.lowercase()) -> KEYWORD_MAP[value.lowercase()]!!
         OPERATOR_MAP.containsKey(value) -> OPERATOR_MAP[value]!!
         DELIMITER_MAP.containsKey(value) -> DELIMITER_MAP[value]!!
         value == "$" -> TokenType.DOLLAR
         isValidIdentifier(value) -> TokenType.IDENTIFIER
-        else -> throw IllegalArgumentException("인식할 수 없는 토큰 값입니다: $value")
+        else ->  throw LexerException.unrecognizedTokenValue(value)
     }
 
     /**
@@ -229,7 +239,7 @@ class TokenFactory {
      * @return 유효한 식별자이면 true
      */
     private fun isValidIdentifier(value: String): Boolean {
-        return value.isNotEmpty() && 
+        return value.isNotEmpty() &&
                value.matches(Regex("""^[a-zA-Z_][a-zA-Z0-9_]*$"""))
     }
 
@@ -241,24 +251,31 @@ class TokenFactory {
      * @throws IllegalArgumentException 유효하지 않은 데이터인 경우
      */
     private fun validateTokenData(type: TokenType, value: String) {
-        require(value.isNotEmpty() || type == TokenType.DOLLAR) {
-            "토큰 값은 비어있을 수 없습니다 (EOF 토큰 제외): type=$type"
+        if (value.isEmpty() && type != TokenType.DOLLAR) {
+            throw LexerException.tokenValueEmptyExceptEof(type.name)
         }
 
         when (type) {
-            TokenType.NUMBER -> require(isValidNumber(value)) {
-                "NUMBER 타입 토큰은 유효한 숫자여야 합니다: $value"
+            TokenType.NUMBER -> {
+                if (!isValidNumber(value)) {
+                    throw LexerException.numberTokenInvalid(value)
+                }
             }
-            TokenType.IDENTIFIER -> require(isValidIdentifier(value)) {
-                "IDENTIFIER 타입 토큰은 유효한 식별자여야 합니다: $value"
+            TokenType.IDENTIFIER -> {
+                if (!isValidIdentifier(value)) {
+                    throw LexerException.identifierTokenInvalid(value)
+                }
             }
-            TokenType.VARIABLE -> require(isValidIdentifier(value)) {
-                "VARIABLE 타입 토큰은 유효한 변수명이어야 합니다: $value"
+            TokenType.VARIABLE -> {
+                if (!isValidIdentifier(value)) {
+                    throw LexerException.variableTokenInvalid(value)
+                }
             }
-            in listOf(TokenType.TRUE, TokenType.FALSE) -> require(
-                value.lowercase() in listOf("true", "false")
-            ) {
-                "불린 타입 토큰은 'true' 또는 'false'여야 합니다: $value"
+            TokenType.TRUE, TokenType.FALSE -> {
+                val v = value.lowercase()
+                if (v != "true" && v != "false") {
+                    throw LexerException.booleanTokenInvalid(value)
+                }
             }
             else -> { /* 다른 타입들은 추가 검증 없음 */ }
         }
