@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.calculator.values
 
 import hs.kr.entrydsm.domain.ast.entities.ASTNode
+import hs.kr.entrydsm.domain.calculator.exceptions.CalculatorException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -39,8 +40,13 @@ data class CalculationResult(
 ) {
     
     init {
-        require(executionTimeMs >= 0) { "실행 시간은 0 이상이어야 합니다: $executionTimeMs" }
-        require(formula.isNotBlank()) { "수식은 비어있을 수 없습니다" }
+        if (executionTimeMs < 0) {
+            throw CalculatorException.executionTimeNegative(executionTimeMs)
+        }
+
+        if (formula.isBlank()) {
+            throw CalculatorException.emptyFormula()
+        }
     }
 
     /**
@@ -128,7 +134,7 @@ data class CalculationResult(
      *
      * @return String 값
      */
-    fun asString(): String = result?.toString() ?: "null"
+    fun asString(): String = result?.toString() ?: NULL
 
     /**
      * 성능 등급을 계산합니다.
@@ -235,7 +241,7 @@ data class CalculationResult(
         "isSuccess" to isSuccess(),
         "isFailure" to isFailure(),
         "hasWarnings" to hasWarnings(),
-        "resultType" to (result?.javaClass?.simpleName ?: "null"),
+        "resultType" to (result?.javaClass?.simpleName ?: NULL),
         "executionTimeMs" to executionTimeMs,
         "performanceGrade" to getPerformanceGrade(),
         "estimatedComplexity" to estimateComplexity(),
@@ -255,7 +261,7 @@ data class CalculationResult(
      */
     fun getSummary(): String = buildString {
         append("결과: ${asString()}")
-        append(" (${result?.javaClass?.simpleName ?: "null"})")
+        append(" (${result?.javaClass?.simpleName ?: NULL})")
         append(", 실행시간: ${executionTimeMs}ms")
         append(", 성능등급: ${getPerformanceGrade()}")
         if (hasWarnings()) {
@@ -308,7 +314,7 @@ data class CalculationResult(
         appendLine("=== 계산 결과 ===")
         appendLine("수식: $formula")
         appendLine("결과: ${asString()}")
-        appendLine("타입: ${result?.javaClass?.simpleName ?: "null"}")
+        appendLine("타입: ${result?.javaClass?.simpleName ?: NULL}")
         appendLine("실행 시간: ${executionTimeMs}ms")
         appendLine("성능 등급: ${getPerformanceGrade()}")
         appendLine("복잡도: ${estimateComplexity()}")
@@ -358,6 +364,10 @@ data class CalculationResult(
     override fun toString(): String = getSummary()
 
     companion object {
+
+        private const val NULL = "null"
+        private const val TEST = "test"
+
         /**
          * 성공 결과를 생성합니다.
          *
@@ -397,7 +407,7 @@ data class CalculationResult(
          *
          * @return 테스트용 CalculationResult
          */
-        fun testResult(): CalculationResult = CalculationResult(null, 0, "test")
+        fun testResult(): CalculationResult = CalculationResult(null, 0, TEST)
 
         /**
          * 여러 결과를 병합합니다.
@@ -406,8 +416,10 @@ data class CalculationResult(
          * @return 병합된 CalculationResult
          */
         fun merge(results: List<CalculationResult>): CalculationResult {
-            require(results.isNotEmpty()) { "병합할 결과가 없습니다" }
-            
+            if (results.isEmpty()) {
+                throw CalculatorException.mergeResultsEmpty()
+            }
+
             val firstResult = results.first()
             val totalExecutionTime = results.sumOf { it.executionTimeMs }
             val allVariables = results.flatMap { it.variables.entries }.associate { it.key to it.value }
