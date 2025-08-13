@@ -29,8 +29,16 @@ data class FormattedExpression(
 ) {
     
     init {
-        require(expression.isNotBlank()) { "포맷팅된 수식은 공백이 될 수 없습니다" }
-        require(length >= 0) { "수식 길이는 0 이상이어야 합니다: $length" }
+        if (expression.isBlank()) {
+            throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.formattingError(
+                "expression", "포맷팅된 수식은 공백이 될 수 없습니다"
+            )
+        }
+        if (length < 0) {
+            throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.invalidFormatOption(
+                "length=$length", "수식 길이는 0 이상이어야 합니다"
+            )
+        }
     }
 
     /**
@@ -109,19 +117,20 @@ data class FormattedExpression(
         var complexity = 0
         
         // 길이에 따른 복잡도
-        complexity += (length / 10).coerceAtMost(20)
+        complexity += (length / LENGTH_WEIGHT_DIVISOR).coerceAtMost(MAX_LENGTH_COMPLEXITY)
         
         // 연산자 개수에 따른 복잡도
-        val operators = listOf("+", "-", "*", "/", "^", "==", "!=", "<", ">", "<=", ">=", "&&", "||")
-        complexity += operators.sumOf { op -> expression.count { it.toString() == op } * 5 }
+        complexity += COMPLEXITY_OPERATORS.sumOf { op -> 
+            expression.count { it.toString() == op } * OPERATOR_WEIGHT 
+        }
         
         // 괄호 개수에 따른 복잡도
-        complexity += expression.count { it == '(' } * 3
+        complexity += expression.count { it == '(' } * PARENTHESES_WEIGHT
         
-        // 함수 호출 개수에 따른 복잡도
-        complexity += expression.count { it.isLetter() && expression.indexOf(it) < expression.indexOf('(') } * 8
+        // 함수 호출 개수에 따한 복잡도
+        complexity += expression.count { it.isLetter() && expression.indexOf(it) < expression.indexOf('(') } * FUNCTION_WEIGHT
         
-        return complexity.coerceAtMost(100)
+        return complexity.coerceAtMost(MAX_COMPLEXITY_SCORE)
     }
 
     /**
@@ -350,6 +359,23 @@ data class FormattedExpression(
 
     companion object {
         /**
+         * 복잡도 계산에 사용되는 연산자 목록
+         */
+        private val COMPLEXITY_OPERATORS = listOf(
+            "+", "-", "*", "/", "^", "==", "!=", "<", ">", "<=", ">=", "&&", "||"
+        )
+        
+        /**
+         * 복잡도 계산 가중치
+         */
+        private const val LENGTH_WEIGHT_DIVISOR = 10
+        private const val MAX_LENGTH_COMPLEXITY = 20
+        private const val OPERATOR_WEIGHT = 5
+        private const val PARENTHESES_WEIGHT = 3
+        private const val FUNCTION_WEIGHT = 8
+        private const val MAX_COMPLEXITY_SCORE = 100
+        
+        /**
          * 빈 표현식을 생성합니다.
          *
          * @return 빈 FormattedExpression
@@ -380,7 +406,11 @@ data class FormattedExpression(
          * @return 결합된 FormattedExpression
          */
         fun combine(expressions: List<FormattedExpression>, separator: String = ", "): FormattedExpression {
-            require(expressions.isNotEmpty()) { "결합할 표현식이 없습니다" }
+            if (expressions.isEmpty()) {
+                throw hs.kr.entrydsm.domain.expresser.exceptions.ExpresserException.formattingError(
+                    "combine", "결합할 표현식이 없습니다"
+                )
+            }
             
             val combined = expressions.joinToString(separator) { it.expression }
             val firstStyle = expressions.first().style
