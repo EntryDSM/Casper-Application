@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.lexer.entities
 
 import hs.kr.entrydsm.domain.lexer.aggregates.LexerAggregate
+import hs.kr.entrydsm.domain.lexer.exceptions.LexerException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import hs.kr.entrydsm.global.values.Position
 
@@ -26,10 +27,10 @@ data class Token(
     val value: String,
     val position: Position
 ) {
-    
+
     init {
-        require(value.isNotEmpty() || type == TokenType.DOLLAR) { 
-            "토큰 값은 비어있을 수 없습니다 (EOF 토큰 제외): type=$type" 
+        if (value.isEmpty() && type != TokenType.DOLLAR) {
+            throw LexerException.tokenValueEmptyExceptEof(type.name)
         }
         // Position은 length 속성이 없으므로 검증 제거
     }
@@ -93,8 +94,8 @@ data class Token(
          * @return 숫자 Token 인스턴스
          */
         fun number(value: String, startIndex: Int): Token {
-            require(value.matches(Regex("""\d+(\.\d+)?"""))) { 
-                "유효하지 않은 숫자 형식입니다: $value" 
+            if (!value.matches(Regex("""\d+(\.\d+)?"""))) {
+                throw LexerException.invalidNumberFormat(value)
             }
             return of(TokenType.NUMBER, value, startIndex)
         }
@@ -107,9 +108,10 @@ data class Token(
          * @return 식별자 Token 인스턴스
          */
         fun identifier(value: String, startIndex: Int): Token {
-            require(value.matches(Regex("""[a-zA-Z_][a-zA-Z0-9_]*"""))) { 
-                "유효하지 않은 식별자 형식입니다: $value" 
+            if (!value.matches(Regex("""[a-zA-Z_][a-zA-Z0-9_]*"""))) {
+                throw LexerException.invalidIdentifierFormat(value)
             }
+
             // 키워드 검사
             val keywordType = TokenType.findKeyword(value)
             val type = keywordType ?: TokenType.IDENTIFIER
@@ -124,7 +126,10 @@ data class Token(
          * @return 변수 Token 인스턴스
          */
         fun variable(value: String, startIndex: Int): Token {
-            require(value.isNotEmpty()) { "변수명은 비어있을 수 없습니다" }
+            if (value.isEmpty()) {
+                throw LexerException.variableNameEmpty(value)
+            }
+
             val position = Position.of(startIndex) // {변수명} 포함
             return Token(TokenType.VARIABLE, value, position)
         }
@@ -138,7 +143,10 @@ data class Token(
          * @return 연산자 Token 인스턴스
          */
         fun operator(type: TokenType, value: String, startIndex: Int): Token {
-            require(type.isOperator) { "연산자 타입이 아닙니다: $type" }
+            if (!type.isOperator) {
+                throw LexerException.notOperatorType(type.name)
+            }
+
             return of(type, value, startIndex)
         }
     }
@@ -221,7 +229,10 @@ data class Token(
      * @throws NumberFormatException 숫자 변환 실패시
      */
     fun toNumber(): Double {
-        check(isNumber()) { "숫자 토큰이 아닙니다: $type" }
+        if (!isNumber()) {
+            throw LexerException.notNumberToken(type.name)
+        }
+
         return value.toDouble()
     }
 
@@ -232,11 +243,14 @@ data class Token(
      * @throws IllegalStateException 불린 토큰이 아닌 경우
      */
     fun toBoolean(): Boolean {
-        check(isBoolean()) { "불린 토큰이 아닙니다: $type" }
+        if (!isBoolean()) {
+            throw LexerException.notBooleanToken(type.name)
+        }
+
         return when (type) {
             TokenType.TRUE -> true
             TokenType.FALSE -> false
-            else -> throw IllegalStateException("예상치 못한 불린 토큰 타입: $type")
+            else -> throw LexerException.unexpectedBooleanTokenType(type.name)
         }
     }
 
