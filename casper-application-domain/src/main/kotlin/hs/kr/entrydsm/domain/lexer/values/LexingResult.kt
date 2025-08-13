@@ -33,12 +33,21 @@ data class LexingResult(
 ) {
     
     init {
-        require(isSuccess || error != null) { 
-            "실패한 LexingResult는 반드시 error 정보를 포함해야 합니다" 
+        if (!(isSuccess || error != null)) {
+            throw LexerException.invalidLexingResultErrorState(isSuccess, error)
         }
-        require(duration >= 0) { "분석 소요 시간은 0 이상이어야 합니다: $duration" }
-        require(inputLength >= 0) { "입력 텍스트 길이는 0 이상이어야 합니다: $inputLength" }
-        require(tokenCount >= 0) { "토큰 개수는 0 이상이어야 합니다: $tokenCount" }
+
+        if (duration < 0) {
+            throw LexerException.negativeAnalysisDuration(duration)
+        }
+
+        if (inputLength < 0) {
+            throw LexerException.negativeInputLength(inputLength)
+        }
+
+        if (tokenCount < 0) {
+            throw LexerException.negativeTokenCount(tokenCount)
+        }
     }
 
     companion object {
@@ -96,6 +105,8 @@ data class LexingResult(
             tokens = emptyList(),
             inputLength = inputLength
         )
+
+        private const val UNKNOWN_ERROR = "Unknown error"
     }
 
     /**
@@ -198,7 +209,7 @@ data class LexingResult(
             put("operatorCount", operatorCount)
             put("literalCount", literalCount)
             put("keywordCount", keywordCount)
-            if (!isSuccess) put("errorMessage", error?.message ?: "Unknown error")
+            if (!isSuccess) put("errorMessage", error?.message ?: UNKNOWN_ERROR)
         }
     }
 
