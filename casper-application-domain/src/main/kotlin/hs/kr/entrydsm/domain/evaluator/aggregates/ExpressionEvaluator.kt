@@ -13,6 +13,7 @@ import hs.kr.entrydsm.domain.ast.entities.VariableNode
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.aggregates.Aggregate
 import hs.kr.entrydsm.domain.evaluator.registries.FunctionRegistry
+import hs.kr.entrydsm.domain.evaluator.exceptions.EvaluatorException
 import kotlin.math.E
 import kotlin.math.PI
 import kotlin.math.abs
@@ -66,13 +67,15 @@ class ExpressionEvaluator(
      *
      * @param node 평가할 AST 노드
      * @return 평가 결과
-     * @throws IllegalStateException 평가 중 오류 발생 시
+     * @throws EvaluatorException 평가 중 오류 발생 시
      */
     fun evaluate(node: ASTNode): Any? {
         return try {
             node.accept(this)
+        } catch (e: EvaluatorException) {
+            throw e
         } catch (e: Exception) {
-            throw IllegalStateException("Evaluation error: ${e.message}", e)
+            throw EvaluatorException.evaluationFailed(e)
         }
     }
 
@@ -88,209 +91,243 @@ class ExpressionEvaluator(
 
     /**
      * VariableNode를 방문하여 변수 값을 반환합니다.
+     *
+     * @param node 방문할 VariableNode
+     * @return 변수 값
+     * @throws EvaluatorException 변수가 정의되지 않은 경우
      */
     override fun visitVariable(node: VariableNode): Any? {
-        return variables[node.name] ?: throw IllegalArgumentException("Undefined variable: ${node.name}")
+        return variables[node.name] ?: throw EvaluatorException.undefinedVariable(node.name)
     }
 
     /**
      * BinaryOpNode를 방문하여 이항 연산을 수행합니다.
+     *
+     * @param node 방문할 BinaryOpNode
+     * @return 연산 결과
+     * @throws EvaluatorException 연산 평가 실패 시
      */
     override fun visitBinaryOp(node: BinaryOpNode): Any? {
-        val left = evaluate(node.left)
-        val right = evaluate(node.right)
+        return try {
+            val left = evaluate(node.left)
+            val right = evaluate(node.right)
 
-        return when (node.operator) {
-            // 산술 연산자
-            "+" -> performArithmeticOp(left, right) { a, b -> a + b }
-            "-" -> performArithmeticOp(left, right) { a, b -> a - b }
-            "*" -> performArithmeticOp(left, right) { a, b -> a * b }
-            "/" -> performDivisionOp(left, right)
-            "%" -> performArithmeticOp(left, right) { a, b -> a % b }
-            "^" -> performArithmeticOp(left, right) { a, b -> a.pow(b) }
-            
-            // 비교 연산자
-            "==" -> performComparisonOp(left, right) { a, b -> a == b }
-            "!=" -> performComparisonOp(left, right) { a, b -> a != b }
-            "<" -> performComparisonOp(left, right) { a, b -> a < b }
-            "<=" -> performComparisonOp(left, right) { a, b -> a <= b }
-            ">" -> performComparisonOp(left, right) { a, b -> a > b }
-            ">=" -> performComparisonOp(left, right) { a, b -> a >= b }
-            
-            // 논리 연산자
-            "&&" -> performLogicalAnd(left, right)
-            "||" -> performLogicalOr(left, right)
-            
-            else -> throw IllegalArgumentException("Unsupported operator: ${node.operator}")
+            when (node.operator) {
+                // 산술 연산자
+                PLUS -> performArithmeticOp(left, right) { a, b -> a + b }
+                MINUS -> performArithmeticOp(left, right) { a, b -> a - b }
+                MULTIPLY -> performArithmeticOp(left, right) { a, b -> a * b }
+                DIVIDE -> performDivisionOp(left, right)
+                MODULO -> performArithmeticOp(left, right) { a, b -> a % b }
+                POWER -> performArithmeticOp(left, right) { a, b -> a.pow(b) }
+
+                // 비교 연산자
+                EQUALS -> performComparisonOp(left, right) { a, b -> a == b }
+                NOT_EQUALS -> performComparisonOp(left, right) { a, b -> a != b }
+                LESS_THAN -> performComparisonOp(left, right) { a, b -> a < b }
+                LESS_THAN_OR_EQUAL -> performComparisonOp(left, right) { a, b -> a <= b }
+                GREATER_THAN -> performComparisonOp(left, right) { a, b -> a > b }
+                GREATER_THAN_OR_EQUAL -> performComparisonOp(left, right) { a, b -> a >= b }
+
+                // 논리 연산자
+                AND -> performLogicalAnd(left, right)
+                OR -> performLogicalOr(left, right)
+
+                else -> throw EvaluatorException.unsupportedOperator(node.operator)
+            }
+        } catch (e: EvaluatorException) {
+            throw e
+        } catch (e: Exception) {
+            throw EvaluatorException.operatorEvaluationFailed(node.operator, e)
         }
     }
 
     /**
      * UnaryOpNode를 방문하여 단항 연산을 수행합니다.
+     *
+     * @param node 방문할 UnaryOpNode
+     * @return 연산 결과
+     * @throws EvaluatorException 연산 평가 실패 시
      */
     override fun visitUnaryOp(node: UnaryOpNode): Any? {
-        val operand = evaluate(node.operand)
+        return try {
+            val operand = evaluate(node.operand)
 
-        return when (node.operator) {
-            "-" -> when (operand) {
-                is Double -> -operand
-                is Int -> -operand.toDouble()
-                else -> throw IllegalArgumentException("Unsupported type for unary operation: ${operand?.javaClass?.simpleName ?: "null"}")
+            when (node.operator) {
+                MINUS -> when (operand) {
+                    is Double -> -operand
+                    is Int -> -operand.toDouble()
+                    else -> throw EvaluatorException.unsupportedType(operand?.javaClass?.simpleName ?: "null", operand)
+                }
+                PLUS -> when (operand) {
+                    is Double -> operand
+                    is Int -> operand.toDouble()
+                    else -> throw EvaluatorException.unsupportedType(operand?.javaClass?.simpleName ?: "null", operand)
+                }
+                NOT -> when (operand) {
+                    is Boolean -> !operand
+                    is Double -> operand == 0.0
+                    is Int -> operand == 0
+                    else -> throw EvaluatorException.unsupportedType(operand?.javaClass?.simpleName ?: "null", operand)
+                }
+                else -> throw EvaluatorException.unsupportedOperator(node.operator)
             }
-            "+" -> when (operand) {
-                is Double -> operand
-                is Int -> operand.toDouble()
-                else -> throw IllegalArgumentException("Unsupported type for unary operation: ${operand?.javaClass?.simpleName ?: "null"}")
-            }
-            "!" -> when (operand) {
-                is Boolean -> !operand
-                is Double -> operand == 0.0
-                is Int -> operand == 0
-                else -> throw IllegalArgumentException("Unsupported type for unary operation: ${operand?.javaClass?.simpleName ?: "null"}")
-            }
-            else -> throw IllegalArgumentException("Unsupported operator: ${node.operator}")
+        } catch (e: EvaluatorException) {
+            throw e
+        } catch (e: Exception) {
+            throw EvaluatorException.operatorEvaluationFailed(node.operator, e)
         }
     }
 
     /**
      * FunctionCallNode를 방문하여 함수 호출을 처리합니다.
      * 함수 레지스트리를 통해 모듈화된 함수 평가기를 사용합니다.
+     *
+     * @param node 방문할 FunctionCallNode
+     * @return 함수 실행 결과
+     * @throws EvaluatorException 함수 실행 실패 시
      */
     override fun visitFunctionCall(node: FunctionCallNode): Any? {
-        val args = node.args.map { evaluate(it) }
-        
-        // 레지스트리에서 함수 평가기 조회
-        val evaluator = functionRegistry.get(node.name)
-        if (evaluator != null) {
-            return evaluator.evaluate(args)
-        }
-        
-        // 레지스트리에 없는 특수 함수들 처리 (상수, 복잡한 함수들)
-        return when (node.name.uppercase()) {
-            "PI" -> {
-                validateArgumentCount(node.name, args, 0)
-                PI
+        return try {
+            val args = node.args.map { evaluate(it) }
+
+            // 레지스트리에서 함수 평가기 조회
+            val evaluator = functionRegistry.get(node.name)
+            if (evaluator != null) {
+                return evaluator.evaluate(args)
             }
-            "E" -> {
-                validateArgumentCount(node.name, args, 0)
-                E
+
+            // 레지스트리에 없는 특수 함수들 처리 (상수, 복잡한 함수들)
+            when (node.name.uppercase()) {
+                PI_CONST -> {
+                    validateArgumentCount(node.name, args, 0)
+                    PI
+                }
+                E_CONST -> {
+                    validateArgumentCount(node.name, args, 0)
+                    E
+                }
+                ASIN -> {
+                    validateArgumentCount(node.name, args, 1)
+                    val value = toDouble(args[0])
+                    if (value < -1 || value > 1) throw EvaluatorException.mathError("ASIN domain error")
+                    asin(value)
+                }
+                ACOS -> {
+                    validateArgumentCount(node.name, args, 1)
+                    val value = toDouble(args[0])
+                    if (value < -1 || value > 1) throw EvaluatorException.mathError("ACOS domain error")
+                    acos(value)
+                }
+                ATAN -> {
+                    validateArgumentCount(node.name, args, 1)
+                    atan(toDouble(args[0]))
+                }
+                ATAN2 -> {
+                    validateArgumentCount(node.name, args, 2)
+                    atan2(toDouble(args[0]), toDouble(args[1]))
+                }
+                SINH -> {
+                    validateArgumentCount(node.name, args, 1)
+                    sinh(toDouble(args[0]))
+                }
+                COSH -> {
+                    validateArgumentCount(node.name, args, 1)
+                    cosh(toDouble(args[0]))
+                }
+                TANH -> {
+                    validateArgumentCount(node.name, args, 1)
+                    tanh(toDouble(args[0]))
+                }
+                ASINH -> {
+                    validateArgumentCount(node.name, args, 1)
+                    asinh(toDouble(args[0]))
+                }
+                ACOSH -> {
+                    validateArgumentCount(node.name, args, 1)
+                    val value = toDouble(args[0])
+                    if (value < 1) throw EvaluatorException.mathError("ACOSH domain error")
+                    acosh(value)
+                }
+                ATANH -> {
+                    validateArgumentCount(node.name, args, 1)
+                    val value = toDouble(args[0])
+                    if (value <= -1 || value >= 1) throw EvaluatorException.mathError("ATANH domain error")
+                    atanh(value)
+                }
+                FLOOR -> {
+                    validateArgumentCount(node.name, args, 1)
+                    floor(toDouble(args[0]))
+                }
+                CEIL, CEILING -> {
+                    validateArgumentCount(node.name, args, 1)
+                    ceil(toDouble(args[0]))
+                }
+                TRUNCATE, TRUNC -> {
+                    validateArgumentCount(node.name, args, 1)
+                    truncate(toDouble(args[0]))
+                }
+                SIGN -> {
+                    validateArgumentCount(node.name, args, 1)
+                    sign(toDouble(args[0]))
+                }
+                RANDOM, RAND -> {
+                    validateArgumentCount(node.name, args, 0)
+                    kotlin.random.Random.nextDouble()
+                }
+                RADIANS -> {
+                    validateArgumentCount(node.name, args, 1)
+                    toDouble(args[0]) * PI / 180.0
+                }
+                DEGREES -> {
+                    validateArgumentCount(node.name, args, 1)
+                    toDouble(args[0]) * 180.0 / PI
+                }
+                MOD -> {
+                    validateArgumentCount(node.name, args, 2)
+                    val dividend = toDouble(args[0])
+                    val divisor = toDouble(args[1])
+                    if (divisor == 0.0) throw EvaluatorException.divisionByZero("%")
+                    dividend % divisor
+                }
+                GCD -> {
+                    validateArgumentCount(node.name, args, 2)
+                    val a = toDouble(args[0]).toLong()
+                    val b = toDouble(args[1]).toLong()
+                    gcd(a, b).toDouble()
+                }
+                LCM -> {
+                    validateArgumentCount(node.name, args, 2)
+                    val a = toDouble(args[0]).toLong()
+                    val b = toDouble(args[1]).toLong()
+                    lcm(a, b).toDouble()
+                }
+                FACTORIAL -> {
+                    validateArgumentCount(node.name, args, 1)
+                    val n = toDouble(args[0]).toInt()
+                    if (n < 0) throw EvaluatorException.mathError("FACTORIAL of negative number")
+                    factorial(n).toDouble()
+                }
+                COMBINATION, COMB -> {
+                    validateArgumentCount(node.name, args, 2)
+                    val n = toDouble(args[0]).toInt()
+                    val r = toDouble(args[1]).toInt()
+                    if (n < 0 || r < 0 || r > n) throw EvaluatorException.mathError("COMBINATION domain error")
+                    combination(n, r).toDouble()
+                }
+                PERMUTATION, PERM -> {
+                    validateArgumentCount(node.name, args, 2)
+                    val n = toDouble(args[0]).toInt()
+                    val r = toDouble(args[1]).toInt()
+                    if (n < 0 || r < 0 || r > n) throw EvaluatorException.mathError("PERMUTATION domain error")
+                    permutation(n, r).toDouble()
+                }
+                else -> throw EvaluatorException.unsupportedFunction(node.name)
             }
-            "ASIN" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value < -1 || value > 1) throw ArithmeticException("ASIN domain error")
-                asin(value)
-            }
-            "ACOS" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value < -1 || value > 1) throw ArithmeticException("ACOS domain error")
-                acos(value)
-            }
-            "ATAN" -> {
-                validateArgumentCount(node.name, args, 1)
-                atan(toDouble(args[0]))
-            }
-            "ATAN2" -> {
-                validateArgumentCount(node.name, args, 2)
-                atan2(toDouble(args[0]), toDouble(args[1]))
-            }
-            "SINH" -> {
-                validateArgumentCount(node.name, args, 1)
-                sinh(toDouble(args[0]))
-            }
-            "COSH" -> {
-                validateArgumentCount(node.name, args, 1)
-                cosh(toDouble(args[0]))
-            }
-            "TANH" -> {
-                validateArgumentCount(node.name, args, 1)
-                tanh(toDouble(args[0]))
-            }
-            "ASINH" -> {
-                validateArgumentCount(node.name, args, 1)
-                asinh(toDouble(args[0]))
-            }
-            "ACOSH" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value < 1) throw ArithmeticException("ACOSH domain error")
-                acosh(value)
-            }
-            "ATANH" -> {
-                validateArgumentCount(node.name, args, 1)
-                val value = toDouble(args[0])
-                if (value <= -1 || value >= 1) throw ArithmeticException("ATANH domain error")
-                atanh(value)
-            }
-            "FLOOR" -> {
-                validateArgumentCount(node.name, args, 1)
-                floor(toDouble(args[0]))
-            }
-            "CEIL", "CEILING" -> {
-                validateArgumentCount(node.name, args, 1)
-                ceil(toDouble(args[0]))
-            }
-            "TRUNCATE", "TRUNC" -> {
-                validateArgumentCount(node.name, args, 1)
-                truncate(toDouble(args[0]))
-            }
-            "SIGN" -> {
-                validateArgumentCount(node.name, args, 1)
-                sign(toDouble(args[0]))
-            }
-            "RANDOM", "RAND" -> {
-                validateArgumentCount(node.name, args, 0)
-                kotlin.random.Random.nextDouble()
-            }
-            "RADIANS" -> {
-                validateArgumentCount(node.name, args, 1)
-                toDouble(args[0]) * PI / 180.0
-            }
-            "DEGREES" -> {
-                validateArgumentCount(node.name, args, 1)
-                toDouble(args[0]) * 180.0 / PI
-            }
-            "MOD" -> {
-                validateArgumentCount(node.name, args, 2)
-                val dividend = toDouble(args[0])
-                val divisor = toDouble(args[1])
-                if (divisor == 0.0) throw ArithmeticException("Division by zero")
-                dividend % divisor
-            }
-            "GCD" -> {
-                validateArgumentCount(node.name, args, 2)
-                val a = toDouble(args[0]).toLong()
-                val b = toDouble(args[1]).toLong()
-                gcd(a, b).toDouble()
-            }
-            "LCM" -> {
-                validateArgumentCount(node.name, args, 2)
-                val a = toDouble(args[0]).toLong()
-                val b = toDouble(args[1]).toLong()
-                lcm(a, b).toDouble()
-            }
-            "FACTORIAL" -> {
-                validateArgumentCount(node.name, args, 1)
-                val n = toDouble(args[0]).toInt()
-                if (n < 0) throw ArithmeticException("FACTORIAL of negative number")
-                factorial(n).toDouble()
-            }
-            "COMBINATION", "COMB" -> {
-                validateArgumentCount(node.name, args, 2)
-                val n = toDouble(args[0]).toInt()
-                val r = toDouble(args[1]).toInt()
-                if (n < 0 || r < 0 || r > n) throw ArithmeticException("COMBINATION domain error")
-                combination(n, r).toDouble()
-            }
-            "PERMUTATION", "PERM" -> {
-                validateArgumentCount(node.name, args, 2)
-                val n = toDouble(args[0]).toInt()
-                val r = toDouble(args[1]).toInt()
-                if (n < 0 || r < 0 || r > n) throw ArithmeticException("PERMUTATION domain error")
-                permutation(n, r).toDouble()
-            }
-            else -> throw IllegalArgumentException("Unsupported function: ${node.name}")
+        } catch (e: EvaluatorException) {
+            throw e
+        } catch (e: Exception) {
+            throw EvaluatorException.functionExecutionFailed(node.name, e)
         }
     }
 
@@ -300,7 +337,7 @@ class ExpressionEvaluator(
     override fun visitIf(node: IfNode): Any? {
         val condition = evaluate(node.condition)
         val conditionResult = toBoolean(condition)
-        
+
         return if (conditionResult) {
             evaluate(node.trueValue)
         } else {
@@ -319,15 +356,20 @@ class ExpressionEvaluator(
 
     /**
      * 나눗셈 연산을 수행합니다.
+     *
+     * @param left 왼쪽 피연산자
+     * @param right 오른쪽 피연산자
+     * @return 나눗셈 결과
+     * @throws EvaluatorException 0으로 나누기 또는 타입 변환 실패 시
      */
     private fun performDivisionOp(left: Any?, right: Any?): Double {
         val leftNum = toDouble(left)
         val rightNum = toDouble(right)
-        
+
         if (rightNum == 0.0) {
-            throw ArithmeticException("Division by zero")
+            throw EvaluatorException.divisionByZero()
         }
-        
+
         return leftNum / rightNum
     }
 
@@ -346,7 +388,7 @@ class ExpressionEvaluator(
     private fun performLogicalAnd(left: Any?, right: Any?): Boolean {
         val leftBool = toBoolean(left)
         if (!leftBool) return false
-        
+
         val rightBool = toBoolean(right)
         return rightBool
     }
@@ -357,13 +399,17 @@ class ExpressionEvaluator(
     private fun performLogicalOr(left: Any?, right: Any?): Boolean {
         val leftBool = toBoolean(left)
         if (leftBool) return true
-        
+
         val rightBool = toBoolean(right)
         return rightBool
     }
 
     /**
      * 값을 Double로 변환합니다.
+     *
+     * @param value 변환할 값
+     * @return Double 값
+     * @throws EvaluatorException 변환 실패 시
      */
     private fun toDouble(value: Any?): Double {
         return when (value) {
@@ -371,8 +417,9 @@ class ExpressionEvaluator(
             is Int -> value.toDouble()
             is Float -> value.toDouble()
             is Long -> value.toDouble()
-            is String -> value.toDoubleOrNull() ?: throw IllegalArgumentException("Cannot convert string to number: $value")
-            else -> throw IllegalArgumentException("Cannot convert ${value?.javaClass?.simpleName ?: "null"} to number")
+            is String -> value.toDoubleOrNull()
+                ?: throw EvaluatorException.numberConversionError(value)
+            else -> throw EvaluatorException.numberConversionError(value)
         }
     }
 
@@ -394,10 +441,15 @@ class ExpressionEvaluator(
 
     /**
      * 함수 인수 개수를 검증합니다.
+     *
+     * @param functionName 함수명
+     * @param args 인수 목록
+     * @param expectedCount 예상 인수 개수
+     * @throws EvaluatorException 인수 개수가 맞지 않는 경우
      */
     private fun validateArgumentCount(functionName: String, args: List<Any?>, expectedCount: Int) {
         if (args.size != expectedCount) {
-            throw IllegalArgumentException("Wrong argument count for $functionName: expected $expectedCount, got ${args.size}")
+            throw EvaluatorException.wrongArgumentCount(functionName, expectedCount, args.size)
         }
     }
 
@@ -447,19 +499,23 @@ class ExpressionEvaluator(
     /**
      * 팩토리얼을 계산합니다.
      * Long 오버플로우 방지를 위해 안전한 범위로 제한합니다.
+     *
+     * @param n 팩토리얼을 계산할 수
+     * @return 팩토리얼 결과
+     * @throws EvaluatorException 음수이거나 너무 큰 수인 경우
      */
     private fun factorial(n: Int): Long {
-        if (n < 0) throw ArithmeticException("FACTORIAL of negative number: $n")
+        if (n < 0) throw EvaluatorException.mathError("FACTORIAL of negative number: $n")
         if (n > MAX_FACTORIAL_INPUT) {
-            throw ArithmeticException("FACTORIAL input too large: $n (max: $MAX_FACTORIAL_INPUT)")
+            throw EvaluatorException.mathError("FACTORIAL input too large: $n (max: $MAX_FACTORIAL_INPUT)")
         }
         if (n <= 1) return 1
-        
+
         var result = 1L
         for (i in 2..n) {
             // 오버플로우 체크
             if (result > Long.MAX_VALUE / i) {
-                throw ArithmeticException("FACTORIAL overflow detected for input: $n")
+                throw EvaluatorException.mathError("FACTORIAL overflow detected for input: $n")
             }
             result *= i
         }
@@ -469,61 +525,71 @@ class ExpressionEvaluator(
     /**
      * 조합을 계산합니다.
      * Long 오버플로우 방지를 위해 안전한 범위로 제한합니다.
+     *
+     * @param n 전체 개수
+     * @param r 선택할 개수
+     * @return 조합 결과
+     * @throws EvaluatorException 음수이거나 너무 큰 수인 경우
      */
     private fun combination(n: Int, r: Int): Long {
-        if (n < 0 || r < 0) throw ArithmeticException("COMBINATION with negative inputs: n=$n, r=$r")
+        if (n < 0 || r < 0) throw EvaluatorException.mathError("COMBINATION with negative inputs: n=$n, r=$r")
         if (r > n) return 0
         if (r == 0 || r == n) return 1
-        
+
         // 입력 크기 검증 - 조합이 팩토리얼보다 작으므로 더 큰 값 허용
         if (n > MAX_COMBINATION_INPUT) {
-            throw ArithmeticException("COMBINATION input too large: n=$n (max: $MAX_COMBINATION_INPUT)")
+            throw EvaluatorException.mathError("COMBINATION input too large: n=$n (max: $MAX_COMBINATION_INPUT)")
         }
-        
+
         val k = minOf(r, n - r)
         var result = 1L
-        
+
         for (i in 0 until k) {
             val numerator = n - i
             val denominator = i + 1
-            
+
             // 오버플로우 체크 - 곱셈 전에 검사
             if (result > Long.MAX_VALUE / numerator) {
-                throw ArithmeticException("COMBINATION overflow detected: n=$n, r=$r")
+                throw EvaluatorException.mathError("COMBINATION overflow detected: n=$n, r=$r")
             }
-            
+
             result = result * numerator / denominator
         }
-        
+
         return result
     }
 
     /**
      * 순열을 계산합니다.
      * Long 오버플로우 방지를 위해 안전한 범위로 제한합니다.
+     *
+     * @param n 전체 개수
+     * @param r 선택할 개수
+     * @return 순열 결과
+     * @throws EvaluatorException 음수이거나 너무 큰 수인 경우
      */
     private fun permutation(n: Int, r: Int): Long {
-        if (n < 0 || r < 0) throw ArithmeticException("PERMUTATION with negative inputs: n=$n, r=$r")
+        if (n < 0 || r < 0) throw EvaluatorException.mathError("PERMUTATION with negative inputs: n=$n, r=$r")
         if (r > n) return 0
         if (r == 0) return 1
-        
+
         // 입력 크기 검증 - 순열은 팩토리얼과 유사한 성장률
         if (n > MAX_PERMUTATION_INPUT || r > MAX_PERMUTATION_INPUT) {
-            throw ArithmeticException("PERMUTATION input too large: n=$n, r=$r (max: $MAX_PERMUTATION_INPUT)")
+            throw EvaluatorException.mathError("PERMUTATION input too large: n=$n, r=$r (max: $MAX_PERMUTATION_INPUT)")
         }
-        
+
         var result = 1L
         for (i in 0 until r) {
             val factor = n - i
-            
+
             // 오버플로우 체크
             if (result > Long.MAX_VALUE / factor) {
-                throw ArithmeticException("PERMUTATION overflow detected: n=$n, r=$r")
+                throw EvaluatorException.mathError("PERMUTATION overflow detected: n=$n, r=$r")
             }
-            
+
             result *= factor
         }
-        
+
         return result
     }
 
@@ -538,11 +604,60 @@ class ExpressionEvaluator(
     }
 
     companion object {
+        // Operators
+        private const val PLUS = "+"
+        private const val MINUS = "-"
+        private const val MULTIPLY = "*"
+        private const val DIVIDE = "/"
+        private const val MODULO = "%"
+        private const val POWER = "^"
+        private const val EQUALS = "=="
+        private const val NOT_EQUALS = "!="
+        private const val LESS_THAN = "<"
+        private const val LESS_THAN_OR_EQUAL = "<="
+        private const val GREATER_THAN = ">"
+        private const val GREATER_THAN_OR_EQUAL = ">="
+        private const val AND = "&&"
+        private const val OR = "||"
+        private const val NOT = "!"
+
+        // Functions
+        private const val PI_CONST = "PI"
+        private const val E_CONST = "E"
+        private const val ASIN = "ASIN"
+        private const val ACOS = "ACOS"
+        private const val ATAN = "ATAN"
+        private const val ATAN2 = "ATAN2"
+        private const val SINH = "SINH"
+        private const val COSH = "COSH"
+        private const val TANH = "TANH"
+        private const val ASINH = "ASINH"
+        private const val ACOSH = "ACOSH"
+        private const val ATANH = "ATANH"
+        private const val FLOOR = "FLOOR"
+        private const val CEIL = "CEIL"
+        private const val CEILING = "CEILING"
+        private const val TRUNCATE = "TRUNCATE"
+        private const val TRUNC = "TRUNC"
+        private const val SIGN = "SIGN"
+        private const val RANDOM = "RANDOM"
+        private const val RAND = "RAND"
+        private const val RADIANS = "RADIANS"
+        private const val DEGREES = "DEGREES"
+        private const val MOD = "MOD"
+        private const val GCD = "GCD"
+        private const val LCM = "LCM"
+        private const val FACTORIAL = "FACTORIAL"
+        private const val COMBINATION = "COMBINATION"
+        private const val COMB = "COMB"
+        private const val PERMUTATION = "PERMUTATION"
+        private const val PERM = "PERM"
+
         // Long 오버플로우 방지를 위한 안전한 입력 크기 제한
         private const val MAX_FACTORIAL_INPUT = 20      // 20! = 2,432,902,008,176,640,000 (Long 범위 내)
         private const val MAX_COMBINATION_INPUT = 62    // C(62,31)이 Long 범위 내 최대값
         private const val MAX_PERMUTATION_INPUT = 20    // P(20,20) = 20!과 동일
-        
+
         /**
          * 빈 변수 바인딩으로 평가기를 생성합니다.
          */
@@ -552,11 +667,11 @@ class ExpressionEvaluator(
          * 변수 바인딩과 함께 평가기를 생성합니다.
          */
         fun create(variables: Map<String, Any>): ExpressionEvaluator = ExpressionEvaluator(variables)
-        
+
         /**
          * 커스텀 함수 레지스트리와 함께 평가기를 생성합니다.
          */
-        fun create(variables: Map<String, Any>, functionRegistry: FunctionRegistry): ExpressionEvaluator = 
+        fun create(variables: Map<String, Any>, functionRegistry: FunctionRegistry): ExpressionEvaluator =
             ExpressionEvaluator(variables, functionRegistry)
     }
 }
