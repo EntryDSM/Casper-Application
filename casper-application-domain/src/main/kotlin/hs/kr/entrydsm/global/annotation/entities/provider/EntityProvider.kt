@@ -3,6 +3,7 @@ package hs.kr.entrydsm.global.annotation.entities.provider
 import hs.kr.entrydsm.global.annotation.aggregates.provider.AggregateProvider
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import hs.kr.entrydsm.global.annotation.entities.EntityContract
+import hs.kr.entrydsm.global.constants.ErrorCodes
 import hs.kr.entrydsm.global.exception.ErrorCode
 import hs.kr.entrydsm.global.exception.ValidationException
 
@@ -28,10 +29,10 @@ object EntityProvider {
     private val entityCache = mutableMapOf<Class<*>, Class<*>>()
     private val contextCache = mutableMapOf<Class<*>, String>()
 
-    private object ErrorMessages {
-        const val ENTITY_ANNOTATION_MISSING = "어노테이션이 없습니다"
-        const val ENTITY_CONTRACT_NOT_IMPLEMENTED = "인터페이스를 구현해야 합니다"
-        const val INVALID_AGGREGATE_ROOT = "은 유효한 Aggregate Root가 아닙니다"
+    object ErrorMessages {
+        const val ENTITY_ANNOTATION_MISSING = "@Entity 어노테이션 필수"
+        const val ENTITY_CONTRACT_NOT_IMPLEMENTED = "EntityContract 구현 필수"
+        const val AGGREGATE_ROOT_INVALID = "Aggregate Root 등록 필요"
     }
 
     /**
@@ -151,22 +152,32 @@ object EntityProvider {
      * 엔티티 클래스에 @Entity 어노테이션이 있는지 검증합니다.
      *
      * @param entityClass 검증할 엔티티 클래스
-     * @throws IllegalArgumentException @Entity 어노테이션이 없는 경우
+     * @throws ValidationException
      */
     fun validateEntityAnnotation(entityClass: Class<*>) {
         entityClass.getAnnotation(Entity::class.java)
-            ?: throw IllegalArgumentException("클래스 ${entityClass.simpleName}에 @Entity 어노테이션이 없습니다.")
+            ?: throw ValidationException(
+                errorCode = ErrorCode.MISSING_ENTITY_ANNOTATION,
+                field = entityClass.simpleName,
+                constraint = ErrorMessages.ENTITY_ANNOTATION_MISSING,
+                message = "클래스 ${entityClass.simpleName}에 @Entity 어노테이션이 없습니다."
+            )
     }
 
     /**
      * 엔티티 클래스가 EntityContract 인터페이스를 구현하는지 검증합니다.
      *
      * @param entityClass 검증할 엔티티 클래스
-     * @throws IllegalArgumentException EntityContract 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException
      */
     fun validateEntityContract(entityClass: Class<*>) {
         if (!EntityContract::class.java.isAssignableFrom(entityClass)) {
-            throw IllegalArgumentException("클래스 ${entityClass.simpleName}는 EntityContract 인터페이스를 구현해야 합니다.")
+            throw ValidationException(
+                errorCode = ErrorCode.ENTITY_CONTRACT_NOT_IMPLEMENTED,
+                field = entityClass.simpleName,
+                constraint = ErrorMessages.ENTITY_CONTRACT_NOT_IMPLEMENTED,
+                message = "클래스 ${entityClass.simpleName}는 EntityContract 인터페이스를 구현해야 합니다."
+            )
         }
     }
 
@@ -179,7 +190,12 @@ object EntityProvider {
     fun validateAggregateRoot(entityClass: Class<*>) {
         val aggregateRoot = getAggregateRootFromAnnotation(entityClass)
         if (!AggregateProvider.isAggregate(aggregateRoot)) {
-            throw IllegalArgumentException("${aggregateRoot.simpleName}은 유효한 Aggregate Root가 아닙니다.")
+            throw ValidationException(
+                errorCode = ErrorCode.INVALID_AGGREGATE_ROOT,
+                field = aggregateRoot.simpleName,
+                constraint = ErrorMessages.AGGREGATE_ROOT_INVALID,
+                message = "${aggregateRoot.simpleName}은 유효한 Aggregate Root가 아닙니다."
+            )
         }
     }
 
@@ -188,11 +204,16 @@ object EntityProvider {
      *
      * @param entityClass 대상 엔티티 클래스
      * @return 애그리게이트 루트 클래스
-     * @throws IllegalArgumentException @Entity 어노테이션이 없는 경우
+     * @throws ValidationException
      */
     fun getAggregateRootFromAnnotation(entityClass: Class<*>): Class<*> {
         val annotation = entityClass.getAnnotation(Entity::class.java)
-            ?: throw IllegalArgumentException("클래스 ${entityClass.simpleName}에 @Entity 어노테이션이 없습니다.")
+            ?: throw ValidationException(
+                errorCode = ErrorCode.MISSING_ENTITY_ANNOTATION,
+                field = entityClass.simpleName,
+                constraint = ErrorMessages.ENTITY_ANNOTATION_MISSING,
+                message = "클래스 ${entityClass.simpleName}에 @Entity 어노테이션이 없습니다."
+            )
         return annotation.aggregateRoot.java
     }
 
@@ -205,8 +226,13 @@ object EntityProvider {
      */
     fun getContextFromAnnotation(entityClass: Class<*>): String {
         val annotation = entityClass.getAnnotation(Entity::class.java)
-            ?: throw IllegalArgumentException("클래스 ${entityClass.simpleName}에 @Entity 어노테이션이 없습니다.")
-        return annotation.context
+            ?: throw ValidationException(
+                errorCode = ErrorCode.MISSING_ENTITY_ANNOTATION,
+                field = entityClass.simpleName,
+                constraint = ErrorMessages.ENTITY_ANNOTATION_MISSING,
+                message = "클래스 ${entityClass.simpleName}에 @Entity 어노테이션이 없습니다."
+            )
+        return annotation.context;
     }
 
     /**
