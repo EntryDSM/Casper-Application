@@ -5,6 +5,7 @@ import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilders
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 
 /**
  * AST Builder 생성을 담당하는 팩토리 클래스입니다.
@@ -77,8 +78,10 @@ class ASTBuilderContractFactory {
      * @return 산술 연산자 AST 빌더
      */
     fun createArithmeticBuilder(tokenType: TokenType): ASTBuilderContract {
-        require(tokenType.isArithmeticOperator()) { "산술 연산자가 아닙니다: $tokenType" }
-        
+        if (!tokenType.isArithmeticOperator()) {
+            throw ParserException.notArithmeticOperator(tokenType)
+        }
+
         val operator = when (tokenType) {
             TokenType.PLUS -> "+"
             TokenType.MINUS -> "-"
@@ -86,7 +89,7 @@ class ASTBuilderContractFactory {
             TokenType.DIVIDE -> "/"
             TokenType.MODULO -> "%"
             TokenType.POWER -> "^"
-            else -> throw IllegalArgumentException("지원하지 않는 산술 연산자: $tokenType")
+            else -> throw ParserException.unsupportedArithmeticOperator(tokenType)
         }
         
         return createBinaryOperatorBuilder(operator)
@@ -99,16 +102,17 @@ class ASTBuilderContractFactory {
      * @return 논리 연산자 AST 빌더
      */
     fun createLogicalBuilder(tokenType: TokenType): ASTBuilderContract {
-        require(tokenType.isLogicalOperator()) { "논리 연산자가 아닙니다: $tokenType" }
-        
+        if (!tokenType.isLogicalOperator()) {
+            throw ParserException.notLogicalOperator(tokenType)
+        }
         val operator = when (tokenType) {
             TokenType.AND -> "&&"
             TokenType.OR -> "||"
             TokenType.NOT -> "!"
-            else -> throw IllegalArgumentException("지원하지 않는 논리 연산자: $tokenType")
+            else -> throw ParserException.unsupportedLogicalOperator(tokenType)
         }
-        
-        return if (tokenType == TokenType.NOT) {
+
+            return if (tokenType == TokenType.NOT) {
             createUnaryOperatorBuilder(operator)
         } else {
             createBinaryOperatorBuilder(operator)
@@ -122,8 +126,10 @@ class ASTBuilderContractFactory {
      * @return 비교 연산자 AST 빌더
      */
     fun createComparisonBuilder(tokenType: TokenType): ASTBuilderContract {
-        require(tokenType.isComparisonOperator()) { "비교 연산자가 아닙니다: $tokenType" }
-        
+        if (!tokenType.isComparisonOperator()) {
+            throw ParserException.notComparisonOperator(tokenType)
+        }
+
         val operator = when (tokenType) {
             TokenType.EQUAL -> "=="
             TokenType.NOT_EQUAL -> "!="
@@ -131,7 +137,7 @@ class ASTBuilderContractFactory {
             TokenType.LESS_EQUAL -> "<="
             TokenType.GREATER -> ">"
             TokenType.GREATER_EQUAL -> ">="
-            else -> throw IllegalArgumentException("지원하지 않는 비교 연산자: $tokenType")
+            else -> throw ParserException.unsupportedComparisonOperator(tokenType)
         }
         
         return createBinaryOperatorBuilder(operator)
@@ -182,8 +188,10 @@ class ASTBuilderContractFactory {
      * @return 리터럴 AST 빌더
      */
     fun createLiteralBuilder(tokenType: TokenType): ASTBuilderContract {
-        require(tokenType.isLiteral) { "리터럴 토큰이 아닙니다: $tokenType" }
-        
+        if (!tokenType.isLiteral) {
+            throw ParserException.notLiteralToken(tokenType)
+        }
+
         val cacheKey = "literal:$tokenType"
         
         return builderCache.getOrPut(cacheKey) {
@@ -192,7 +200,7 @@ class ASTBuilderContractFactory {
                 TokenType.TRUE -> ASTBuilders.BooleanTrue
                 TokenType.FALSE -> ASTBuilders.BooleanFalse
                 TokenType.IDENTIFIER, TokenType.VARIABLE -> ASTBuilders.Variable
-                else -> throw IllegalArgumentException("지원하지 않는 리터럴 타입: $tokenType")
+                else -> throw ParserException.unsupportedLiteralType(tokenType)
             }
         }
     }
@@ -267,7 +275,9 @@ class ASTBuilderContractFactory {
         name: String,
         buildFunction: (List<Any?>) -> Any?
     ): ASTBuilderContract {
-        require(name.isNotBlank()) { "빌더 이름은 비어있을 수 없습니다" }
+        if (name.isBlank()) {
+            throw ParserException.builderNameBlank(name)
+        }
         
         val cacheKey = "custom:$name"
         
@@ -399,8 +409,12 @@ class ASTBuilderContractFactory {
      * @param operator 연산자 문자열
      */
     private fun validateOperator(operator: String) {
-        require(operator.isNotBlank()) { "연산자는 비어있을 수 없습니다" }
-        require(operator.length <= 3) { "연산자 길이가 너무 깁니다: $operator" }
+        if (operator.isBlank()) {
+            throw ParserException.operatorBlank(operator)
+        }
+        if (operator.length > 3) {
+            throw ParserException.operatorTooLong(operator, maxLength = 3)
+        }
     }
 
     /**
