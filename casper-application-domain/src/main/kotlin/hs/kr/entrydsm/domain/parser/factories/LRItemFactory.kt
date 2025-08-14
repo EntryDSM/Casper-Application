@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.parser.factories
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 
@@ -68,8 +69,8 @@ class LRItemFactory {
         dotPos: Int,
         lookahead: Set<TokenType>
     ): LRItem {
-        require(dotPos > 0 || production.id == -1) { 
-            "커널 아이템의 점 위치는 0보다 커야 합니다 (확장 생산 규칙 제외): $dotPos" 
+        if (!(dotPos > 0 || production.id == -1)) {
+            throw ParserException.kernelDotPositionInvalid(dotPos, production.id)
         }
         
         return createLRItem(production, dotPos, lookahead)
@@ -101,8 +102,8 @@ class LRItemFactory {
         startProduction: Production,
         endOfInputSymbol: TokenType = TokenType.DOLLAR
     ): LRItem {
-        require(startProduction.id == -1) { 
-            "시작 아이템은 확장 생산 규칙을 사용해야 합니다: ${startProduction.id}" 
+        if (startProduction.id != -1) {
+            throw ParserException.startItemMustUseAugmented(startProduction.id)
         }
         
         return createLRItem(
@@ -136,8 +137,8 @@ class LRItemFactory {
      * @throws IllegalStateException 점을 더 이상 이동할 수 없는 경우
      */
     fun createAdvancedItem(item: LRItem): LRItem {
-        require(!item.isComplete()) { 
-            "완성된 아이템은 점을 이동할 수 없습니다: $item" 
+        if (item.isComplete()) {
+            throw ParserException.itemAlreadyComplete(item)
         }
         
         return createLRItem(
@@ -308,8 +309,11 @@ class LRItemFactory {
      * @throws IllegalArgumentException 유효하지 않은 경우
      */
     private fun validateProduction(production: Production) {
-        require(production.right.size <= MAX_PRODUCTION_LENGTH) {
-            "생산 규칙이 최대 길이를 초과했습니다: ${production.right.size} > $MAX_PRODUCTION_LENGTH"
+        if (production.right.size > MAX_PRODUCTION_LENGTH) {
+            throw ParserException.productionLengthExceedsLimit(
+                length = production.right.size,
+                maxLength = MAX_PRODUCTION_LENGTH
+            )
         }
     }
 
@@ -321,11 +325,11 @@ class LRItemFactory {
      * @throws IllegalArgumentException 유효하지 않은 경우
      */
     private fun validateDotPosition(production: Production, dotPos: Int) {
-        require(dotPos >= 0) {
-            "점의 위치는 0 이상이어야 합니다: $dotPos"
+        if (dotPos < 0) {
+            throw ParserException.invalidDotPositionNegative(dotPos)
         }
-        require(dotPos <= production.right.size) {
-            "점의 위치가 생산 규칙 길이를 초과했습니다: $dotPos > ${production.right.size}"
+        if (dotPos > production.right.size) {
+            throw ParserException.invalidDotPositionExceeds(dotPos, production.right.size)
         }
     }
 
@@ -336,13 +340,16 @@ class LRItemFactory {
      * @throws IllegalArgumentException 유효하지 않은 경우
      */
     private fun validateLookahead(lookahead: Set<TokenType>) {
-        require(lookahead.size <= MAX_LOOKAHEAD_SIZE) {
-            "전방탐색 심볼이 최대 개수를 초과했습니다: ${lookahead.size} > $MAX_LOOKAHEAD_SIZE"
+        if (lookahead.size > MAX_LOOKAHEAD_SIZE) {
+            throw ParserException.lookaheadSizeExceedsLimit(
+                size = lookahead.size,
+                maxSize = MAX_LOOKAHEAD_SIZE
+            )
         }
         
         lookahead.forEach { symbol ->
-            require(symbol.isTerminal) {
-                "전방탐색 심볼은 터미널이어야 합니다: $symbol"
+            if (!symbol.isTerminal) {
+                throw ParserException.lookaheadNotTerminal(symbol)
             }
         }
     }
