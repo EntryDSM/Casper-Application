@@ -7,6 +7,7 @@ import hs.kr.entrydsm.domain.parser.entities.*
 import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.lexer.entities.Token
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 
@@ -40,8 +41,8 @@ class ParserFactory {
         options: ParserOptions = ParserOptions.default()
     ): LRParser {
         // 입력 검증
-        require(input.isNotBlank()) { 
-            "입력이 비어있을 수 없습니다" 
+        if (input.isBlank()) {
+            throw ParserException.inputBlank()
         }
         
         // 정책 적용
@@ -140,11 +141,11 @@ class ParserFactory {
     ): LRAction {
         return when (actionType.lowercase()) {
             "shift", "s" -> {
-                val state = parameter as? Int ?: throw IllegalArgumentException("Shift 액션에는 상태 번호가 필요합니다")
+                val state = parameter as? Int ?: throw ParserException.shiftStateRequired()
                 LRAction.Shift(state)
             }
             "reduce", "r" -> {
-                val production = parameter as? Production ?: throw IllegalArgumentException("Reduce 액션에는 생산 규칙이 필요합니다")
+                val production = parameter as? Production ?: throw ParserException.reduceProductionRequired()
                 LRAction.Reduce(production)
             }
             "accept", "acc" -> LRAction.Accept
@@ -152,7 +153,7 @@ class ParserFactory {
                 val message = parameter as? String ?: "구문 오류"
                 LRAction.Error(errorCode = null, errorMessage = message)
             }
-            else -> throw IllegalArgumentException("지원하지 않는 액션 타입: $actionType")
+            else -> throw ParserException.unsupportedActionType(actionType)
         }
     }
 
