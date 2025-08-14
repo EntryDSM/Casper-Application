@@ -10,11 +10,11 @@ import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 /**
  * LR 파싱에서 발생하는 충돌을 해결하는 서비스입니다.
  *
- * Shift/Reduce와 Reduce/Reduce 충돌을 연산자 우선순위와 결합성 규칙을 
+ * Shift/Reduce와 Reduce/Reduce 충돌을 연산자 우선순위와 결합성 규칙을
  * 기반으로 해결하여 파싱 테이블을 완성합니다.
  * POC 코드의 충돌 해결 로직을 DDD 구조로 재구성하여 구현하였습니다.
  *
- * @see <a href="https://devblog.kakaostyle.com/ko/2025-03-21-1-domain-driven-hexagonal-architecture-by-example/">코드 사례로 보는 Domain-Driven 헥사고날 아키텍처</a>
+ * @see <a href="https://devblog.kakaostyle.com/ko/2025-03-21-1-domain-driven-hexagonal-아키텍처-by-example/">코드 사례로 보는 Domain-Driven 헥사고날 아키텍처</a>
  *
  * @author kangeunchan
  * @since 2025.07.16
@@ -51,11 +51,11 @@ class ConflictResolver {
                 resolveReduceReduceConflict(existing as LRAction.Reduce, newAction as LRAction.Reduce, stateId)
             }
             areIdenticalActions(existing, newAction) -> {
-                ConflictResolutionResult.Resolved(existing, "동일한 액션")
+                ConflictResolutionResult.Resolved(existing, ConflictResolverConsts.MSG_IDENTICAL_ACTION)
             }
             else -> {
                 ConflictResolutionResult.Unresolved(
-                    "지원하지 않는 충돌 유형: $existing vs $newAction"
+                    ConflictResolverConsts.MSG_UNSUPPORTED.format(existing, newAction)
                 )
             }
         }
@@ -78,7 +78,7 @@ class ConflictResolver {
             // 우선순위 정보가 없으면 기본적으로 Shift 선택 (LR 파서의 기본 동작)
             return ConflictResolutionResult.Resolved(
                 shiftAction,
-                "우선순위 정보 없음, Shift 선택 (기본 규칙)"
+                ConflictResolverConsts.SR_DEFAULT_SHIFT
             )
         }
 
@@ -86,46 +86,43 @@ class ConflictResolver {
             lookaheadPrec.hasHigherPrecedenceThan(productionPrec) -> {
                 ConflictResolutionResult.Resolved(
                     shiftAction,
-                    "Lookahead 우선순위가 높음 (${lookaheadPrec.precedence} > ${productionPrec.precedence})"
+                    ConflictResolverConsts.SR_LOOKAHEAD_HIGHER.format(lookaheadPrec.precedence, productionPrec.precedence)
                 )
             }
             productionPrec.hasHigherPrecedenceThan(lookaheadPrec) -> {
                 ConflictResolutionResult.Resolved(
                     reduceAction,
-                    "Production 우선순위가 높음 (${productionPrec.precedence} > ${lookaheadPrec.precedence})"
+                    ConflictResolverConsts.SR_PRODUCTION_HIGHER.format(productionPrec.precedence, lookaheadPrec.precedence)
                 )
             }
             lookaheadPrec.hasSamePrecedenceAs(productionPrec) -> {
-                // 같은 우선순위인 경우 결합성으로 결정
                 when {
                     lookaheadPrec.isLeftAssociative() -> {
                         ConflictResolutionResult.Resolved(
                             reduceAction,
-                            "좌결합, Reduce 선택"
+                            ConflictResolverConsts.SR_LEFT_ASSOC_REDUCE
                         )
                     }
                     lookaheadPrec.isRightAssociative() -> {
                         ConflictResolutionResult.Resolved(
                             shiftAction,
-                            "우결합, Shift 선택"
+                            ConflictResolverConsts.SR_RIGHT_ASSOC_SHIFT
                         )
                     }
                     lookaheadPrec.isNonAssociative() -> {
                         ConflictResolutionResult.Unresolved(
-                            "비결합 연산자 충돌, 해결 불가능"
+                            ConflictResolverConsts.SR_NON_ASSOC
                         )
                     }
                     else -> {
                         ConflictResolutionResult.Unresolved(
-                            "알 수 없는 결합성: ${lookaheadPrec.associativity}"
+                            ConflictResolverConsts.SR_UNKNOWN_ASSOC.format(lookaheadPrec.associativity)
                         )
                     }
                 }
             }
             else -> {
-                ConflictResolutionResult.Unresolved(
-                    "우선순위 비교 실패"
-                )
+                ConflictResolutionResult.Unresolved(ConflictResolverConsts.SR_COMPARE_FAIL)
             }
         }
     }
@@ -146,32 +143,32 @@ class ConflictResolver {
             existing.length > new.length -> {
                 ConflictResolutionResult.Resolved(
                     existingReduce,
-                    "기존 생산 규칙이 더 김 (${existing.length} > ${new.length})"
+                    ConflictResolverConsts.RR_EXISTING_LONGER.format(existing.length, new.length)
                 )
             }
             new.length > existing.length -> {
                 ConflictResolutionResult.Resolved(
                     newReduce,
-                    "새 생산 규칙이 더 김 (${new.length} > ${existing.length})"
+                    ConflictResolverConsts.RR_NEW_LONGER.format(new.length, existing.length)
                 )
             }
             existing.id < new.id -> {
                 ConflictResolutionResult.Resolved(
                     existingReduce,
-                    "기존 생산 규칙이 먼저 정의됨 (ID: ${existing.id} < ${new.id})"
+                    ConflictResolverConsts.RR_EXISTING_FIRST.format(existing.id, new.id)
                 )
             }
             new.id < existing.id -> {
                 ConflictResolutionResult.Resolved(
                     newReduce,
-                    "새 생산 규칙이 먼저 정의됨 (ID: ${new.id} < ${existing.id})"
+                    ConflictResolverConsts.RR_NEW_FIRST.format(new.id, existing.id)
                 )
             }
             else -> {
                 // 길이와 ID가 모두 같은 경우 - 이는 일반적으로 발생하지 않아야 함
                 ConflictResolutionResult.Resolved(
                     existingReduce,
-                    "동일한 생산 규칙, 기존 선택"
+                    ConflictResolverConsts.RR_SAME_RULE
                 )
             }
         }
@@ -182,13 +179,10 @@ class ConflictResolver {
      * 생산 규칙의 가장 오른쪽 터미널 심볼의 우선순위를 사용합니다.
      */
     private fun getProductionPrecedence(production: Production): OperatorPrecedence? {
-        // 생산 규칙의 우변에서 가장 오른쪽 터미널 심볼을 찾습니다
         for (i in production.right.indices.reversed()) {
             val symbol = production.right[i]
             val precedence = OperatorPrecedence.getPrecedence(symbol)
-            if (precedence != null) {
-                return precedence
-            }
+            if (precedence != null) return precedence
         }
         return null
     }
@@ -206,15 +200,17 @@ class ConflictResolver {
         val unresolvedCount = conflicts.size - resolvedCount
 
         return mapOf(
-            "totalConflicts" to conflicts.size,
-            "shiftReduceConflicts" to shiftReduceCount,
-            "reduceReduceConflicts" to reduceReduceCount,
-            "resolvedConflicts" to resolvedCount,
-            "unresolvedConflicts" to unresolvedCount,
-            "resolutionRate" to if (conflicts.isNotEmpty()) {
+            ConflictResolverConsts.KEY_TOTAL to conflicts.size,
+            ConflictResolverConsts.KEY_SR to shiftReduceCount,
+            ConflictResolverConsts.KEY_RR to reduceReduceCount,
+            ConflictResolverConsts.KEY_RESOLVED to resolvedCount,
+            ConflictResolverConsts.KEY_UNRESOLVED to unresolvedCount,
+            ConflictResolverConsts.KEY_RATE to if (conflicts.isNotEmpty()) {
                 resolvedCount.toDouble() / conflicts.size
             } else 1.0,
-            "conflictsByState" to conflicts.groupBy { it.stateId }.mapValues { it.value.size }
+            ConflictResolverConsts.KEY_BY_STATE to conflicts
+                .groupBy { it.stateId }
+                .mapValues { it.value.size }
         )
     }
 
@@ -228,27 +224,30 @@ class ConflictResolver {
         val stats = generateConflictStatistics(conflicts)
         val sb = StringBuilder()
 
-        sb.appendLine("=== LR 파싱 충돌 해결 보고서 ===")
-        sb.appendLine("총 충돌 수: ${stats["totalConflicts"]}")
-        sb.appendLine("Shift/Reduce 충돌: ${stats["shiftReduceConflicts"]}")
-        sb.appendLine("Reduce/Reduce 충돌: ${stats["reduceReduceConflicts"]}")
-        sb.appendLine("해결된 충돌: ${stats["resolvedConflicts"]}")
-        sb.appendLine("미해결 충돌: ${stats["unresolvedConflicts"]}")
-        sb.appendLine("해결률: ${String.format("%.2f%%", (stats["resolutionRate"] as Double) * 100)}")
+        sb.appendLine(ConflictResolverConsts.REPORT_TITLE)
+        sb.appendLine(ConflictResolverConsts.REPORT_TOTAL + stats[ConflictResolverConsts.KEY_TOTAL])
+        sb.appendLine(ConflictResolverConsts.REPORT_SR + stats[ConflictResolverConsts.KEY_SR])
+        sb.appendLine(ConflictResolverConsts.REPORT_RR + stats[ConflictResolverConsts.KEY_RR])
+        sb.appendLine(ConflictResolverConsts.REPORT_RESOLVED + stats[ConflictResolverConsts.KEY_RESOLVED])
+        sb.appendLine(ConflictResolverConsts.REPORT_UNRESOLVED + stats[ConflictResolverConsts.KEY_UNRESOLVED])
+        sb.appendLine(
+            ConflictResolverConsts.REPORT_RATE +
+                    String.format("%.2f%%", (stats[ConflictResolverConsts.KEY_RATE] as Double) * 100)
+        )
         sb.appendLine()
 
         if (conflicts.any { !it.resolved }) {
-            sb.appendLine("=== 미해결 충돌 목록 ===")
+            sb.appendLine(ConflictResolverConsts.REPORT_UNRESOLVED_HEADER)
             conflicts.filter { !it.resolved }.forEach { conflict ->
-                sb.appendLine("상태 ${conflict.stateId}: ${conflict.description}")
+                sb.appendLine("${ConflictResolverConsts.STATE_PREFIX}${conflict.stateId}: ${conflict.description}")
             }
             sb.appendLine()
         }
 
         if (conflicts.any { it.resolved }) {
-            sb.appendLine("=== 해결된 충돌 샘플 ===")
+            sb.appendLine(ConflictResolverConsts.REPORT_RESOLVED_HEADER)
             conflicts.filter { it.resolved }.take(5).forEach { conflict ->
-                sb.appendLine("상태 ${conflict.stateId}: ${conflict.description} -> ${conflict.resolution}")
+                sb.appendLine("${ConflictResolverConsts.STATE_PREFIX}${conflict.stateId}: ${conflict.description} -> ${conflict.resolution}")
             }
         }
 
@@ -309,4 +308,51 @@ enum class ConflictType {
     SHIFT_REDUCE,
     REDUCE_REDUCE,
     ACCEPT_REDUCE
+}
+
+/**
+ * ConflictResolver에서 사용하는 상수 모음
+ */
+object ConflictResolverConsts {
+    // 공통 메시지/접두어
+    const val MSG_IDENTICAL_ACTION = "동일한 액션"
+    const val MSG_UNSUPPORTED = "지원하지 않는 충돌 유형: %s vs %s"
+    const val STATE_PREFIX = "상태 "
+
+    // Shift/Reduce 해결 메시지
+    const val SR_DEFAULT_SHIFT = "우선순위 정보 없음, Shift 선택 (기본 규칙)"
+    const val SR_LOOKAHEAD_HIGHER = "Lookahead 우선순위가 높음 (%d > %d)"
+    const val SR_PRODUCTION_HIGHER = "Production 우선순위가 높음 (%d > %d)"
+    const val SR_LEFT_ASSOC_REDUCE = "좌결합, Reduce 선택"
+    const val SR_RIGHT_ASSOC_SHIFT = "우결합, Shift 선택"
+    const val SR_NON_ASSOC = "비결합 연산자 충돌, 해결 불가능"
+    const val SR_UNKNOWN_ASSOC = "알 수 없는 결합성: %s"
+    const val SR_COMPARE_FAIL = "우선순위 비교 실패"
+
+    // Reduce/Reduce 해결 메시지
+    const val RR_EXISTING_LONGER = "기존 생산 규칙이 더 김 (%d > %d)"
+    const val RR_NEW_LONGER = "새 생산 규칙이 더 김 (%d > %d)"
+    const val RR_EXISTING_FIRST = "기존 생산 규칙이 먼저 정의됨 (ID: %d < %d)"
+    const val RR_NEW_FIRST = "새 생산 규칙이 먼저 정의됨 (ID: %d < %d)"
+    const val RR_SAME_RULE = "동일한 생산 규칙, 기존 선택"
+
+    // 통계 키
+    const val KEY_TOTAL = "totalConflicts"
+    const val KEY_SR = "shiftReduceConflicts"
+    const val KEY_RR = "reduceReduceConflicts"
+    const val KEY_RESOLVED = "resolvedConflicts"
+    const val KEY_UNRESOLVED = "unresolvedConflicts"
+    const val KEY_RATE = "resolutionRate"
+    const val KEY_BY_STATE = "conflictsByState"
+
+    // 리포트 텍스트
+    const val REPORT_TITLE = "=== LR 파싱 충돌 해결 보고서 ==="
+    const val REPORT_TOTAL = "총 충돌 수: "
+    const val REPORT_SR = "Shift/Reduce 충돌: "
+    const val REPORT_RR = "Reduce/Reduce 충돌: "
+    const val REPORT_RESOLVED = "해결된 충돌: "
+    const val REPORT_UNRESOLVED = "미해결 충돌: "
+    const val REPORT_RATE = "해결률: "
+    const val REPORT_UNRESOLVED_HEADER = "=== 미해결 충돌 목록 ==="
+    const val REPORT_RESOLVED_HEADER = "=== 해결된 충돌 샘플 ==="
 }
