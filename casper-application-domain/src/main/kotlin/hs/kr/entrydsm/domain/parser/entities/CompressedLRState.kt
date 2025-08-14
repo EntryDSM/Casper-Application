@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.entities
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.LRItem
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
 /**
@@ -28,7 +29,9 @@ data class CompressedLRState(
 ) {
 
     init {
-        require(coreItems.isNotEmpty()) { "Core 아이템은 비어있을 수 없습니다" }
+        if (coreItems.isEmpty()) {
+            throw ParserException.emptyCoreItems()
+        }
     }
 
     /**
@@ -140,8 +143,10 @@ data class CompressedLRState(
          * @return 생성된 CompressedLRState
          */
         fun fromItems(items: Set<LRItem>, isBuilt: Boolean = false): CompressedLRState {
-            require(items.isNotEmpty()) { "아이템 집합이 비어있을 수 없습니다" }
-            
+            if (items.isEmpty()) {
+                throw ParserException.emptyItems()
+            }
+
             return CompressedLRState(
                 coreItems = items,
                 isBuilt = isBuilt
@@ -224,8 +229,12 @@ data class CompressedLRState(
          * @throws IllegalArgumentException 병합할 수 없는 상태들인 경우
          */
         fun mergeLALR(state1: CompressedLRState, state2: CompressedLRState): CompressedLRState {
-            require(canMergeLALR(state1, state2)) { 
-                "상태들을 LALR 병합할 수 없습니다: 다른 core 또는 lookahead 충돌" 
+            if (!canMergeLALR(state1, state2)) {
+                throw ParserException.lalrMergeNotAllowed(
+                    state1 = state1,
+                    state2 = state2,
+                    reason = "다른 core 또는 lookahead 충돌"
+                )
             }
 
             val mergedItems = mutableSetOf<LRItem>()
