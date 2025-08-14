@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.policies
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 
@@ -86,7 +87,7 @@ class GrammarValidationPolicy {
         
         for (nonTerminal in graph.keys) {
             if (hasLeftRecursion(nonTerminal, graph, mutableSetOf())) {
-                throw IllegalArgumentException("좌재귀가 감지되었습니다: $nonTerminal")
+                throw ParserException.leftRecursionDetected(nonTerminal)
             }
         }
         
@@ -110,7 +111,7 @@ class GrammarValidationPolicy {
         val unreachable = nonTerminals - reachable
         
         if (unreachable.isNotEmpty()) {
-            throw IllegalArgumentException("도달 불가능한 논터미널들: $unreachable")
+            throw ParserException.unreachableNonTerminals(unreachable)
         }
         
         return true
@@ -131,7 +132,7 @@ class GrammarValidationPolicy {
         val undefined = nonTerminals - defined
         
         if (undefined.isNotEmpty()) {
-            throw IllegalArgumentException("정의되지 않은 논터미널들: $undefined")
+            throw ParserException.undefinedNonTerminals(undefined)
         }
         
         return true
@@ -153,9 +154,7 @@ class GrammarValidationPolicy {
                 val duplicates = firstSymbols.groupBy { it }.filter { it.value.size > 1 }
                 
                 if (duplicates.isNotEmpty()) {
-                    throw IllegalArgumentException(
-                        "모호한 문법 규칙 감지: $left -> ${duplicates.keys}"
-                    )
+                    throw ParserException.ambiguousGrammarRule(left, duplicates.keys)
                 }
             }
         }
@@ -174,7 +173,7 @@ class GrammarValidationPolicy {
         
         for (start in graph.keys) {
             if (hasCycle(start, graph, mutableSetOf(), mutableSetOf())) {
-                throw IllegalArgumentException("순환 참조가 감지되었습니다: $start")
+                throw ParserException.cyclicGrammarReference(start)
             }
         }
         
@@ -190,20 +189,20 @@ class GrammarValidationPolicy {
         terminals: Set<TokenType>,
         nonTerminals: Set<TokenType>
     ) {
-        require(productions.size >= MIN_PRODUCTION_COUNT) {
-            "생산 규칙이 최소 개수보다 적습니다: ${productions.size} < $MIN_PRODUCTION_COUNT"
+        if (productions.size < MIN_PRODUCTION_COUNT) {
+            throw ParserException.productionCountBelowMin(productions.size, MIN_PRODUCTION_COUNT)
         }
-        
-        require(productions.size <= MAX_PRODUCTION_COUNT) {
-            "생산 규칙이 최대 개수를 초과했습니다: ${productions.size} > $MAX_PRODUCTION_COUNT"
+        if (productions.size > MAX_PRODUCTION_COUNT) {
+            throw ParserException.productionCountExceedsLimit(productions.size, MAX_PRODUCTION_COUNT)
         }
-        
-        require(startSymbol in nonTerminals) {
-            "시작 심볼이 논터미널에 포함되지 않습니다: $startSymbol"
+
+        if (startSymbol !in nonTerminals) {
+            throw ParserException.startSymbolNotInNonTerminals(startSymbol)
         }
-        
-        require(terminals.intersect(nonTerminals).isEmpty()) {
-            "터미널과 논터미널이 겹칩니다: ${terminals.intersect(nonTerminals)}"
+
+        val overlap = terminals.intersect(nonTerminals)
+        if (overlap.isNotEmpty()) {
+            throw ParserException.terminalsAndNonTerminalsOverlap(overlap)
         }
     }
 
@@ -226,7 +225,7 @@ class GrammarValidationPolicy {
             .filter { it.value.size > 1 }
         
         if (duplicates.isNotEmpty()) {
-            throw IllegalArgumentException("중복된 생산 규칙들: ${duplicates.keys}")
+            throw ParserException.duplicateProductions(duplicates.keys)
         }
     }
 
@@ -234,12 +233,15 @@ class GrammarValidationPolicy {
      * 개별 생산 규칙의 구조를 검증합니다.
      */
     private fun validateProductionStructure(production: Production) {
-        require(production.right.size <= MAX_PRODUCTION_LENGTH) {
-            "생산 규칙이 최대 길이를 초과했습니다: ${production.right.size} > $MAX_PRODUCTION_LENGTH"
+        if (production.right.size > MAX_PRODUCTION_LENGTH) {
+            throw ParserException.productionLengthExceedsLimit(
+                length = production.right.size,
+                maxLength = MAX_PRODUCTION_LENGTH
+            )
         }
-        
-        require(production.id >= 0) {
-            "생산 규칙 ID가 음수입니다: ${production.id}"
+
+        if (production.id < 0) {
+            throw ParserException.productionIdNegative(production.id)
         }
     }
 
@@ -252,14 +254,14 @@ class GrammarValidationPolicy {
         nonTerminals: Set<TokenType>
     ) {
         val allSymbols = terminals + nonTerminals
-        
-        require(production.left in nonTerminals) {
-            "생산 규칙의 좌변이 논터미널이 아닙니다: ${production.left}"
+
+        if (production.left !in nonTerminals) {
+            throw ParserException.productionLeftNotNonTerminal(production.left)
         }
         
         production.right.forEach { symbol ->
-            require(symbol in allSymbols) {
-                "알 수 없는 심볼입니다: $symbol in production ${production.id}"
+            if (symbol !in allSymbols) {
+                throw ParserException.unknownSymbolInProduction(symbol, production.id)
             }
         }
     }
