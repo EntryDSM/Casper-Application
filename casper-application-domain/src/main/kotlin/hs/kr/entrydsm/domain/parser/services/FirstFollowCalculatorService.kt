@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.services
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 
@@ -26,6 +27,44 @@ class FirstFollowCalculatorService {
     companion object {
         private const val MAX_ITERATIONS = 1000
         private const val CACHE_SIZE_LIMIT = 500
+
+        // Configuration keys
+        private const val KEY_MAX_ITERATIONS = "maxIterations"
+        private const val KEY_CACHE_SIZE_LIMIT = "cacheSizeLimit"
+        private const val KEY_ALGORITHMS = "algorithms"
+        private const val KEY_OPTIMIZATIONS = "optimizations"
+
+        // Statistics keys
+        private const val KEY_SERVICE_NAME = "serviceName"
+        private const val KEY_CACHE_STATISTICS = "cacheStatistics"
+        private const val KEY_ALGORITHMS_IMPLEMENTED = "algorithmsImplemented"
+
+        // Algorithm names
+        private const val ALGORITHM_FIRST_SET = "FirstSetCalculation"
+        private const val ALGORITHM_FOLLOW_SET = "FollowSetCalculation"
+        private const val ALGORITHM_SEQUENCE_FIRST = "SequenceFirstCalculation"
+
+        // Optimization names
+        private const val OPTIMIZATION_CACHING = "caching"
+        private const val OPTIMIZATION_ITERATIVE_FIXPOINT = "iterativeFixpoint"
+        private const val OPTIMIZATION_EARLY_TERMINATION = "earlyTermination"
+
+        // Service info
+        private const val SERVICE_NAME = "FirstFollowCalculatorService"
+        private const val ALGORITHMS_COUNT = 3
+
+        // Collections
+        private val ALGORITHMS = listOf(
+            ALGORITHM_FIRST_SET,
+            ALGORITHM_FOLLOW_SET,
+            ALGORITHM_SEQUENCE_FIRST
+        )
+
+        private val OPTIMIZATIONS = listOf(
+            OPTIMIZATION_CACHING,
+            OPTIMIZATION_ITERATIVE_FIXPOINT,
+            OPTIMIZATION_EARLY_TERMINATION
+        )
     }
 
     private val firstCache = mutableMapOf<List<TokenType>, Set<TokenType>>()
@@ -89,7 +128,7 @@ class FirstFollowCalculatorService {
         }
         
         if (iterations >= MAX_ITERATIONS) {
-            throw IllegalStateException("FIRST 집합 계산이 수렴하지 않습니다")
+            throw ParserException.followSetNotConverging()
         }
         
         return firstSets.mapValues { it.value.toSet() }
@@ -166,7 +205,7 @@ class FirstFollowCalculatorService {
         }
         
         if (iterations >= MAX_ITERATIONS) {
-            throw IllegalStateException("FOLLOW 집합 계산이 수렴하지 않습니다")
+            throw ParserException.firstSetNotConverging()
         }
         
         return followSets.mapValues { it.value.toSet() }
@@ -417,10 +456,10 @@ class FirstFollowCalculatorService {
      * @return 설정 정보 맵
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "maxIterations" to MAX_ITERATIONS,
-        "cacheSizeLimit" to CACHE_SIZE_LIMIT,
-        "algorithms" to listOf("FirstSetCalculation", "FollowSetCalculation", "SequenceFirstCalculation"),
-        "optimizations" to listOf("caching", "iterativeFixpoint", "earlyTermination")
+        KEY_MAX_ITERATIONS to MAX_ITERATIONS,
+        KEY_CACHE_SIZE_LIMIT to CACHE_SIZE_LIMIT,
+        KEY_ALGORITHMS to ALGORITHMS,
+        KEY_OPTIMIZATIONS to OPTIMIZATIONS
     )
 
     /**
@@ -429,8 +468,8 @@ class FirstFollowCalculatorService {
      * @return 통계 정보 맵
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "serviceName" to "FirstFollowCalculatorService",
-        "cacheStatistics" to getCacheStatistics(),
-        "algorithmsImplemented" to 3
+        KEY_SERVICE_NAME to SERVICE_NAME,
+        KEY_CACHE_STATISTICS to getCacheStatistics(),
+        KEY_ALGORITHMS_IMPLEMENTED to ALGORITHMS_COUNT
     )
 }
