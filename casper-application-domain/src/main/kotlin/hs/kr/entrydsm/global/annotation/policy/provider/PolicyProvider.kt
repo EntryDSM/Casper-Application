@@ -4,6 +4,8 @@ import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.PolicyContract
 import hs.kr.entrydsm.global.annotation.policy.PolicyResult
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
+import hs.kr.entrydsm.global.exception.ErrorCode
+import hs.kr.entrydsm.global.exception.ValidationException
 
 /**
  * DDD의 비즈니스 정책(Business Policy) 관리를 담당하는 Provider 객체입니다.
@@ -22,6 +24,14 @@ object PolicyProvider {
     private val domainRegistry = mutableMapOf<String, MutableSet<Class<*>>>()
     private val policyCache = mutableMapOf<String, PolicyContract>()
 
+    private object ErrorMessages {
+        const val POLICY_ANNOTATION_MISSING = "어노테이션이 없습니다"
+        const val POLICY_CONTRACT_NOT_IMPLEMENTED = "인터페이스를 구현해야 합니다"
+        const val POLICY_NOT_FOUND = "을 찾을 수 없습니다"
+        const val MULTIPLE_IMPLEMENTATIONS = "에 대해 여러 구현체가 존재합니다"
+        const val POLICY_NOT_APPLICABLE = "은 현재 컨텍스트에 적용할 수 없습니다"
+    }
+
     /**
      * 타입 안전성을 위한 인라인 함수로 정책을 등록합니다.
      *
@@ -36,7 +46,7 @@ object PolicyProvider {
      *
      * @param policyClass 등록할 정책 클래스
      * @param T 정책 클래스 타입
-     * @throws IllegalArgumentException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
      */
     fun <T : PolicyContract> registerPolicy(policyClass: Class<T>) {
         validatePolicy(policyClass)
@@ -57,7 +67,7 @@ object PolicyProvider {
      * @param name 실행할 정책의 이름
      * @param context 정책 실행에 필요한 컨텍스트 정보
      * @return 정책 실행 결과
-     * @throws IllegalArgumentException 정책을 찾을 수 없는 경우
+     * @throws ValidationException 정책을 찾을 수 없는 경우
      */
     fun executePolicy(name: String, context: Map<String, Any?>): PolicyResult {
         val policy = getPolicyByName(name)
@@ -67,7 +77,7 @@ object PolicyProvider {
         } else {
             PolicyResult(
                 success = false,
-                message = "정책 '$name'은 현재 컨텍스트에 적용할 수 없습니다."
+                message = "정책 '$name'${ErrorMessages.POLICY_NOT_APPLICABLE}."
             )
         }
     }
@@ -88,7 +98,7 @@ object PolicyProvider {
                 } else {
                     PolicyResult(
                         success = false,
-                        message = "정책 '${policy.getName()}'은 현재 컨텍스트에 적용할 수 없습니다."
+                        message = "정책 '${policy.getName()}'${ErrorMessages.POLICY_NOT_APPLICABLE}."
                     )
                 }
             }
@@ -110,7 +120,7 @@ object PolicyProvider {
                 } else {
                     PolicyResult(
                         success = false,
-                        message = "정책 '${policy.getName()}'은 현재 컨텍스트에 적용할 수 없습니다."
+                        message = "정책 '${policy.getName()}'${ErrorMessages.POLICY_NOT_APPLICABLE}."
                     )
                 }
             }
@@ -121,15 +131,25 @@ object PolicyProvider {
      *
      * @param name 조회할 정책의 이름
      * @return 정책 인스턴스
-     * @throws IllegalArgumentException 정책을 찾을 수 없거나 중복 구현체가 있는 경우
+     * @throws ValidationException 정책을 찾을 수 없거나 중복 구현체가 있는 경우
      */
     fun getPolicyByName(name: String): PolicyContract {
         return policyCache.getOrPut(name) {
             val policyClasses = policyRegistry[name]
-                ?: throw IllegalArgumentException("정책 '$name'을 찾을 수 없습니다.")
+                ?: throw ValidationException(
+                    errorCode = ErrorCode.VALIDATION_FAILED,
+                    field = "policyName",
+                    value = name,
+                    message = "정책 '$name'${ErrorMessages.POLICY_NOT_FOUND}."
+                )
             
             if (policyClasses.size > 1) {
-                throw IllegalArgumentException("정책 '$name'에 대해 여러 구현체가 존재합니다: ${policyClasses.map { it.simpleName }}")
+                throw ValidationException(
+                    errorCode = ErrorCode.VALIDATION_FAILED,
+                    field = "policyName",
+                    value = name,
+                    message = "정책 '$name'${ErrorMessages.MULTIPLE_IMPLEMENTATIONS}: ${policyClasses.map { it.simpleName }}"
+                )
             }
             
             getPolicyInstance(policyClasses.first())
@@ -193,7 +213,7 @@ object PolicyProvider {
      * 정책 클래스의 유효성을 검증합니다.
      *
      * @param policyClass 검증할 정책 클래스
-     * @throws IllegalArgumentException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
      */
     fun validatePolicy(policyClass: Class<*>) {
         validatePolicyAnnotation(policyClass)
@@ -204,22 +224,32 @@ object PolicyProvider {
      * 정책 클래스에 @Policy 어노테이션이 있는지 검증합니다.
      *
      * @param policyClass 검증할 정책 클래스
-     * @throws IllegalArgumentException @Policy 어노테이션이 없는 경우
+     * @throws ValidationException @Policy 어노테이션이 없는 경우
      */
     fun validatePolicyAnnotation(policyClass: Class<*>) {
         policyClass.getAnnotation(Policy::class.java)
-            ?: throw IllegalArgumentException("클래스 ${policyClass.simpleName}에 @Policy 어노테이션이 없습니다.")
+            ?: throw ValidationException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                field = "policyClass",
+                value = policyClass.simpleName,
+                message = "클래스 ${policyClass.simpleName}에 @Policy ${ErrorMessages.POLICY_ANNOTATION_MISSING}."
+            )
     }
 
     /**
      * 정책 클래스가 PolicyContract 인터페이스를 구현하는지 검증합니다.
      *
      * @param policyClass 검증할 정책 클래스
-     * @throws IllegalArgumentException PolicyContract 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException PolicyContract 인터페이스를 구현하지 않은 경우
      */
     fun validatePolicyContract(policyClass: Class<*>) {
         if (!PolicyContract::class.java.isAssignableFrom(policyClass)) {
-            throw IllegalArgumentException("클래스 ${policyClass.simpleName}는 PolicyContract 인터페이스를 구현해야 합니다.")
+            throw ValidationException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                field = "policyClass",
+                value = policyClass.simpleName,
+                message = "클래스 ${policyClass.simpleName}는 PolicyContract ${ErrorMessages.POLICY_CONTRACT_NOT_IMPLEMENTED}."
+            )
         }
     }
 
@@ -252,11 +282,16 @@ object PolicyProvider {
      *
      * @param policyClass 대상 정책 클래스
      * @return @Policy 어노테이션 인스턴스
-     * @throws IllegalArgumentException @Policy 어노테이션이 없는 경우
+     * @throws ValidationException @Policy 어노테이션이 없는 경우
      */
     fun getPolicyAnnotation(policyClass: Class<*>): Policy {
         return policyClass.getAnnotation(Policy::class.java)
-            ?: throw IllegalArgumentException("클래스 ${policyClass.simpleName}에 @Policy 어노테이션이 없습니다.")
+            ?: throw ValidationException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                field = "policyClass",
+                value = policyClass.simpleName,
+                message = "클래스 ${policyClass.simpleName}에 @Policy ${ErrorMessages.POLICY_ANNOTATION_MISSING}."
+            )
     }
 
     /**
