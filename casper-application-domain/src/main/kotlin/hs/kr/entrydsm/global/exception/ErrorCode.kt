@@ -270,7 +270,18 @@ enum class ErrorCode(val code: String, val description: String) {
     OUTPUT_GENERATION_ERROR("EXP003", "출력 생성 중 오류가 발생했습니다"),
     INVALID_INPUT("EXP004", "잘못된 입력입니다"),
     UNSUPPORTED_STYLE("EXP005", "지원하지 않는 스타일입니다"),
-    INVALID_NODE_TYPE("EXP006", "잘못된 노드 타입입니다");
+    INVALID_NODE_TYPE("EXP006", "잘못된 노드 타입입니다"),
+
+    // Annotation 도메인 오류 (ANT)
+    ANNOTATION_MISSING("ANT001", "필수 어노테이션이 없습니다"),
+    CONTRACT_NOT_IMPLEMENTED("ANT002", "필수 인터페이스를 구현하지 않았습니다"),
+    POLICY_NOT_FOUND("ANT003", "정책을 찾을 수 없습니다"),
+    MULTIPLE_IMPLEMENTATIONS("ANT004", "여러 구현체가 존재합니다"),
+    FACTORY_NOT_REGISTERED("ANT005", "팩토리가 등록되지 않았습니다"),
+    CACHE_KEY_REQUIRED("ANT006", "캐시 키가 필요합니다"),
+    INVALID_AGGREGATE_ROOT("ANT007", "유효하지 않은 애그리게이트 루트입니다"),
+    SPECIFICATION_NOT_FOUND("ANT008", "명세를 찾을 수 없습니다"),
+    COMBINE_SPECIFICATIONS_EMPTY("ANT009", "결합할 명세가 없습니다");
 
     /**
      * 오류 코드의 도메인 접두사를 반환합니다.
