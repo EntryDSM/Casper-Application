@@ -3,6 +3,8 @@ package hs.kr.entrydsm.global.annotation.entities.provider
 import hs.kr.entrydsm.global.annotation.aggregates.provider.AggregateProvider
 import hs.kr.entrydsm.global.annotation.entities.Entity
 import hs.kr.entrydsm.global.annotation.entities.EntityContract
+import hs.kr.entrydsm.global.exception.ErrorCode
+import hs.kr.entrydsm.global.exception.ValidationException
 
 /**
  * DDD의 Entity 패턴 관리를 담당하는 Provider 객체입니다.
@@ -26,6 +28,12 @@ object EntityProvider {
     private val entityCache = mutableMapOf<Class<*>, Class<*>>()
     private val contextCache = mutableMapOf<Class<*>, String>()
 
+    private object ErrorMessages {
+        const val ENTITY_ANNOTATION_MISSING = "어노테이션이 없습니다"
+        const val ENTITY_CONTRACT_NOT_IMPLEMENTED = "인터페이스를 구현해야 합니다"
+        const val INVALID_AGGREGATE_ROOT = "은 유효한 Aggregate Root가 아닙니다"
+    }
+
     /**
      * 타입 안전성을 위한 인라인 함수로 엔티티를 등록합니다.
      *
@@ -40,7 +48,7 @@ object EntityProvider {
      *
      * @param entityClass 등록할 엔티티 클래스
      * @param T 엔티티 클래스 타입
-     * @throws IllegalArgumentException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
      */
     fun <T : EntityContract> registerEntity(entityClass: Class<T>) {
         validateEntity(entityClass)
@@ -89,7 +97,7 @@ object EntityProvider {
      *
      * @param entityClass 대상 엔티티 클래스
      * @return 엔티티가 속한 애그리게이트 루트 클래스
-     * @throws IllegalArgumentException @Entity 어노테이션이 없는 경우
+     * @throws ValidationException @Entity 어노테이션이 없는 경우
      */
     fun getEntityAggregateRoot(entityClass: Class<*>): Class<*> {
         return entityCache[entityClass]
