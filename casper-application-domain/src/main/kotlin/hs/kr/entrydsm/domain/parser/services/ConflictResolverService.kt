@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.services
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.values.Associativity
 import hs.kr.entrydsm.domain.parser.values.Grammar
 import hs.kr.entrydsm.domain.parser.values.LRAction
@@ -82,7 +83,7 @@ class ConflictResolverService(
         }
         
         if (attemptCount >= MAX_RESOLUTION_ATTEMPTS) {
-            throw IllegalStateException("충돌 해결이 최대 시도 횟수를 초과했습니다")
+            throw ParserException.conflictResolutionExceeded(attempts = attemptCount, maxAttempts = MAX_RESOLUTION_ATTEMPTS)
         }
         
         return resolvedTable
@@ -116,8 +117,8 @@ class ConflictResolverService(
             ResolutionStrategy.MANUAL -> 
                 resolveManually(state, shiftAction, reduceAction, conflictSymbol)
             
-            ResolutionStrategy.ERROR_ON_CONFLICT -> 
-                throw IllegalStateException("Shift/Reduce 충돌: $conflictSymbol in state ${state.id}")
+            ResolutionStrategy.ERROR_ON_CONFLICT ->
+                throw ParserException.shiftReduceConflict(conflictSymbol = conflictSymbol, stateId = state.id)
         }
         
         recordResolution(
@@ -152,8 +153,8 @@ class ConflictResolverService(
             ResolutionStrategy.MANUAL -> 
                 resolveReduceConflictManually(state, reduceAction1, reduceAction2, conflictSymbol)
             
-            else -> 
-                throw IllegalStateException("Reduce/Reduce 충돌 해결 불가: $conflictSymbol in state ${state.id}")
+            else ->
+                throw ParserException.reduceReduceConflictUnresolvable(conflictSymbol = conflictSymbol, stateId = state.id)
         }
         
         recordResolution(
@@ -340,8 +341,8 @@ class ConflictResolverService(
         return when (associativity?.type) {
             Associativity.AssociativityType.LEFT -> reduceAction
             Associativity.AssociativityType.RIGHT -> shiftAction
-            Associativity.AssociativityType.NONE -> 
-                throw IllegalStateException("비결합 연산자 충돌: $conflictSymbol")
+            Associativity.AssociativityType.NONE ->
+                throw ParserException.nonAssociativeOperatorConflict(conflictSymbol = conflictSymbol)
             else -> shiftAction // 기본값
         }
     }
@@ -491,6 +492,6 @@ fun hs.kr.entrydsm.domain.parser.values.LRAction.getProductionId(): Int {
     return if (this is hs.kr.entrydsm.domain.parser.values.LRAction.Reduce) {
         this.production.id
     } else {
-        throw IllegalStateException("Only Reduce actions have production IDs")
+        throw ParserException.productionIdOnlyForReduce()
     }
 }
