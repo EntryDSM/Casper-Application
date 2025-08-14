@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.parser.values
 
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
 /**
@@ -17,7 +18,7 @@ import hs.kr.entrydsm.global.annotation.entities.Entity
  */
 @Entity(context = "parser", aggregateRoot = LRAction::class)
 sealed class LRAction {
-    
+
     /**
      * 액션의 타입을 반환합니다.
      *
@@ -56,13 +57,15 @@ sealed class LRAction {
      */
     @Entity(context = "parser", aggregateRoot = LRAction::class)
     data class Shift(val state: Int) : LRAction() {
-        
+
         init {
-            require(state >= 0) { "상태 ID는 0 이상이어야 합니다: $state" }
+            if (state < 0) {
+                throw ParserException.stateIdNegative(state)
+            }
         }
 
-        override fun getActionType(): String = "SHIFT"
-        override fun getPriority(): Int = 2
+        override fun getActionType(): String = LRActionConsts.TYPE_SHIFT
+        override fun getPriority(): Int = LRActionConsts.PRIORITY_SHIFT
         override fun changesState(): Boolean = true
         override fun changesStack(): Boolean = true
 
@@ -88,9 +91,9 @@ sealed class LRAction {
      */
     @Entity(context = "parser", aggregateRoot = LRAction::class)
     data class Reduce(val production: Production) : LRAction() {
-        
-        override fun getActionType(): String = "REDUCE"
-        override fun getPriority(): Int = 1
+
+        override fun getActionType(): String = LRActionConsts.TYPE_REDUCE
+        override fun getPriority(): Int = LRActionConsts.PRIORITY_REDUCE
         override fun changesState(): Boolean = true
         override fun changesStack(): Boolean = true
 
@@ -148,9 +151,9 @@ sealed class LRAction {
      */
     @Entity(context = "parser", aggregateRoot = LRAction::class)
     object Accept : LRAction() {
-        
-        override fun getActionType(): String = "ACCEPT"
-        override fun getPriority(): Int = 4
+
+        override fun getActionType(): String = LRActionConsts.TYPE_ACCEPT
+        override fun getPriority(): Int = LRActionConsts.PRIORITY_ACCEPT
         override fun changesState(): Boolean = false
         override fun changesStack(): Boolean = false
 
@@ -178,9 +181,9 @@ sealed class LRAction {
         val errorCode: String? = null,
         val errorMessage: String? = null
     ) : LRAction() {
-        
-        override fun getActionType(): String = "ERROR"
-        override fun getPriority(): Int = 0
+
+        override fun getActionType(): String = LRActionConsts.TYPE_ERROR
+        override fun getPriority(): Int = LRActionConsts.PRIORITY_ERROR
         override fun changesState(): Boolean = false
         override fun changesStack(): Boolean = false
 
@@ -197,10 +200,10 @@ sealed class LRAction {
          * @return 오류 코드와 메시지가 결합된 문자열
          */
         fun getFullErrorMessage(): String = when {
-            errorCode != null && errorMessage != null -> "[$errorCode] $errorMessage"
-            errorCode != null -> "[$errorCode] 파싱 오류가 발생했습니다"
+            errorCode != null && errorMessage != null -> "[${errorCode}] ${errorMessage}"
+            errorCode != null -> "[${errorCode}] ${LRActionConsts.MSG_PARSE_ERROR_DEFAULT}"
             errorMessage != null -> errorMessage
-            else -> "파싱 오류가 발생했습니다"
+            else -> LRActionConsts.MSG_PARSE_ERROR_DEFAULT
         }
 
         override fun toString(): String = if (hasErrorInfo()) {
@@ -266,7 +269,7 @@ sealed class LRAction {
      * @throws IllegalStateException Reduce 액션이 아닌 경우
      */
     open fun getProductionId(): Int {
-        throw IllegalStateException("Reduce 액션이 아닙니다: ${this.getActionType()}")
+        throw ParserException.notReduceAction(this.getActionType())
     }
 
     /**
@@ -276,37 +279,37 @@ sealed class LRAction {
      */
     fun getActionInfo(): Map<String, Any> = when (this) {
         is Shift -> mapOf(
-            "type" to getActionType(),
-            "state" to state,
-            "priority" to getPriority(),
-            "changesState" to changesState(),
-            "changesStack" to changesStack()
+            LRActionConsts.KEY_TYPE to getActionType(),
+            LRActionConsts.KEY_STATE to state,
+            LRActionConsts.KEY_PRIORITY to getPriority(),
+            LRActionConsts.KEY_CHANGES_STATE to changesState(),
+            LRActionConsts.KEY_CHANGES_STACK to changesStack()
         )
         is Reduce -> mapOf(
-            "type" to getActionType(),
-            "productionId" to production.id,
-            "production" to production.toString(),
-            "popCount" to getPopCount(),
-            "leftSymbol" to getLeftSymbol(),
-            "priority" to getPriority(),
-            "changesState" to changesState(),
-            "changesStack" to changesStack()
+            LRActionConsts.KEY_TYPE to getActionType(),
+            LRActionConsts.KEY_PRODUCTION_ID to production.id,
+            LRActionConsts.KEY_PRODUCTION to production.toString(),
+            LRActionConsts.KEY_POP_COUNT to getPopCount(),
+            LRActionConsts.KEY_LEFT_SYMBOL to getLeftSymbol(),
+            LRActionConsts.KEY_PRIORITY to getPriority(),
+            LRActionConsts.KEY_CHANGES_STATE to changesState(),
+            LRActionConsts.KEY_CHANGES_STACK to changesStack()
         )
         is Accept -> mapOf(
-            "type" to getActionType(),
-            "priority" to getPriority(),
-            "changesState" to changesState(),
-            "changesStack" to changesStack(),
-            "isSuccess" to true
+            LRActionConsts.KEY_TYPE to getActionType(),
+            LRActionConsts.KEY_PRIORITY to getPriority(),
+            LRActionConsts.KEY_CHANGES_STATE to changesState(),
+            LRActionConsts.KEY_CHANGES_STACK to changesStack(),
+            LRActionConsts.KEY_IS_SUCCESS to true
         )
         is Error -> mapOf(
-            "type" to getActionType(),
-            "errorCode" to (errorCode ?: "UNKNOWN"),
-            "errorMessage" to (errorMessage ?: "Unknown error"),
-            "fullMessage" to getFullErrorMessage(),
-            "priority" to getPriority(),
-            "changesState" to changesState(),
-            "changesStack" to changesStack()
+            LRActionConsts.KEY_TYPE to getActionType(),
+            LRActionConsts.KEY_ERROR_CODE to (errorCode ?: LRActionConsts.UNKNOWN),
+            LRActionConsts.KEY_ERROR_MESSAGE to (errorMessage ?: LRActionConsts.MSG_PARSE_ERROR_UNKNOWN),
+            LRActionConsts.KEY_FULL_MESSAGE to getFullErrorMessage(),
+            LRActionConsts.KEY_PRIORITY to getPriority(),
+            LRActionConsts.KEY_CHANGES_STATE to changesState(),
+            LRActionConsts.KEY_CHANGES_STACK to changesStack()
         )
     }
 
@@ -358,5 +361,44 @@ sealed class LRAction {
             val reduceActions = actions.filterIsInstance<Reduce>()
             return reduceActions.size > 1
         }
+    }
+
+    /**
+     * LRAction에서 사용하는 상수 모음
+     */
+    object LRActionConsts {
+        // Action type strings
+        const val TYPE_SHIFT = "SHIFT"
+        const val TYPE_REDUCE = "REDUCE"
+        const val TYPE_ACCEPT = "ACCEPT"
+        const val TYPE_ERROR = "ERROR"
+
+        // Priorities (higher = earlier)
+        const val PRIORITY_ERROR = 0
+        const val PRIORITY_REDUCE = 1
+        const val PRIORITY_SHIFT = 2
+        const val PRIORITY_ACCEPT = 4
+
+        // Generic messages
+        const val MSG_PARSE_ERROR_DEFAULT = "파싱 오류가 발생했습니다"
+        const val MSG_PARSE_ERROR_UNKNOWN = "Unknown error"
+
+        // Map keys for getActionInfo()
+        const val KEY_TYPE = "type"
+        const val KEY_STATE = "state"
+        const val KEY_PRIORITY = "priority"
+        const val KEY_CHANGES_STATE = "changesState"
+        const val KEY_CHANGES_STACK = "changesStack"
+        const val KEY_PRODUCTION_ID = "productionId"
+        const val KEY_PRODUCTION = "production"
+        const val KEY_POP_COUNT = "popCount"
+        const val KEY_LEFT_SYMBOL = "leftSymbol"
+        const val KEY_IS_SUCCESS = "isSuccess"
+        const val KEY_ERROR_CODE = "errorCode"
+        const val KEY_ERROR_MESSAGE = "errorMessage"
+        const val KEY_FULL_MESSAGE = "fullMessage"
+
+        // Other literals
+        const val UNKNOWN = "UNKNOWN"
     }
 }
