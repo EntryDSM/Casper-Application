@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.parser.entities
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilders
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
 /**
@@ -31,9 +32,17 @@ data class Production(
 ) {
     
     init {
-        require(id >= -1) { "생성 규칙 ID는 -1 이상이어야 합니다: $id" }
-        require(left.isNonTerminal()) { "생성 규칙의 좌변은 논터미널이어야 합니다: $left" }
-        require(right.isNotEmpty() || isEpsilonProduction()) { "생성 규칙의 우변은 비어있을 수 없습니다 (엡실론 생성 제외)" }
+        if (id < -1) {
+            throw ParserException.productionIdBelowMin(id)
+        }
+
+        if (!left.isNonTerminal()) {
+            throw ParserException.productionLeftNotNonTerminal(left)
+        }
+
+        if (right.isEmpty() && !isEpsilonProduction()) {
+            throw ParserException.productionRightEmpty()
+        }
     }
 
     /**
@@ -58,7 +67,10 @@ data class Production(
      * @throws IndexOutOfBoundsException 위치가 범위를 벗어난 경우
      */
     fun getSymbolAt(position: Int): TokenType {
-        require(position in right.indices) { "위치가 범위를 벗어났습니다: $position, 범위: 0-${right.size - 1}" }
+        if (position !in right.indices) {
+            throw ParserException.productionPositionOutOfRange(position, right.size - 1)
+        }
+
         return right[position]
     }
 
@@ -69,8 +81,14 @@ data class Production(
      * @return 지정된 범위의 심볼 리스트
      */
     fun getSymbolsUntil(endPosition: Int): List<TokenType> {
-        require(endPosition >= 0) { "끝 위치는 0 이상이어야 합니다: $endPosition" }
-        require(endPosition <= right.size) { "끝 위치가 범위를 벗어났습니다: $endPosition > ${right.size}" }
+        if (endPosition < 0) {
+            throw ParserException.endPositionNegative(endPosition)
+        }
+
+        if (endPosition > right.size) {
+            throw ParserException.endPositionExceeds(endPosition, right.size)
+        }
+
         return right.take(endPosition)
     }
 
@@ -81,8 +99,14 @@ data class Production(
      * @return 지정된 위치부터의 심볼 리스트
      */
     fun getSymbolsFrom(startPosition: Int): List<TokenType> {
-        require(startPosition >= 0) { "시작 위치는 0 이상이어야 합니다: $startPosition" }
-        require(startPosition <= right.size) { "시작 위치가 범위를 벗어났습니다: $startPosition > ${right.size}" }
+        if (startPosition < 0) {
+            throw ParserException.startPositionNegative(startPosition)
+        }
+
+            if (startPosition > right.size) {
+            throw ParserException.startPositionExceeds(startPosition, right.size)
+        }
+
         return right.drop(startPosition)
     }
 
@@ -161,8 +185,8 @@ data class Production(
      * @throws IllegalArgumentException 자식 심볼의 개수나 타입이 올바르지 않은 경우
      */
     fun buildAST(children: List<Any>): Any {
-        require(astBuilder.validateChildren(children)) { 
-            "AST 빌더 검증 실패: 규칙 $id, 자식 개수 ${children.size}" 
+        if (!astBuilder.validateChildren(children)) {
+            throw ParserException.astBuilderValidationFailed(id, children.size)
         }
         return astBuilder.build(children)
     }
