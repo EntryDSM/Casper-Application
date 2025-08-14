@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.domain.parser.services
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
@@ -39,7 +38,7 @@ class ParserService(
 ) : ParserContract {
 
     private val parsingStatistics = mutableMapOf<String, Any>()
-    
+
     // 설정은 ConfigurationProvider를 통해 동적으로 접근
     private val config: ParserConfiguration
         get() = configurationProvider.getParserConfiguration()
@@ -52,30 +51,30 @@ class ParserService(
      */
     override fun parse(tokens: List<Token>): ParsingResult {
         val startTime = System.currentTimeMillis()
-        
+
         try {
             validateTokens(tokens)
-            updateStatistics("parseAttempts", 1)
-            
+            updateStatistics(STAT_PARSE_ATTEMPTS, 1)
+
             val parsingTable = lrParserTableService.buildParsingTable(Grammar)
             val result = performLRParsing(tokens, parsingTable)
-            
+
             val duration = System.currentTimeMillis() - startTime
-            updateStatistics("totalParsingTime", duration)
-            updateStatistics("averageTokensPerSecond", calculateTokensPerSecond(tokens.size, duration))
-            
+            updateStatistics(STAT_TOTAL_PARSING_TIME, duration)
+            updateStatistics(STAT_AVERAGE_TOKENS_PER_SECOND, calculateTokensPerSecond(tokens.size, duration))
+
             if (result.isSuccess) {
-                updateStatistics("successfulParses", 1)
+                updateStatistics(STAT_SUCCESSFUL_PARSES, 1)
             } else {
-                updateStatistics("failedParses", 1)
+                updateStatistics(STAT_FAILED_PARSES, 1)
             }
-            
+
             return result.copy(duration = duration)
-            
+
         } catch (e: Exception) {
             val duration = System.currentTimeMillis() - startTime
-            updateStatistics("errorParses", 1)
-            
+            updateStatistics(STAT_ERROR_PARSES, 1)
+
             return ParsingResult.failure(
                 error = ParserException(
                     errorCode = hs.kr.entrydsm.global.exception.ErrorCode.PARSING_ERROR,
@@ -126,23 +125,22 @@ class ParserService(
         val modifiedConfig = if (allowIncomplete) {
             originalConfig.copy(errorRecoveryMode = true)
         } else originalConfig
-        
+
         configurationProvider.updateParserConfiguration(modifiedConfig)
-        
+
         try {
-            
             val result = parse(tokens)
-            
+
             // 불완전한 파싱도 성공으로 처리 (부분 AST가 있는 경우)
             if (allowIncomplete && result.isFailure() && result.ast != null) {
                 return result.copy(
                     isSuccess = true,
-                    warnings = result.warnings + "부분 파싱 결과입니다"
+                    warnings = result.warnings + WARNING_PARTIAL_PARSING
                 )
             }
-            
+
             return result
-            
+
         } finally {
             configurationProvider.updateParserConfiguration(originalConfig)
         }
@@ -158,10 +156,10 @@ class ParserService(
         return try {
             val parsingTable = lrParserTableService.buildParsingTable(Grammar)
             val currentState = determineCurrentState(currentTokens, parsingTable)
-            
+
             // 현재 상태에서 가능한 모든 액션의 터미널들 반환
             currentState?.actions?.keys?.toSet() ?: emptySet()
-            
+
         } catch (e: Exception) {
             emptySet()
         }
@@ -175,21 +173,21 @@ class ParserService(
      */
     override fun analyzeErrors(tokens: List<Token>): Map<String, Any> {
         val result = parse(tokens)
-        
+
         return if (result.isFailure() && result.error != null) {
             mapOf(
-                "errorType" to "ParsingError",
-                "message" to (result.error.message ?: "Unknown parsing error"),
-                "tokenCount" to tokens.size,
-                "expectedTokens" to predictNextTokens(tokens),
-                "errorPosition" to findErrorPosition(tokens, result.error),
-                "suggestions" to generateErrorSuggestions(tokens, result.error)
+                ERROR_TYPE to ERROR_TYPE_PARSING,
+                ERROR_MESSAGE to (result.error.message ?: "Unknown parsing error"),
+                ERROR_TOKEN_COUNT to tokens.size,
+                ERROR_EXPECTED_TOKENS to predictNextTokens(tokens),
+                ERROR_POSITION to findErrorPosition(tokens, result.error),
+                ERROR_SUGGESTIONS to generateErrorSuggestions(tokens, result.error)
             )
         } else {
             mapOf(
-                "errorType" to "None",
-                "message" to "파싱 성공",
-                "tokenCount" to tokens.size
+                ERROR_TYPE to ERROR_TYPE_NONE,
+                ERROR_MESSAGE to PARSING_SUCCESS_MESSAGE,
+                ERROR_TOKEN_COUNT to tokens.size
             )
         }
     }
@@ -200,12 +198,12 @@ class ParserService(
      * @return 파서 상태 정보
      */
     override fun getState(): Map<String, Any> = mapOf(
-        "debugMode" to config.debugMode,
-        "errorRecoveryMode" to config.errorRecoveryMode,
-        "maxParsingDepth" to config.maxParsingDepth,
-        "parsingStatistics" to parsingStatistics.toMap(),
-        "grammarInfo" to Grammar.getGrammarStatistics(),
-        "isReady" to true
+        CONFIG_DEBUG_MODE to config.debugMode,
+        CONFIG_ERROR_RECOVERY_MODE to config.errorRecoveryMode,
+        "maxParsingDepth" to config.maxParsingDepth, // 별도 상수 키 없음
+        STATE_PARSING_STATISTICS to parsingStatistics.toMap(),
+        STATE_GRAMMAR_INFO to Grammar.getGrammarStatistics(),
+        STATE_IS_READY to true
     )
 
     /**
@@ -215,7 +213,7 @@ class ParserService(
         // 설정을 기본값으로 초기화
         configurationProvider.resetToDefaults()
         parsingStatistics.clear()
-        
+
         // 서비스들도 리셋
         lrParserTableService.clearCache()
         firstFollowCalculatorService.clearCache()
@@ -228,16 +226,16 @@ class ParserService(
      * @return 설정 정보 맵
      */
     override fun getConfiguration(): Map<String, Any> = mapOf(
-        "maxParsingSteps" to config.maxParsingSteps,
-        "maxStackDepth" to config.maxStackDepth,
-        "maxTokenCount" to config.maxTokenCount,
-        "debugMode" to config.debugMode,
-        "errorRecoveryMode" to config.errorRecoveryMode,
-        "enableOptimizations" to config.enableOptimizations,
-        "cachingEnabled" to config.cachingEnabled,
-        "streamingBatchSize" to config.streamingBatchSize,
-        "parsingStrategy" to "LR(1)",
-        "optimizations" to listOf("tableCompression", "stateMinimization", "conflictResolution")
+        CONFIG_MAX_PARSING_STEPS to config.maxParsingSteps,
+        CONFIG_MAX_STACK_DEPTH to config.maxStackDepth,
+        CONFIG_MAX_TOKEN_COUNT to config.maxTokenCount,
+        CONFIG_DEBUG_MODE to config.debugMode,
+        CONFIG_ERROR_RECOVERY_MODE to config.errorRecoveryMode,
+        CONFIG_ENABLE_OPTIMIZATIONS to config.enableOptimizations,
+        CONFIG_CACHING_ENABLED to config.cachingEnabled,
+        CONFIG_STREAMING_BATCH_SIZE to config.streamingBatchSize,
+        CONFIG_PARSING_STRATEGY to PARSING_STRATEGY_LR1,
+        CONFIG_OPTIMIZATIONS to OPTIMIZATIONS_LIST
     )
 
     /**
@@ -246,15 +244,15 @@ class ParserService(
      * @return 통계 정보 맵 (파싱 횟수, 성공률, 평균 처리 시간 등)
      */
     override fun getStatistics(): Map<String, Any> {
-        val totalAttempts = (parsingStatistics["parseAttempts"] as? Long) ?: 0L
-        val successfulParses = (parsingStatistics["successfulParses"] as? Long) ?: 0L
+        val totalAttempts = (parsingStatistics[STAT_PARSE_ATTEMPTS] as? Long) ?: 0L
+        val successfulParses = (parsingStatistics[STAT_SUCCESSFUL_PARSES] as? Long) ?: 0L
         val successRate = if (totalAttempts > 0) successfulParses.toDouble() / totalAttempts else 0.0
-        
+
         return parsingStatistics.toMap() + mapOf(
-            "successRate" to successRate,
-            "totalAttempts" to totalAttempts,
-            "grammarComplexity" to (Grammar.getGrammarStatistics()["productionCount"] ?: 0),
-            "averageParsingTime" to calculateAverageParsingTime()
+            STAT_SUCCESS_RATE to successRate,
+            STAT_TOTAL_ATTEMPTS to totalAttempts,
+            STAT_GRAMMAR_COMPLEXITY to (Grammar.getGrammarStatistics()["productionCount"] ?: 0),
+            STAT_AVERAGE_PARSING_TIME to calculateAverageParsingTime()
         )
     }
 
@@ -284,9 +282,16 @@ class ParserService(
      * @param maxDepth 최대 파싱 깊이
      */
     override fun setMaxParsingDepth(maxDepth: Int) {
-        require(maxDepth > 0) { "최대 파싱 깊이는 양수여야 합니다: $maxDepth" }
-        require(maxDepth <= config.maxStackDepth) { "최대 파싱 깊이가 한계를 초과했습니다: $maxDepth > ${config.maxStackDepth}" }
-        
+        if (maxDepth <= 0) {
+            throw ParserException.maxParsingDepthNotPositive(maxDepth)
+        }
+        if (maxDepth > config.maxStackDepth) {
+            throw ParserException.maxParsingDepthExceedsLimit(
+                maxDepth = maxDepth,
+                limit = config.maxStackDepth
+            )
+        }
+
         val updatedConfig = config.copy(maxParsingDepth = maxDepth)
         configurationProvider.updateParserConfiguration(updatedConfig)
     }
@@ -301,12 +306,12 @@ class ParserService(
     override fun parseStreaming(tokens: List<Token>, callback: (progress: Double) -> Unit): ParsingResult {
         val totalSteps = tokens.size * 2 // 대략적인 스텝 수 추정
         var currentStep = 0
-        
-        val progressCallback = { 
+
+        val progressCallback = {
             currentStep++
             callback(currentStep.toDouble() / totalSteps)
         }
-        
+
         return performStreamingParsing(tokens, progressCallback)
     }
 
@@ -339,7 +344,7 @@ class ParserService(
     ): ParsingResult {
         // 간단한 증분 파싱 구현
         // 실제로는 더 복잡한 로직이 필요 (파싱 트리의 부분 재구성)
-        
+
         return if (changeStartIndex == 0 || !previousResult.isSuccess) {
             // 처음부터 다시 파싱
             parse(newTokens)
@@ -347,7 +352,7 @@ class ParserService(
             // 변경 부분만 다시 파싱하고 이전 결과와 병합
             // 현재는 단순히 전체 재파싱
             parse(newTokens).copy(
-                metadata = previousResult.metadata + ("incrementalParsing" to true)
+                metadata = previousResult.metadata + (INCREMENTAL_PARSING_FLAG to true)
             )
         }
     }
@@ -359,9 +364,9 @@ class ParserService(
      */
     override fun validateGrammar(): Boolean {
         return try {
-            Grammar.isValid() && 
-            lrParserTableService.canBuildParsingTable(Grammar) &&
-            !conflictResolverService.hasUnresolvableConflicts(Grammar)
+            Grammar.isValid() &&
+                    lrParserTableService.canBuildParsingTable(Grammar) &&
+                    !conflictResolverService.hasUnresolvableConflicts(Grammar)
         } catch (e: Exception) {
             false
         }
@@ -376,18 +381,18 @@ class ParserService(
         return try {
             val parsingTable = lrParserTableService.buildParsingTable(Grammar)
             val conflicts = parsingTable.getConflicts()
-            
+
             mapOf(
-                "hasConflicts" to conflicts.isNotEmpty(),
-                "conflictTypes" to conflicts.keys,
-                "conflictCount" to conflicts.values.sumOf { it.size },
-                "conflicts" to conflicts,
-                "resolutionStrategy" to conflictResolverService.getResolutionStrategy()
+                CONFLICT_HAS_CONFLICTS to conflicts.isNotEmpty(),
+                CONFLICT_TYPES to conflicts.keys,
+                CONFLICT_COUNT to conflicts.values.sumOf { it.size },
+                CONFLICT_CONFLICTS to conflicts,
+                CONFLICT_RESOLUTION_STRATEGY to conflictResolverService.getResolutionStrategy()
             )
         } catch (e: Exception) {
             mapOf(
-                "hasConflicts" to true,
-                "error" to (e.message ?: "Unknown error")
+                CONFLICT_HAS_CONFLICTS to true,
+                CONFLICT_ERROR to (e.message ?: "Unknown error")
             )
         }
     }
@@ -400,10 +405,10 @@ class ParserService(
      */
     override fun getParsingContext(tokenIndex: Int): Map<String, Any> {
         return mapOf(
-            "tokenIndex" to tokenIndex,
-            "contextInfo" to "파싱 컨텍스트 분석 미구현",
-            "availableActions" to emptyList<String>(),
-            "stackDepth" to 0
+            CONTEXT_TOKEN_INDEX to tokenIndex,
+            CONTEXT_INFO to CONTEXT_INFO_NOT_IMPLEMENTED,
+            CONTEXT_AVAILABLE_ACTIONS to emptyList<String>(),
+            CONTEXT_STACK_DEPTH to 0
         )
     }
 
@@ -431,22 +436,25 @@ class ParserService(
      */
     override fun getMemoryUsage(): Map<String, Any> {
         val runtime = Runtime.getRuntime()
-        
+
         return mapOf(
-            "totalMemory" to runtime.totalMemory(),
-            "freeMemory" to runtime.freeMemory(),
-            "usedMemory" to (runtime.totalMemory() - runtime.freeMemory()),
-            "maxMemory" to runtime.maxMemory(),
-            "parsingTableSize" to estimateParsingTableSize(),
-            "statisticsSize" to parsingStatistics.size * 50 // 대략적 추정
+            MEMORY_TOTAL to runtime.totalMemory(),
+            MEMORY_FREE to runtime.freeMemory(),
+            MEMORY_USED to (runtime.totalMemory() - runtime.freeMemory()),
+            MEMORY_MAX to runtime.maxMemory(),
+            MEMORY_PARSING_TABLE_SIZE to estimateParsingTableSize(),
+            MEMORY_STATISTICS_SIZE to parsingStatistics.size * STATISTICS_MEMORY_MULTIPLIER // 대략적 추정
         )
     }
 
     // Private helper methods
 
     private fun validateTokens(tokens: List<Token>) {
-        require(tokens.size <= config.maxTokenCount) {
-            "토큰 개수가 최대값을 초과했습니다: ${tokens.size} > ${config.maxTokenCount}"
+        if (tokens.size > config.maxTokenCount) {
+            throw ParserException.tokenCountExceedsLimit(
+                count = tokens.size,
+                limit = config.maxTokenCount
+            )
         }
     }
 
@@ -456,15 +464,15 @@ class ParserService(
         val inputBuffer = tokens.toMutableList()
         var currentState = parsingTable.startState
         var step = 0
-        
+
         stack.add(currentState)
-        
+
         while (step < config.maxParsingSteps && inputBuffer.isNotEmpty()) {
             step++
-            
+
             val currentToken = inputBuffer.first()
             val action = parsingTable.getAction(currentState, currentToken.type)
-            
+
             when {
                 action?.isShift() == true -> {
                     // Shift 연산
@@ -481,11 +489,11 @@ class ParserService(
                             message = "생산 규칙을 찾을 수 없습니다: $productionId"
                         )
                     repeat(production.right.size) { stack.removeLastOrNull() }
-                    
-                    val gotoState = stack.lastOrNull()?.let { 
-                        parsingTable.getGoto(it, production.left) 
+
+                    val gotoState = stack.lastOrNull()?.let {
+                        parsingTable.getGoto(it, production.left)
                     }
-                    
+
                     if (gotoState != null) {
                         currentState = gotoState
                         stack.add(currentState)
@@ -518,7 +526,7 @@ class ParserService(
                 }
             }
         }
-        
+
         throw ParserException(
             errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSING_FAILED,
             message = "파싱이 완료되지 않았습니다"
@@ -526,22 +534,22 @@ class ParserService(
     }
 
     private fun performStreamingParsing(
-        tokens: List<Token>, 
+        tokens: List<Token>,
         progressCallback: () -> Unit
     ): ParsingResult {
         // 스트리밍 파싱 구현 (단순화)
         val batchSize = config.streamingBatchSize
         var processedTokens = 0
-        
+
         while (processedTokens < tokens.size) {
             val batch = tokens.drop(processedTokens).take(batchSize)
             processedTokens += batch.size
             progressCallback()
-            
+
             // 배치 처리 시뮬레이션
-            Thread.sleep(10)
+            Thread.sleep(STREAMING_SLEEP_TIME)
         }
-        
+
         return parse(tokens)
     }
 
@@ -556,11 +564,7 @@ class ParserService(
     }
 
     private fun generateErrorSuggestions(tokens: List<Token>, error: ParserException): List<String> {
-        return listOf(
-            "문법을 확인하세요",
-            "괄호가 균형을 이루는지 확인하세요",
-            "연산자 우선순위를 확인하세요"
-        )
+        return ERROR_SUGGESTIONS_LIST
     }
 
     private fun attemptErrorRecovery(
@@ -580,7 +584,7 @@ class ParserService(
                 tokenCount = originalTokens.size
             )
         }
-        
+
         return ParsingResult.failure(
             error = ParserException(
                 errorCode = hs.kr.entrydsm.global.constants.ErrorCodes.Parser.PARSING_FAILED,
@@ -606,12 +610,12 @@ class ParserService(
     }
 
     private fun calculateTokensPerSecond(tokenCount: Int, durationMs: Long): Double {
-        return if (durationMs > 0) (tokenCount * 1000.0) / durationMs else 0.0
+        return if (durationMs > 0) (tokenCount * TOKENS_PER_SECOND_MULTIPLIER) / durationMs else 0.0
     }
 
     private fun calculateAverageParsingTime(): Double {
-        val totalTime = parsingStatistics["totalParsingTime"] as? Long ?: 0L
-        val totalAttempts = parsingStatistics["parseAttempts"] as? Long ?: 0L
+        val totalTime = parsingStatistics[STAT_TOTAL_PARSING_TIME] as? Long ?: 0L
+        val totalAttempts = parsingStatistics[STAT_PARSE_ATTEMPTS] as? Long ?: 0L
         return if (totalAttempts > 0) totalTime.toDouble() / totalAttempts else 0.0
     }
 
@@ -619,11 +623,109 @@ class ParserService(
         return try {
             val parsingTable = lrParserTableService.buildParsingTable(Grammar)
             // 대략적인 메모리 사용량 추정
-            (parsingTable.states.size * 500L + 
-             parsingTable.actionTable.size * 100L + 
-             parsingTable.gotoTable.size * 100L)
+            (parsingTable.states.size * PARSING_TABLE_STATE_SIZE +
+                    parsingTable.actionTable.size * PARSING_TABLE_ACTION_SIZE +
+                    parsingTable.gotoTable.size * PARSING_TABLE_GOTO_SIZE)
         } catch (e: Exception) {
             0L
         }
+    }
+
+    companion object {
+        // Statistics keys
+        private const val STAT_PARSE_ATTEMPTS = "parseAttempts"
+        private const val STAT_TOTAL_PARSING_TIME = "totalParsingTime"
+        private const val STAT_AVERAGE_TOKENS_PER_SECOND = "averageTokensPerSecond"
+        private const val STAT_SUCCESSFUL_PARSES = "successfulParses"
+        private const val STAT_FAILED_PARSES = "failedParses"
+        private const val STAT_ERROR_PARSES = "errorParses"
+        private const val STAT_SUCCESS_RATE = "successRate"
+        private const val STAT_TOTAL_ATTEMPTS = "totalAttempts"
+        private const val STAT_GRAMMAR_COMPLEXITY = "grammarComplexity"
+        private const val STAT_AVERAGE_PARSING_TIME = "averageParsingTime"
+
+        // Configuration keys
+        private const val CONFIG_MAX_PARSING_STEPS = "maxParsingSteps"
+        private const val CONFIG_MAX_STACK_DEPTH = "maxStackDepth"
+        private const val CONFIG_MAX_TOKEN_COUNT = "maxTokenCount"
+        private const val CONFIG_DEBUG_MODE = "debugMode"
+        private const val CONFIG_ERROR_RECOVERY_MODE = "errorRecoveryMode"
+        private const val CONFIG_ENABLE_OPTIMIZATIONS = "enableOptimizations"
+        private const val CONFIG_CACHING_ENABLED = "cachingEnabled"
+        private const val CONFIG_STREAMING_BATCH_SIZE = "streamingBatchSize"
+        private const val CONFIG_PARSING_STRATEGY = "parsingStrategy"
+        private const val CONFIG_OPTIMIZATIONS = "optimizations"
+
+        // State keys
+        private const val STATE_PARSING_STATISTICS = "parsingStatistics"
+        private const val STATE_GRAMMAR_INFO = "grammarInfo"
+        private const val STATE_IS_READY = "isReady"
+
+        // Error analysis keys
+        private const val ERROR_TYPE = "errorType"
+        private const val ERROR_MESSAGE = "message"
+        private const val ERROR_TOKEN_COUNT = "tokenCount"
+        private const val ERROR_EXPECTED_TOKENS = "expectedTokens"
+        private const val ERROR_POSITION = "errorPosition"
+        private const val ERROR_SUGGESTIONS = "suggestions"
+
+        // Error types
+        private const val ERROR_TYPE_PARSING = "ParsingError"
+        private const val ERROR_TYPE_NONE = "None"
+
+        // Conflict check keys
+        private const val CONFLICT_HAS_CONFLICTS = "hasConflicts"
+        private const val CONFLICT_TYPES = "conflictTypes"
+        private const val CONFLICT_COUNT = "conflictCount"
+        private const val CONFLICT_CONFLICTS = "conflicts"
+        private const val CONFLICT_RESOLUTION_STRATEGY = "resolutionStrategy"
+        private const val CONFLICT_ERROR = "error"
+
+        // Parsing context keys
+        private const val CONTEXT_TOKEN_INDEX = "tokenIndex"
+        private const val CONTEXT_INFO = "contextInfo"
+        private const val CONTEXT_AVAILABLE_ACTIONS = "availableActions"
+        private const val CONTEXT_STACK_DEPTH = "stackDepth"
+
+        // Memory usage keys
+        private const val MEMORY_TOTAL = "totalMemory"
+        private const val MEMORY_FREE = "freeMemory"
+        private const val MEMORY_USED = "usedMemory"
+        private const val MEMORY_MAX = "maxMemory"
+        private const val MEMORY_PARSING_TABLE_SIZE = "parsingTableSize"
+        private const val MEMORY_STATISTICS_SIZE = "statisticsSize"
+
+        // Values
+        private const val PARSING_STRATEGY_LR1 = "LR(1)"
+        private const val CONTEXT_INFO_NOT_IMPLEMENTED = "파싱 컨텍스트 분석 미구현"
+        private const val PARSING_SUCCESS_MESSAGE = "파싱 성공"
+        private const val INCREMENTAL_PARSING_FLAG = "incrementalParsing"
+
+        // Optimizations
+        private val OPTIMIZATIONS_LIST = listOf(
+            "tableCompression",
+            "stateMinimization",
+            "conflictResolution"
+        )
+
+        // Error suggestions
+        private val ERROR_SUGGESTIONS_LIST = listOf(
+            "문법을 확인하세요",
+            "괄호가 균형을 이루는지 확인하세요",
+            "연산자 우선순위를 확인하세요"
+        )
+
+        // Warnings
+        private const val WARNING_PARTIAL_PARSING = "부분 파싱 결과입니다"
+
+        // Memory size estimates
+        private const val STATISTICS_MEMORY_MULTIPLIER = 50L
+        private const val PARSING_TABLE_STATE_SIZE = 500L
+        private const val PARSING_TABLE_ACTION_SIZE = 100L
+        private const val PARSING_TABLE_GOTO_SIZE = 100L
+
+        // Streaming
+        private const val STREAMING_SLEEP_TIME = 10L
+        private const val TOKENS_PER_SECOND_MULTIPLIER = 1000.0
     }
 }
