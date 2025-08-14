@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.parser.services
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
@@ -35,7 +36,6 @@ class OptimizedParsingTable private constructor(
     private val numTerminals: Int,
     private val numNonTerminals: Int
 ) {
-
     /**
      * 주어진 상태와 터미널 심볼에 대한 파싱 액션을 반환합니다.
      *
@@ -252,11 +252,11 @@ class OptimizedParsingTable private constructor(
         for (state in 0 until numStates) {
             val action = actionTable2D[state][terminalIndex]
             when (action) {
-                is LRAction.Shift -> distribution["Shift"] = distribution.getOrDefault("Shift", 0) + 1
-                is LRAction.Reduce -> distribution["Reduce"] = distribution.getOrDefault("Reduce", 0) + 1
-                is LRAction.Accept -> distribution["Accept"] = distribution.getOrDefault("Accept", 0) + 1
-                is LRAction.Error -> distribution["Error"] = distribution.getOrDefault("Error", 0) + 1
-                null -> distribution["Empty"] = distribution.getOrDefault("Empty", 0) + 1
+                is LRAction.Shift -> distribution[ACTION_SHIFT] = distribution.getOrDefault(ACTION_SHIFT, 0) + 1
+                is LRAction.Reduce -> distribution[ACTION_REDUCE] = distribution.getOrDefault(ACTION_REDUCE, 0) + 1
+                is LRAction.Accept -> distribution[ACTION_ACCEPT] = distribution.getOrDefault(ACTION_ACCEPT, 0) + 1
+                is LRAction.Error -> distribution[ACTION_ERROR] = distribution.getOrDefault(ACTION_ERROR, 0) + 1
+                null -> distribution[ACTION_EMPTY] = distribution.getOrDefault(ACTION_EMPTY, 0) + 1
             }
         }
         return distribution
@@ -305,6 +305,13 @@ class OptimizedParsingTable private constructor(
     }
 
     companion object {
+
+        private const val ACTION_SHIFT = "Shift"
+        private const val ACTION_REDUCE = "Reduce"
+        private const val ACTION_ACCEPT = "Accept"
+        private const val ACTION_ERROR = "Error"
+        private const val ACTION_EMPTY = "Empty"
+
         private const val EMPTY_GOTO_ENTRY = -1
         
         // Error 액션 인스턴스를 싱글턴으로 재사용
@@ -419,9 +426,15 @@ class OptimizedParsingTable private constructor(
         }
 
         fun build(): OptimizedParsingTable {
-            require(numStates > 0) { "상태 수는 0보다 커야 합니다" }
-            require(numTerminals > 0) { "터미널 수는 0보다 커야 합니다" }
-            require(numNonTerminals > 0) { "논터미널 수는 0보다 커야 합니다" }
+            if (numStates <= 0) {
+                throw ParserException.numStatesNotPositive(numStates)
+            }
+            if (numTerminals <= 0) {
+                throw ParserException.numTerminalsNotPositive(numTerminals)
+            }
+            if (numNonTerminals <= 0) {
+                throw ParserException.numNonTerminalsNotPositive(numNonTerminals)
+            }
 
             // 2D 배열 초기화
             val actionTable2D = Array(numStates) { arrayOfNulls<LRAction>(numTerminals) }
