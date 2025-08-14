@@ -7,6 +7,7 @@ import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.Production
 import hs.kr.entrydsm.domain.parser.entities.CompressedLRState
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.services.ConflictResolver
 import hs.kr.entrydsm.domain.parser.services.ConflictResolutionResult
 import hs.kr.entrydsm.domain.parser.services.OptimizedParsingTable
@@ -408,10 +409,22 @@ class LRParserTable private constructor(
             nonTerminals: Set<TokenType>,
             startSymbol: TokenType
         ): LRParserTable {
-            require(productions.isNotEmpty()) { "생산 규칙이 비어있을 수 없습니다" }
-            require(terminals.isNotEmpty()) { "터미널 심볼이 비어있을 수 없습니다" }
-            require(nonTerminals.isNotEmpty()) { "논터미널 심볼이 비어있을 수 없습니다" }
-            require(startSymbol in nonTerminals) { "시작 심볼은 논터미널이어야 합니다" }
+            if (productions.isEmpty()) {
+                throw ParserException.emptyProductions()
+            }
+
+            if (terminals.isEmpty()) {
+                throw ParserException.emptyTerminals()
+            }
+
+            if (nonTerminals.isEmpty()) {
+                throw ParserException.emptyNonTerminals()
+            }
+
+            if (startSymbol !in nonTerminals) {
+                throw ParserException.invalidStartSymbol(startSymbol)
+            }
+
 
             // 확장된 생산 규칙 생성
             val augmentedProduction = Production(
