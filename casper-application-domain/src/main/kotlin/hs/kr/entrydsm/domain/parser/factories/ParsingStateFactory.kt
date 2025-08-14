@@ -4,6 +4,7 @@ import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
@@ -113,9 +114,9 @@ class ParsingStateFactory {
         completeItems: Set<LRItem>
     ): ParsingState {
         val stateId = id ?: generateNextId()
-        
-        require(completeItems.all { it.isComplete() }) {
-            "수락 상태는 완성된 아이템들만 포함해야 합니다"
+
+        if (!completeItems.all { it.isComplete() }) {
+            throw ParserException.acceptingStateItemsNotComplete()
         }
         
         return createParsingState(
@@ -376,8 +377,8 @@ class ParsingStateFactory {
      * @return 다음 ID
      */
     private fun generateNextId(): Int {
-        require(nextStateId < MAX_STATE_COUNT) {
-            "상태 개수가 최대값을 초과했습니다: $nextStateId >= $MAX_STATE_COUNT"
+        if (nextStateId >= MAX_STATE_COUNT) {
+            throw ParserException.stateCountExceedsLimit(nextStateId, MAX_STATE_COUNT)
         }
         return nextStateId++
     }
@@ -426,10 +427,16 @@ class ParsingStateFactory {
      * @param items LR 아이템들
      */
     private fun validateStateData(id: Int, items: Set<LRItem>) {
-        require(id >= 0) { "상태 ID는 0 이상이어야 합니다: $id" }
-        require(items.isNotEmpty()) { "파싱 상태는 최소 하나의 아이템을 포함해야 합니다" }
-        require(items.size <= MAX_ITEMS_PER_STATE) {
-            "상태의 아이템 개수가 최대값을 초과했습니다: ${items.size} > $MAX_ITEMS_PER_STATE"
+        if (id < 0) {
+            throw ParserException.invalidStateId(id)
+        }
+
+        if (items.isEmpty()) {
+            throw ParserException.emptyStateItems()
+        }
+
+        if (items.size > MAX_ITEMS_PER_STATE) {
+            throw ParserException.itemsPerStateExceedsLimit(items.size, MAX_ITEMS_PER_STATE)
         }
     }
 
@@ -440,7 +447,9 @@ class ParsingStateFactory {
      */
     private fun validateActions(actions: Map<TokenType, LRAction>) {
         actions.forEach { (terminal, _) ->
-            require(terminal.isTerminal) { "액션 테이블에 비터미널 심볼이 있습니다: $terminal" }
+            if (!terminal.isTerminal) {
+                throw ParserException.actionTableContainsNonTerminal(terminal)
+            }
         }
     }
 
@@ -451,8 +460,13 @@ class ParsingStateFactory {
      */
     private fun validateGotos(gotos: Map<TokenType, Int>) {
         gotos.forEach { (nonTerminal, targetState) ->
-            require(nonTerminal.isNonTerminal()) { "Goto 테이블에 터미널 심볼이 있습니다: $nonTerminal" }
-            require(targetState >= 0) { "목표 상태 ID가 음수입니다: $targetState" }
+            if (!nonTerminal.isNonTerminal()) {
+                throw ParserException.gotoTableContainsTerminal(nonTerminal)
+            }
+
+            if (targetState < 0) {
+                throw ParserException.targetStateNegative(targetState)
+            }
         }
     }
 
@@ -462,12 +476,16 @@ class ParsingStateFactory {
      * @param transitions 전이 테이블
      */
     private fun validateTransitions(transitions: Map<TokenType, Int>) {
-        require(transitions.size <= MAX_TRANSITIONS_PER_STATE) {
-            "전이 개수가 최대값을 초과했습니다: ${transitions.size} > $MAX_TRANSITIONS_PER_STATE"
+        if (transitions.size > MAX_TRANSITIONS_PER_STATE) {
+            throw ParserException.transitionsPerStateExceedsLimit(
+                transitions.size, MAX_TRANSITIONS_PER_STATE
+            )
         }
         
         transitions.forEach { (_, targetState) ->
-            require(targetState >= 0) { "목표 상태 ID가 음수입니다: $targetState" }
+            if (targetState < 0) {
+                throw ParserException.targetStateNegative(targetState)
+            }
         }
     }
 
