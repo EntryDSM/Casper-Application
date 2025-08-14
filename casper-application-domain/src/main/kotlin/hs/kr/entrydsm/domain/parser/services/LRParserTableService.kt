@@ -6,6 +6,7 @@ import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.factories.LRItemFactory
 import hs.kr.entrydsm.domain.parser.factories.ParsingStateFactory
 import hs.kr.entrydsm.domain.parser.values.Grammar
@@ -42,6 +43,50 @@ class LRParserTableService(
     companion object {
         private const val MAX_MERGE_ITERATIONS = 50  // 무한 루프 방지
         private const val MAX_QUEUE_REINSERTIONS = 20  // 큐 재삽입 제한
+
+        private const val UNKNOWN_ERROR = "Unknown error"
+
+        // Configuration keys
+        private const val KEY_MAX_STATES = "maxStates"
+        private const val KEY_MAX_ITEMS_PER_STATE = "maxItemsPerState"
+        private const val KEY_CACHING_ENABLED = "cachingEnabled"
+        private const val KEY_PARSING_STRATEGY = "parsingStrategy"
+        private const val KEY_OPTIMIZATIONS = "optimizations"
+
+        // Statistics keys
+        private const val KEY_SERVICE_NAME = "serviceName"
+        private const val KEY_CACHE_STATISTICS = "cacheStatistics"
+        private const val KEY_ALGORITHMS_IMPLEMENTED = "algorithmsImplemented"
+
+        // Strategy names
+        private const val PARSING_STRATEGY_LR1 = "LR(1)"
+
+        // Optimization names
+        private const val OPTIMIZATION_STATE_COMPRESSION = "stateCompression"
+        private const val OPTIMIZATION_CACHING = "caching"
+        private const val OPTIMIZATION_CONFLICT_DETECTION = "conflictDetection"
+
+        // Algorithm names
+        private const val ALGORITHM_LR1_STATE_CONSTRUCTION = "LR1StateConstruction"
+        private const val ALGORITHM_TABLE_GENERATION = "TableGeneration"
+        private const val ALGORITHM_CONFLICT_DETECTION = "ConflictDetection"
+
+        // Service info
+        private const val SERVICE_NAME = "LRParserTableService"
+        private const val STACK_DEPTH_RATIO = 10
+
+        // Collections
+        private val OPTIMIZATIONS_LIST = listOf(
+            OPTIMIZATION_STATE_COMPRESSION,
+            OPTIMIZATION_CACHING,
+            OPTIMIZATION_CONFLICT_DETECTION
+        )
+
+        private val ALGORITHMS_IMPLEMENTED = listOf(
+            ALGORITHM_LR1_STATE_CONSTRUCTION,
+            ALGORITHM_TABLE_GENERATION,
+            ALGORITHM_CONFLICT_DETECTION
+        )
     }
     
     // 설정은 ConfigurationProvider를 통해 동적으로 접근
@@ -113,7 +158,7 @@ class LRParserTableService(
         
         // 초기 상태 생성
         val startProduction = productions.find { it.id == -1 }
-            ?: throw IllegalArgumentException("확장 생산 규칙을 찾을 수 없습니다")
+            ?: throw ParserException.augmentedProductionNotFound()
         
         val startItem = lrItemFactory.createStartItem(startProduction)
         val initialState = parsingStateFactory.createStateWithClosure(
@@ -267,7 +312,7 @@ class LRParserTableService(
             )
         } catch (e: Exception) {
             mapOf(
-                "error" to (e.message ?: "Unknown error"),
+                "error" to (e.message ?: UNKNOWN_ERROR),
                 "buildingFailed" to true
             )
         }
@@ -358,8 +403,9 @@ class LRParserTableService(
             val lookahead = item.lookahead
             val existingAction = actions[lookahead]
             if (existingAction != null) {
-                throw IllegalStateException(
-                    "Reduce/Reduce 또는 Shift/Reduce 충돌: $lookahead in state ${state.id}"
+                throw ParserException.lrConflictDetected(
+                    lookahead = lookahead,
+                    stateId = state.id
                 )
             } else {
                 actions[lookahead] = LRAction.Reduce(item.production)
@@ -389,11 +435,11 @@ class LRParserTableService(
      * @return 설정 정보 맵
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "maxStates" to config.maxParsingSteps,
-        "maxItemsPerState" to config.maxStackDepth / 10, // 대략적 비율
-        "cachingEnabled" to config.cachingEnabled,
-        "parsingStrategy" to "LR(1)",
-        "optimizations" to if (config.enableOptimizations) listOf("stateCompression", "caching", "conflictDetection") else emptyList()
+        KEY_MAX_STATES to config.maxParsingSteps,
+        KEY_MAX_ITEMS_PER_STATE to config.maxStackDepth / STACK_DEPTH_RATIO, // 대략적 비율
+        KEY_CACHING_ENABLED to config.cachingEnabled,
+        KEY_PARSING_STRATEGY to PARSING_STRATEGY_LR1,
+        KEY_OPTIMIZATIONS to if (config.enableOptimizations) OPTIMIZATIONS_LIST else emptyList()
     )
 
     /**
@@ -402,9 +448,9 @@ class LRParserTableService(
      * @return 통계 정보 맵
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "serviceName" to "LRParserTableService",
-        "cacheStatistics" to getCacheStatistics(),
-        "algorithmsImplemented" to listOf("LR1StateConstruction", "TableGeneration", "ConflictDetection")
+        KEY_SERVICE_NAME to SERVICE_NAME,
+        KEY_CACHE_STATISTICS to getCacheStatistics(),
+        KEY_ALGORITHMS_IMPLEMENTED to ALGORITHMS_IMPLEMENTED
     )
     
     /**
