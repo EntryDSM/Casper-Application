@@ -219,7 +219,9 @@ class RealLRParserService(
      * @param maxSize 최대 스택 크기
      */
     fun setMaxStackSize(maxSize: Int) {
-        require(maxSize > 0) { "최대 스택 크기는 양수여야 합니다: $maxSize" }
+        if (maxSize <= 0) {
+            throw ParserException.maxStackSizeNotPositive(maxSize)
+        }
         this.maxStackSize = maxSize
     }
 
