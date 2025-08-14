@@ -24,6 +24,23 @@ import hs.kr.entrydsm.global.annotation.specification.type.Priority
 )
 class ParsingTableValiditySpec : SpecificationContract<ParsingTable> {
 
+    object ParsingTableValiditySpecConstants {
+        // Spec meta
+        const val NAME = "ParsingTableValiditySpec"
+        const val DESCRIPTION = "파싱 테이블의 구조적 무결성 및 일관성을 검증하는 명세"
+        const val DOMAIN = "Parser"
+        val DEFAULT_PRIORITY = Priority.HIGH
+
+        // Messages
+        const val MSG_PREFIX_FAIL = "파싱 테이블 검증 실패: "
+        const val MSG_BASIC_FAIL = "기본 구조 검증 실패"
+        const val MSG_BASIC_ERR = "기본 구조 검증 중 오류: %s"
+        const val MSG_ACTION_FAIL = "Action 테이블 검증 실패"
+        const val MSG_ACTION_ERR = "Action 테이블 검증 중 오류: %s"
+        const val MSG_GOTO_FAIL = "Goto 테이블 검증 실패"
+        const val MSG_GOTO_ERR = "Goto 테이블 검증 중 오류: %s"
+    }
+
     override fun isSatisfiedBy(candidate: ParsingTable): Boolean {
         return try {
             validateBasicStructure(candidate) &&
@@ -34,42 +51,42 @@ class ParsingTableValiditySpec : SpecificationContract<ParsingTable> {
         }
     }
 
-    override fun getName(): String = "ParsingTableValiditySpec"
+    override fun getName(): String = ParsingTableValiditySpecConstants.NAME
 
-    override fun getDescription(): String = "파싱 테이블의 구조적 무결성 및 일관성을 검증하는 명세"
+    override fun getDescription(): String = ParsingTableValiditySpecConstants.DESCRIPTION
 
-    override fun getDomain(): String = "Parser"
+    override fun getDomain(): String = ParsingTableValiditySpecConstants.DOMAIN
 
-    override fun getPriority(): Priority = Priority.HIGH
+    override fun getPriority(): Priority = ParsingTableValiditySpecConstants.DEFAULT_PRIORITY
 
     override fun getErrorMessage(candidate: ParsingTable): String {
         val errors = mutableListOf<String>()
-        
-        try {
+
+        runCatching {
             if (!validateBasicStructure(candidate)) {
-                errors.add("기본 구조 검증 실패")
+                errors.add(ParsingTableValiditySpecConstants.MSG_BASIC_FAIL)
             }
-        } catch (e: Exception) {
-            errors.add("기본 구조 검증 중 오류: ${e.message}")
+        }.onFailure {
+            errors.add(ParsingTableValiditySpecConstants.MSG_BASIC_ERR.format(it.message))
         }
-        
-        try {
+
+        runCatching {
             if (!validateActionTable(candidate)) {
-                errors.add("Action 테이블 검증 실패")
+                errors.add(ParsingTableValiditySpecConstants.MSG_ACTION_FAIL)
             }
-        } catch (e: Exception) {
-            errors.add("Action 테이블 검증 중 오류: ${e.message}")
+        }.onFailure {
+            errors.add(ParsingTableValiditySpecConstants.MSG_ACTION_ERR.format(it.message))
         }
-        
-        try {
+
+        runCatching {
             if (!validateGotoTable(candidate)) {
-                errors.add("Goto 테이블 검증 실패")
+                errors.add(ParsingTableValiditySpecConstants.MSG_GOTO_FAIL)
             }
-        } catch (e: Exception) {
-            errors.add("Goto 테이블 검증 중 오류: ${e.message}")
+        }.onFailure {
+            errors.add(ParsingTableValiditySpecConstants.MSG_GOTO_ERR.format(it.message))
         }
-        
-        return "파싱 테이블 검증 실패: ${errors.joinToString(", ")}"
+
+        return ParsingTableValiditySpecConstants.MSG_PREFIX_FAIL + errors.joinToString(", ")
     }
 
     /**
