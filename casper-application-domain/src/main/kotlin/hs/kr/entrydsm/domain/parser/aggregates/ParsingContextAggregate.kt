@@ -313,8 +313,13 @@ class ParsingContextAggregate(
      * @param maxDepth 최대 파싱 깊이
      */
     override fun setMaxParsingDepth(maxDepth: Int) {
-        require(maxDepth > 0) { "최대 파싱 깊이는 양수여야 합니다: $maxDepth" }
-        require(maxDepth <= MAX_STACK_SIZE) { "최대 파싱 깊이가 한계를 초과했습니다: $maxDepth > $MAX_STACK_SIZE" }
+        if (maxDepth <= 0) {
+            throw ParserException.maxDepthNonPositive(maxDepth)
+        }
+
+        if (maxDepth > MAX_STACK_SIZE) {
+            throw ParserException.maxDepthExceedsLimit(maxDepth, MAX_STACK_SIZE)
+        }
         
         this.maxParsingDepth = maxDepth
     }
