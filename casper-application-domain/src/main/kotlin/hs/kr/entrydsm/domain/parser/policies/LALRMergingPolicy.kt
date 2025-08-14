@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.policies
 
 import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.policy.Policy
 import hs.kr.entrydsm.global.annotation.policy.type.Scope
 
@@ -71,8 +72,8 @@ class LALRMergingPolicy {
      * @throws IllegalArgumentException 병합 불가능한 상태들인 경우
      */
     fun mergeLALRStates(state1: ParsingState, state2: ParsingState): ParsingState {
-        require(canMergeLALRStates(state1, state2)) {
-            "상태 ${state1.id}와 ${state2.id}는 LALR 병합이 불가능합니다"
+        if (!canMergeLALRStates(state1, state2)) {
+            throw ParserException.lalrStatesCannotMerge(state1.id, state2.id)
         }
         
         val mergedItems = mergeItems(state1.items, state2.items)
@@ -329,8 +330,10 @@ class LALRMergingPolicy {
      * 여러 상태를 병합합니다.
      */
     private fun mergeMultipleStates(states: List<ParsingState>): ParsingState {
-        require(states.isNotEmpty()) { "병합할 상태가 없습니다" }
-        
+        if (states.isEmpty()) {
+            throw ParserException.noStatesToMerge()
+        }
+
         if (states.size == 1) {
             return states.first()
         }
