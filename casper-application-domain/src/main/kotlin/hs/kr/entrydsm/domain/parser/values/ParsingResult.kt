@@ -37,17 +37,25 @@ data class ParsingResult(
     val warnings: List<String> = emptyList(),
     val metadata: Map<String, Any> = emptyMap()
 ) {
-    
+
     init {
-        require(isSuccess || error != null) { 
-            "실패한 ParsingResult는 반드시 error 정보를 포함해야 합니다" 
+        if (!isSuccess && error == null) {
+            throw ParserException.failedResultMissingError()
         }
-        require(duration >= 0) { "분석 소요 시간은 0 이상이어야 합니다: $duration" }
-        require(tokenCount >= 0) { "토큰 개수는 0 이상이어야 합니다: $tokenCount" }
-        require(nodeCount >= 0) { "노드 개수는 0 이상이어야 합니다: $nodeCount" }
-        require(maxDepth >= 0) { "최대 깊이는 0 이상이어야 합니다: $maxDepth" }
-        if (isSuccess) {
-            require(ast != null) { "성공한 ParsingResult는 반드시 AST를 포함해야 합니다" }
+        if (duration < 0L) {
+            throw ParserException.durationNegative(duration)
+        }
+        if (tokenCount < 0) {
+            throw ParserException.tokenCountNegative(tokenCount)
+        }
+        if (nodeCount < 0) {
+            throw ParserException.nodeCountNegative(nodeCount)
+        }
+        if (maxDepth < 0) {
+            throw ParserException.maxDepthNegative(maxDepth)
+        }
+        if (isSuccess && ast == null) {
+            throw ParserException.successResultMissingAst()
         }
     }
 
@@ -127,7 +135,6 @@ data class ParsingResult(
         fun empty(tokenCount: Int = 0): ParsingResult {
             // 빈 AST 노드를 생성해야 하는 경우를 위한 더미 노드
             val emptyNode = NumberNode(0.0)
-            
             return success(
                 ast = emptyNode,
                 tokenCount = tokenCount
@@ -183,14 +190,14 @@ data class ParsingResult(
      *
      * @return AST 클래스명 또는 "None"
      */
-    fun getASTType(): String = ast?.javaClass?.simpleName ?: "None"
+    fun getASTType(): String = ast?.javaClass?.simpleName ?: ParsingResultConsts.STR_NONE
 
     /**
      * 파싱 효율성을 계산합니다 (노드 수 / 토큰 수).
      *
      * @return 효율성 비율 (0.0 ~ 1.0+)
      */
-    fun getParsingEfficiency(): Double = 
+    fun getParsingEfficiency(): Double =
         if (tokenCount > 0) nodeCount.toDouble() / tokenCount else 0.0
 
     /**
@@ -198,15 +205,17 @@ data class ParsingResult(
      *
      * @return 토큰 처리 속도 (tokens/second)
      */
-    fun getTokensPerSecond(): Double = 
-        if (duration > 0) (tokenCount * 1000.0) / duration else 0.0
+    fun getTokensPerSecond(): Double =
+        if (duration > 0)
+            (tokenCount * ParsingResultConsts.MS_TO_SEC_MULTIPLIER) / duration
+        else 0.0
 
     /**
      * AST의 평균 분기 계수를 계산합니다.
      *
      * @return 평균 분기 계수
      */
-    fun getAverageBranchingFactor(): Double = 
+    fun getAverageBranchingFactor(): Double =
         if (maxDepth > 0) nodeCount.toDouble() / maxDepth else 0.0
 
     /**
@@ -215,21 +224,25 @@ data class ParsingResult(
      * @return 품질 점수 (0.0 ~ 100.0)
      */
     fun getQualityScore(): Double {
-        var score = if (isSuccess) 50.0 else 0.0
-        
+        var score = if (isSuccess) ParsingResultConsts.QUALITY_BASE_SUCCESS else 0.0
+
         // 경고 점수 차감
-        score -= warnings.size * 5.0
-        
+        score -= warnings.size * ParsingResultConsts.QUALITY_WARNING_PENALTY
+
         // 효율성 보너스
-        score += getParsingEfficiency() * 20.0
-        
-        // 성능 보너스
+        score += getParsingEfficiency() * ParsingResultConsts.QUALITY_EFFICIENCY_BONUS
+
+        // 성능(TPS) 보너스
         if (duration > 0 && tokenCount > 0) {
-            val performance = getTokensPerSecond()
-            score += minOf(performance / 1000.0 * 10.0, 30.0)
+            val tps = getTokensPerSecond()
+            val perfBonus = (tps / ParsingResultConsts.QUALITY_TPS_NORM) * ParsingResultConsts.QUALITY_TPS_MULTIPLIER
+            score += minOf(perfBonus, ParsingResultConsts.QUALITY_TPS_CAP)
         }
-        
-        return maxOf(0.0, minOf(100.0, score))
+
+        return maxOf(
+            ParsingResultConsts.QUALITY_MIN,
+            minOf(ParsingResultConsts.QUALITY_MAX, score)
+        )
     }
 
     /**
@@ -238,19 +251,19 @@ data class ParsingResult(
      * @return 통계 정보 맵
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "success" to isSuccess,
-        "tokenCount" to tokenCount,
-        "nodeCount" to nodeCount,
-        "maxDepth" to maxDepth,
-        "duration" to duration,
-        "warningCount" to warnings.size,
-        "hasError" to hasError(),
-        "astType" to getASTType(),
-        "parsingEfficiency" to getParsingEfficiency(),
-        "tokensPerSecond" to getTokensPerSecond(),
-        "averageBranchingFactor" to getAverageBranchingFactor(),
-        "qualityScore" to getQualityScore(),
-        "errorMessage" to (error?.message ?: "None")
+        ParsingResultConsts.KEY_SUCCESS to isSuccess,
+        ParsingResultConsts.KEY_TOKEN_COUNT to tokenCount,
+        ParsingResultConsts.KEY_NODE_COUNT to nodeCount,
+        ParsingResultConsts.KEY_MAX_DEPTH to maxDepth,
+        ParsingResultConsts.KEY_DURATION to duration,
+        ParsingResultConsts.KEY_WARNING_COUNT to warnings.size,
+        ParsingResultConsts.KEY_HAS_ERROR to hasError(),
+        ParsingResultConsts.KEY_AST_TYPE to getASTType(),
+        ParsingResultConsts.KEY_PARSING_EFFICIENCY to getParsingEfficiency(),
+        ParsingResultConsts.KEY_TOKENS_PER_SECOND to getTokensPerSecond(),
+        ParsingResultConsts.KEY_AVG_BRANCH_FACTOR to getAverageBranchingFactor(),
+        ParsingResultConsts.KEY_QUALITY_SCORE to getQualityScore(),
+        ParsingResultConsts.KEY_ERROR_MESSAGE to (error?.message ?: ParsingResultConsts.STR_NONE)
     )
 
     /**
@@ -258,7 +271,7 @@ data class ParsingResult(
      *
      * @return AST 문자열 표현
      */
-    fun astToString(): String = ast?.toString() ?: "null"
+    fun astToString(): String = ast?.toString() ?: ParsingResultConsts.STR_NULL
 
     /**
      * 경고 메시지들을 문자열로 결합합니다.
@@ -293,4 +306,40 @@ data class ParsingResult(
      * @return 상세 정보 문자열
      */
     override fun toString(): String = getSummary()
+
+    /**
+     * ParsingResult에서 사용하는 상수 모음
+     */
+    object ParsingResultConsts {
+        // Map keys (getStatistics)
+        const val KEY_SUCCESS = "success"
+        const val KEY_TOKEN_COUNT = "tokenCount"
+        const val KEY_NODE_COUNT = "nodeCount"
+        const val KEY_MAX_DEPTH = "maxDepth"
+        const val KEY_DURATION = "duration"
+        const val KEY_WARNING_COUNT = "warningCount"
+        const val KEY_HAS_ERROR = "hasError"
+        const val KEY_AST_TYPE = "astType"
+        const val KEY_PARSING_EFFICIENCY = "parsingEfficiency"
+        const val KEY_TOKENS_PER_SECOND = "tokensPerSecond"
+        const val KEY_AVG_BRANCH_FACTOR = "averageBranchingFactor"
+        const val KEY_QUALITY_SCORE = "qualityScore"
+        const val KEY_ERROR_MESSAGE = "errorMessage"
+
+        // String literals
+        const val STR_NONE = "None"
+        const val STR_NULL = "null"
+
+        // Performance/score constants
+        const val MS_TO_SEC_MULTIPLIER = 1000.0
+
+        const val QUALITY_BASE_SUCCESS = 50.0
+        const val QUALITY_WARNING_PENALTY = 5.0
+        const val QUALITY_EFFICIENCY_BONUS = 20.0
+        const val QUALITY_TPS_NORM = 1000.0
+        const val QUALITY_TPS_MULTIPLIER = 10.0
+        const val QUALITY_TPS_CAP = 30.0
+        const val QUALITY_MIN = 0.0
+        const val QUALITY_MAX = 100.0
+    }
 }
