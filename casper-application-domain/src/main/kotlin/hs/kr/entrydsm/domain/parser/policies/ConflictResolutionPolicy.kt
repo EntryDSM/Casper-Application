@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.policies
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.ParsingState
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.values.Associativity
 import hs.kr.entrydsm.domain.parser.values.LRAction
 import hs.kr.entrydsm.domain.parser.services.ConflictResolutionResult
@@ -152,8 +153,11 @@ class ConflictResolutionPolicy {
      * @param associativity 결합성 정보
      */
     fun setAssociativity(tokenType: TokenType, associativity: Associativity) {
-        require(associativity.operator == tokenType) {
-            "결합성 규칙의 연산자와 토큰 타입이 일치해야 합니다: ${associativity.operator} != $tokenType"
+        if (associativity.operator != tokenType) {
+            throw ParserException.associativityOperatorMismatch(
+                expected = associativity.operator,
+                actual = tokenType
+            )
         }
         associativityTable[tokenType] = associativity
     }
