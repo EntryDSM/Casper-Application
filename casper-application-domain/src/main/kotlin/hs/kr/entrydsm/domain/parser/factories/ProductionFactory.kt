@@ -4,6 +4,7 @@ import hs.kr.entrydsm.domain.ast.factory.ASTBuilders
 import hs.kr.entrydsm.domain.ast.factory.ASTBuilderContract
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 
@@ -125,8 +126,10 @@ class ProductionFactory {
         operator: TokenType,
         rightOperand: TokenType
     ): Production {
-        require(operator.isOperator) { "연산자 심볼이 아닙니다: $operator" }
-        
+        if (!operator.isOperator) {
+            throw ParserException.notOperatorSymbol(operator)
+        }
+
         val operatorSymbol = when (operator) {
             TokenType.PLUS -> "+"
             TokenType.MINUS -> "-"
@@ -168,8 +171,10 @@ class ProductionFactory {
         operator: TokenType,
         operand: TokenType
     ): Production {
-        require(operator.isOperator) { "연산자 심볼이 아닙니다: $operator" }
-        
+        if (!operator.isOperator) {
+            throw ParserException.notOperatorSymbol(operator)
+        }
+
         val operatorSymbol = when (operator) {
             TokenType.MINUS -> "-"
             TokenType.PLUS -> "+"
@@ -271,8 +276,10 @@ class ProductionFactory {
         left: TokenType,
         terminal: TokenType
     ): Production {
-        require(terminal.isTerminal) { "터미널 심볼이 아닙니다: $terminal" }
-        
+        if (!terminal.isTerminal) {
+            throw ParserException.notATerminal(terminal)
+        }
+
         val builder = when (terminal) {
             TokenType.NUMBER -> ASTBuilders.Number
             TokenType.IDENTIFIER, TokenType.VARIABLE -> ASTBuilders.Variable
@@ -342,8 +349,10 @@ class ProductionFactory {
      */
     fun createFromBNF(id: Int, bnfRule: String): Production {
         val parts = bnfRule.split("->").map { it.trim() }
-        require(parts.size == 2) { "잘못된 BNF 형식: $bnfRule" }
-        
+        if (parts.size != 2) {
+            throw ParserException.invalidBnfFormat(bnfRule = bnfRule, partsCount = parts.size)
+        }
+
         val leftSymbol = parseTokenType(parts[0])
         val rightSymbols = if (parts[1].trim() == "ε" || parts[1].trim().isEmpty()) {
             emptyList()
@@ -363,8 +372,11 @@ class ProductionFactory {
     fun createMultipleProductions(
         productions: List<ProductionDefinition>
     ): List<Production> {
-        require(productions.size <= MAX_PRODUCTION_COUNT) {
-            "생산 규칙 개수가 최대값을 초과했습니다: ${productions.size} > $MAX_PRODUCTION_COUNT"
+        if (productions.size > MAX_PRODUCTION_COUNT) {
+            throw ParserException.productionCountExceedsLimit(
+                count = productions.size,
+                maxCount = MAX_PRODUCTION_COUNT
+            )
         }
         
         return productions.map { definition ->
@@ -427,9 +439,14 @@ class ProductionFactory {
      * @param right 우변 심볼들
      */
     private fun validateProductionData(id: Int, left: TokenType, right: List<TokenType>) {
-        require(left.isNonTerminal()) { "좌변은 논터미널이어야 합니다: $left" }
-        require(right.size <= MAX_PRODUCTION_LENGTH) {
-            "우변이 최대 길이를 초과했습니다: ${right.size} > $MAX_PRODUCTION_LENGTH"
+        if (!left.isNonTerminal()) {
+            throw ParserException.productionLeftNotNonTerminal(left)
+        }
+        if (right.size > MAX_PRODUCTION_LENGTH) {
+            throw ParserException.productionLengthExceedsLimit(
+                length = right.size,
+                maxLength = MAX_PRODUCTION_LENGTH
+            )
         }
     }
 
@@ -443,7 +460,7 @@ class ProductionFactory {
         return try {
             TokenType.valueOf(tokenString.uppercase())
         } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException("알 수 없는 토큰 타입: $tokenString")
+            throw ParserException.unknownTokenType(tokenString)
         }
     }
 
