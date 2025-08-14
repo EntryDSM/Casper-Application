@@ -338,48 +338,48 @@ class LRParsingValiditySpec {
      */
     fun getValidationErrors(grammar: Grammar): List<ValidationError> {
         val errors = mutableListOf<ValidationError>()
-        
+
         try {
             if (!validateProductions(grammar.productions)) {
                 errors.add(ValidationError(
                     ErrorCodes.Parser.INVALID_PRODUCTION.code,
-                    "생산 규칙이 유효하지 않습니다",
+                    LRParsingValiditySpecConstants.MSG_INVALID_PRODUCTION,
                     ValidationError.Severity.ERROR
                 ))
             }
-            
+
             if (!validateStartSymbol(grammar.startSymbol)) {
                 errors.add(ValidationError(
                     ErrorCodes.Parser.GRAMMAR_VIOLATION.code,
-                    "시작 심볼이 유효하지 않습니다: ${grammar.startSymbol}",
+                    LRParsingValiditySpecConstants.MSG_INVALID_START_SYMBOL.format(grammar.startSymbol),
                     ValidationError.Severity.ERROR
                 ))
             }
-            
+
             if (!validateGrammarConsistency(grammar)) {
                 errors.add(ValidationError(
                     ErrorCodes.Parser.GRAMMAR_VIOLATION.code,
-                    "문법 일관성 검사 실패",
+                    LRParsingValiditySpecConstants.MSG_GRAMMAR_CONSISTENCY_FAIL,
                     ValidationError.Severity.CRITICAL
                 ))
             }
-            
+
             if (!validateOperatorPrecedence(grammar)) {
                 errors.add(ValidationError(
                     ErrorCodes.Parser.GRAMMAR_VIOLATION.code,
-                    "연산자 우선순위 검증 실패",
+                    LRParsingValiditySpecConstants.MSG_OPERATOR_PRECEDENCE_FAIL,
                     ValidationError.Severity.WARNING
                 ))
             }
-            
+
         } catch (e: Exception) {
             errors.add(ValidationError(
                 ErrorCodes.Common.UNKNOWN_ERROR.code,
-                "문법 검증 중 예상치 못한 오류 발생: ${e.message}",
+                LRParsingValiditySpecConstants.MSG_UNKNOWN_GRAMMAR_ERROR.format(e.message),
                 ValidationError.Severity.CRITICAL
             ))
         }
-        
+
         return errors
     }
 
@@ -388,40 +388,40 @@ class LRParsingValiditySpec {
      */
     fun getTokenValidationErrors(tokens: List<Token>): List<ValidationError> {
         val errors = mutableListOf<ValidationError>()
-        
+
         try {
             if (!validateTokenSequence(tokens)) {
                 errors.add(ValidationError(
                     ErrorCodes.Lexer.UNEXPECTED_TOKEN.code,
-                    "토큰 시퀀스가 유효하지 않습니다 (DOLLAR 토큰 누락)",
+                    LRParsingValiditySpecConstants.MSG_INVALID_TOKEN_SEQUENCE,
                     ValidationError.Severity.ERROR
                 ))
             }
-            
+
             if (!validateParenthesesBalance(tokens)) {
                 errors.add(ValidationError(
                     ErrorCodes.Parser.SYNTAX_ERROR.code,
-                    "괄호가 균형을 이루지 않습니다",
+                    LRParsingValiditySpecConstants.MSG_PARENTHESIS_UNBALANCED,
                     ValidationError.Severity.ERROR
                 ))
             }
-            
+
             if (!validateOperatorSequence(tokens)) {
                 errors.add(ValidationError(
                     ErrorCodes.Parser.SYNTAX_ERROR.code,
-                    "연산자 시퀀스가 유효하지 않습니다",
+                    LRParsingValiditySpecConstants.MSG_OPERATOR_SEQUENCE_INVALID,
                     ValidationError.Severity.ERROR
                 ))
             }
-            
+
         } catch (e: Exception) {
             errors.add(ValidationError(
                 ErrorCodes.Common.UNKNOWN_ERROR.code,
-                "토큰 검증 중 예상치 못한 오류 발생: ${e.message}",
+                LRParsingValiditySpecConstants.MSG_UNKNOWN_TOKEN_ERROR.format(e.message),
                 ValidationError.Severity.CRITICAL
             ))
         }
-        
+
         return errors
     }
 
@@ -442,30 +442,74 @@ class LRParsingValiditySpec {
      * 명세의 설정 정보를 반환합니다.
      */
     fun getConfiguration(): Map<String, Any> = mapOf(
-        "name" to "LRParsingValiditySpec",
-        "based_on" to "POC_LR1_Parser",
-        "terminals" to TERMINALS.size,
-        "nonTerminals" to NON_TERMINALS.size,
-        "operatorPrecedenceLevels" to OPERATOR_PRECEDENCE.values.toSet().size,
-        "grammarValidation" to true,
-        "itemValidation" to true,
-        "tokenValidation" to true,
-        "actionValidation" to true,
-        "precedenceValidation" to true
+        LRParsingValiditySpecConstants.CFG_NAME to LRParsingValiditySpecConstants.SPEC_NAME,
+        LRParsingValiditySpecConstants.CFG_BASED_ON to LRParsingValiditySpecConstants.BASED_ON,
+        LRParsingValiditySpecConstants.CFG_TERMINALS to TERMINALS.size,
+        LRParsingValiditySpecConstants.CFG_NON_TERMINALS to NON_TERMINALS.size,
+        LRParsingValiditySpecConstants.CFG_OPERATOR_PRECEDENCE_LEVELS to OPERATOR_PRECEDENCE.values.toSet().size,
+        LRParsingValiditySpecConstants.CFG_GRAMMAR_VALIDATION to true,
+        LRParsingValiditySpecConstants.CFG_ITEM_VALIDATION to true,
+        LRParsingValiditySpecConstants.CFG_TOKEN_VALIDATION to true,
+        LRParsingValiditySpecConstants.CFG_ACTION_VALIDATION to true,
+        LRParsingValiditySpecConstants.CFG_PRECEDENCE_VALIDATION to true
     )
 
     /**
      * 명세의 통계 정보를 반환합니다.
      */
     fun getStatistics(): Map<String, Any> = mapOf(
-        "specificationName" to "LRParsingValiditySpec",
-        "implementedFeatures" to listOf(
-            "grammar_validation", "lr_item_validation", "token_sequence_validation",
-            "lr_action_validation", "precedence_validation", "consistency_validation"
-        ),
-        "pocCompatibility" to true,
-        "parserType" to "LR(1)",
-        "validationLayers" to 5,
-        "priority" to Priority.CRITICAL.name
+        LRParsingValiditySpecConstants.STAT_SPECIFICATION_NAME to LRParsingValiditySpecConstants.SPEC_NAME,
+        LRParsingValiditySpecConstants.STAT_IMPLEMENTED_FEATURES to LRParsingValiditySpecConstants.IMPLEMENTED_FEATURES_LIST,
+        LRParsingValiditySpecConstants.STAT_POC_COMPATIBILITY to true,
+        LRParsingValiditySpecConstants.STAT_PARSER_TYPE to "LR(1)",
+        LRParsingValiditySpecConstants.STAT_VALIDATION_LAYERS to 5,
+        LRParsingValiditySpecConstants.STAT_PRIORITY to Priority.CRITICAL.name
     )
+
+    object LRParsingValiditySpecConstants {
+        // Specification Info
+        const val SPEC_NAME = "LRParsingValiditySpec"
+        const val BASED_ON = "POC_LR1_Parser"
+
+        // Configuration Keys
+        const val CFG_NAME = "name"
+        const val CFG_BASED_ON = "based_on"
+        const val CFG_TERMINALS = "terminals"
+        const val CFG_NON_TERMINALS = "nonTerminals"
+        const val CFG_OPERATOR_PRECEDENCE_LEVELS = "operatorPrecedenceLevels"
+        const val CFG_GRAMMAR_VALIDATION = "grammarValidation"
+        const val CFG_ITEM_VALIDATION = "itemValidation"
+        const val CFG_TOKEN_VALIDATION = "tokenValidation"
+        const val CFG_ACTION_VALIDATION = "actionValidation"
+        const val CFG_PRECEDENCE_VALIDATION = "precedenceValidation"
+
+        // Statistics Keys
+        const val STAT_SPECIFICATION_NAME = "specificationName"
+        const val STAT_IMPLEMENTED_FEATURES = "implementedFeatures"
+        const val STAT_POC_COMPATIBILITY = "pocCompatibility"
+        const val STAT_PARSER_TYPE = "parserType"
+        const val STAT_VALIDATION_LAYERS = "validationLayers"
+        const val STAT_PRIORITY = "priority"
+
+        // Messages
+        const val MSG_INVALID_PRODUCTION = "생산 규칙이 유효하지 않습니다"
+        const val MSG_INVALID_START_SYMBOL = "시작 심볼이 유효하지 않습니다: %s"
+        const val MSG_GRAMMAR_CONSISTENCY_FAIL = "문법 일관성 검사 실패"
+        const val MSG_OPERATOR_PRECEDENCE_FAIL = "연산자 우선순위 검증 실패"
+        const val MSG_UNKNOWN_GRAMMAR_ERROR = "문법 검증 중 예상치 못한 오류 발생: %s"
+        const val MSG_INVALID_TOKEN_SEQUENCE = "토큰 시퀀스가 유효하지 않습니다 (DOLLAR 토큰 누락)"
+        const val MSG_PARENTHESIS_UNBALANCED = "괄호가 균형을 이루지 않습니다"
+        const val MSG_OPERATOR_SEQUENCE_INVALID = "연산자 시퀀스가 유효하지 않습니다"
+        const val MSG_UNKNOWN_TOKEN_ERROR = "토큰 검증 중 예상치 못한 오류 발생: %s"
+
+        // Implemented Features List
+        val IMPLEMENTED_FEATURES_LIST = listOf(
+            "grammar_validation",
+            "lr_item_validation",
+            "token_sequence_validation",
+            "lr_action_validation",
+            "precedence_validation",
+            "consistency_validation"
+        )
+    }
 }
