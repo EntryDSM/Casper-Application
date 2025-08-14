@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.parser.entities
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.entities.Entity
 
 /**
@@ -28,9 +29,17 @@ data class LRItem(
 ) {
     
     init {
-        require(dotPos >= 0) { "점의 위치는 0 이상이어야 합니다: $dotPos" }
-        require(dotPos <= production.length) { "점의 위치가 생성 규칙 길이를 초과했습니다: $dotPos > ${production.length}" }
-        require(lookahead.isTerminal) { "선행 심볼은 터미널이어야 합니다: $lookahead" }
+        if (dotPos < 0) {
+            throw ParserException.invalidDotPositionNegative(dotPos)
+        }
+
+        if (dotPos > production.length) {
+            throw ParserException.invalidDotPositionExceeds(dotPos, production.length)
+        }
+
+        if (!lookahead.isTerminal) {
+            throw ParserException.lookaheadNotTerminal(lookahead)
+        }
     }
 
     /**
@@ -43,7 +52,11 @@ data class LRItem(
      * @throws IllegalStateException 점이 이미 끝에 있는 경우
      */
     fun advance(): LRItem {
-        check(!isComplete()) { "완료된 아이템의 점을 더 이상 이동시킬 수 없습니다: $this" }
+        if (isComplete()) {
+            // this 가 LRItem인 컨텍스트
+            throw ParserException.itemAlreadyComplete(this)
+        }
+
         return copy(dotPos = dotPos + 1)
     }
 
@@ -282,8 +295,10 @@ data class LRItem(
          * @throws IllegalArgumentException 병합할 수 없는 경우
          */
         fun merge(items1: Set<LRItem>, items2: Set<LRItem>): Set<LRItem> {
-            require(canMerge(items1, items2)) { "아이템 집합들을 병합할 수 없습니다" }
-            
+            if (!canMerge(items1, items2)) {
+                throw ParserException.itemSetMergeConflict("lookahead/core 충돌 또는 정책 위반")
+            }
+
             val mergedItems = mutableSetOf<LRItem>()
             val allItems = items1 + items2
             
