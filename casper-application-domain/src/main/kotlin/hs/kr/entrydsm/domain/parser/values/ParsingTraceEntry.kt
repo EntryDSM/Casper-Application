@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.parser.values
 
 import hs.kr.entrydsm.domain.lexer.entities.Token
+import hs.kr.entrydsm.domain.parser.entities.Production
 
 /**
  * 파싱 추적 항목을 나타내는 값 객체입니다.
@@ -23,25 +24,25 @@ data class ParsingTraceEntry(
     val action: String,
     val state: Int,
     val token: Token?,
-    val production: hs.kr.entrydsm.domain.parser.entities.Production?,
+    val production: Production?,
     val stackSnapshot: List<Int>
 ) {
     companion object {
         fun shift(newState: Int, token: Token, currentState: Int, parsingSteps: Int): ParsingTraceEntry {
             return ParsingTraceEntry(
                 step = parsingSteps,
-                action = "SHIFT",
+                action = ParsingTraceEntryConsts.ACTION_SHIFT,
                 state = newState,
                 token = token,
                 production = null,
                 stackSnapshot = listOf(currentState, newState)
             )
         }
-        
-        fun reduce(production: hs.kr.entrydsm.domain.parser.entities.Production, currentState: Int, parsingSteps: Int): ParsingTraceEntry {
+
+        fun reduce(production: Production, currentState: Int, parsingSteps: Int): ParsingTraceEntry {
             return ParsingTraceEntry(
                 step = parsingSteps,
-                action = "REDUCE",
+                action = ParsingTraceEntryConsts.ACTION_REDUCE,
                 state = currentState,
                 token = null,
                 production = production,
@@ -49,11 +50,22 @@ data class ParsingTraceEntry(
             )
         }
     }
-    
+
     override fun toString(): String {
-        return "Step $step: $action at state $state" +
-            if (token != null) ", token: ${token.type}" else "" +
-            if (production != null) ", production: ${production.id}" else "" +
-            ", stack: $stackSnapshot"
+        val tokenInfo = if (token != null) ", token: ${token.type}" else ""
+        val productionInfo = if (production != null) ", production: ${production.id}" else ""
+        return ParsingTraceEntryConsts.TO_STRING_TEMPLATE.format(
+            step, action, state, tokenInfo, productionInfo, stackSnapshot
+        )
+    }
+
+
+    /**
+     * ParsingTraceEntry에서 사용하는 상수 모음
+     */
+    object ParsingTraceEntryConsts {
+        const val ACTION_SHIFT = "SHIFT"
+        const val ACTION_REDUCE = "REDUCE"
+        const val TO_STRING_TEMPLATE = "Step %d: %s at state %d%s%s, stack: %s"
     }
 }
