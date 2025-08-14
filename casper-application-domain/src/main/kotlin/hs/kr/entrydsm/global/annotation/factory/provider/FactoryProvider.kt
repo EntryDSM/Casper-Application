@@ -2,6 +2,8 @@ package hs.kr.entrydsm.global.annotation.factory.provider
 
 import hs.kr.entrydsm.global.annotation.factory.Factory
 import hs.kr.entrydsm.global.annotation.factory.FactoryContract
+import hs.kr.entrydsm.global.exception.ErrorCode
+import hs.kr.entrydsm.global.exception.ValidationException
 
 /**
  * DDD의 Factory 패턴 관리를 담당하는 Provider 객체입니다.
@@ -24,6 +26,13 @@ object FactoryProvider {
     private val factoryCache = mutableMapOf<String, Any>()
     private val factoryInstances = mutableMapOf<Class<*>, Any>()
     private val factoryRegistry = mutableMapOf<Class<*>, Class<*>>()
+
+    private object ErrorMessages {
+        const val FACTORY_ANNOTATION_MISSING = "어노테이션이 없습니다"
+        const val FACTORY_CONTRACT_NOT_IMPLEMENTED = "인터페이스를 구현해야 합니다"
+        const val FACTORY_NOT_REGISTERED = "에 대한 팩토리가 등록되지 않았습니다"
+        const val CACHE_KEY_REQUIRED = "캐싱을 사용할 때는 키가 필요합니다"
+    }
 
     /**
      * 타입 안전성을 위한 인라인 함수로 팩토리를 등록합니다.
@@ -114,7 +123,7 @@ object FactoryProvider {
      * @param targetType 대상 객체의 클래스
      * @param T 팩토리 타입
      * @return 팩토리 인스턴스
-     * @throws IllegalArgumentException 팩토리가 등록되지 않은 경우
+     * @throws ValidationException 팩토리가 등록되지 않은 경우
      */
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> getFactory(targetType: Class<T>): T {
@@ -128,7 +137,7 @@ object FactoryProvider {
      * @param targetType 대상 객체의 클래스
      * @param T 대상 객체 타입
      * @return FactoryContract 인스턴스
-     * @throws IllegalArgumentException 팩토리가 등록되지 않은 경우
+     * @throws ValidationException 팩토리가 등록되지 않은 경우
      */
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> getFactoryForType(targetType: Class<T>): FactoryContract<T> {
@@ -141,11 +150,16 @@ object FactoryProvider {
      *
      * @param targetType 대상 객체의 클래스
      * @return 팩토리 클래스
-     * @throws IllegalArgumentException 팩토리가 등록되지 않은 경우
+     * @throws ValidationException 팩토리가 등록되지 않은 경우
      */
     fun getFactoryClass(targetType: Class<*>): Class<*> {
         return factoryRegistry[targetType]
-            ?: throw IllegalArgumentException("${targetType.simpleName}에 대한 팩토리가 등록되지 않았습니다.")
+            ?: throw ValidationException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                field = "targetType",
+                value = targetType.simpleName,
+                message = "${targetType.simpleName}${ErrorMessages.FACTORY_NOT_REGISTERED}."
+            )
     }
 
     /**
@@ -166,7 +180,7 @@ object FactoryProvider {
      * @param factoryClass 팩토리 클래스
      * @return 생성된 팩토리 인스턴스
      * @throws RuntimeException 인스턴스 생성에 실패한 경우
-     * @throws IllegalArgumentException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
      */
     fun createFactoryInstance(factoryClass: Class<*>): Any {
         val instance = factoryClass.getDeclaredConstructor().newInstance()
@@ -189,7 +203,7 @@ object FactoryProvider {
      * 팩토리 인스턴스의 유효성을 검증합니다.
      *
      * @param factory 검증할 팩토리 인스턴스
-     * @throws IllegalArgumentException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException 어노테이션이 없거나 인터페이스를 구현하지 않은 경우
      */
     fun validateFactory(factory: Any) {
         val factoryClass = factory::class.java
@@ -202,22 +216,32 @@ object FactoryProvider {
      * 팩토리 클래스에 @Factory 어노테이션이 있는지 검증합니다.
      *
      * @param factoryClass 검증할 팩토리 클래스
-     * @throws IllegalArgumentException @Factory 어노테이션이 없는 경우
+     * @throws ValidationException @Factory 어노테이션이 없는 경우
      */
     fun validateAnnotation(factoryClass: Class<*>) {
         factoryClass.getAnnotation(Factory::class.java)
-            ?: throw IllegalArgumentException("클래스 ${factoryClass.simpleName}에 @Factory 어노테이션이 없습니다.")
+            ?: throw ValidationException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                field = "factoryClass",
+                value = factoryClass.simpleName,
+                message = "클래스 ${factoryClass.simpleName}에 @Factory ${ErrorMessages.FACTORY_ANNOTATION_MISSING}."
+            )
     }
 
     /**
      * 팩토리 클래스가 FactoryContract 인터페이스를 구현하는지 검증합니다.
      *
      * @param factoryClass 검증할 팩토리 클래스
-     * @throws IllegalArgumentException FactoryContract 인터페이스를 구현하지 않은 경우
+     * @throws ValidationException FactoryContract 인터페이스를 구현하지 않은 경우
      */
     fun validateContract(factoryClass: Class<*>) {
         if (!FactoryContract::class.java.isAssignableFrom(factoryClass)) {
-            throw IllegalArgumentException("팩토리 클래스 ${factoryClass.simpleName}는 FactoryContract 인터페이스를 구현해야 합니다.")
+            throw ValidationException(
+                errorCode = ErrorCode.VALIDATION_FAILED,
+                field = "factoryClass",
+                value = factoryClass.simpleName,
+                message = "팩토리 클래스 ${factoryClass.simpleName}는 FactoryContract ${ErrorMessages.FACTORY_CONTRACT_NOT_IMPLEMENTED}."
+            )
         }
     }
 }
