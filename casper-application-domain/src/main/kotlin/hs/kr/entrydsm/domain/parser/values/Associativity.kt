@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.parser.values
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 
 /**
  * 연산자의 결합성을 나타내는 값 객체입니다.
@@ -27,11 +28,12 @@ data class Associativity(
 ) {
     
     init {
-        require(operator.isOperator || operator.isTerminal) {
-            "연산자 토큰이어야 합니다: $operator" 
+        if (!(operator.isOperator || operator.isTerminal)) {
+            throw ParserException.operatorTokenRequired(operator)
         }
-        require(precedence >= 0) { 
-            "우선순위는 0 이상이어야 합니다: $precedence" 
+
+        if (precedence < 0) {
+            throw ParserException.precedenceNegative(precedence)
         }
     }
 
@@ -89,7 +91,7 @@ data class Associativity(
              */
             fun fromSymbol(symbol: String): AssociativityType {
                 return values().find { it.symbol == symbol }
-                    ?: throw IllegalArgumentException("알 수 없는 결합성 심볼: $symbol")
+                    ?: throw ParserException.unknownAssociativitySymbol(symbol)
             }
         }
     }
