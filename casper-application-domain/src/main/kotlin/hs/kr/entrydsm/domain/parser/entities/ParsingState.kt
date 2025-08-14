@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.parser.entities
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.entities.LRItem
 import hs.kr.entrydsm.domain.parser.entities.Production
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.domain.parser.values.LRAction
 
 /**
@@ -37,9 +38,17 @@ data class ParsingState(
 ) {
     
     init {
-        require(id >= 0) { "상태 ID는 0 이상이어야 합니다: $id" }
-        require(items.isNotEmpty()) { "파싱 상태는 최소 하나의 LR 아이템을 포함해야 합니다" }
-        require(!isAccepting || isFinal) { "수락 상태는 반드시 최종 상태여야 합니다" }
+        if (id < 0) {
+            throw ParserException.invalidStateId(id)
+        }
+
+        if (items.isEmpty()) {
+            throw ParserException.emptyStateItems()
+        }
+
+        if (isAccepting && !isFinal) {
+            throw ParserException.acceptingMustBeFinal(isAccepting, isFinal)
+        }
     }
 
     companion object {
@@ -146,7 +155,7 @@ data class ParsingState(
      */
     fun getNextState(symbol: TokenType): Int {
         return transitions[symbol] 
-            ?: throw IllegalArgumentException("심볼 $symbol 로 전이할 수 없습니다")
+            ?: throw ParserException.transitionUnavailable(symbol)
     }
 
     /**
@@ -156,7 +165,10 @@ data class ParsingState(
      * @return 해당 액션
      */
     fun getAction(terminal: TokenType): LRAction? {
-        require(terminal.isTerminal) { "터미널 심볼이 아닙니다: $terminal" }
+        if (!terminal.isTerminal) {
+            throw ParserException.notATerminal(terminal)
+        }
+
         return actions[terminal]
     }
 
@@ -167,7 +179,10 @@ data class ParsingState(
      * @return goto 상태 ID
      */
     fun getGoto(nonTerminal: TokenType): Int? {
-        require(nonTerminal.isNonTerminal()) { "논터미널 심볼이 아닙니다: $nonTerminal" }
+        if (!nonTerminal.isNonTerminal()) {
+            throw ParserException.notANonTerminal(nonTerminal)
+        }
+
         return gotos[nonTerminal]
     }
 
@@ -255,7 +270,10 @@ data class ParsingState(
      * @return 액션이 추가된 새 상태
      */
     fun withAction(terminal: TokenType, action: LRAction): ParsingState {
-        require(terminal.isTerminal) { "터미널 심볼이 아닙니다: $terminal" }
+        if (!terminal.isTerminal) {
+            throw ParserException.notATerminal(terminal)
+        }
+
         return copy(actions = actions + (terminal to action))
     }
 
@@ -267,7 +285,10 @@ data class ParsingState(
      * @return goto가 추가된 새 상태
      */
     fun withGoto(nonTerminal: TokenType, targetState: Int): ParsingState {
-        require(nonTerminal.isNonTerminal()) { "논터미널 심볼이 아닙니다: $nonTerminal" }
+        if (!nonTerminal.isNonTerminal()) {
+            throw ParserException.notANonTerminal(nonTerminal)
+        }
+
         return copy(gotos = gotos + (nonTerminal to targetState))
     }
 
