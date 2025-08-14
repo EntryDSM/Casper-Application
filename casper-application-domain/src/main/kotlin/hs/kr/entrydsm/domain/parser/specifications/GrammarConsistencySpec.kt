@@ -555,14 +555,28 @@ class GrammarConsistencySpec {
      * @return 설정 정보 맵
      */
     fun getSpecificationInfo(): Map<String, Any> = mapOf(
-        "name" to "GrammarConsistencySpec",
-        "maxRecursionDepth" to MAX_RECURSION_DEPTH,
-        "maxDerivationSteps" to MAX_DERIVATION_STEPS,
-        "maxSymbolDependencies" to MAX_SYMBOL_DEPENDENCIES,
-        "supportedValidations" to listOf(
-            "structuralConsistency", "semanticConsistency", "parsingConsistency",
-            "terminalConsistency", "nonTerminalConsistency", "productionConsistency",
-            "startSymbolConsistency", "dependencyConsistency"
-        )
+        "name" to GrammarConsistencySpecConstants.NAME,
+        "maxRecursionDepth" to GrammarConsistencySpecConstants.MAX_RECURSION_DEPTH,
+        "maxDerivationSteps" to GrammarConsistencySpecConstants.MAX_DERIVATION_STEPS,
+        "maxSymbolDependencies" to GrammarConsistencySpecConstants.MAX_SYMBOL_DEPENDENCIES,
+        "supportedValidations" to GrammarConsistencySpecConstants.SUPPORTED_VALIDATIONS
     )
+
+    object GrammarConsistencySpecConstants {
+        const val NAME = "GrammarConsistencySpec"
+        const val MAX_RECURSION_DEPTH = 50  // 기존 값 유지
+        const val MAX_DERIVATION_STEPS = 1000
+        const val MAX_SYMBOL_DEPENDENCIES = 200
+
+        val SUPPORTED_VALIDATIONS = listOf(
+            "structuralConsistency",
+            "semanticConsistency",
+            "parsingConsistency",
+            "terminalConsistency",
+            "nonTerminalConsistency",
+            "productionConsistency",
+            "startSymbolConsistency",
+            "dependencyConsistency"
+        )
+    }
 }
