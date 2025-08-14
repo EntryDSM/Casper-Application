@@ -2,6 +2,7 @@ package hs.kr.entrydsm.domain.parser.specifications
 
 import hs.kr.entrydsm.domain.lexer.entities.Token
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 import hs.kr.entrydsm.global.annotation.specification.Specification
 import hs.kr.entrydsm.global.annotation.specification.type.Priority
 
@@ -129,8 +130,9 @@ class ParsingValiditySpec {
      */
     private fun hasValidLength(tokens: List<Token>): Boolean {
         if (tokens.size > MAX_TOKEN_SEQUENCE_LENGTH) {
-            throw IllegalArgumentException(
-                "토큰 시퀀스가 최대 길이를 초과했습니다: ${tokens.size} > $MAX_TOKEN_SEQUENCE_LENGTH"
+            throw ParserException.tokenSequenceExceedsLimit(
+                count = tokens.size,
+                limit = MAX_TOKEN_SEQUENCE_LENGTH
             )
         }
         return true
@@ -217,8 +219,9 @@ class ParsingValiditySpec {
             }
             
             if (maxDepth > MAX_NESTING_DEPTH) {
-                throw IllegalArgumentException(
-                    "중첩 깊이가 최대값을 초과했습니다: $maxDepth > $MAX_NESTING_DEPTH"
+                throw ParserException.nestingDepthExceedsLimit(
+                    depth = maxDepth,
+                    limit = MAX_NESTING_DEPTH
                 )
             }
         }
@@ -234,8 +237,9 @@ class ParsingValiditySpec {
         val complexity = calculateComplexity(tokens)
         
         if (complexity > MAX_EXPRESSION_COMPLEXITY) {
-            throw IllegalArgumentException(
-                "표현식 복잡도가 최대값을 초과했습니다: $complexity > $MAX_EXPRESSION_COMPLEXITY"
+            throw ParserException.expressionComplexityExceedsLimit(
+                complexity = complexity,
+                limit = MAX_EXPRESSION_COMPLEXITY
             )
         }
         
@@ -551,15 +555,32 @@ class ParsingValiditySpec {
      * @return 설정 정보 맵
      */
     fun getSpecificationInfo(): Map<String, Any> = mapOf(
-        "name" to "ParsingValiditySpec",
-        "maxTokenSequenceLength" to MAX_TOKEN_SEQUENCE_LENGTH,
-        "maxNestingDepth" to MAX_NESTING_DEPTH,
-        "maxExpressionComplexity" to MAX_EXPRESSION_COMPLEXITY,
-        "supportedValidations" to listOf(
-            "length", "structure", "balancedDelimiters", "tokenOrder",
-            "nestingDepth", "expressionComplexity", "completeness",
-            "arithmeticExpression", "logicalExpression", "functionCall",
+        "name" to ParsingValiditySpecConstants.NAME,
+        "maxTokenSequenceLength" to ParsingValiditySpecConstants.MAX_TOKEN_SEQUENCE_LENGTH,
+        "maxNestingDepth" to ParsingValiditySpecConstants.MAX_NESTING_DEPTH,
+        "maxExpressionComplexity" to ParsingValiditySpecConstants.MAX_EXPRESSION_COMPLEXITY,
+        "supportedValidations" to ParsingValiditySpecConstants.SUPPORTED_VALIDATIONS
+    )
+
+    object ParsingValiditySpecConstants {
+        const val NAME = "ParsingValiditySpec"
+        const val MAX_TOKEN_SEQUENCE_LENGTH = 200   // 기존 값 유지
+        const val MAX_NESTING_DEPTH = 50
+        const val MAX_EXPRESSION_COMPLEXITY = 1000
+
+        val SUPPORTED_VALIDATIONS = listOf(
+            "length",
+            "structure",
+            "balancedDelimiters",
+            "tokenOrder",
+            "nestingDepth",
+            "expressionComplexity",
+            "completeness",
+            "arithmeticExpression",
+            "logicalExpression",
+            "functionCall",
             "conditionalExpression"
         )
-    )
+    }
+
 }
