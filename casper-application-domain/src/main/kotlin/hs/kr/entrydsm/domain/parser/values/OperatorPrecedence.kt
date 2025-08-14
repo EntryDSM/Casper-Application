@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.domain.parser.values
 
 import hs.kr.entrydsm.domain.lexer.entities.TokenType
+import hs.kr.entrydsm.domain.parser.exceptions.ParserException
 
 /**
  * 연산자의 우선순위와 결합성을 나타내는 값 객체입니다.
@@ -22,7 +23,9 @@ data class OperatorPrecedence(
 ) {
     
     init {
-        require(precedence >= 0) { "우선순위는 0 이상이어야 합니다: $precedence" }
+        if (precedence < 0) {
+            throw ParserException.precedenceNegative(precedence)
+        }
     }
 
     /**
