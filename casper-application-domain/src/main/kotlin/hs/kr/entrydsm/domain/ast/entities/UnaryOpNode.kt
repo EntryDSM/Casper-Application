@@ -83,21 +83,21 @@ data class UnaryOpNode(
      *
      * @return 음수 연산자이면 true, 아니면 false
      */
-    fun isNegation(): Boolean = operator == "-"
+    fun isNegation(): Boolean = operator == MINUS
 
     /**
      * 연산자가 논리 부정 연산자인지 확인합니다.
      *
      * @return 논리 부정 연산자이면 true, 아니면 false
      */
-    fun isLogicalNot(): Boolean = operator == "!"
+    fun isLogicalNot(): Boolean = operator == EXCLAMATION
 
     /**
      * 연산자가 양수 표시 연산자인지 확인합니다.
      *
      * @return 양수 표시 연산자이면 true, 아니면 false
      */
-    fun isPositive(): Boolean = operator == "+"
+    fun isPositive(): Boolean = operator == PLUS
 
     /**
      * 연산자의 우선순위를 반환합니다.
@@ -221,6 +221,11 @@ data class UnaryOpNode(
     }
 
     companion object {
+
+        const val MINUS = "-"
+        const val PLUS = "+"
+        const val EXCLAMATION = "!"
+
         /**
          * 지원되는 모든 단항 연산자 목록입니다.
          */
