@@ -389,46 +389,55 @@ sealed class RepositoryError(
     val message: String,
     val cause: Throwable? = null
 ) {
-    
+    companion object {
+        const val MSG_NOT_FOUND = "집합 루트를 찾을 수 없습니다"
+        const val MSG_CONNECTION_ERROR = "연결 오류"
+        const val MSG_DATA_INTEGRITY_ERROR = "데이터 무결성 오류"
+        const val MSG_CONCURRENCY_ERROR = "동시성 오류"
+        const val MSG_PERMISSION_ERROR = "권한 오류"
+        const val MSG_VALIDATION_ERROR = "검증 오류"
+        const val MSG_UNKNOWN_ERROR = "알 수 없는 오류"
+    }
+
     /**
      * 집합 루트를 찾을 수 없는 오류입니다.
      */
-    data class NotFound(val id: Any) : RepositoryError("집합 루트를 찾을 수 없습니다: $id")
-    
+    data class NotFound(val id: Any) : RepositoryError("${MSG_NOT_FOUND}: $id")
+
     /**
      * 연결 오류입니다.
      */
-    data class ConnectionError(val reason: String, val throwable: Throwable? = null) : 
-        RepositoryError("연결 오류: $reason", throwable)
-    
+    data class ConnectionError(val reason: String, val throwable: Throwable? = null) :
+        RepositoryError("${MSG_CONNECTION_ERROR}: $reason", throwable)
+
     /**
      * 데이터 무결성 오류입니다.
      */
-    data class DataIntegrityError(val reason: String, val throwable: Throwable? = null) : 
-        RepositoryError("데이터 무결성 오류: $reason", throwable)
-    
+    data class DataIntegrityError(val reason: String, val throwable: Throwable? = null) :
+        RepositoryError("${MSG_DATA_INTEGRITY_ERROR}: $reason", throwable)
+
     /**
      * 동시성 오류입니다.
      */
-    data class ConcurrencyError(val reason: String, val throwable: Throwable? = null) : 
-        RepositoryError("동시성 오류: $reason", throwable)
-    
+    data class ConcurrencyError(val reason: String, val throwable: Throwable? = null) :
+        RepositoryError("${MSG_CONCURRENCY_ERROR}: $reason", throwable)
+
     /**
      * 권한 오류입니다.
      */
-    data class PermissionError(val reason: String) : RepositoryError("권한 오류: $reason")
-    
+    data class PermissionError(val reason: String) : RepositoryError("${MSG_PERMISSION_ERROR}: $reason")
+
     /**
      * 검증 오류입니다.
      */
-    data class ValidationError(val violations: List<String>) : 
-        RepositoryError("검증 오류: ${violations.joinToString(", ")}")
-    
+    data class ValidationError(val violations: List<String>) :
+        RepositoryError("${MSG_VALIDATION_ERROR}: ${violations.joinToString(", ")}")
+
     /**
      * 알 수 없는 오류입니다.
      */
-    data class UnknownError(val reason: String, val throwable: Throwable? = null) : 
-        RepositoryError("알 수 없는 오류: $reason", throwable)
+    data class UnknownError(val reason: String, val throwable: Throwable? = null) :
+        RepositoryError("${MSG_UNKNOWN_ERROR}: $reason", throwable)
 }
 
 /**
