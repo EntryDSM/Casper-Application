@@ -1,8 +1,5 @@
 package hs.kr.entrydsm.domain.ast.entities
 
-import hs.kr.entrydsm.domain.ast.entities.ASTNode
-import hs.kr.entrydsm.domain.ast.entities.BooleanNode
-import hs.kr.entrydsm.domain.ast.entities.NumberNode
 import hs.kr.entrydsm.domain.ast.exceptions.ASTException
 import hs.kr.entrydsm.domain.ast.interfaces.ASTVisitor
 import hs.kr.entrydsm.global.annotation.entities.Entity
@@ -43,7 +40,7 @@ data class IfNode(
 
     override fun copy(): IfNode = IfNode(condition.copy(), trueValue.copy(), falseValue.copy())
 
-    override fun toSimpleString(): String = "IF(${condition.toSimpleString()}, ${trueValue.toSimpleString()}, ${falseValue.toSimpleString()})"
+    override fun toSimpleString(): String = "$IF(${condition.toSimpleString()}, ${trueValue.toSimpleString()}, ${falseValue.toSimpleString()})"
 
     override fun <T> accept(visitor: ASTVisitor<T>): T = visitor.visitIf(this)
 
@@ -244,17 +241,25 @@ data class IfNode(
     override fun toTreeString(indent: Int): String {
         val spaces = "  ".repeat(indent)
         return buildString {
-            appendLine("${spaces}IfNode:")
-            appendLine("${spaces}  condition:")
+            appendLine("${spaces}$IF_NODE")
+            appendLine("${spaces}  $CONDITION")
             appendLine(condition.toTreeString(indent + 2))
-            appendLine("${spaces}  trueValue:")
+            appendLine("${spaces}  $TRUE_VALUE")
             appendLine(trueValue.toTreeString(indent + 2))
-            appendLine("${spaces}  falseValue:")
+            appendLine("${spaces}  $FALSE_VALUE")
             append(falseValue.toTreeString(indent + 2))
         }
     }
 
     companion object {
+
+        const val IF = "IF"
+        const val IF_NODE = "IfNode:"
+        const val CONDITION = "condition:"
+        const val TRUE_VALUE = "trueValue:"
+        const val FALSE_VALUE = "falseValue:"
+        const val LOGICAL_AND = "&&"
+
         /**
          * 불린 조건으로 IF 노드를 생성합니다.
          *
@@ -327,7 +332,7 @@ data class IfNode(
                 conditions.isEmpty() -> BooleanNode.TRUE
                 conditions.size == 1 -> conditions.first()
                 else -> conditions.reduce { acc, condition ->
-                    BinaryOpNode(acc, "&&", condition)
+                    BinaryOpNode(acc, LOGICAL_AND, condition)
                 }
             }
         }
