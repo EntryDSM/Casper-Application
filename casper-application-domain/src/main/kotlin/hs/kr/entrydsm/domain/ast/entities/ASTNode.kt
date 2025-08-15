@@ -21,7 +21,7 @@ sealed class ASTNode : EntityMarker {
     
     private val id: String = java.util.UUID.randomUUID().toString()
     
-    override fun getDomainContext(): String = "ast"
+    override fun getDomainContext(): String = AST
     
     override fun getIdentifier(): String = id
 
@@ -40,7 +40,7 @@ sealed class ASTNode : EntityMarker {
      *
      * @return 노드 타입 문자열
      */
-    fun getNodeType(): String = this::class.simpleName ?: "UnknownNode"
+    fun getNodeType(): String = this::class.simpleName ?: UNKNOWN_NODE
 
     /**
      * AST 노드가 리터럴 값인지 확인합니다.
@@ -189,6 +189,9 @@ sealed class ASTNode : EntityMarker {
             "nodeCount" to node.getNodeCount(),
             "variables" to node.getVariables()
         )
+
+        const val AST = "ast"
+        const val UNKNOWN_NODE = "UnknownNode"
     }
 }
 
