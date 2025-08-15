@@ -25,6 +25,54 @@ import hs.kr.entrydsm.global.annotation.policy.type.Scope
 )
 class ASTValidationPolicy {
 
+    object ErrorMessages {
+        // 숫자 노드 관련 메시지
+        const val NUMBER_NOT_FINITE = "숫자 값은 유한해야 합니다"
+        const val NUMBER_IS_NAN = "숫자 값은 NaN이 될 수 없습니다"
+        const val NUMBER_EXCEEDS_MAX = "숫자 값이 최대값을 초과합니다"
+        const val NUMBER_BELOW_MIN = "숫자 값이 최소값을 미만입니다"
+
+        // 변수 노드 관련 메시지
+        const val VARIABLE_NAME_BLANK = "변수명은 비어있을 수 없습니다"
+        const val VARIABLE_NAME_TOO_LONG = "변수명이 최대 길이를 초과합니다"
+        const val VARIABLE_NAME_INVALID = "유효하지 않은 변수명입니다"
+        const val VARIABLE_NAME_RESERVED = "예약어는 변수명으로 사용할 수 없습니다"
+
+        // 연산자 관련 메시지
+        const val OPERATOR_BLANK = "연산자는 비어있을 수 없습니다"
+        const val BINARY_OPERATOR_UNSUPPORTED = "지원되지 않는 이항 연산자입니다"
+        const val UNARY_OPERATOR_UNSUPPORTED = "지원되지 않는 단항 연산자입니다"
+        const val DIVISION_BY_ZERO = "0으로 나눌 수 없습니다"
+        const val MODULO_BY_ZERO = "0으로 나눈 나머지를 구할 수 없습니다"
+
+        // 피연산자 관련 메시지
+        const val LEFT_OPERAND_INVALID = "좌측 피연산자가 유효하지 않습니다"
+        const val RIGHT_OPERAND_INVALID = "우측 피연산자가 유효하지 않습니다"
+        const val OPERAND_INVALID = "피연산자가 유효하지 않습니다"
+
+        // 함수 관련 메시지
+        const val FUNCTION_NAME_BLANK = "함수명은 비어있을 수 없습니다"
+        const val FUNCTION_NAME_TOO_LONG = "함수명이 최대 길이를 초과합니다"
+        const val FUNCTION_NAME_INVALID = "유효하지 않은 함수명입니다"
+        const val FUNCTION_ARGS_EXCEED_MAX = "함수 인수 개수가 최대값을 초과합니다"
+        const val FUNCTION_ARG_INVALID = "인수가 유효하지 않습니다"
+
+        // 조건문 관련 메시지
+        const val CONDITION_INVALID = "조건식이 유효하지 않습니다"
+        const val TRUE_VALUE_INVALID = "참 값이 유효하지 않습니다"
+        const val FALSE_VALUE_INVALID = "거짓 값이 유효하지 않습니다"
+        const val NESTING_DEPTH_EXCEEDED = "중첩 깊이가 최대값을 초과합니다"
+
+        // 인수 관련 메시지
+        const val ARGUMENTS_COUNT_EXCEEDED = "인수 개수가 최대값을 초과합니다"
+        const val ARGUMENT_INVALID = "인수가 유효하지 않습니다"
+
+        // 노드 일반 검증 메시지
+        const val NODE_SIZE_EXCEEDED = "노드 크기가 최대값을 초과합니다"
+        const val NODE_DEPTH_EXCEEDED = "노드 깊이가 최대값을 초과합니다"
+        const val VARIABLES_PER_NODE_EXCEEDED = "노드당 변수 개수가 최대값을 초과합니다"
+    }
+
     /**
      * 숫자 노드 생성 정책을 검증합니다.
      *
@@ -33,28 +81,28 @@ class ASTValidationPolicy {
      */
     fun validateNumberCreation(value: Double): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         if (!value.isFinite()) {
-            violations.add("숫자 값은 유한해야 합니다: $value")
+            violations.add("${ErrorMessages.NUMBER_NOT_FINITE}: $value")
         }
-        
+
         if (value.isNaN()) {
-            violations.add("숫자 값은 NaN이 될 수 없습니다")
+            violations.add(ErrorMessages.NUMBER_IS_NAN)
         }
-        
+
         // 너무 큰 값 검증
         if (value > MAX_NUMBER_VALUE) {
-            violations.add("숫자 값이 최대값을 초과합니다: $value > $MAX_NUMBER_VALUE")
+            violations.add("${ErrorMessages.NUMBER_EXCEEDS_MAX}: $value > $MAX_NUMBER_VALUE")
         }
-        
+
         if (value < MIN_NUMBER_VALUE) {
-            violations.add("숫자 값이 최소값을 미만입니다: $value < $MIN_NUMBER_VALUE")
+            violations.add("${ErrorMessages.NUMBER_BELOW_MIN}: $value < $MIN_NUMBER_VALUE")
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "숫자 노드 생성 정책")
+            data = mapOf("policyName" to NUMBER_NODE_POLICY)
         )
     }
 
@@ -69,7 +117,7 @@ class ASTValidationPolicy {
         return PolicyResult(
             success = true,
             message = "",
-            data = mapOf("policyName" to "불리언 노드 생성 정책")
+            data = mapOf("policyName" to BOOLEAN_NODE_POLICY)
         )
     }
 
@@ -81,27 +129,27 @@ class ASTValidationPolicy {
      */
     fun validateVariableCreation(name: String): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         if (name.isBlank()) {
-            violations.add("변수명은 비어있을 수 없습니다")
+            violations.add(ErrorMessages.VARIABLE_NAME_BLANK)
         }
-        
+
         if (name.length > MAX_VARIABLE_NAME_LENGTH) {
-            violations.add("변수명이 최대 길이를 초과합니다: ${name.length} > $MAX_VARIABLE_NAME_LENGTH")
+            violations.add("${ErrorMessages.VARIABLE_NAME_TOO_LONG}: ${name.length} > $MAX_VARIABLE_NAME_LENGTH")
         }
-        
+
         if (!isValidVariableName(name)) {
-            violations.add("유효하지 않은 변수명입니다: $name")
+            violations.add("${ErrorMessages.VARIABLE_NAME_INVALID}: $name")
         }
-        
+
         if (isReservedWord(name)) {
-            violations.add("예약어는 변수명으로 사용할 수 없습니다: $name")
+            violations.add("${ErrorMessages.VARIABLE_NAME_RESERVED}: $name")
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "변수 노드 생성 정책")
+            data = mapOf("policyName" to VARIABLE_NODE_POLICY)
         )
     }
 
@@ -115,44 +163,44 @@ class ASTValidationPolicy {
      */
     fun validateBinaryOpCreation(left: ASTNode, operator: String, right: ASTNode): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         if (operator.isBlank()) {
-            violations.add("연산자는 비어있을 수 없습니다")
+            violations.add(ErrorMessages.OPERATOR_BLANK)
         }
-        
+
         if (!isSupportedBinaryOperator(operator)) {
-            violations.add("지원되지 않는 이항 연산자입니다: $operator")
+            violations.add("${ErrorMessages.BINARY_OPERATOR_UNSUPPORTED}: $operator")
         }
-        
+
         // 피연산자 검증
         val leftValidation = validateNode(left)
         if (!leftValidation.success) {
-            violations.add("좌측 피연산자가 유효하지 않습니다: ${leftValidation.message}")
+            violations.add("${ErrorMessages.LEFT_OPERAND_INVALID}: ${leftValidation.message}")
         }
-        
+
         val rightValidation = validateNode(right)
         if (!rightValidation.success) {
-            violations.add("우측 피연산자가 유효하지 않습니다: ${rightValidation.message}")
+            violations.add("${ErrorMessages.RIGHT_OPERAND_INVALID}: ${rightValidation.message}")
         }
-        
+
         // 연산자별 특별 검증
         when (operator) {
             "/" -> {
                 if (isZeroConstant(right)) {
-                    violations.add("0으로 나눌 수 없습니다")
+                    violations.add(ErrorMessages.DIVISION_BY_ZERO)
                 }
             }
             "%" -> {
                 if (isZeroConstant(right)) {
-                    violations.add("0으로 나눈 나머지를 구할 수 없습니다")
+                    violations.add(ErrorMessages.MODULO_BY_ZERO)
                 }
             }
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "이항 연산 노드 생성 정책")
+            data = mapOf("policyName" to BINARY_OPERATION_NODE_POLICY)
         )
     }
 
@@ -165,25 +213,25 @@ class ASTValidationPolicy {
      */
     fun validateUnaryOpCreation(operator: String, operand: ASTNode): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         if (operator.isBlank()) {
-            violations.add("연산자는 비어있을 수 없습니다")
+            violations.add(ErrorMessages.OPERATOR_BLANK)
         }
-        
+
         if (!isSupportedUnaryOperator(operator)) {
-            violations.add("지원되지 않는 단항 연산자입니다: $operator")
+            violations.add("${ErrorMessages.UNARY_OPERATOR_UNSUPPORTED}: $operator")
         }
-        
+
         // 피연산자 검증
         val operandValidation = validateNode(operand)
         if (!operandValidation.success) {
-            violations.add("피연산자가 유효하지 않습니다: ${operandValidation.message}")
+            violations.add("${ErrorMessages.OPERAND_INVALID}: ${operandValidation.message}")
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "단항 연산 노드 생성 정책")
+            data = mapOf("policyName" to UNARY_OPERATION_NODE_POLICY)
         )
     }
 
@@ -196,35 +244,35 @@ class ASTValidationPolicy {
      */
     fun validateFunctionCallCreation(name: String, args: List<ASTNode>): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         if (name.isBlank()) {
-            violations.add("함수명은 비어있을 수 없습니다")
+            violations.add(ErrorMessages.FUNCTION_NAME_BLANK)
         }
-        
+
         if (name.length > MAX_FUNCTION_NAME_LENGTH) {
-            violations.add("함수명이 최대 길이를 초과합니다: ${name.length} > $MAX_FUNCTION_NAME_LENGTH")
+            violations.add("${ErrorMessages.FUNCTION_NAME_TOO_LONG}: ${name.length} > $MAX_FUNCTION_NAME_LENGTH")
         }
-        
+
         if (!isValidFunctionName(name)) {
-            violations.add("유효하지 않은 함수명입니다: $name")
+            violations.add("${ErrorMessages.FUNCTION_NAME_INVALID}: $name")
         }
-        
+
         if (args.size > MAX_FUNCTION_ARGS) {
-            violations.add("함수 인수 개수가 최대값을 초과합니다: ${args.size} > $MAX_FUNCTION_ARGS")
+            violations.add("${ErrorMessages.FUNCTION_ARGS_EXCEED_MAX}: ${args.size} > $MAX_FUNCTION_ARGS")
         }
-        
+
         // 각 인수 검증
         args.forEachIndexed { index, arg ->
             val argValidation = validateNode(arg)
             if (!argValidation.success) {
-                violations.add("인수 $index 가 유효하지 않습니다: ${argValidation.message}")
+                violations.add("${ErrorMessages.FUNCTION_ARG_INVALID} $index: ${argValidation.message}")
             }
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "함수 호출 노드 생성 정책")
+            data = mapOf("policyName" to FUNCTION_CALL_NODE_POLICY)
         )
     }
 
@@ -238,37 +286,37 @@ class ASTValidationPolicy {
      */
     fun validateIfCreation(condition: ASTNode, trueValue: ASTNode, falseValue: ASTNode): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         // 조건식 검증
         val conditionValidation = validateNode(condition)
         if (!conditionValidation.success) {
-            violations.add("조건식이 유효하지 않습니다: ${conditionValidation.message}")
+            violations.add("${ErrorMessages.CONDITION_INVALID}: ${conditionValidation.message}")
         }
-        
+
         // 참 값 검증
         val trueValidation = validateNode(trueValue)
         if (!trueValidation.success) {
-            violations.add("참 값이 유효하지 않습니다: ${trueValidation.message}")
+            violations.add("${ErrorMessages.TRUE_VALUE_INVALID}: ${trueValidation.message}")
         }
-        
+
         // 거짓 값 검증
         val falseValidation = validateNode(falseValue)
         if (!falseValidation.success) {
-            violations.add("거짓 값이 유효하지 않습니다: ${falseValidation.message}")
+            violations.add("${ErrorMessages.FALSE_VALUE_INVALID}: ${falseValidation.message}")
         }
-        
+
         // 중첩 깊이 검증
-        val nestingDepth = calculateIfNodeNestingDepth(condition) + 
-                          calculateIfNodeNestingDepth(trueValue) + 
-                          calculateIfNodeNestingDepth(falseValue)
+        val nestingDepth = calculateIfNodeNestingDepth(condition) +
+                calculateIfNodeNestingDepth(trueValue) +
+                calculateIfNodeNestingDepth(falseValue)
         if (nestingDepth > MAX_NESTING_DEPTH) {
-            violations.add("중첩 깊이가 최대값을 초과합니다: $nestingDepth > $MAX_NESTING_DEPTH")
+            violations.add("${ErrorMessages.NESTING_DEPTH_EXCEEDED}: $nestingDepth > $MAX_NESTING_DEPTH")
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "조건문 노드 생성 정책")
+            data = mapOf("policyName" to IF_NODE_POLICY)
         )
     }
 
@@ -280,23 +328,23 @@ class ASTValidationPolicy {
      */
     fun validateArgumentsCreation(arguments: List<ASTNode>): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         if (arguments.size > MAX_ARGUMENTS_COUNT) {
-            violations.add("인수 개수가 최대값을 초과합니다: ${arguments.size} > $MAX_ARGUMENTS_COUNT")
+            violations.add("${ErrorMessages.ARGUMENTS_COUNT_EXCEEDED}: ${arguments.size} > $MAX_ARGUMENTS_COUNT")
         }
-        
+
         // 각 인수 검증
         arguments.forEachIndexed { index, arg ->
             val argValidation = validateNode(arg)
             if (!argValidation.success) {
-                violations.add("인수 $index 가 유효하지 않습니다: ${argValidation.message}")
+                violations.add("${ErrorMessages.ARGUMENT_INVALID} $index: ${argValidation.message}")
             }
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "인수 목록 노드 생성 정책")
+            data = mapOf("policyName" to ARGUMENT_LIST_POLICY)
         )
     }
 
@@ -308,26 +356,26 @@ class ASTValidationPolicy {
      */
     fun validateNode(node: ASTNode): PolicyResult {
         val violations = mutableListOf<String>()
-        
+
         // 노드 크기 검증
         if (node.getSize() > MAX_NODE_SIZE) {
-            violations.add("노드 크기가 최대값을 초과합니다: ${node.getSize()} > $MAX_NODE_SIZE")
+            violations.add("${ErrorMessages.NODE_SIZE_EXCEEDED}: ${node.getSize()} > $MAX_NODE_SIZE")
         }
-        
+
         // 노드 깊이 검증
         if (node.getDepth() > MAX_NODE_DEPTH) {
-            violations.add("노드 깊이가 최대값을 초과합니다: ${node.getDepth()} > $MAX_NODE_DEPTH")
+            violations.add("${ErrorMessages.NODE_DEPTH_EXCEEDED}: ${node.getDepth()} > $MAX_NODE_DEPTH")
         }
-        
+
         // 변수 개수 검증
         if (node.getVariables().size > MAX_VARIABLES_PER_NODE) {
-            violations.add("노드당 변수 개수가 최대값을 초과합니다: ${node.getVariables().size} > $MAX_VARIABLES_PER_NODE")
+            violations.add("${ErrorMessages.VARIABLES_PER_NODE_EXCEEDED}: ${node.getVariables().size} > $MAX_VARIABLES_PER_NODE")
         }
-        
+
         return PolicyResult(
             success = violations.isEmpty(),
             message = violations.joinToString("; "),
-            data = mapOf("policyName" to "노드 일반 검증 정책")
+            data = mapOf("policyName" to NODE_GENERAL_VERIFICATION_POLICY)
         )
     }
 
@@ -365,6 +413,16 @@ class ASTValidationPolicy {
         private const val MAX_NODE_DEPTH = 50
         private const val MAX_VARIABLES_PER_NODE = 100
         private const val MAX_NESTING_DEPTH = 20
+
+        private const val NUMBER_NODE_POLICY = "숫자 노드 생성 정책"
+        private const val BOOLEAN_NODE_POLICY = "불리언 노드 생성 정책"
+        private const val VARIABLE_NODE_POLICY = "변수 노드 생성 정책"
+        private const val BINARY_OPERATION_NODE_POLICY = "이항 연산 노드 생성 정책"
+        private const val UNARY_OPERATION_NODE_POLICY = "단항 연산 노드 생성 정책"
+        private const val FUNCTION_CALL_NODE_POLICY = "함수 호출 노드 생성 정책"
+        private const val IF_NODE_POLICY = "조건문 노드 생성 정책"
+        private const val ARGUMENT_LIST_POLICY = "인수 목록 노드 생성 정책"
+        private const val NODE_GENERAL_VERIFICATION_POLICY = "노드 일반 검증 정책"
 
         // 중복 상수들을 ASTValidationUtils로 대체
         // RESERVED_WORDS, BINARY_OPERATORS, UNARY_OPERATORS는 ASTValidationUtils에서 관리
