@@ -221,54 +221,64 @@ sealed class TranslationError(
     val message: String,
     val cause: Throwable? = null
 ) {
+    companion object {
+        private const val MAPPING_ERROR = "매핑 규칙 오류"
+        private const val DATA_TYPE_ERROR = "데이터 타입 오류"
+        private const val OMISSION_REQUIRE_FIELD = "필수 필드 누락"
+        private const val VALID_ERROR = "검증 오류"
+        private const val VERSION_ERROR = "버전 호환성 오류"
+        private const val EXTERNAL_SYSTEM_ERROR = "외부 시스템 오류"
+        private const val CONFIGURATION_ERROR = "설정 오류"
+        private const val UNKNOWN_ERROR = "알 수 없는 오류"
+    }
     
     /**
      * 매핑 규칙 오류입니다.
      */
     data class MappingRuleError(val field: String, val reason: String) : 
-        TranslationError("매핑 규칙 오류 [$field]: $reason")
+        TranslationError("$MAPPING_ERROR [$field]: $reason")
     
     /**
      * 데이터 타입 오류입니다.
      */
     data class DataTypeError(val expectedType: String, val actualType: String) : 
-        TranslationError("데이터 타입 오류: 예상 $expectedType, 실제 $actualType")
+        TranslationError("$DATA_TYPE_ERROR: 예상 $expectedType, 실제 $actualType")
     
     /**
      * 필수 필드 누락 오류입니다.
      */
     data class MissingFieldError(val fieldName: String) : 
-        TranslationError("필수 필드 누락: $fieldName")
+        TranslationError("$OMISSION_REQUIRE_FIELD: $fieldName")
     
     /**
      * 검증 오류입니다.
      */
     data class ValidationError(val violations: List<String>) : 
-        TranslationError("검증 오류: ${violations.joinToString(", ")}")
+        TranslationError("$VALID_ERROR: ${violations.joinToString(", ")}")
     
     /**
      * 버전 호환성 오류입니다.
      */
     data class VersionCompatibilityError(val sourceVersion: String, val targetVersion: String) : 
-        TranslationError("버전 호환성 오류: $sourceVersion -> $targetVersion")
+        TranslationError("$VERSION_ERROR: $sourceVersion -> $targetVersion")
     
     /**
      * 외부 시스템 오류입니다.
      */
     data class ExternalSystemError(val systemName: String, val reason: String, val throwable: Throwable? = null) : 
-        TranslationError("외부 시스템 오류 [$systemName]: $reason", throwable)
+        TranslationError("$EXTERNAL_SYSTEM_ERROR [$systemName]: $reason", throwable)
     
     /**
      * 설정 오류입니다.
      */
     data class ConfigurationError(val reason: String) : 
-        TranslationError("설정 오류: $reason")
+        TranslationError("$CONFIGURATION_ERROR: $reason")
     
     /**
      * 알 수 없는 오류입니다.
      */
     data class UnknownError(val reason: String, val throwable: Throwable? = null) : 
-        TranslationError("알 수 없는 오류: $reason", throwable)
+        TranslationError("$UNKNOWN_ERROR: $reason", throwable)
 }
 
 /**
