@@ -23,16 +23,38 @@ data class Position(
 ) {
     
     init {
-        require(index >= 0) { "인덱스는 0 이상이어야 합니다: $index" }
-        require(line >= 1) { "줄 번호는 1 이상이어야 합니다: $line" }
-        require(column >= 1) { "컬럼 번호는 1 이상이어야 합니다: $column" }
+        require(index >= MIN_INDEX) { "$MSG_INVALID_INDEX: $index" }
+        require(line >= MIN_LINE) { "$MSG_INVALID_LINE: $line" }
+        require(column >= MIN_COLUMN) { "$MSG_INVALID_COLUMN: $column" }
     }
 
     companion object {
+
+        // 기본값 상수
+        const val MIN_INDEX = 0
+        const val MIN_LINE = 1
+        const val MIN_COLUMN = 1
+        const val DEFAULT_LINE = 1
+        const val LINE_INCREMENT = 1
+        const val COLUMN_RESET = 1
+        const val COLUMN_INCREMENT = 1
+        const val INDEX_INCREMENT = 1
+        const val MIN_COUNT = 0
+
+        // 문자 상수
+        const val NEWLINE_CHAR = '\n'
+
+        // 에러 메시지 상수
+        const val MSG_INVALID_INDEX = "인덱스는 0 이상이어야 합니다"
+        const val MSG_INVALID_LINE = "줄 번호는 1 이상이어야 합니다"
+        const val MSG_INVALID_COLUMN = "컬럼 번호는 1 이상이어야 합니다"
+        const val MSG_INVALID_COUNT = "이동 개수는 0 이상이어야 합니다"
+        const val MSG_INDEX_OUT_OF_BOUNDS = "인덱스가 텍스트 길이를 초과합니다"
+
         /**
          * 시작 위치를 나타내는 상수입니다.
          */
-        val START = Position(0, 1, 1)
+        val START = Position(MIN_INDEX, MIN_LINE, MIN_COLUMN)
 
         /**
          * 인덱스만으로 위치를 생성합니다.
@@ -41,7 +63,7 @@ data class Position(
          * @param index 문자 인덱스
          * @return Position 인스턴스
          */
-        fun of(index: Int): Position = Position(index, 1, index + 1)
+        fun of(index: Int): Position = Position(index, DEFAULT_LINE, index + MIN_COLUMN)
 
         /**
          * 텍스트와 인덱스를 기반으로 정확한 위치를 계산합니다.
@@ -51,18 +73,18 @@ data class Position(
          * @return 계산된 Position 인스턴스
          */
         fun calculate(text: String, index: Int): Position {
-            require(index >= 0) { "인덱스는 0 이상이어야 합니다: $index" }
-            require(index <= text.length) { "인덱스가 텍스트 길이를 초과합니다: $index > ${text.length}" }
+            require(index >= MIN_INDEX) { "$MSG_INVALID_INDEX: $index" }
+            require(index <= text.length) { "$MSG_INDEX_OUT_OF_BOUNDS: $index > ${text.length}" }
 
-            var line = 1
-            var column = 1
+            var line = MIN_LINE
+            var column = MIN_COLUMN
 
-            for (i in 0 until index) {
-                if (text[i] == '\n') {
-                    line++
-                    column = 1
+            for (i in MIN_INDEX until index) {
+                if (text[i] == NEWLINE_CHAR) {
+                    line += LINE_INCREMENT
+                    column = COLUMN_RESET
                 } else {
-                    column++
+                    column += COLUMN_INCREMENT
                 }
             }
 
@@ -77,9 +99,9 @@ data class Position(
      * @return 다음 위치의 Position 인스턴스
      */
     fun next(isNewLine: Boolean = false): Position = if (isNewLine) {
-        Position(index + 1, line + 1, 1)
+        Position(index + INDEX_INCREMENT, line + LINE_INCREMENT, COLUMN_RESET)
     } else {
-        Position(index + 1, line, column + 1)
+        Position(index + INDEX_INCREMENT, line, column + COLUMN_INCREMENT)
     }
 
     /**
@@ -89,7 +111,7 @@ data class Position(
      * @return 이동된 Position 인스턴스
      */
     fun advance(count: Int): Position {
-        require(count >= 0) { "이동 개수는 0 이상이어야 합니다: $count" }
+        require(count >= MIN_COUNT) { "$MSG_INVALID_COUNT: $count" }
         return Position(index + count, line, column + count)
     }
 
@@ -98,14 +120,14 @@ data class Position(
      *
      * @return 다음 줄의 첫 번째 컬럼 Position 인스턴스
      */
-    fun nextLine(): Position = Position(index + 1, line + 1, 1)
+    fun nextLine(): Position = Position(index + INDEX_INCREMENT, line + LINE_INCREMENT, COLUMN_RESET)
 
     /**
      * 다음 컬럼으로 이동한 위치를 반환합니다.
      *
      * @return 다음 컬럼 Position 인스턴스
      */
-    fun nextColumn(): Position = Position(index + 1, line, column + 1)
+    fun nextColumn(): Position = Position(index + INDEX_INCREMENT, line, column + COLUMN_INCREMENT)
 
     /**
      * 특정 위치까지의 거리를 계산합니다.
