@@ -30,6 +30,23 @@ class ASTNodeFactory {
     private val creationPolicy = NodeCreationPolicy()
 
     companion object {
+
+        private val ARITHMETIC_OPERATORS = setOf(
+            "+", "-", "*", "/", "^", "%"
+        )
+
+        private val COMPARISON_OPERATORS = setOf(
+            "==", "!=", "<", "<=", ">", ">="
+        )
+
+        private val LOGICAL_OPERATORS = setOf(
+            "&&", "||"
+        )
+
+        private const val PLUS = "+"
+        private const val EXCLAMATION = "!"
+        private const val MINUS = "-"
+
         /**
          * 지원되는 수학 함수 목록입니다.
          */
@@ -318,7 +335,7 @@ class ASTNodeFactory {
      * @return BinaryOpNode 인스턴스
      */
     fun createArithmeticOp(left: ASTNode, operator: String, right: ASTNode): BinaryOpNode {
-        if (operator !in setOf("+","-","*","/","^","%")) {
+        if (operator !in ARITHMETIC_OPERATORS) {
             throw ASTException.notArithmeticOperator(operator)
         }
         return createBinaryOp(left, operator, right)
@@ -333,7 +350,7 @@ class ASTNodeFactory {
      * @return BinaryOpNode 인스턴스
      */
     fun createComparisonOp(left: ASTNode, operator: String, right: ASTNode): BinaryOpNode {
-        if (operator !in setOf("==","!=", "<","<=" ,">",">=")) {
+        if (operator !in COMPARISON_OPERATORS) {
             throw ASTException.notComparisonOperator(operator)
         }
         return createBinaryOp(left, operator, right)
@@ -348,7 +365,7 @@ class ASTNodeFactory {
      * @return BinaryOpNode 인스턴스
      */
     fun createLogicalOp(left: ASTNode, operator: String, right: ASTNode): BinaryOpNode {
-        if (operator !in setOf("&&","||")) {
+        if (operator !in LOGICAL_OPERATORS) {
             throw ASTException.notLogicalOperator(operator)
         }
         return createBinaryOp(left, operator, right)
@@ -360,7 +377,7 @@ class ASTNodeFactory {
      * @param operand 피연산자
      * @return UnaryOpNode 인스턴스
      */
-    fun createUnaryMinus(operand: ASTNode): UnaryOpNode = createUnaryOp("-", operand)
+    fun createUnaryMinus(operand: ASTNode): UnaryOpNode = createUnaryOp(MINUS, operand)
 
     /**
      * 단항 플러스 노드를 생성합니다.
@@ -368,7 +385,7 @@ class ASTNodeFactory {
      * @param operand 피연산자
      * @return UnaryOpNode 인스턴스
      */
-    fun createUnaryPlus(operand: ASTNode): UnaryOpNode = createUnaryOp("+", operand)
+    fun createUnaryPlus(operand: ASTNode): UnaryOpNode = createUnaryOp(PLUS, operand)
 
     /**
      * 논리 부정 노드를 생성합니다.
@@ -376,7 +393,7 @@ class ASTNodeFactory {
      * @param operand 피연산자
      * @return UnaryOpNode 인스턴스
      */
-    fun createLogicalNot(operand: ASTNode): UnaryOpNode = createUnaryOp("!", operand)
+    fun createLogicalNot(operand: ASTNode): UnaryOpNode = createUnaryOp(EXCLAMATION, operand)
 
     /**
      * 수학 함수 호출 노드를 생성합니다.
