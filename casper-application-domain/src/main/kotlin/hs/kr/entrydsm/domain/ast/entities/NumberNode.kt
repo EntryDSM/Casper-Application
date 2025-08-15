@@ -192,10 +192,12 @@ data class NumberNode(val value: Double) : ASTNode() {
 
     override fun toTreeString(indent: Int): String {
         val spaces = "  ".repeat(indent)
-        return "${spaces}NumberNode: $value"
+        return "${spaces}$NUMBER_NODE: $value"
     }
 
     companion object {
+
+        const val NUMBER_NODE = "NumberNode:"
         /**
          * 부동소수점 비교를 위한 엡실론 값
          */
