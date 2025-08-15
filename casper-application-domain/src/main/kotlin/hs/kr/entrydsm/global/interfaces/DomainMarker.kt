@@ -76,7 +76,7 @@ interface DomainMarker {
  */
 interface AggregateRootMarker : DomainMarker {
     
-    override fun getDomainType(): String = "aggregate"
+    override fun getDomainType(): String = DomainMarkerObject.AGGREGATE
     
     override fun canRaiseDomainEvents(): Boolean = true
     
@@ -100,7 +100,7 @@ interface AggregateRootMarker : DomainMarker {
  */
 interface EntityMarker : DomainMarker {
     
-    override fun getDomainType(): String = "entity"
+    override fun getDomainType(): String = DomainMarkerObject.ENTITY
     
     /**
      * 엔티티의 고유 식별자를 반환합니다.
@@ -125,7 +125,7 @@ interface EntityMarker : DomainMarker {
  */
 interface ValueObjectMarker : DomainMarker {
     
-    override fun getDomainType(): String = "value"
+    override fun getDomainType(): String = DomainMarkerObject.VALUE
     
     override fun getIdentifier(): String? = null
     
@@ -151,7 +151,7 @@ interface ValueObjectMarker : DomainMarker {
  */
 interface DomainServiceMarker : DomainMarker {
     
-    override fun getDomainType(): String = "service"
+    override fun getDomainType(): String = DomainMarkerObject.SERVICE
     
     /**
      * 도메인 서비스가 상태를 가지는지 확인합니다.
@@ -173,7 +173,7 @@ interface DomainServiceMarker : DomainMarker {
  */
 interface FactoryMarker : DomainMarker {
     
-    override fun getDomainType(): String = "factory"
+    override fun getDomainType(): String = DomainMarkerObject.FACTORY
     
     /**
      * 팩토리가 생성할 수 있는 객체 타입들을 반환합니다.
@@ -187,7 +187,7 @@ interface FactoryMarker : DomainMarker {
      *
      * @return 복잡도 수준
      */
-    fun getComplexity(): String = "SIMPLE"
+    fun getComplexity(): String = DomainMarkerObject.SIMPLE
 }
 
 /**
@@ -195,14 +195,14 @@ interface FactoryMarker : DomainMarker {
  */
 interface PolicyMarker : DomainMarker {
     
-    override fun getDomainType(): String = "policy"
+    override fun getDomainType(): String = DomainMarkerObject.POLICY
     
     /**
      * 정책의 적용 범위를 반환합니다.
      *
      * @return 정책 적용 범위
      */
-    fun getPolicyScope(): String = "DOMAIN"
+    fun getPolicyScope(): String = DomainMarkerObject.DOMAIN
     
     /**
      * 정책의 우선순위를 반환합니다.
@@ -217,14 +217,14 @@ interface PolicyMarker : DomainMarker {
  */
 interface SpecificationMarker : DomainMarker {
     
-    override fun getDomainType(): String = "specification"
+    override fun getDomainType(): String = DomainMarkerObject.SPECIFICATION
     
     /**
      * 명세의 우선순위를 반환합니다.
      *
      * @return 우선순위
      */
-    fun getSpecificationPriority(): String = "NORMAL"
+    fun getSpecificationPriority(): String = DomainMarkerObject.NORMAL
     
     /**
      * 명세가 조합 가능한지 확인합니다.
@@ -239,7 +239,7 @@ interface SpecificationMarker : DomainMarker {
  */
 interface RepositoryMarker : DomainMarker {
     
-    override fun getDomainType(): String = "repository"
+    override fun getDomainType(): String = DomainMarkerObject.REPOSITORY
     
     /**
      * 리포지토리가 관리하는 집합 루트 타입을 반환합니다.
@@ -261,7 +261,7 @@ interface RepositoryMarker : DomainMarker {
  */
 interface DomainEventMarker : DomainMarker {
     
-    override fun getDomainType(): String = "event"
+    override fun getDomainType(): String = DomainMarkerObject.EVENT
     
     /**
      * 이벤트의 타입을 반환합니다.
@@ -290,7 +290,7 @@ interface DomainEventMarker : DomainMarker {
  */
 interface AntiCorruptionLayerMarker : DomainMarker {
     
-    override fun getDomainType(): String = "anti-corruption-layer"
+    override fun getDomainType(): String = DomainMarkerObject.ANTI_CORRUPTION_LAYER
     
     /**
      * 보호하는 도메인 컨텍스트를 반환합니다.
@@ -305,4 +305,20 @@ interface AntiCorruptionLayerMarker : DomainMarker {
      * @return 외부 인터페이스 정보
      */
     fun getExternalInterface(): Map<String, Any> = emptyMap()
+}
+
+object DomainMarkerObject{
+    const val AGGREGATE = "aggregate"
+    const val SERVICE = "service"
+    const val ENTITY = "entity"
+    const val VALUE = "value"
+    const val FACTORY = "factory"
+    const val SIMPLE = "simple"
+    const val POLICY = "policy"
+    const val DOMAIN = "DOMAIN"
+    const val SPECIFICATION = "specification"
+    const val NORMAL = "NORMAL"
+    const val REPOSITORY = "repository"
+    const val EVENT = "event"
+    const val ANTI_CORRUPTION_LAYER = "anti-corruption-layer"
 }
