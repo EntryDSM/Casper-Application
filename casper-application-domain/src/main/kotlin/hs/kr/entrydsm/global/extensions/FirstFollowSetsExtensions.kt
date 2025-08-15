@@ -18,7 +18,7 @@ import hs.kr.entrydsm.domain.parser.values.FirstFollowSets
  * @return FIRST 집합 통계 맵
  */
 fun FirstFollowSets.getFirstStats(): Map<String, Any> {
-    val firstSets = this.javaClass.getDeclaredField("firstSets").apply { isAccessible = true }.get(this) as Map<*, *>
+    val firstSets = this.javaClass.getDeclaredField(Field.FIRST_SETS).apply { isAccessible = true }.get(this) as Map<*, *>
     
     return mapOf(
         "totalSymbols" to firstSets.size,
@@ -36,7 +36,7 @@ fun FirstFollowSets.getFirstStats(): Map<String, Any> {
  * @return FOLLOW 집합 통계 맵
  */
 fun FirstFollowSets.getFollowStats(): Map<String, Any> {
-    val followSets = this.javaClass.getDeclaredField("followSets").apply { isAccessible = true }.get(this) as Map<*, *>
+    val followSets = this.javaClass.getDeclaredField(Field.FOLLOW_SETS).apply { isAccessible = true }.get(this) as Map<*, *>
     
     return mapOf(
         "totalSymbols" to followSets.size,
@@ -46,4 +46,9 @@ fun FirstFollowSets.getFollowStats(): Map<String, Any> {
         } else 0.0,
         "maxFollowSetSize" to (followSets.values.maxOfOrNull { (it as Set<*>).size } ?: 0)
     )
+}
+
+object Field {
+    const val FIRST_SETS = "firstSets"
+    const val FOLLOW_SETS = "followSets"
 }
