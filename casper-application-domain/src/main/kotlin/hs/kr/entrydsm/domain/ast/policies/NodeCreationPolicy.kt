@@ -28,15 +28,15 @@ import java.util.concurrent.atomic.AtomicLong
     scope = Scope.AGGREGATE
 )
 class NodeCreationPolicy {
-    
+
     // 연산자별 검증 전략들
     private val validationStrategies: Map<String, BinaryOperatorValidationStrategy> = mapOf(
-        "/" to DivisionValidationStrategy(),
-        "%" to ModuloValidationStrategy(),
-        "^" to PowerValidationStrategy(),
-        "*" to MultiplicationValidationStrategy(),
-        "+" to DefaultValidationStrategy("+"),
-        "-" to DefaultValidationStrategy("-")
+        OPERATOR_DIVISION to DivisionValidationStrategy(),
+        OPERATOR_MODULO to ModuloValidationStrategy(),
+        OPERATOR_POWER to PowerValidationStrategy(),
+        OPERATOR_MULTIPLICATION to MultiplicationValidationStrategy(),
+        OPERATOR_ADDITION to DefaultValidationStrategy(OPERATOR_ADDITION),
+        OPERATOR_SUBTRACTION to DefaultValidationStrategy(OPERATOR_SUBTRACTION)
     )
 
     /**
@@ -90,7 +90,7 @@ class NodeCreationPolicy {
         // 변수명 패턴 검증 (옵션)
         if (ENFORCE_NAMING_CONVENTION && !isValidNamingConvention(name)) {
             throw ASTException.nodeValidationFailed(
-                reason = "네이밍 규칙 위반: $name"
+                reason = "${ErrorMessages.NAMING_CONVENTION_VIOLATION}: $name"
             )
         }
     }
@@ -111,18 +111,18 @@ class NodeCreationPolicy {
         }
 
         // 피연산자 검증
-        validateNodeForOperation(left,  "좌측 피연산자")
-        validateNodeForOperation(right, "우측 피연산자")
-        
+        validateNodeForOperation(left,  NodeContextMessages.LEFT_OPERAND)
+        validateNodeForOperation(right, NodeContextMessages.RIGHT_OPERAND)
+
         // 연산자별 특별 검증 - Strategy 패턴 적용
         val strategy = validationStrategies[operator]
         if (strategy != null) {
             strategy.validate(left, right, zeroConstantOptimizationCount)
         }
-        
+
         // 추가 고급 최적화 로직 (논리 연산자, 비교 연산자 등)
         when (operator) {
-            "&&" -> {
+            OPERATOR_LOGICAL_AND -> {
                 if (isTrueConstant(left)  || isFalseConstant(left) ||
                     isTrueConstant(right) || isFalseConstant(right) ||
                     left.isStructurallyEqual(right)
@@ -130,7 +130,7 @@ class NodeCreationPolicy {
                     constantConditionOptimizationCount.incrementAndGet()
                 }
             }
-            "||" -> {
+            OPERATOR_LOGICAL_OR -> {
                 if (isTrueConstant(left)  || isFalseConstant(left) ||
                     isTrueConstant(right) || isFalseConstant(right) ||
                     left.isStructurallyEqual(right)
@@ -138,12 +138,12 @@ class NodeCreationPolicy {
                     constantConditionOptimizationCount.incrementAndGet()
                 }
             }
-            "==", "!=" -> {
+            OPERATOR_EQUAL, OPERATOR_NOT_EQUAL -> {
                 if (left.isStructurallyEqual(right)) {
                     constantConditionOptimizationCount.incrementAndGet()
                 }
             }
-            "<", "<=", ">", ">=" -> {
+            OPERATOR_LESS_THAN, OPERATOR_LESS_THAN_OR_EQUAL, OPERATOR_GREATER_THAN, OPERATOR_GREATER_THAN_OR_EQUAL -> {
                 if (left.isStructurallyEqual(right)) {
                     constantConditionOptimizationCount.incrementAndGet()
                 }
@@ -154,7 +154,7 @@ class NodeCreationPolicy {
         if (PREVENT_CIRCULAR_REFERENCES && hasCircularReference(left, right)) {
             circularReferenceDetectionCount.incrementAndGet()
             throw ASTException.nodeValidationFailed(
-                reason = "순환 참조가 감지되었습니다"
+                reason = ErrorMessages.CIRCULAR_REFERENCE_DETECTED
             )
         }
     }
@@ -174,11 +174,11 @@ class NodeCreationPolicy {
         }
 
         // 피연산자 검증
-        validateNodeForOperation(operand, "피연산자")
+        validateNodeForOperation(operand, NodeContextMessages.OPERAND)
 
         // 연산자별 특별 검증 및 최적화 힌트
         when (operator) {
-            "!" -> {
+            OPERATOR_LOGICAL_NOT -> {
                 if (STRICT_LOGICAL_OPERATIONS && !isLogicalCompatible(operand)) {
                     throw ASTException.logicalIncompatibleOperand()
                 }
@@ -188,7 +188,7 @@ class NodeCreationPolicy {
                     constantConditionOptimizationCount.incrementAndGet()
                 }
             }
-            "-" -> {
+            OPERATOR_UNARY_MINUS -> {
                 if (isZeroConstant(operand)) {
                     zeroConstantOptimizationCount.incrementAndGet() // -0 = 0
                 } else if (operand is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode && operand.isNegation()) {
@@ -197,7 +197,7 @@ class NodeCreationPolicy {
                     zeroConstantOptimizationCount.incrementAndGet() // -(음수) = 양수
                 }
             }
-            "+" -> {
+            OPERATOR_UNARY_PLUS -> {
                 // +x = x
                 zeroConstantOptimizationCount.incrementAndGet()
             }
@@ -225,7 +225,9 @@ class NodeCreationPolicy {
         }
 
         // 각 인수 검증
-        args.forEachIndexed { index, arg -> validateNodeForOperation(arg, "인수 $index") }
+        args.forEachIndexed { index, arg ->
+            validateNodeForOperation(arg, "${NodeContextMessages.ARGUMENT} $index")
+        }
 
         // 함수별 규칙
         validateFunctionSpecificRules(name, args)
@@ -240,9 +242,9 @@ class NodeCreationPolicy {
      */
     fun validateIfCreation(condition: ASTNode, trueValue: ASTNode, falseValue: ASTNode) {
         // 각 노드 검증
-        validateNodeForOperation(condition,  "조건식")
-        validateNodeForOperation(trueValue,  "참 값")
-        validateNodeForOperation(falseValue, "거짓 값")
+        validateNodeForOperation(condition,  NodeContextMessages.CONDITION)
+        validateNodeForOperation(trueValue,  NodeContextMessages.TRUE_VALUE)
+        validateNodeForOperation(falseValue, NodeContextMessages.FALSE_VALUE)
 
         // 중첩 깊이 검증
         val totalDepth = condition.getDepth() + trueValue.getDepth() + falseValue.getDepth()
@@ -278,7 +280,7 @@ class NodeCreationPolicy {
 
         // 각 인수 검증
         arguments.forEachIndexed { index, arg ->
-            validateNodeForOperation(arg, "인수 $index")
+            validateNodeForOperation(arg, "${NodeContextMessages.ARGUMENT} $index")
         }
 
         // 인수 중복 검증(옵션)
@@ -325,7 +327,7 @@ class NodeCreationPolicy {
      */
     private fun isValidNamingConvention(name: String): Boolean {
         // 카멜 케이스 또는 스네이크 케이스 허용
-        return name.matches(Regex("^[a-z_][a-zA-Z0-9_]*$"))
+        return name.matches(Regex(NAMING_CONVENTION_PATTERN))
     }
 
     /**
@@ -356,9 +358,9 @@ class NodeCreationPolicy {
         return when (node) {
             is hs.kr.entrydsm.domain.ast.entities.BooleanNode -> true
             is hs.kr.entrydsm.domain.ast.entities.NumberNode -> true
-            is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode -> 
+            is hs.kr.entrydsm.domain.ast.entities.BinaryOpNode ->
                 node.isComparisonOperator() || node.isLogicalOperator()
-            is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode -> 
+            is hs.kr.entrydsm.domain.ast.entities.UnaryOpNode ->
                 node.isLogicalOperator()
             else -> false
         }
@@ -372,17 +374,17 @@ class NodeCreationPolicy {
         if (left === right) {
             return true
         }
-        
+
         // 좌측 노드가 우측 노드를 참조하는지 확인
         if (containsNode(left, right)) {
             return true
         }
-        
+
         // 우측 노드가 좌측 노드를 참조하는지 확인
         if (containsNode(right, left)) {
             return true
         }
-        
+
         return false
     }
 
@@ -398,20 +400,20 @@ class NodeCreationPolicy {
         if (container in visited) {
             return false
         }
-        
+
         // 직접 일치
         if (container === target) {
             return true
         }
-        
+
         // 방문 표시
         visited.add(container)
-        
+
         // 자식 노드들을 재귀적으로 검사
         val hasTarget = container.getChildren().any { child ->
             containsNode(child, target, visited)
         }
-        
+
         // 방문 표시 해제 (백트래킹)
         visited.remove(container)
         return hasTarget
@@ -423,18 +425,18 @@ class NodeCreationPolicy {
     private fun detectCircularReferenceInTree(root: ASTNode): Boolean {
         val visiting = mutableSetOf<ASTNode>()  // 현재 방문 중인 노드들
         val visited = mutableSetOf<ASTNode>()   // 완전히 처리된 노드들
-        
+
         fun dfs(node: ASTNode): Boolean {
             // 현재 방문 중인 노드를 다시 방문하면 순환 참조
             if (node in visiting) {
                 return true
             }
-            
+
             // 이미 처리된 노드는 건너뛰기
             if (node in visited) {
                 return false
             }
-            
+
             // 방문 시작
             visiting.add(node)
             for (child in node.getChildren()) {
@@ -465,7 +467,7 @@ class NodeCreationPolicy {
                 seen.add(argString)
             }
         }
-        
+
         return duplicates
     }
 
@@ -503,25 +505,77 @@ class NodeCreationPolicy {
         private const val OPTIMIZE_CONSTANT_CONDITIONS = true
         private const val PREVENT_DUPLICATE_ARGUMENTS = false
 
+        // 연산자 상수
+        private const val OPERATOR_DIVISION = "/"
+        private const val OPERATOR_MODULO = "%"
+        private const val OPERATOR_POWER = "^"
+        private const val OPERATOR_MULTIPLICATION = "*"
+        private const val OPERATOR_ADDITION = "+"
+        private const val OPERATOR_SUBTRACTION = "-"
+        private const val OPERATOR_LOGICAL_AND = "&&"
+        private const val OPERATOR_LOGICAL_OR = "||"
+        private const val OPERATOR_EQUAL = "=="
+        private const val OPERATOR_NOT_EQUAL = "!="
+        private const val OPERATOR_LESS_THAN = "<"
+        private const val OPERATOR_LESS_THAN_OR_EQUAL = "<="
+        private const val OPERATOR_GREATER_THAN = ">"
+        private const val OPERATOR_GREATER_THAN_OR_EQUAL = ">="
+        private const val OPERATOR_LOGICAL_NOT = "!"
+        private const val OPERATOR_UNARY_MINUS = "-"
+        private const val OPERATOR_UNARY_PLUS = "+"
+
+        // 패턴 상수
+        private const val NAMING_CONVENTION_PATTERN = "^[a-z_][a-zA-Z0-9_]*$"
+
         // 최적화 통계 카운터
         private val constantConditionOptimizationCount = AtomicLong(0)
         private val zeroConstantOptimizationCount = AtomicLong(0)
         private val circularReferenceDetectionCount = AtomicLong(0)
+
+        // 에러 메시지 상수
+        object ErrorMessages {
+            const val NAMING_CONVENTION_VIOLATION = "네이밍 규칙 위반"
+            const val CIRCULAR_REFERENCE_DETECTED = "순환 참조가 감지되었습니다"
+        }
+
+        // 노드 컨텍스트 메시지
+        object NodeContextMessages {
+            const val LEFT_OPERAND = "좌측 피연산자"
+            const val RIGHT_OPERAND = "우측 피연산자"
+            const val OPERAND = "피연산자"
+            const val ARGUMENT = "인수"
+            const val CONDITION = "조건식"
+            const val TRUE_VALUE = "참 값"
+            const val FALSE_VALUE = "거짓 값"
+        }
+
+        // 통계 키 상수
+        object StatisticsKeys {
+            const val CONSTANT_CONDITION_OPTIMIZATIONS = "constantConditionOptimizations"
+            const val ZERO_CONSTANT_OPTIMIZATIONS = "zeroConstantOptimizations"
+            const val CIRCULAR_REFERENCE_DETECTIONS = "circularReferenceDetections"
+            const val OPTIMIZATION_FLAGS = "optimizationFlags"
+            const val ENFORCE_NAMING_CONVENTION_FLAG = "enforceNamingConvention"
+            const val STRICT_LOGICAL_OPERATIONS_FLAG = "strictLogicalOperations"
+            const val PREVENT_CIRCULAR_REFERENCES_FLAG = "preventCircularReferences"
+            const val OPTIMIZE_CONSTANT_CONDITIONS_FLAG = "optimizeConstantConditions"
+            const val PREVENT_DUPLICATE_ARGUMENTS_FLAG = "preventDuplicateArguments"
+        }
 
         /**
          * 정책 통계를 반환합니다.
          */
         fun getPolicyStatistics(): Map<String, Any> {
             return mapOf(
-                "constantConditionOptimizations" to constantConditionOptimizationCount.get(),
-                "zeroConstantOptimizations" to zeroConstantOptimizationCount.get(),
-                "circularReferenceDetections" to circularReferenceDetectionCount.get(),
-                "optimizationFlags" to mapOf(
-                    "enforceNamingConvention" to ENFORCE_NAMING_CONVENTION,
-                    "strictLogicalOperations" to STRICT_LOGICAL_OPERATIONS,
-                    "preventCircularReferences" to PREVENT_CIRCULAR_REFERENCES,
-                    "optimizeConstantConditions" to OPTIMIZE_CONSTANT_CONDITIONS,
-                    "preventDuplicateArguments" to PREVENT_DUPLICATE_ARGUMENTS
+                StatisticsKeys.CONSTANT_CONDITION_OPTIMIZATIONS to constantConditionOptimizationCount.get(),
+                StatisticsKeys.ZERO_CONSTANT_OPTIMIZATIONS to zeroConstantOptimizationCount.get(),
+                StatisticsKeys.CIRCULAR_REFERENCE_DETECTIONS to circularReferenceDetectionCount.get(),
+                StatisticsKeys.OPTIMIZATION_FLAGS to mapOf(
+                    StatisticsKeys.ENFORCE_NAMING_CONVENTION_FLAG to ENFORCE_NAMING_CONVENTION,
+                    StatisticsKeys.STRICT_LOGICAL_OPERATIONS_FLAG to STRICT_LOGICAL_OPERATIONS,
+                    StatisticsKeys.PREVENT_CIRCULAR_REFERENCES_FLAG to PREVENT_CIRCULAR_REFERENCES,
+                    StatisticsKeys.OPTIMIZE_CONSTANT_CONDITIONS_FLAG to OPTIMIZE_CONSTANT_CONDITIONS,
+                    StatisticsKeys.PREVENT_DUPLICATE_ARGUMENTS_FLAG to PREVENT_DUPLICATE_ARGUMENTS
                 )
             )
         }
