@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.global.extensions
 
-import hs.kr.entrydsm.domain.lexer.entities.TokenType
 import hs.kr.entrydsm.domain.parser.values.ParsingTable
 
 /**
@@ -129,7 +128,7 @@ fun ParsingTable.getStatistics(): Map<String, Any> = mapOf<String, Any>(
     "conflictCount" to getConflicts().values.sumOf { it.size },
     "isLR1Valid" to isLR1Valid(),
     "compressionRatio" to getCompressionRatio(),
-    "memoryUsage" to (getMemoryUsage()["total"] ?: 0L),
+    "memoryUsage" to (getMemoryUsage()[MemoryUsage.TOTAL] ?: 0L),
     "averageActionsPerState" to if (states.isNotEmpty()) actionTable.size.toDouble() / states.size else 0.0,
     "averageGotosPerState" to if (states.isNotEmpty()) gotoTable.size.toDouble() / states.size else 0.0
 )
@@ -152,4 +151,8 @@ fun ParsingTable.toDetailedString(): String = buildString {
         append(", INVALID")
     }
     append(")")
+}
+
+object MemoryUsage {
+    const val TOTAL = "total"
 }
