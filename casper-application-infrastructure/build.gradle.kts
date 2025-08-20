@@ -22,4 +22,13 @@ dependencies {
 
     implementation(Dependencies.KOTLIN_REFLECT)
     testImplementation(Dependencies.KOTLIN_TEST)
+
+    // itext
+    implementation(Dependencies.PDF_HTML)
+    implementation (Dependencies.THYMELEAF)
+
+    //read-file
+    implementation(Dependencies.COMMONS_IO)
+    implementation(Dependencies.POI)
+    implementation(Dependencies.POI_OOXML)
 }
