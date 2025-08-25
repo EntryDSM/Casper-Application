@@ -112,7 +112,3 @@ kapt {
         arg("querydsl.generatedAnnotationClass", "jakarta.annotation.Generated")
     }
 }
-
-tasks.named("ktlintMainSourceSetFormat") {
-    enabled = false
-}
