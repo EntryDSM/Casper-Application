@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component
 class ApplicationPersistenceAdapter(
     private val applicationMapper: ApplicationMapper,
     private val statusGrpcClient: StatusGrpcClient,
-    private val jpaQueryFactory: JPAQueryFactory
+    private val jpaQueryFactory: JPAQueryFactory,
 ) : ApplicationContract {
-
     override suspend fun queryAllFirstRoundPassedApplication(): List<Application> {
-        val firstRoundPassStatusKeyList = statusGrpcClient.getStatusList().statusList
-            .filter { it.isFirstRoundPass }
-            .associateBy(StatusInfoElement::receiptCode)
-            .keys.toList()
+        val firstRoundPassStatusKeyList =
+            statusGrpcClient.getStatusList().statusList
+                .filter { it.isFirstRoundPass }
+                .associateBy(StatusInfoElement::receiptCode)
+                .keys.toList()
 
         return jpaQueryFactory
             .select(applicationJpaEntity)
