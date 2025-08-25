@@ -42,5 +42,5 @@ class ApplicationJpaEntity(
 //    @field:NotNull
     @Column(unique = true, columnDefinition = "BINARY(16)")
     val userId: UUID,
-    val veteransNumber: Int?
+    val veteransNumber: Int?,
 )
