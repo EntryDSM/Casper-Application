@@ -7,5 +7,6 @@ import org.mapstruct.Mapper
 @Mapper(componentModel = "spring")
 interface ApplicationMapper {
     fun toEntity(model: Application): ApplicationJpaEntity
+
     fun toModel(entity: ApplicationJpaEntity): Application
 }
