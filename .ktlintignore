@@ -1,0 +1,7 @@
+# Generated gRPC files
+**/build/generated/**
+**/generated/**
+**/*GrpcKt.kt
+**/*ProtoGrpcKt.kt
+
+casper-application-infrastructure/build/generated/source/proto/main/grpckt/**
