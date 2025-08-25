@@ -8,6 +8,21 @@ plugins {
     id(Plugins.GOOGLE_OSDETECTOR) version PluginVersions.GOOGLE_OSDETECTOR_VERSION
 }
 
+tasks.processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask> {
+    exclude("**/build/**")
+    exclude("**/generated/**")
+    exclude { fileTreeElement ->
+        val path = fileTreeElement.file.absolutePath
+        path.contains("build${File.separator}generated") ||
+            path.contains("grpckt") ||
+            path.endsWith("GrpcKt.kt")
+    }
+}
+
 version = Projects.APPLICATION_INFRASTRUCTURE_VERSION
 
 repositories {
