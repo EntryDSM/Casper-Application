@@ -112,3 +112,19 @@ kapt {
         arg("querydsl.generatedAnnotationClass", "jakarta.annotation.Generated")
     }
 }
+
+ktlint {
+    ignoreFailures.set(true)
+    filter {
+        // 넓게 막습니다: build 전부 + generated 전부
+        exclude("**/build/**")
+        exclude("**/generated/**")
+    }
+}
+
+tasks.matching { it.name == "runKtlintCheckOverMainSourceSet" }.configureEach {
+    dependsOn("kaptKotlin")
+}
+tasks.matching { it.name == "runKtlintFormatOverMainSourceSet" }.configureEach {
+    dependsOn("kaptKotlin")
+}
