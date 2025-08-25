@@ -8,4 +8,6 @@ object Plugins {
     const val SPRING_DEPENDENCY_MANAGEMENT = "io.spring.dependency-management"
     const val KTLINT = "org.jlleitschuh.gradle.ktlint"
     const val CASPER_CONVENTION = "casper.documentation-convention"
+    const val KAPT = "kapt"
+    const val PROTOBUF = "com.google.protobuf"
 }
