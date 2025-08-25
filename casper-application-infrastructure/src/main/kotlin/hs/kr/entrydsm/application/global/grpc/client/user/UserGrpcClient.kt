@@ -35,30 +35,35 @@ class UserGrpcClient {
     suspend fun getUserInfoByUserId(userId: UUID): InternalUserResponse {
         val userStub = UserServiceGrpc.newStub(channel)
 
-        val request = UserServiceProto.GetUserInfoRequest.newBuilder()
-            .setUserId(userId.toString())
-            .build();
+        val request =
+            UserServiceProto.GetUserInfoRequest.newBuilder()
+                .setUserId(userId.toString())
+                .build()
 
-        val response = suspendCancellableCoroutine { continuation ->
-            userStub.getUserInfoByUserId(request, object : StreamObserver<UserServiceProto.GetUserInfoResponse> {
-                override fun onNext(value: UserServiceProto.GetUserInfoResponse) {
-                    continuation.resume(value)
-                }
+        val response =
+            suspendCancellableCoroutine { continuation ->
+                userStub.getUserInfoByUserId(
+                    request,
+                    object : StreamObserver<UserServiceProto.GetUserInfoResponse> {
+                        override fun onNext(value: UserServiceProto.GetUserInfoResponse) {
+                            continuation.resume(value)
+                        }
 
-                override fun onError(t: Throwable) {
-                    continuation.resumeWithException(t)
-                }
+                        override fun onError(t: Throwable) {
+                            continuation.resumeWithException(t)
+                        }
 
-                override fun onCompleted() {}
-            })
-        }
+                        override fun onCompleted() {}
+                    },
+                )
+            }
 
         return InternalUserResponse(
             id = UUID.fromString(response.id),
             phoneNumber = response.phoneNumber,
             name = response.name,
             isParent = response.isParent,
-            role = mapProtoUserRole(response.role)
+            role = mapProtoUserRole(response.role),
         )
     }
 

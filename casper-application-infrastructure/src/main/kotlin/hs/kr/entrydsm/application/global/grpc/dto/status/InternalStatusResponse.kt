@@ -17,5 +17,5 @@ data class InternalStatusResponse(
     val examCode: String? = null,
     val isFirstRoundPass: Boolean = false,
     val isSecondRoundPass: Boolean = false,
-    val receiptCode: Long
+    val receiptCode: Long,
 )

@@ -7,5 +7,5 @@ package hs.kr.entrydsm.application.global.grpc.dto.status
  * @property statusList 상태 정보 리스트
  */
 data class InternalStatusListResponse(
-    val statusList: List<InternalStatusResponse>
+    val statusList: List<InternalStatusResponse>,
 )

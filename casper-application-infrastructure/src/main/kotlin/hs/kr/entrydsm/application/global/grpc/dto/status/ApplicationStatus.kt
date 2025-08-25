@@ -38,5 +38,5 @@ enum class ApplicationStatus {
     /**
      * 합격 여부 확인 - 최종 합격자 발표 완료 상태
      */
-    RESULT_ANNOUNCED
+    RESULT_ANNOUNCED,
 }
