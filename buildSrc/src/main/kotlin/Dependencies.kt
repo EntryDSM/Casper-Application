@@ -17,8 +17,20 @@ object Dependencies {
 
     //kotlinx coroutines
     const val KOTLINX_COROUTINES_CORE = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${DependencyVersions.KOTLINX_COROUTINES_VERSION}"
+    const val KOTLINX_COROUTINES_REACTOR = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${DependencyVersions.KOTLINX_COROUTINES_VERSION}"
 
     //junit
     const val JUNIT = "org.jetbrains.kotlin:kotlin-test-junit5"
     const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher"
+    
+    //gRPC
+    const val GRPC_NETTY_SHADED = "io.grpc:grpc-netty-shaded:${DependencyVersions.GRPC_VERSION}"
+    const val GRPC_PROTOBUF = "io.grpc:grpc-protobuf:${DependencyVersions.GRPC_VERSION}"
+    const val GRPC_STUB = "io.grpc:grpc-stub:${DependencyVersions.GRPC_VERSION}"
+    const val GRPC_KOTLIN_STUB = "io.grpc:grpc-kotlin-stub:${DependencyVersions.GRPC_KOTLIN_STUB_VERSION}"
+    const val GRPC_TESTING = "io.grpc:grpc-testing:${DependencyVersions.GRPC_VERSION}"
+    const val GRPC_CLIENT_SPRING_BOOT_STARTER = "net.devh:grpc-client-spring-boot-starter:${DependencyVersions.GRPC_CLIENT_SPRING_BOOT_STARTER_VERSION}"
+    
+    //protobuf
+    const val PROTOBUF_KOTLIN = "com.google.protobuf:protobuf-kotlin:${DependencyVersions.PROTOBUF_VERSION}"
 }
