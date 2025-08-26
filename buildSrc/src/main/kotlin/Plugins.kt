@@ -10,4 +10,5 @@ object Plugins {
     const val CASPER_CONVENTION = "casper.documentation-convention"
     const val KAPT = "kapt"
     const val PROTOBUF = "com.google.protobuf"
+    const val ALL_OPEN = "plugin.allopen"
 }
