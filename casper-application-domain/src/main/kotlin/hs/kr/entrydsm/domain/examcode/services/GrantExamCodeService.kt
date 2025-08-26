@@ -81,13 +81,10 @@ class GrantExamCodeService(
      * 전형별로 수험번호를 부여하는 함수
      */
     private fun assignExamCodes(examCodeInfos: List<ExamCodeInfo>, applicationType: String) {
-        // 1. 거리순으로 정렬 (멀수록 앞에)
         val sortedByDistance = examCodeInfos.sortedByDescending { it.distance }
 
-        // 2. 거리 그룹 생성
         val distanceGroups = createDistanceGroups(sortedByDistance, applicationType)
 
-        // 3. 각 거리 그룹 내에서 접수 순서대로 수험번호 부여
         distanceGroups.forEach { group ->
             assignNumbersInGroup(group)
         }
@@ -115,7 +112,6 @@ class GrantExamCodeService(
      */
     private fun assignNumbersInGroup(distanceGroup: DistanceGroup) {
         distanceGroup.examCodeInfoList.forEach { examCodeInfo ->
-            // 접수번호(receiptCode 1~999)를 3자리로 포맷하여 수험번호 생성
             val receiptCode = String.format("%03d", examCodeInfo.receiptCode)
             val examCode = "${distanceGroup.applicationType}${distanceGroup.distanceCode}$receiptCode"
             examCodeInfo.examCode = examCode
