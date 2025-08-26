@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.examcode.presentation
 
-import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesUseCase
+import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/exam-code")
 class WebExamCodeAdapter(
-    private val grantExamCodesUseCase: GrantExamCodesUseCase,
+    private val grantExamCodesContract: GrantExamCodesContract,
 ) {
 
     /**
@@ -22,5 +22,5 @@ class WebExamCodeAdapter(
      * 수험번호를 일괄적으로 부여합니다.
      */
     @PostMapping
-    suspend fun grantExamCodes() = grantExamCodesUseCase.execute()
+    suspend fun grantExamCodes() = grantExamCodesContract.execute()
 }

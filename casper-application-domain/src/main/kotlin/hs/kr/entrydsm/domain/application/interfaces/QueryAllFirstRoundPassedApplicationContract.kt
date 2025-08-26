@@ -2,6 +2,6 @@ package hs.kr.entrydsm.domain.application.interfaces
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
 
-interface QueryAllFirstRoundPassedApplicationUseCase {
+interface QueryAllFirstRoundPassedApplicationContract {
     suspend fun queryAllFirstRoundPassedApplication(): List<Application>
 }

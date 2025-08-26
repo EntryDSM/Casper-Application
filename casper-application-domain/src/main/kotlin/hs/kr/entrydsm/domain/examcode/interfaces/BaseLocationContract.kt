@@ -6,7 +6,7 @@ package hs.kr.entrydsm.domain.examcode.interfaces
  * @author chaedohun
  * @since 2025.08.26
  */
-interface BaseLocationUseCase {
+interface BaseLocationContract {
     /**
      * 기준 위도
      */

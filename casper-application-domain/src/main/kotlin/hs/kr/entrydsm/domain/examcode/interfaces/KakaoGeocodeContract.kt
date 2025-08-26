@@ -6,7 +6,7 @@ package hs.kr.entrydsm.domain.examcode.interfaces
  * @author chaedohun
  * @since 2025.08.26
  */
-interface KakaoGeocodeUseCase {
+interface KakaoGeocodeContract {
 
     /**
      * 주소를 위도, 경도 좌표로 변환합니다.
