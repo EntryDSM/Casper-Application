@@ -8,7 +8,6 @@ object Dependencies {
     const val SPRING_BOOT_STARTER_WEB = "org.springframework.boot:spring-boot-starter-web"
     const val SPRING_BOOT_STARTER_TEST = "org.springframework.boot:spring-boot-starter-test"
     const val SPRING_BOOT_STARTER_ACTUATOR  = "org.springframework.boot:spring-boot-starter-actuator"
-    const val SPRING_BOOT_STARTER_DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa"
 
     //jexl
     const val APACHE_COMMONS_JEXL = "org.apache.commons:commons-jexl3:${DependencyVersions.APACHE_COMMONS_JEXL_VERSION}"
@@ -22,6 +21,19 @@ object Dependencies {
     //junit
     const val JUNIT = "org.jetbrains.kotlin:kotlin-test-junit5"
     const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher"
+
+    //poi
+    const val POI = "org.apache.poi:poi:${DependencyVersions.POI_VERSION}"
+    const val POI_OOXML = "org.apache.poi:poi-ooxml:${DependencyVersions.POI_VERSION}"
+
+    //Pdf
+    const val PDF_ITEXT = "com.itextpdf:itext7-fonts:${DependencyVersions.PDF_ITEXT}"
+    const val PDF_HTML = "com.itextpdf:html2pdf:${DependencyVersions.PDF_HTML}"
+
+    const val THYMELEAF = "org.springframework.boot:spring-boot-starter-thymeleaf"
+
+    //commons io
+    const val COMMONS_IO = "commons-io:commons-io:${DependencyVersions.COMMONS_IO}"
 
     // WebFlux
     const val WEB_FLUX = "org.springframework.boot:spring-boot-starter-webflux"
@@ -57,12 +69,15 @@ object Dependencies {
     // Caffeine
     const val CAFFEINE = "com.github.ben-manes.caffeine:caffeine:${DependencyVersions.CAFFEINE}"
 
-    // Jackson Kotlin module (버전은 Spring BOM으로 관리하면 생략 가능)
+    // Jackson Kotlin module
     const val JACKSON_MODULE_KOTLIN = "com.fasterxml.jackson.module:jackson-module-kotlin"
 
-    // Coroutines Reactor bridge (버전은 Kotlin BOM/Spring BOM으로 관리 가능)
+    // Coroutines Reactor bridge
     const val COROUTINES_REACTOR = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor"
 
-    // Reactor Netty (버전은 Spring BOM으로 관리 가능)
+    // Reactor Netty
     const val REACTOR_NETTY = "io.projectreactor.netty:reactor-netty"
+
+    // jpa
+    const val SPRING_BOOT_STARTER_DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa"
 }
