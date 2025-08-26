@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.application.global.config
 
-import hs.kr.entrydsm.application.domain.examcode.KakaoProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.context.annotation.Configuration
 
 /**
@@ -11,5 +10,5 @@ import org.springframework.context.annotation.Configuration
  * @since 2025.08.26
  */
 @Configuration
-@EnableConfigurationProperties(KakaoProperties::class)
-class PropertiesConfig
+@ConfigurationPropertiesScan("hs.kr.entrydsm.application")
+class ConfigurationPropertiesConfig
