@@ -1,0 +1,51 @@
+syntax ="proto3";
+
+import "google/protobuf/empty.proto";
+
+package status.proto;
+
+option java_package = "hs.kr.entrydsm.casper.status.proto";
+option java_outer_classname = "StatusServiceProto";
+
+service StatusService{
+  rpc getStatusList(google.protobuf.Empty) returns (GetStatusListResponse);
+  rpc getStatusByReceiptCode(GetStatusByReceiptCodeRequest) returns (GetStatusByReceiptCodeResponse);
+  rpc updateExamCode(GetExamCodeRequest) returns (google.protobuf.Empty);
+}
+
+message GetStatusListResponse {
+  repeated StatusInfoElement status_list = 1;
+}
+
+message GetStatusByReceiptCodeRequest{
+  int64 receipt_code = 1;
+}
+
+message GetStatusByReceiptCodeResponse{
+  StatusInfoElement status = 1;
+}
+
+message GetExamCodeRequest{
+  int64 receipt_code = 1;
+  string examCode = 2;
+}
+
+message StatusInfoElement{
+  int64 id = 1;
+  ApplicationStatus applicationStatus = 2;
+  string examCode = 3;
+  bool isFirstRoundPass = 4;
+  bool isSecondRoundPass = 5;
+  int64 receiptCode = 6;
+}
+
+enum ApplicationStatus {
+  UNSPECIFIED = 0;
+  NOT_APPLIED = 1;
+  WRITING = 2;
+  SUBMITTED = 3;
+  WAITING_DOCUMENTS = 4;
+  DOCUMENTS_RECEIVED = 5;
+  SCREENING_IN_PROGRESS = 6;
+  RESULT_ANNOUNCED = 7;
+}
