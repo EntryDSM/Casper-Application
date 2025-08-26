@@ -26,4 +26,6 @@ object DependencyVersions {
     const val JAKARTA_PERSISTENCE = "3.1.0"
     const val JAKARTA_ANNOTATION = "2.1.1"
     const val CAFFEINE = "3.1.8"
+
+    const val SPRING_TRANSACTION = "5.3.22"
 }
