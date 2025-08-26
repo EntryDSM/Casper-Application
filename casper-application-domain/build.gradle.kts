@@ -1,6 +1,7 @@
 plugins {
     kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
     kotlin(Plugins.KOTLIN_SERIALIZATION) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.ALL_OPEN) version PluginVersions.ALLOPEN_VERSION
 }
 
 version = Projects.APPLICATION_DOMAIN_VERSION
@@ -14,4 +15,8 @@ dependencies {
     testImplementation(Dependencies.KOTLIN_TEST)
 
     implementation(Dependencies.SPRING_TRANSACTION)
+}
+
+allOpen {
+    annotation("hs.kr.entrydsm.global.annotation.usecase.UseCase")
 }
