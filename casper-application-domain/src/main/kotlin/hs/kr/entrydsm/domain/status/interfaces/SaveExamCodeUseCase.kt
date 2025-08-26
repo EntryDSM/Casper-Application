@@ -1,5 +1,5 @@
 package hs.kr.entrydsm.domain.status.interfaces
 
-interface SaveExamCodeContract {
+interface SaveExamCodeUseCase {
     suspend fun updateExamCode(receiptCode: Long, examCode: String)
 }

@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.global.web
 
 import hs.kr.entrydsm.application.domain.examcode.KakaoProperties
-import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
+import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeUseCase
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import kotlinx.coroutines.coroutineScope
@@ -19,7 +19,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 class KakaoGeocodeClient(
     private val builder: WebClient.Builder,
     private val kakaoBaseProperties: KakaoProperties,
-) : KakaoGeocodeContract {
+) : KakaoGeocodeUseCase {
 
     /**
      * 주소를 위경도로 변환합니다.

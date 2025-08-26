@@ -1,13 +1,13 @@
 package hs.kr.entrydsm.domain.examcode.services
 
-import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationUseCase
 import hs.kr.entrydsm.domain.examcode.factories.ExamCodeInfoFactory
-import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
+import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesUseCase
 import hs.kr.entrydsm.domain.examcode.policies.GrantDistanceBasedExamCodePolicy
 import hs.kr.entrydsm.domain.examcode.specifications.GeneralApplicationSpec
 import hs.kr.entrydsm.domain.examcode.specifications.SpecialApplicationSpec
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
-import hs.kr.entrydsm.domain.status.interfaces.StatusContract
+import hs.kr.entrydsm.domain.status.interfaces.StatusUseCase
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import kotlinx.coroutines.async
@@ -16,18 +16,18 @@ import kotlinx.coroutines.coroutineScope
 /**
  * 1차 전형에 합격한 학생들에게 수험번호를 부여하는 도메인 서비스입니다.
  *
- * @property applicationContract 애플리케이션 관련 데이터 소스
- * @property statusContract 학생 상태 관련 데이터 소스
+ * @property applicationUseCase 애플리케이션 관련 데이터 소스
+ * @property statusUseCase 학생 상태 관련 데이터 소스
  * @property examCodeInfoFactory 수험번호 정보 생성 팩토리
  * @property grantDistanceBasedExamCodePolicy 거리 기반 수험번호 부여 정책
  */
 @Service(name = "GrantExamCodeService", type = ServiceType.APPLICATION_SERVICE)
 class GrantExamCodeService(
-    private val applicationContract: ApplicationContract,
-    private val statusContract: StatusContract,
+    private val applicationUseCase: ApplicationUseCase,
+    private val statusUseCase: StatusUseCase,
     private val examCodeInfoFactory: ExamCodeInfoFactory,
     private val grantDistanceBasedExamCodePolicy: GrantDistanceBasedExamCodePolicy
-) : GrantExamCodesContract {
+) : GrantExamCodesUseCase {
 
     companion object {
         /** 일반전형 수험번호 접두사 */
@@ -46,7 +46,7 @@ class GrantExamCodeService(
      * 5. 생성된 수험번호를 저장합니다.
      */
     override suspend fun execute() {
-        val applications = applicationContract.queryAllFirstRoundPassedApplication()
+        val applications = applicationUseCase.queryAllFirstRoundPassedApplication()
         val examCodeInfos = coroutineScope {
             applications.map { application ->
                 async { examCodeInfoFactory.create(application) }
@@ -73,7 +73,7 @@ class GrantExamCodeService(
     private suspend fun saveExamCodes(examCodeInfos: List<ExamCodeInfo>) {
         examCodeInfos.forEach { info ->
             info.examCode?.let { examCode ->
-                statusContract.updateExamCode(info.receiptCode, examCode)
+                statusUseCase.updateExamCode(info.receiptCode, examCode)
             }
         }
     }

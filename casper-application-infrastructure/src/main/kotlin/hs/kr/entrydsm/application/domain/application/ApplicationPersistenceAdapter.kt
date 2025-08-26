@@ -6,7 +6,7 @@ import hs.kr.entrydsm.application.domain.application.mapper.ApplicationMapper
 import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse
 import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationUseCase
 import org.springframework.stereotype.Component
 
 @Component
@@ -14,7 +14,7 @@ class ApplicationPersistenceAdapter(
     private val applicationMapper: ApplicationMapper,
     private val statusGrpcClient: StatusGrpcClient,
     private val jpaQueryFactory: JPAQueryFactory,
-) : ApplicationContract {
+) : ApplicationUseCase {
     override suspend fun queryAllFirstRoundPassedApplication(): List<Application> {
         val firstRoundPassStatusKeyList =
             statusGrpcClient.getStatusList().statusList

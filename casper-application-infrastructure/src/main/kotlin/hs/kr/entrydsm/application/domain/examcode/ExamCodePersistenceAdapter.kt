@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.examcode
 
-import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
+import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationUseCase
 import org.springframework.stereotype.Component
 
 /**
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class ExamCodePersistenceAdapter(
     private val kakaoProperties: KakaoProperties,
-) : BaseLocationContract {
+) : BaseLocationUseCase {
 
     /**
      * 기준이 되는 장소의 위도입니다.

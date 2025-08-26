@@ -2,8 +2,8 @@ package hs.kr.entrydsm.domain.examcode.factories
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
-import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
-import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
+import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationUseCase
+import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeUseCase
 import hs.kr.entrydsm.domain.examcode.util.DistanceUtil
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
 import hs.kr.entrydsm.global.annotation.factory.Factory
@@ -12,9 +12,9 @@ import hs.kr.entrydsm.global.annotation.factory.type.Complexity
 /**
  * 수험번호 정보를 생성하는 클래스입니다.
  *
- * @property kakaoGeocodeContract 카카오 지오코드 API
+ * @property kakaoGeocodeUseCase 카카오 지오코드 API
  * @property distanceUtil 거리 계산 유틸리티
- * @property baseLocationContract 기준 위치 정보
+ * @property baseLocationUseCase 기준 위치 정보
  *
  * @author chaedohun
  * @since 2025.08.26
@@ -25,9 +25,9 @@ import hs.kr.entrydsm.global.annotation.factory.type.Complexity
     cache = false
 )
 class ExamCodeInfoFactory(
-    private val kakaoGeocodeContract: KakaoGeocodeContract,
+    private val kakaoGeocodeUseCase: KakaoGeocodeUseCase,
     private val distanceUtil: DistanceUtil,
-    private val baseLocationContract: BaseLocationContract
+    private val baseLocationUseCase: BaseLocationUseCase
 ) {
 
     /**
@@ -39,11 +39,11 @@ class ExamCodeInfoFactory(
      */
     suspend fun create(application: Application): ExamCodeInfo {
         val address = application.streetAddress as String
-        val (userLat, userLon) = kakaoGeocodeContract.geocode(address)
+        val (userLat, userLon) = kakaoGeocodeUseCase.geocode(address)
             ?: throw ExamCodeException.failedGeocodeConversion(address)
 
         val distance = distanceUtil.haversine(
-            baseLocationContract.baseLat, baseLocationContract.baseLon, userLat, userLon
+            baseLocationUseCase.baseLat, baseLocationUseCase.baseLon, userLat, userLon
         )
 
         return ExamCodeInfo(
