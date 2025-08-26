@@ -55,10 +55,10 @@ object Dependencies {
     const val MAPSTRUCT = "org.mapstruct:mapstruct:${DependencyVersions.MAPSTRUCT}"
     const val MAPSTRUCT_PROCESSOR = "org.mapstruct:mapstruct-processor:${DependencyVersions.MAPSTRUCT}"
 
-    // mysql
+    // MySQL
     const val MYSQL_CONNECTOR = "com.mysql:mysql-connector-j"
 
-    // Query Dsl
+    // QueryDSL
     const val QUERYDSL_JPA = "com.querydsl:querydsl-jpa:${DependencyVersions.QUERYDSL}:jakarta"
     const val QUERYDSL_APT = "com.querydsl:querydsl-apt:${DependencyVersions.QUERYDSL}:jakarta"
 
@@ -78,6 +78,6 @@ object Dependencies {
     // Reactor Netty
     const val REACTOR_NETTY = "io.projectreactor.netty:reactor-netty"
 
-    // jpa
+    // JPA
     const val SPRING_BOOT_STARTER_DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa"
 }
