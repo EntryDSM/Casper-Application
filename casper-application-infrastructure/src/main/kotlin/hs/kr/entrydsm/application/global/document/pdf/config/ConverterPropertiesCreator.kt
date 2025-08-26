@@ -8,7 +8,6 @@ import java.io.IOException
 
 @Component
 class ConverterPropertiesCreator {
-
     private var fontPath: String = "/fonts/"
 
     fun createConverterProperties(): ConverterProperties {

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/pdf")
 class PdfTestController(
     private val applicationPdfGenerator: ApplicationPdfGenerator,
-    private val introductionPdfGenerator: IntroductionPdfGenerator
+    private val introductionPdfGenerator: IntroductionPdfGenerator,
 ) {
     @GetMapping("/test")
     fun testPdf(): ResponseEntity<ByteArray> {

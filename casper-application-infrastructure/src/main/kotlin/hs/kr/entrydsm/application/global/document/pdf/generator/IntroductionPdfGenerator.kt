@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component
 class IntroductionPdfGenerator(
     private val pdfProcessor: PdfProcessor,
     private val introductionPdfConverter: IntroductionPdfConverter,
-    private val templateProcessor: TemplateProcessor
+    private val templateProcessor: TemplateProcessor,
 ) {
-
     fun generate(application: Any): ByteArray {
         val data = introductionPdfConverter.execute(application)
-        val html = templateProcessor.convertTemplateIntoHtmlString(
-            TemplateFileName.ADMIN_INTRODUCTION,
-            data.toMap()
-        )
+        val html =
+            templateProcessor.convertTemplateIntoHtmlString(
+                TemplateFileName.ADMIN_INTRODUCTION,
+                data.toMap(),
+            )
         val pdfStream = pdfProcessor.convertHtmlToPdf(html)
         return pdfStream.toByteArray()
     }

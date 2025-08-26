@@ -14,14 +14,15 @@ class PrintApplicantCodesGenerator {
         val applicantCode = ApplicantCode()
         val sheet = applicantCode.getSheet()
         applicantCode.format()
-        
+
         // 더미 데이터로 테스트
-        val dummyData = listOf(
-            Triple("DUMMY001", 1001L, "홍길동"),
-            Triple("DUMMY002", 1002L, "김철수"),
-            Triple("DUMMY003", 1003L, "이영희")
-        )
-        
+        val dummyData =
+            listOf(
+                Triple("DUMMY001", 1001L, "홍길동"),
+                Triple("DUMMY002", 1002L, "김철수"),
+                Triple("DUMMY003", 1003L, "이영희"),
+            )
+
         dummyData.forEachIndexed { index, (examCode, receiptCode, name) ->
             val row = sheet.createRow(index + 1)
             insertCode(row, examCode, receiptCode, name)
@@ -40,7 +41,12 @@ class PrintApplicantCodesGenerator {
         }
     }
 
-    private fun insertCode(row: Row, examCode: String, receiptCode: Long, name: String) {
+    private fun insertCode(
+        row: Row,
+        examCode: String,
+        receiptCode: Long,
+        name: String,
+    ) {
         row.createCell(0).setCellValue(examCode)
         row.createCell(1).setCellValue(receiptCode.toString())
         row.createCell(2).setCellValue(name)

@@ -8,16 +8,16 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 @Configuration
 class PdfConfig {
-
     @Bean
     fun templateEngine(): TemplateEngine {
-        val templateResolver = ClassLoaderTemplateResolver().apply {
-            prefix = "classpath:/templates/"
-            suffix = ".html"
-            templateMode = TemplateMode.HTML
-        }
-        return TemplateEngine().apply { 
-            this.setTemplateResolver(templateResolver) 
+        val templateResolver =
+            ClassLoaderTemplateResolver().apply {
+                prefix = "classpath:/templates/"
+                suffix = ".html"
+                templateMode = TemplateMode.HTML
+            }
+        return TemplateEngine().apply {
+            this.setTemplateResolver(templateResolver)
         }
     }
 }
