@@ -8,7 +8,7 @@ import org.springframework.context.annotation.FilterType
 
 @Configuration
 @ComponentScan(
-    basePackages = ["hs.kr.entrydsm.application"],
+    basePackages = ["hs.kr.entrydsm.domain"],
     includeFilters = [
         Filter(
             type = FilterType.ANNOTATION,
