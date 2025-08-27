@@ -12,7 +12,15 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom(Dependencies.SPRING_CLOUD)
+    }
+}
+
 dependencies {
+    implementation(project(":casper-application-domain"))
+
     implementation(Dependencies.SPRING_BOOT_STARTER)
     implementation(Dependencies.SPRING_BOOT_STARTER_WEB)
     implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
@@ -25,10 +33,22 @@ dependencies {
 
     // itext
     implementation(Dependencies.PDF_HTML)
-    implementation (Dependencies.THYMELEAF)
+    implementation(Dependencies.THYMELEAF)
 
-    //read-file
+    // read-file
     implementation(Dependencies.COMMONS_IO)
     implementation(Dependencies.POI)
     implementation(Dependencies.POI_OOXML)
+
+    // Feign Client
+    implementation(Dependencies.OPEN_FEIGN)
+
+    // Jackson (JSON 처리)
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // Redis (캐시)
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // Cache (스프링 캐시)
+    implementation("org.springframework.boot:spring-boot-starter-cache")
 }

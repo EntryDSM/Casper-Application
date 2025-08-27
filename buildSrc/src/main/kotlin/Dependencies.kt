@@ -8,6 +8,7 @@ object Dependencies {
     const val SPRING_BOOT_STARTER_WEB = "org.springframework.boot:spring-boot-starter-web"
     const val SPRING_BOOT_STARTER_TEST = "org.springframework.boot:spring-boot-starter-test"
     const val SPRING_BOOT_STARTER_ACTUATOR  = "org.springframework.boot:spring-boot-starter-actuator"
+    const val SPRING_CONTEXT = "org.springframework:spring-context"
 
     //jexl
     const val APACHE_COMMONS_JEXL = "org.apache.commons:commons-jexl3:${DependencyVersions.APACHE_COMMONS_JEXL_VERSION}"
@@ -34,4 +35,13 @@ object Dependencies {
 
     //commons io
     const val COMMONS_IO = "commons-io:commons-io:${DependencyVersions.COMMONS_IO}"
+
+    // Feign Client
+    const val OPEN_FEIGN = "org.springframework.cloud:spring-cloud-starter-openfeign:${DependencyVersions.OPEN_FEIGN_VERSION}"
+
+    // Spring Cloud BOM
+    const val SPRING_CLOUD = "org.springframework.cloud:spring-cloud-dependencies:${DependencyVersions.SPRING_CLOUD_VERSION}"
+
+    // transaction
+    const val SPRING_TRANSACTION = "org.springframework:spring-tx:${DependencyVersions.SPRING_TRANSACTION}"
 }
