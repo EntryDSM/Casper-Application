@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.global.annotation.usecase
+package hs.kr.entrydsm.application.global.annotation.usecase
 
 import org.springframework.transaction.annotation.Transactional
 

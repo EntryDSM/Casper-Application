@@ -8,7 +8,7 @@ import hs.kr.entrydsm.domain.examcode.specifications.GeneralApplicationSpec
 import hs.kr.entrydsm.domain.examcode.specifications.SpecialApplicationSpec
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
 import hs.kr.entrydsm.domain.status.interfaces.StatusContract
-import hs.kr.entrydsm.global.annotation.usecase.UseCase
+import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
