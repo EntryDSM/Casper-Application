@@ -13,8 +13,6 @@ dependencies {
     testImplementation(Dependencies.JUNIT)
     testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
     testImplementation(Dependencies.KOTLIN_TEST)
-
-    implementation(Dependencies.SPRING_TRANSACTION)
 }
 
 allOpen {
