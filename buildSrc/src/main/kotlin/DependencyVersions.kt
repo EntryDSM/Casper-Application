@@ -12,4 +12,20 @@ object DependencyVersions {
     const val PDF_HTML = "3.0.3"
     const val POI_VERSION = "5.2.3"
     const val COMMONS_IO = "2.11.0"
+
+    const val GRPC = "1.61.1"
+    const val GRPC_KOTLIN = "1.4.1"
+    const val PROTOBUF = "3.25.3"
+    const val GRPC_CLIENT = "2.15.0.RELEASE"
+    const val GOOGLE_PROTOBUF = "3.25.3"
+
+    const val COROUTINES = "1.8.0"
+    const val MAPSTRUCT = "1.6.0"
+
+    const val QUERYDSL = "5.0.0"
+    const val JAKARTA_PERSISTENCE = "3.1.0"
+    const val JAKARTA_ANNOTATION = "2.1.1"
+    const val CAFFEINE = "3.1.8"
+
+    const val SPRING_TRANSACTION = "5.3.22"
 }

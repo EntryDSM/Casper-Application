@@ -16,8 +16,8 @@ class PdfConfig {
             suffix = ".html"
             templateMode = TemplateMode.HTML
         }
-        return TemplateEngine().apply { 
-            this.setTemplateResolver(templateResolver) 
+        return TemplateEngine().also {
+            it.setTemplateResolver(templateResolver)
         }
     }
 }

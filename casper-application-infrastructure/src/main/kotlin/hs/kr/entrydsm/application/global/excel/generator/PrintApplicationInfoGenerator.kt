@@ -19,8 +19,8 @@ class PrintApplicationInfoGenerator {
         // 더미 데이터로 테스트
         val dummyApplications = listOf(
             createDummyApplication(1001L, "홍길동", "더미고등학교"),
-            createDummyApplication(1002L, "김철수", "테스트고등학교"), 
-            createDummyApplication(1003L, "이영희", "샘플고등학교")
+            createDummyApplication(1002L, "김철수", "테스트고등학교"),
+            createDummyApplication(1003L, "이영희", "샘플고등학교"),
         )
         
         dummyApplications.forEachIndexed { index, dummyData ->
