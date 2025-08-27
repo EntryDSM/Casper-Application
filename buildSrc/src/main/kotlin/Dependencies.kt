@@ -89,5 +89,13 @@ object Dependencies {
     const val SPRING_BOOT_STARTER_DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa"
 
     // transaction
-    const val SPRING_TRANSACTION = "org.springframework:spring-tx:${DependencyVersions.SPRING_TRANSACTION}"
+    const val SPRING_TRANSACTION = "org.springframework:spring-tx"
+
+    //spring cache
+    // Redis (캐시)
+    const val REDIS = "org.springframework.boot:spring-boot-starter-data-redis"
+
+    // Cache (스프링 캐시)
+    const val SPRING_CACHE = "org.springframework.boot:spring-boot-starter-cache"
+
 }

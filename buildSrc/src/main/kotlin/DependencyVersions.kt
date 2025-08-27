@@ -23,11 +23,11 @@ object DependencyVersions {
     const val OPEN_FEIGN_VERSION = "3.1.4"
 
     // gRPC
-    const val GRPC = "1.61.1"
-    const val GRPC_KOTLIN = "1.4.1"
-    const val PROTOBUF = "3.25.3"
-    const val GRPC_CLIENT = "2.15.0.RELEASE"
-    const val GOOGLE_PROTOBUF = "3.25.3"
+    const val GRPC = "1.58.0"  // 1.61.1에서 변경
+    const val GRPC_KOTLIN = "1.4.0"  // 1.4.1에서 변경
+    const val GRPC_CLIENT = "2.15.0.RELEASE"  // 유지
+    const val PROTOBUF = "3.24.0"  // 3.25.3에서 변경
+    const val GOOGLE_PROTOBUF = "3.24.0"  // 3.25.3에서 변경
 
     // Coroutines (main 쪽 버전, KOTLINX_COROUTINES_VERSION 과 구분됨)
     const val COROUTINES = "1.8.0"
@@ -44,7 +44,4 @@ object DependencyVersions {
 
     // Caffeine
     const val CAFFEINE = "3.1.8"
-
-    // Spring Transaction
-    const val SPRING_TRANSACTION = "5.3.22"
 }

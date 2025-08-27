@@ -27,10 +27,12 @@ dependencies {
     implementation(Dependencies.SPRING_BOOT_STARTER)
     implementation(Dependencies.SPRING_BOOT_STARTER_WEB)
     implementation(Dependencies.SPRING_BOOT_STARTER_ACTUATOR)
+    implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
     implementation(Dependencies.SPRING_BOOT_STARTER_DATA_JPA)
-    implementation(Dependencies.SPRING_TRANSACTION)
-    implementation(Dependencies.SPRING_BOOT_STARTER_CACHE)
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation(Dependencies.SPRING_CACHE)
+
+    //redis
+    implementation(Dependencies.REDIS)
 
     // Kotlin
     implementation(Dependencies.KOTLIN_REFLECT)
@@ -53,7 +55,6 @@ dependencies {
 
     // Jackson
     implementation(Dependencies.JACKSON_MODULE_KOTLIN)
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     // gRPC
     implementation(Dependencies.GRPC_NETTY_SHADED)
