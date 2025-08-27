@@ -396,7 +396,10 @@ enum class ErrorCode(val code: String, val description: String) {
     SCHOOL_INVALID_TYPE("SCH001", "유효하지 않은 학교 유형입니다"),
 
     //feign error
-    FEIGN_SERVER_ERROR("FGN001", "외부 API 서버 오류가 발생했습니다");
+    FEIGN_SERVER_ERROR("FGN001", "외부 API 서버 오류가 발생했습니다"),
+
+    // ExamCode 오류 (EXA)
+    FAILED_GEOCODE_CONVERSION("EXA001", "주소를 변환할 수 없습니다");
 
     /**
      * 오류 코드의 도메인 접두사를 반환합니다.
