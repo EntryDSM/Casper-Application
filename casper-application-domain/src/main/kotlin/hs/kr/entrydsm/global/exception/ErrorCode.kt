@@ -390,7 +390,13 @@ enum class ErrorCode(val code: String, val description: String) {
     // Annotation 도메인 오류 (ANT)
     MISSING_ENTITY_ANNOTATION("ANT001", "엔티티 어노테이션 누락"),
     ENTITY_CONTRACT_NOT_IMPLEMENTED("ANT002", "EntityCont,ract 미구현"),
-    INVALID_AGGREGATE_ROOT("ANT003", "유효하지 않은 Aggregate Root");
+    INVALID_AGGREGATE_ROOT("ANT003", "유효하지 않은 Aggregate Root"),
+
+    // School 도메인 오류 (SCH)
+    SCHOOL_INVALID_TYPE("SCH001", "유효하지 않은 학교 유형입니다"),
+
+    //feign error
+    FEIGN_SERVER_ERROR("FGN001", "외부 API 서버 오류가 발생했습니다");
 
     /**
      * 오류 코드의 도메인 접두사를 반환합니다.
