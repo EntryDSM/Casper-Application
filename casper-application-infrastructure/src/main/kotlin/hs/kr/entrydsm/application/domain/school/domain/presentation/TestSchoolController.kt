@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * School API 테스트를 위한 컨트롤러입니다.
+ */
 @RestController
 @RequestMapping("/test/schools")
 class TestSchoolController(
@@ -15,6 +18,12 @@ class TestSchoolController(
     @Value("\${neis.key}")
     lateinit var apiKey: String
 
+    /**
+     * 학교 코드로 학교 정보를 조회합니다.
+     *
+     * @param schoolCode 학교 코드
+     * @return 학교 정보
+     */
     @GetMapping("/code")
     fun getSchoolByCode(
         @RequestParam("school_code") schoolCode: String,
@@ -22,6 +31,12 @@ class TestSchoolController(
         return schoolClient.getSchoolBySchoolCode(schoolCode = schoolCode, key = apiKey)
     }
 
+    /**
+     * 학교 이름으로 학교 리스트를 조회합니다.
+     *
+     * @param schoolName 학교 이름
+     * @return 학교 리스트
+     */
     @GetMapping("/name")
     fun getSchoolByName(
         @RequestParam("school_name") schoolName: String,

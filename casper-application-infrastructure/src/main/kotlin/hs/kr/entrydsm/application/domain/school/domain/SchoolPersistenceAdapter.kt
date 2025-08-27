@@ -12,6 +12,9 @@ import hs.kr.entrydsm.domain.school.interfaces.SchoolContract
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
+/**
+ * School 도메인의 영속성을 관리하는 Adapter 입니다.
+ */
 @Component
 class SchoolPersistenceAdapter(
     private val schoolClient: SchoolClient,
@@ -20,9 +23,15 @@ class SchoolPersistenceAdapter(
     @Value("\${neis.key}")
     lateinit var apiKey: String
 
-    override fun querySchoolBySchoolCode(school: String): School? {
-        if (schoolCacheRepository.existsById(school)) {
-            val schoolCache = schoolCacheRepository.findById(school).get()
+    /**
+     * 학교 코드로 학교를 조회합니다.
+     *
+     * @param schoolCode 학교 코드
+     * @return 학교 정보
+     */
+    override fun querySchoolBySchoolCode(schoolCode: String): School? {
+        if (schoolCacheRepository.existsById(schoolCode)) {
+            val schoolCache = schoolCacheRepository.findById(schoolCode).get()
             schoolCache.run {
                 return School(
                     code = code,
@@ -36,7 +45,7 @@ class SchoolPersistenceAdapter(
         }
 
         val school =
-            schoolClient.getSchoolBySchoolCode(schoolCode = school, key = apiKey)?.let { response ->
+            schoolClient.getSchoolBySchoolCode(schoolCode = schoolCode, key = apiKey)?.let { response ->
                 val mapper = ObjectMapper().registerKotlinModule()
                 val responseObject = mapper.readValue<SchoolInfoElement>(response)
                 responseObject.schoolInfo?.getOrNull(1)?.row?.map {
@@ -53,6 +62,12 @@ class SchoolPersistenceAdapter(
         return school?.let { saveInCache(it) }
     }
 
+    /**
+     * 학교 이름으로 학교 리스트를 조회합니다.
+     *
+     * @param schoolName 학교 이름
+     * @return 학교 리스트
+     */
     override fun querySchoolListBySchoolName(schoolName: String): List<School> {
         return schoolClient.getSchoolListBySchoolName(schoolName = schoolName, key = apiKey)?.let { response ->
             val mapper = ObjectMapper().registerKotlinModule()
@@ -70,6 +85,12 @@ class SchoolPersistenceAdapter(
         } ?: emptyList()
     }
 
+    /**
+     * 학교 정보를 캐시에 저장합니다.
+     *
+     * @param school 학교 정보
+     * @return 저장된 학교 정보
+     */
     private fun saveInCache(school: School): School {
         val schoolCache =
             SchoolCacheRedisEntity(

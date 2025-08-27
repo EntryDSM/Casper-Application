@@ -11,9 +11,18 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/schools")
+/**
+ * 학교 정보 API를 제공하는 WebAdapter 입니다.
+ */
 class SchoolWebAdapter(
     private val querySchoolUseCase: QuerySchoolUseCase,
 ) {
+    /**
+     * 학교 이름으로 학교를 검색합니다.
+     *
+     * @param name 학교 이름
+     * @return 학교 검색 결과
+     */
     @Cacheable(value = ["school_info"], key = "#name")
     @GetMapping
     fun querySchool(
