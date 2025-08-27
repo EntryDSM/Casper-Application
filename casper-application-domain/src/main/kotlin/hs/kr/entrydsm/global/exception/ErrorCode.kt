@@ -390,7 +390,10 @@ enum class ErrorCode(val code: String, val description: String) {
     // Annotation 도메인 오류 (ANT)
     MISSING_ENTITY_ANNOTATION("ANT001", "엔티티 어노테이션 누락"),
     ENTITY_CONTRACT_NOT_IMPLEMENTED("ANT002", "EntityCont,ract 미구현"),
-    INVALID_AGGREGATE_ROOT("ANT003", "유효하지 않은 Aggregate Root");
+    INVALID_AGGREGATE_ROOT("ANT003", "유효하지 않은 Aggregate Root"),
+
+    // ExamCode 오류 (EXP)
+    FAILED_GEOCODE_CONVERSION("EXA001", "주소를 변환할 수 없습니다.");
 
     /**
      * 오류 코드의 도메인 접두사를 반환합니다.
