@@ -69,6 +69,8 @@ dependencies {
     implementation(Dependencies.COROUTINES_REACTOR)
     runtimeOnly(Dependencies.REACTOR_NETTY)
 
+    implementation(Dependencies.SPRING_TRANSACTION)
+
     implementation(project(":casper-application-domain"))
 }
 
