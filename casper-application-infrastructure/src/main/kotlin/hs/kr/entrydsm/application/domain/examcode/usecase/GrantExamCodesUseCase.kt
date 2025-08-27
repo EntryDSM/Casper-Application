@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.domain.examcode.usecase
+package hs.kr.entrydsm.application.domain.examcode.usecase
 
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.examcode.factories.ExamCodeInfoFactory
@@ -39,7 +39,7 @@ class GrantExamCodesUseCase(
      * 1차 전형 합격자에게 수험번호를 부여하고 저장합니다.
      *
      * 1. 1차 전형에 합격한 모든 지원서를 조회합니다.
-     * 2. 각 지원서에 대한 수험번호 정보([ExamCodeInfo])를 생성합니다.
+     * 2. 각 지원서에 대한 수험번호 정보([hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo])를 생성합니다.
      * 3. 지원자를 일반전형과 특별전형으로 분류합니다.
      * 4. 각 전형별로 거리 기반 정책을 적용하여 수험번호를 부여합니다.
      * 5. 생성된 수험번호를 저장합니다.
