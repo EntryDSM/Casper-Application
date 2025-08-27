@@ -15,5 +15,6 @@ object Plugins {
     // main 브랜치
     const val KAPT = "kapt"
     const val PROTOBUF = "com.google.protobuf"
+    const val GOOGLE_OSDETECTOR = "com.google.osdetector"
     const val ALL_OPEN = "plugin.allopen"
 }

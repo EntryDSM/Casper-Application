@@ -6,6 +6,22 @@ plugins {
     id(Plugins.SPRING_BOOT) version PluginVersions.SPRING_BOOT_VERSION
     id(Plugins.SPRING_DEPENDENCY_MANAGEMENT) version PluginVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION
     id(Plugins.PROTOBUF) version PluginVersions.PROTOBUF_VERSION
+    id(Plugins.GOOGLE_OSDETECTOR) version PluginVersions.GOOGLE_OSDETECTOR_VERSION
+}
+
+tasks.processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask> {
+    exclude("**/build/**")
+    exclude("**/generated/**")
+    exclude { fileTreeElement ->
+        val path = fileTreeElement.file.absolutePath
+        path.contains("build${File.separator}generated") ||
+            path.contains("grpckt") ||
+            path.endsWith("GrpcKt.kt")
+    }
 }
 
 version = Projects.APPLICATION_INFRASTRUCTURE_VERSION
@@ -90,13 +106,21 @@ dependencies {
     runtimeOnly(Dependencies.MYSQL_CONNECTOR)
 }
 
+sourceSets {
+    main {
+        proto {
+            srcDir("src/main/proto")
+        }
+    }
+}
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:${DependencyVersions.PROTOBUF}"
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${DependencyVersions.GRPC}"
+            artifact = "io.grpc:protoc-gen-grpc-java:${DependencyVersions.GRPC}:${osdetector.classifier}"
         }
         create("grpckt") {
             artifact = "io.grpc:protoc-gen-grpc-kotlin:${DependencyVersions.GRPC_KOTLIN}:jdk8@jar"

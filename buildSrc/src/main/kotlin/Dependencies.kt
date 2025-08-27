@@ -18,6 +18,7 @@ object Dependencies {
 
     //kotlinx coroutines
     const val KOTLINX_COROUTINES_CORE = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${DependencyVersions.KOTLINX_COROUTINES_VERSION}"
+    const val KOTLINX_COROUTINES_REACTOR = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${DependencyVersions.KOTLINX_COROUTINES_VERSION}"
 
     //junit
     const val JUNIT = "org.jetbrains.kotlin:kotlin-test-junit5"
