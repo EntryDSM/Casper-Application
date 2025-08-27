@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 class PdfProcessor(
     private val converterPropertiesCreator: ConverterPropertiesCreator,
 ) {
-
     fun convertHtmlToPdf(html: String): ByteArrayOutputStream {
         val outputStream = ByteArrayOutputStream()
         HtmlConverter.convertToPdf(html, outputStream, converterPropertiesCreator.createConverterProperties())

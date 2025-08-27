@@ -14,64 +14,80 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom(Dependencies.SPRING_CLOUD)
+    }
+}
+
 dependencies {
+    implementation(project(":casper-application-domain"))
+
+    // Spring Boot
     implementation(Dependencies.SPRING_BOOT_STARTER)
     implementation(Dependencies.SPRING_BOOT_STARTER_WEB)
-    implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
     implementation(Dependencies.SPRING_BOOT_STARTER_ACTUATOR)
+    implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
     implementation(Dependencies.SPRING_BOOT_STARTER_DATA_JPA)
+    implementation(Dependencies.SPRING_CACHE)
 
-    implementation(Dependencies.APACHE_COMMONS_JEXL)
+    //redis
+    implementation(Dependencies.REDIS)
 
+    // Kotlin
     implementation(Dependencies.KOTLIN_REFLECT)
     testImplementation(Dependencies.KOTLIN_TEST)
 
-    // itext
-    implementation(Dependencies.PDF_HTML)
-    implementation (Dependencies.THYMELEAF)
-
-    //read-file
+    // Utilities
+    implementation(Dependencies.APACHE_COMMONS_JEXL)
     implementation(Dependencies.COMMONS_IO)
+
+    // PDF / Template
+    implementation(Dependencies.PDF_HTML)
+    implementation(Dependencies.THYMELEAF)
+
+    // Excel
     implementation(Dependencies.POI)
     implementation(Dependencies.POI_OOXML)
 
-    // grpc
+    // Feign
+    implementation(Dependencies.OPEN_FEIGN)
+
+    // Jackson
+    implementation(Dependencies.JACKSON_MODULE_KOTLIN)
+
+    // gRPC
     implementation(Dependencies.GRPC_NETTY_SHADED)
     implementation(Dependencies.GRPC_PROTOBUF)
     implementation(Dependencies.GRPC_STUB)
     implementation(Dependencies.GRPC_KOTLIN_STUB)
     implementation(Dependencies.PROTOBUF_KOTLIN)
-    testImplementation(Dependencies.GRPC_TESTING)
     implementation(Dependencies.GRPC_CLIENT)
+    testImplementation(Dependencies.GRPC_TESTING)
     implementation(Dependencies.GOOGLE_PROTOBUF)
 
-    // coroutines
+    // Coroutines
     implementation(Dependencies.COROUTINES)
+    implementation(Dependencies.COROUTINES_REACTOR)
 
-    // mapstruct
+    // MapStruct
     implementation(Dependencies.MAPSTRUCT)
     kapt(Dependencies.MAPSTRUCT_PROCESSOR)
 
+    // QueryDSL
     implementation(Dependencies.QUERYDSL_JPA)
     kapt(Dependencies.QUERYDSL_APT)
     kapt(Dependencies.JAKARTA_PERSISTENCE_API)
     kapt(Dependencies.JAKARTA_ANNOTATION_API)
 
-    // web flux
+    // WebFlux
     implementation(Dependencies.WEB_FLUX)
 
-    // mysql
-    runtimeOnly(Dependencies.MYSQL_CONNECTOR)
-
-    // cache / jackson / reactor
+    // Cache
     implementation(Dependencies.CAFFEINE)
-    implementation(Dependencies.JACKSON_MODULE_KOTLIN)
-    implementation(Dependencies.COROUTINES_REACTOR)
-    runtimeOnly(Dependencies.REACTOR_NETTY)
 
-    implementation(Dependencies.SPRING_TRANSACTION)
-
-    implementation(project(":casper-application-domain"))
+    // MySQL
+    runtimeOnly(Dependencies.MYSQL_CONNECTOR)
 }
 
 protobuf {
@@ -127,7 +143,6 @@ kapt {
 ktlint {
     ignoreFailures.set(true)
     filter {
-        // 넓게 막습니다: build 전부 + generated 전부
         exclude("**/build/**")
         exclude("**/generated/**")
     }

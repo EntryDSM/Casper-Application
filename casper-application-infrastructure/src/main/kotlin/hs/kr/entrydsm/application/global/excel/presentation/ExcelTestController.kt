@@ -15,9 +15,8 @@ class ExcelTestController(
     private val printApplicantCodesGenerator: PrintApplicantCodesGenerator,
     private val printApplicationInfoGenerator: PrintApplicationInfoGenerator,
     private val printAdmissionTicketGenerator: PrintAdmissionTicketGenerator,
-    private val printApplicationCheckListGenerator: PrintApplicationCheckListGenerator
+    private val printApplicationCheckListGenerator: PrintApplicationCheckListGenerator,
 ) {
-
     @GetMapping("/applicant-codes")
     fun downloadApplicantCodes(response: HttpServletResponse) {
         printApplicantCodesGenerator.execute(response)

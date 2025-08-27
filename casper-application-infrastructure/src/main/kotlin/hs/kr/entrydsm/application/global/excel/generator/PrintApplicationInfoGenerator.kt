@@ -1,28 +1,27 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.application.global.excel.model.ApplicationInfo
+import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import jakarta.servlet.http.HttpServletResponse
 
 @Component
 class PrintApplicationInfoGenerator {
-    
     fun execute(httpServletResponse: HttpServletResponse) {
         val applicationInfo = ApplicationInfo()
         val sheet = applicationInfo.getSheet()
         applicationInfo.format()
-        
+
         // 더미 데이터로 테스트
         val dummyApplications = listOf(
             createDummyApplication(1001L, "홍길동", "더미고등학교"),
             createDummyApplication(1002L, "김철수", "테스트고등학교"),
             createDummyApplication(1003L, "이영희", "샘플고등학교"),
         )
-        
+
         dummyApplications.forEachIndexed { index, dummyData ->
             val row = sheet.createRow(index + 1)
             insertCode(row, dummyData)
@@ -42,8 +41,12 @@ class PrintApplicationInfoGenerator {
             throw IllegalArgumentException("Excel 파일 생성 중 오류가 발생했습니다.", e)
         }
     }
-    
-    private fun createDummyApplication(receiptCode: Long, name: String, schoolName: String): Map<String, Any> {
+
+    private fun createDummyApplication(
+        receiptCode: Long,
+        name: String,
+        schoolName: String,
+    ): Map<String, Any> {
         return mapOf(
             "receiptCode" to receiptCode,
             "applicationType" to "일반전형",
@@ -60,11 +63,14 @@ class PrintApplicationInfoGenerator {
             "classNumber" to "3",
             "parentName" to "홍부모",
             "parentTel" to "010-9876-5432",
-            "examCode" to "DUMMY${receiptCode.toString().takeLast(3)}"
+            "examCode" to "DUMMY${receiptCode.toString().takeLast(3)}",
         )
     }
-    
-    private fun insertCode(row: Row, dummyData: Map<String, Any>) {
+
+    private fun insertCode(
+        row: Row,
+        dummyData: Map<String, Any>,
+    ) {
         row.createCell(0).setCellValue(dummyData["receiptCode"].toString())
         row.createCell(1).setCellValue(dummyData["applicationType"].toString())
         row.createCell(2).setCellValue(dummyData["isDaejeon"].toString())
@@ -80,39 +86,20 @@ class PrintApplicationInfoGenerator {
         row.createCell(12).setCellValue(dummyData["classNumber"].toString())
         row.createCell(13).setCellValue(dummyData["parentName"].toString())
         row.createCell(14).setCellValue(dummyData["parentTel"].toString())
-        
+
         // 성적 더미 데이터
         val dummyGrades = listOf("A", "B", "A", "B", "A", "B", "A")
-        for (i in 15..21) {
-            row.createCell(i).setCellValue(dummyGrades[i - 15])
+        for (i in 15..42) {
+            row.createCell(i).setCellValue(dummyGrades[(i - 15) % dummyGrades.size])
         }
-        for (i in 22..28) {
-            row.createCell(i).setCellValue(dummyGrades[i - 22])
-        }
-        for (i in 29..35) {
-            row.createCell(i).setCellValue(dummyGrades[i - 29])
-        }
-        for (i in 36..42) {
-            row.createCell(i).setCellValue(dummyGrades[i - 36])
-        }
-        
+
         // 점수 더미 데이터
-        row.createCell(43).setCellValue("180.0")
-        row.createCell(44).setCellValue("170.0")
-        row.createCell(45).setCellValue("165.0")
-        row.createCell(46).setCellValue("170.5")
-        row.createCell(47).setCellValue("30.0")
-        row.createCell(48).setCellValue("15.0")
-        row.createCell(49).setCellValue("0")
-        row.createCell(50).setCellValue("0")
-        row.createCell(51).setCellValue("0")
-        row.createCell(52).setCellValue("0")
-        row.createCell(53).setCellValue("20.0")
-        row.createCell(54).setCellValue("O")
-        row.createCell(55).setCellValue("X")
-        row.createCell(56).setCellValue("5.0")
-        row.createCell(57).setCellValue("210.5")
-        row.createCell(58).setCellValue("200.0")
-        row.createCell(59).setCellValue(dummyData["examCode"].toString())
+        val scores = listOf(
+            "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
+            "20.0", "O", "X", "5.0", "210.5", "200.0", dummyData["examCode"].toString()
+        )
+        for (i in scores.indices) {
+            row.createCell(43 + i).setCellValue(scores[i])
+        }
     }
 }

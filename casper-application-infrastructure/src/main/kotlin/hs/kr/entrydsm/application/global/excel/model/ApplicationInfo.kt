@@ -90,5 +90,4 @@ class ApplicationInfo {
         row.createCell(58).setCellValue("일반전형(170)")
         row.createCell(59).setCellValue("수험번호")
     }
-
 }

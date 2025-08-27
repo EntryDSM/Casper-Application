@@ -2,7 +2,11 @@ package hs.kr.entrydsm.application.global.excel.generator
 
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.usermodel.BorderStyle
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.RegionUtil
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -13,7 +17,6 @@ import java.time.format.DateTimeFormatter
 
 @Component
 class PrintApplicationCheckListGenerator {
-
     private val workbook: Workbook = XSSFWorkbook()
     private val sheet: Sheet = workbook.createSheet("application Check List")
 
@@ -22,12 +25,13 @@ class PrintApplicationCheckListGenerator {
         var dh = 0
         try {
             // 더미 데이터
-            val dummyApplications = listOf(
-                createDummyApplication(1001L, "홍길동", "더미고등학교"),
-                createDummyApplication(1002L, "김철수", "테스트고등학교"),
-                createDummyApplication(1003L, "이영희", "샘플고등학교")
-            )
-            
+            val dummyApplications =
+                listOf(
+                    createDummyApplication(1001L, "홍길동", "더미고등학교"),
+                    createDummyApplication(1002L, "김철수", "테스트고등학교"),
+                    createDummyApplication(1003L, "이영희", "샘플고등학교"),
+                )
+
             dummyApplications.forEach { dummyData ->
                 formatSheet(dh)
                 insertDataIntoSheet(dummyData, dh)
@@ -35,10 +39,19 @@ class PrintApplicationCheckListGenerator {
             }
 
             httpServletResponse.apply {
-                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                contentType =
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
                 val formatFilename = "attachment;filename=\"점검표"
-                val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년MM월dd일_HH시mm분"))
-                val fileName = String(("$formatFilename$time.xlsx\"").toByteArray(Charsets.UTF_8), Charsets.ISO_8859_1)
+                val time =
+                    LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("yyyy년MM월dd일_HH시mm분"))
+
+                val fileName =
+                    String(
+                        ("$formatFilename$time.xlsx\"").toByteArray(Charsets.UTF_8),
+                        Charsets.ISO_8859_1,
+                    )
                 setHeader("Content-Disposition", fileName)
             }
 
@@ -60,7 +73,11 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    private fun createDummyApplication(receiptCode: Long, name: String, schoolName: String): Map<String, Any> {
+    private fun createDummyApplication(
+        receiptCode: Long,
+        name: String,
+        schoolName: String,
+    ): Map<String, Any> {
         return mapOf(
             "receiptCode" to receiptCode,
             "applicationType" to "일반전형",
@@ -76,7 +93,7 @@ class PrintApplicationCheckListGenerator {
             "graduateYear" to "2024",
             "studentNumber" to "30315",
             "phoneNumber" to "010-1234-5678",
-            "parentPhoneNumber" to "010-9876-5432"
+            "parentPhoneNumber" to "010-9876-5432",
         )
     }
 
@@ -89,15 +106,16 @@ class PrintApplicationCheckListGenerator {
     }
 
     private fun Sheet.mergeRegions(rowOffset: Int) {
-        val mergedRegions = arrayOf(
-            CellRangeAddress(1 + rowOffset, 1 + rowOffset, 3, 5),
-            CellRangeAddress(3 + rowOffset, 3 + rowOffset, 2, 3),
-            CellRangeAddress(4 + rowOffset, 4 + rowOffset, 2, 3),
-            CellRangeAddress(5 + rowOffset, 5 + rowOffset, 2, 3),
-            CellRangeAddress(4 + rowOffset, 4 + rowOffset, 6, 7),
-            CellRangeAddress(5 + rowOffset, 5 + rowOffset, 6, 7),
-            CellRangeAddress(3 + rowOffset, 3 + rowOffset, 6, 7)
-        )
+        val mergedRegions =
+            arrayOf(
+                CellRangeAddress(1 + rowOffset, 1 + rowOffset, 3, 5),
+                CellRangeAddress(3 + rowOffset, 3 + rowOffset, 2, 3),
+                CellRangeAddress(4 + rowOffset, 4 + rowOffset, 2, 3),
+                CellRangeAddress(5 + rowOffset, 5 + rowOffset, 2, 3),
+                CellRangeAddress(4 + rowOffset, 4 + rowOffset, 6, 7),
+                CellRangeAddress(5 + rowOffset, 5 + rowOffset, 6, 7),
+                CellRangeAddress(3 + rowOffset, 3 + rowOffset, 6, 7),
+            )
         mergedRegions.forEach {
             if (!isRegionMerged(it)) {
                 addMergedRegion(it)
@@ -106,116 +124,131 @@ class PrintApplicationCheckListGenerator {
     }
 
     private fun Sheet.isRegionMerged(region: CellRangeAddress): Boolean {
-        return mergedRegions.any { it.firstRow == region.firstRow && it.lastRow == region.lastRow && it.firstColumn == region.firstColumn && it.lastColumn == region.lastColumn }
+        return mergedRegions.any {
+            it.firstRow == region.firstRow &&
+                it.lastRow == region.lastRow &&
+                it.firstColumn == region.firstColumn &&
+                it.lastColumn == region.lastColumn
+        }
     }
 
     private fun Sheet.applyBorderStyles(dh: Int) {
-        val borderRegionsDashedBottom = arrayOf(
-            intArrayOf(3 + dh, 3 + dh, 1, 1),
-            intArrayOf(4 + dh, 4 + dh, 1, 3),
-            intArrayOf(5 + dh, 5 + dh, 1, 3),
-            intArrayOf(3 + dh, 3 + dh, 5, 7),
-            intArrayOf(4 + dh, 4 + dh, 5, 7),
-            intArrayOf(5 + dh, 5 + dh, 5, 7),
-            intArrayOf(7 + dh, 7 + dh, 1, 7),
-            intArrayOf(11 + dh, 11 + dh, 1, 7),
-            intArrayOf(12 + dh, 12 + dh, 1, 7),
-            intArrayOf(13 + dh, 13 + dh, 1, 7),
-            intArrayOf(14 + dh, 14 + dh, 1, 7),
-            intArrayOf(15 + dh, 15 + dh, 1, 7),
-            intArrayOf(16 + dh, 16 + dh, 1, 7),
-        )
+        val borderRegionsDashedBottom =
+            arrayOf(
+                intArrayOf(3 + dh, 3 + dh, 1, 1),
+                intArrayOf(4 + dh, 4 + dh, 1, 3),
+                intArrayOf(5 + dh, 5 + dh, 1, 3),
+                intArrayOf(3 + dh, 3 + dh, 5, 7),
+                intArrayOf(4 + dh, 4 + dh, 5, 7),
+                intArrayOf(5 + dh, 5 + dh, 5, 7),
+                intArrayOf(7 + dh, 7 + dh, 1, 7),
+                intArrayOf(11 + dh, 11 + dh, 1, 7),
+                intArrayOf(12 + dh, 12 + dh, 1, 7),
+                intArrayOf(13 + dh, 13 + dh, 1, 7),
+                intArrayOf(14 + dh, 14 + dh, 1, 7),
+                intArrayOf(15 + dh, 15 + dh, 1, 7),
+                intArrayOf(16 + dh, 16 + dh, 1, 7),
+            )
         setBorderStyle(borderRegionsDashedBottom, BorderStyle.DASHED, Direction.BOTTOM)
 
-        val borderRegionsThin = arrayOf(
-            intArrayOf(1 + dh, 1 + dh, 1, 7),
-            intArrayOf(3 + dh, 3 + dh, 1, 1),
-            intArrayOf(4 + dh, 5 + dh, 1, 3),
-            intArrayOf(3 + dh, 5 + dh, 5, 7),
-            intArrayOf(7 + dh, 8 + dh, 1, 7),
-            intArrayOf(10 + dh, 17 + dh, 1, 7),
-            intArrayOf(10 + dh, 10 + dh, 1, 5),
-            intArrayOf(18 + dh, 18 + dh, 1, 5),
-        )
+        val borderRegionsThin =
+            arrayOf(
+                intArrayOf(1 + dh, 1 + dh, 1, 7),
+                intArrayOf(3 + dh, 3 + dh, 1, 1),
+                intArrayOf(4 + dh, 5 + dh, 1, 3),
+                intArrayOf(3 + dh, 5 + dh, 5, 7),
+                intArrayOf(7 + dh, 8 + dh, 1, 7),
+                intArrayOf(10 + dh, 17 + dh, 1, 7),
+                intArrayOf(10 + dh, 10 + dh, 1, 5),
+                intArrayOf(18 + dh, 18 + dh, 1, 5),
+            )
         setBorderStyle(borderRegionsThin, BorderStyle.THIN, Direction.ALL)
 
-        val borderRegionsThick = arrayOf(
-            intArrayOf(18 + dh, 18 + dh, 6, 7),
-            intArrayOf(10 + dh, 10 + dh, 6, 7),
-            intArrayOf(1 + dh, 1 + dh, 2, 2),
-            intArrayOf(3 + dh, 3 + dh, 2, 2),
-            intArrayOf(18 + dh, 18 + dh, 6, 7),
-            intArrayOf(19 + dh, 19 + dh, 6, 7)
-        )
+        val borderRegionsThick =
+            arrayOf(
+                intArrayOf(18 + dh, 18 + dh, 6, 7),
+                intArrayOf(10 + dh, 10 + dh, 6, 7),
+                intArrayOf(1 + dh, 1 + dh, 2, 2),
+                intArrayOf(3 + dh, 3 + dh, 2, 2),
+                intArrayOf(18 + dh, 18 + dh, 6, 7),
+                intArrayOf(19 + dh, 19 + dh, 6, 7),
+            )
         setBorderStyle(borderRegionsThick, BorderStyle.THICK, Direction.ALL)
 
-        val borderRegionsDashedRight = arrayOf(
-            intArrayOf(18 + dh, 18 + dh, 2, 3),
-            intArrayOf(1 + dh, 1 + dh, 4, 5),
-            intArrayOf(1 + dh, 1 + dh, 5, 6),
-            intArrayOf(4 + dh, 5 + dh, 1, 2),
-            intArrayOf(7 + dh, 8 + dh, 1, 1),
-            intArrayOf(7 + dh, 8 + dh, 2, 2),
-            intArrayOf(7 + dh, 8 + dh, 3, 3),
-            intArrayOf(7 + dh, 8 + dh, 4, 4),
-            intArrayOf(7 + dh, 8 + dh, 5, 5),
-            intArrayOf(7 + dh, 8 + dh, 6, 6),
-            intArrayOf(10 + dh, 18 + dh, 1, 1),
-            intArrayOf(10 + dh, 18 + dh, 2, 2),
-            intArrayOf(10 + dh, 18 + dh, 3, 3),
-            intArrayOf(10 + dh, 18 + dh, 4, 4),
-            intArrayOf(10 + dh, 18 + dh, 6, 6),
-            intArrayOf(3 + dh, 5 + dh, 1, 1),
-            intArrayOf(19 + dh, 19 + dh, 6, 6)
-        )
+        val borderRegionsDashedRight =
+            arrayOf(
+                intArrayOf(18 + dh, 18 + dh, 2, 3),
+                intArrayOf(1 + dh, 1 + dh, 4, 5),
+                intArrayOf(1 + dh, 1 + dh, 5, 6),
+                intArrayOf(4 + dh, 5 + dh, 1, 2),
+                intArrayOf(7 + dh, 8 + dh, 1, 1),
+                intArrayOf(7 + dh, 8 + dh, 2, 2),
+                intArrayOf(7 + dh, 8 + dh, 3, 3),
+                intArrayOf(7 + dh, 8 + dh, 4, 4),
+                intArrayOf(7 + dh, 8 + dh, 5, 5),
+                intArrayOf(7 + dh, 8 + dh, 6, 6),
+                intArrayOf(10 + dh, 18 + dh, 1, 1),
+                intArrayOf(10 + dh, 18 + dh, 2, 2),
+                intArrayOf(10 + dh, 18 + dh, 3, 3),
+                intArrayOf(10 + dh, 18 + dh, 4, 4),
+                intArrayOf(10 + dh, 18 + dh, 6, 6),
+                intArrayOf(3 + dh, 5 + dh, 1, 1),
+                intArrayOf(19 + dh, 19 + dh, 6, 6),
+            )
         setBorderStyle(borderRegionsDashedRight, BorderStyle.DASHED, Direction.RIGHT)
 
-        val borderRegionsThinRight = arrayOf(
-            intArrayOf(11 + dh, 17 + dh, 5, 5),
-            intArrayOf(3 + dh, 5 + dh, 5, 5)
-        )
+        val borderRegionsThinRight =
+            arrayOf(
+                intArrayOf(11 + dh, 17 + dh, 5, 5),
+                intArrayOf(3 + dh, 5 + dh, 5, 5),
+            )
         setBorderStyle(borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
     }
 
     private fun Sheet.setCellValues(dh: Int) {
-        val cellValues = mapOf(
-            Pair(1 + dh, 1) to "접수번호",
-            Pair(3 + dh, 5) to "학번",
-            Pair(4 + dh, 5) to "학생",
-            Pair(5 + dh, 5) to "보호자",
-            Pair(7 + dh, 1) to "결석",
-            Pair(7 + dh, 2) to "지각",
-            Pair(7 + dh, 3) to "조퇴",
-            Pair(7 + dh, 4) to "결과",
-            Pair(7 + dh, 5) to "출석점수",
-            Pair(7 + dh, 6) to "봉사시간",
-            Pair(7 + dh, 7) to "봉사점수",
-            Pair(10 + dh, 1) to "과목",
-            Pair(10 + dh, 2) to "3_2학기",
-            Pair(10 + dh, 3) to "3_1학기",
-            Pair(10 + dh, 4) to "직전",
-            Pair(10 + dh, 5) to "직전전",
-            Pair(10 + dh, 6) to "교과성적",
-            Pair(11 + dh, 6) to "대회",
-            Pair(12 + dh, 6) to "기능사",
-            Pair(13 + dh, 6) to "가산점",
-            Pair(19 + dh, 6) to "총점",
-            Pair(18 + dh, 6) to "환산점수",
-            Pair(11 + dh, 1) to "국어",
-            Pair(12 + dh, 1) to "사회",
-            Pair(13 + dh, 1) to "역사",
-            Pair(14 + dh, 1) to "수학",
-            Pair(15 + dh, 1) to "과학",
-            Pair(16 + dh, 1) to "기술가정",
-            Pair(17 + dh, 1) to "영어",
-            Pair(18 + dh, 1) to "점수"
-        )
+        val cellValues =
+            mapOf(
+                Pair(1 + dh, 1) to "접수번호",
+                Pair(3 + dh, 5) to "학번",
+                Pair(4 + dh, 5) to "학생",
+                Pair(5 + dh, 5) to "보호자",
+                Pair(7 + dh, 1) to "결석",
+                Pair(7 + dh, 2) to "지각",
+                Pair(7 + dh, 3) to "조퇴",
+                Pair(7 + dh, 4) to "결과",
+                Pair(7 + dh, 5) to "출석점수",
+                Pair(7 + dh, 6) to "봉사시간",
+                Pair(7 + dh, 7) to "봉사점수",
+                Pair(10 + dh, 1) to "과목",
+                Pair(10 + dh, 2) to "3_2학기",
+                Pair(10 + dh, 3) to "3_1학기",
+                Pair(10 + dh, 4) to "직전",
+                Pair(10 + dh, 5) to "직전전",
+                Pair(10 + dh, 6) to "교과성적",
+                Pair(11 + dh, 6) to "대회",
+                Pair(12 + dh, 6) to "기능사",
+                Pair(13 + dh, 6) to "가산점",
+                Pair(19 + dh, 6) to "총점",
+                Pair(18 + dh, 6) to "환산점수",
+                Pair(11 + dh, 1) to "국어",
+                Pair(12 + dh, 1) to "사회",
+                Pair(13 + dh, 1) to "역사",
+                Pair(14 + dh, 1) to "수학",
+                Pair(15 + dh, 1) to "과학",
+                Pair(16 + dh, 1) to "기술가정",
+                Pair(17 + dh, 1) to "영어",
+                Pair(18 + dh, 1) to "점수",
+            )
         cellValues.forEach { (cell, value) ->
             getCell(cell.first, cell.second).setCellValue(value)
         }
     }
 
-    private fun setBorderStyle(regions: Array<IntArray>, borderStyle: BorderStyle, direction: Direction) {
+    private fun setBorderStyle(
+        regions: Array<IntArray>,
+        borderStyle: BorderStyle,
+        direction: Direction,
+    ) {
         regions.forEach { region ->
             val address = CellRangeAddress(region[0], region[1], region[2], region[3])
             when (direction) {
@@ -233,17 +266,26 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    private fun getCell(rowNum: Int, cellNum: Int): Cell {
-        val row = sheet.getRow(rowNum) ?: sheet.createRow(rowNum)
+    private fun getCell(
+        rowNum: Int,
+        cellNum: Int,
+    ): Cell {
+        val row: Row = sheet.getRow(rowNum) ?: sheet.createRow(rowNum)
         return row.getCell(cellNum) ?: row.createCell(cellNum)
     }
 
-    private fun setRowHeight(rowIndex: Int, height: Int) {
-        val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
+    private fun setRowHeight(
+        rowIndex: Int,
+        height: Int,
+    ) {
+        val row: Row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
         row.heightInPoints = height.toFloat()
     }
 
-    private fun insertDataIntoSheet(dummyData: Map<String, Any>, dh: Int) {
+    private fun insertDataIntoSheet(
+        dummyData: Map<String, Any>,
+        dh: Int,
+    ) {
         getCell(dh + 1, 2).setCellValue(dummyData["receiptCode"].toString())
         getCell(dh + 1, 3).setCellValue(dummyData["schoolName"].toString())
         getCell(dh + 1, 6).setCellValue(dummyData["educationalStatus"].toString())
@@ -271,7 +313,6 @@ class PrintApplicationCheckListGenerator {
         // 성적 더미 데이터
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val dummyGrades = listOf("A", "B", "A", "B", "A", "B", "A")
-        
         subjects.forEachIndexed { index, subject ->
             val rowIndex = dh + 11 + index
             getCell(rowIndex, 1).setCellValue(subject)
@@ -302,6 +343,6 @@ class PrintApplicationCheckListGenerator {
         BOTTOM,
         LEFT,
         RIGHT,
-        ALL
+        ALL,
     }
 }

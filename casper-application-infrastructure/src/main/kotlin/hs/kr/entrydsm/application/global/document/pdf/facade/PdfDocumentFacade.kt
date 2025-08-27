@@ -8,7 +8,6 @@ import java.io.ByteArrayOutputStream
 
 @Component
 class PdfDocumentFacade {
-
     fun getPdfDocument(pdfStream: ByteArrayOutputStream): PdfDocument? {
         return try {
             val inputStream = ByteArrayInputStream(pdfStream.toByteArray())
