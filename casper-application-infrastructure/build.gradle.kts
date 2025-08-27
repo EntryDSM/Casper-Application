@@ -18,7 +18,7 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask> {
     exclude("**/generated/**")
     exclude { fileTreeElement ->
         val path = fileTreeElement.file.absolutePath
-        path.contains("build${java.io.File.separator}generated") ||
+        path.contains("build${File.separator}generated") ||
             path.contains("grpckt") ||
             path.endsWith("GrpcKt.kt")
     }
