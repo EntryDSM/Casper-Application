@@ -2,8 +2,6 @@ package hs.kr.entrydsm.application.global.web.client
 
 import hs.kr.entrydsm.application.global.web.KakaoProperties
 import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
-import hs.kr.entrydsm.global.annotation.service.Service
-import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Component
