@@ -9,7 +9,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 @Configuration
 class PdfConfig {
     @Bean
-    fun templateEngine(): TemplateEngine {
+    fun pdfTemplateEngine(): TemplateEngine {
         val templateResolver = ClassLoaderTemplateResolver().apply {
             prefix = "classpath:/templates/"
             suffix = ".html"
