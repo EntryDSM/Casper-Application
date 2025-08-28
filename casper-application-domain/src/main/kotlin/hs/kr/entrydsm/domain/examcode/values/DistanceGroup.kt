@@ -1,6 +1,4 @@
-package hs.kr.entrydsm.domain.examcode.util
-
-import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
+package hs.kr.entrydsm.domain.examcode.values
 
 data class DistanceGroup(
     val applicationType: String,

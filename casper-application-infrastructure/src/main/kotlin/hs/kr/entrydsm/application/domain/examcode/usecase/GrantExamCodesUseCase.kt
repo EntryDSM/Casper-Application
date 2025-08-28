@@ -10,7 +10,7 @@ import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
-import hs.kr.entrydsm.domain.examcode.util.DistanceGroup
+import hs.kr.entrydsm.domain.examcode.values.DistanceGroup
 import hs.kr.entrydsm.domain.examcode.util.DistanceUtil
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
