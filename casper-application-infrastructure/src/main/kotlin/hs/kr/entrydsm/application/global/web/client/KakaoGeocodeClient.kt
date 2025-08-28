@@ -6,6 +6,7 @@ import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
@@ -15,7 +16,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
  * @author chaedohun
  * @since 2025.08.26
  */
-@Service(name = "KakaoGeocodeClient", type = ServiceType.APPLICATION_SERVICE)
+@Component
 class KakaoGeocodeClient(
     private val builder: WebClient.Builder,
     private val kakaoBaseProperties: KakaoProperties,
