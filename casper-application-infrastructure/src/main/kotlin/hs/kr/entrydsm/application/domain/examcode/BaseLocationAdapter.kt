@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.examcode
 
+import hs.kr.entrydsm.application.global.web.KakaoProperties
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import org.springframework.stereotype.Component
 
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component
  * @since 2025.08.26
  */
 @Component
-class ExamCodePersistenceAdapter(
+class BaseLocationAdapter(
     private val kakaoProperties: KakaoProperties,
 ) : BaseLocationContract {
 

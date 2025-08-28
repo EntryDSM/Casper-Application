@@ -1,7 +1,6 @@
-package hs.kr.entrydsm.domain.examcode.util
+package hs.kr.entrydsm.application.domain.examcode.util
 
-import hs.kr.entrydsm.global.annotation.service.Service
-import hs.kr.entrydsm.global.annotation.service.type.ServiceType
+import org.springframework.stereotype.Component
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
@@ -12,7 +11,7 @@ import kotlin.math.sqrt
 /**
  * 두 지점 간의 거리를 계산하는 유틸리티 클래스입니다.
  */
-@Service(name = "DistanceUtil", type = ServiceType.APPLICATION_SERVICE)
+@Component
 class DistanceUtil {
     companion object {
         /** 지구의 반지름 (미터) */
