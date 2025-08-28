@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.domain.examcode.util
+package hs.kr.entrydsm.application.domain.examcode.util
 
 import hs.kr.entrydsm.global.annotation.service.Service
 import hs.kr.entrydsm.global.annotation.service.type.ServiceType
