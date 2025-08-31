@@ -44,4 +44,7 @@ object DependencyVersions {
 
     // Caffeine
     const val CAFFEINE = "3.1.8"
+
+    //Resilience4j
+    const val RESILIENCE4J = "2.0.2"
 }
