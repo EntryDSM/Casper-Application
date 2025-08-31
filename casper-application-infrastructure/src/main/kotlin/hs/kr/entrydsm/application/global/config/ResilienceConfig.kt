@@ -24,6 +24,11 @@ class ResilienceConfig(
     }
 
     @Bean
+    fun scheduleGrpcCircuitBreaker(): CircuitBreaker {
+        return circuitBreakerRegistry.circuitBreaker("schedule-grpc")
+    }
+
+    @Bean
     fun userGrpcRetry(): Retry {
         return retryRegistry.retry("user-grpc")
     }
