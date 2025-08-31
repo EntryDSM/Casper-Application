@@ -31,7 +31,7 @@ class GrantExamCodesUseCase(
     private val baseLocationContract: BaseLocationContract,
     private val statusContract: StatusContract,
     private val distanceUtil: DistanceUtil,
-    ) : GrantExamCodesContract {
+) : GrantExamCodesContract {
 
     companion object {
         /** 일반전형 수험번호 접두사 */
