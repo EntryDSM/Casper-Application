@@ -37,4 +37,9 @@ class ResilienceConfig(
     fun statusGrpcRetry(): Retry {
         return retryRegistry.retry("status-grpc")
     }
+
+    @Bean
+    fun scheduleGrpcRetry(): Retry {
+        return retryRegistry.retry("schedule-grpc")
+    }
 }
