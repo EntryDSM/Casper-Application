@@ -105,5 +105,6 @@ object Dependencies {
     const val RESILIENCE4J_SPRING_BOOT = "io.github.resilience4j:resilience4j-spring-boot3:${DependencyVersions.RESILIENCE4J}"
     const val RESILIENCE4J_KOTLIN = "io.github.resilience4j:resilience4j-kotlin:${DependencyVersions.RESILIENCE4J}"
 
-
+    // Netty
+    const val NETTY = "io.netty:netty-resolver-dns-native-macos:${DependencyVersions.NETTY}"
 }
