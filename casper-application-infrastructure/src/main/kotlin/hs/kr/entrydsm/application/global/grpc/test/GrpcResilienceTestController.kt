@@ -1,6 +1,8 @@
 package hs.kr.entrydsm.application.global.grpc.test
 
 import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
+import hs.kr.entrydsm.application.global.grpc.dto.schedule.InternalScheduleResponse
+import hs.kr.entrydsm.application.global.grpc.dto.schedule.ScheduleType
 import hs.kr.entrydsm.application.global.grpc.dto.status.ApplicationStatus
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusListResponse
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse
@@ -10,6 +12,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.github.resilience4j.retry.RetryRegistry
 import kotlinx.coroutines.delay
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.random.Random
 
@@ -25,6 +28,49 @@ class DummyGrpcResilienceTestController(
     private var shouldFailStatus = false
     private var shouldBeSlowUser = false
     private var shouldBeSlowStatus = false
+    private var shouldFailSchedule = false
+    private var shouldBeSlowSchedule = false
+
+
+    @GetMapping("/schedule")
+    suspend fun testDummyScheduleGrpc(type: String): Map<String, Any> {
+        val startTime = System.currentTimeMillis()
+        val retry = retryRegistry.retry("schedule-grpc")
+        val circuitBreaker = circuitBreakerRegistry.circuitBreaker("schedule-grpc")
+
+        return try {
+            val response = executeGrpcCallWithResilience(
+                retry = retry,
+                circuitBreaker = circuitBreaker,
+                fallback = {
+                    // Fallback 응답
+                    InternalScheduleResponse(
+                        type = ScheduleType.FIRST_ANNOUNCEMENT,
+                        date = LocalDateTime.now()
+                    )
+                }
+            ) {
+                simulateScheduleGrpcCall(type)
+            }
+
+            mapOf(
+                "success" to true,
+                "data" to response,
+                "executionTime" to "${System.currentTimeMillis() - startTime}ms",
+                "circuitBreakerState" to getCircuitBreakerState("schedule-grpc"),
+                "retryMetrics" to getRetryMetrics("schedule-grpc"),
+                "source" to if (response.type.name.contains("FIRST_ANNOUNCEMENT")) "fallback" else "grpc"
+            )
+        } catch (e: Exception) {
+            mapOf(
+                "success" to false,
+                "error" to (e.message ?: "Unknown error"),
+                "executionTime" to "${System.currentTimeMillis() - startTime}ms",
+                "circuitBreakerState" to getCircuitBreakerState("schedule-grpc"),
+                "retryMetrics" to getRetryMetrics("schedule-grpc")
+            )
+        }
+    }
 
     @GetMapping("/user/{userId}")
     suspend fun testDummyUserGrpc(@PathVariable userId: String): Map<String, Any> {
@@ -133,6 +179,18 @@ class DummyGrpcResilienceTestController(
         )
     }
 
+    @PostMapping("/control/schedule/fail/{shouldFail}")
+    fun setScheduleFailure(@PathVariable shouldFail: Boolean): Map<String, Any> {
+        shouldFailSchedule = shouldFail
+        return mapOf(
+            "message" to "Schedule service failure simulation set to: $shouldFail",
+            "currentState" to mapOf(
+                "shouldFailSchedule" to shouldFailSchedule,
+                "shouldBeSlowSchedule" to shouldBeSlowSchedule
+            )
+        )
+    }
+
     @PostMapping("/control/user/slow/{shouldBeSlow}")
     fun setUserSlow(@PathVariable shouldBeSlow: Boolean): Map<String, Any> {
         shouldBeSlowUser = shouldBeSlow
@@ -157,6 +215,18 @@ class DummyGrpcResilienceTestController(
         )
     }
 
+    @PostMapping("/control/schedule/slow/{shouldBeSlow}")
+    fun setScheduleSlow(@PathVariable shouldBeSlow: Boolean): Map<String, Any> {
+        shouldBeSlowSchedule = shouldBeSlow
+        return mapOf(
+            "message" to "Schedule service slow call simulation set to: $shouldBeSlow",
+            "currentState" to mapOf(
+                "shouldFailSchedule" to shouldFailSchedule,
+                "shouldBeSlowSchedule" to shouldBeSlowSchedule
+            )
+        )
+    }
+
     @GetMapping("/control/status")
     fun getControlStatus(): Map<String, Any> {
         return mapOf(
@@ -167,6 +237,10 @@ class DummyGrpcResilienceTestController(
             "statusService" to mapOf(
                 "shouldFail" to shouldFailStatus,
                 "shouldBeSlow" to shouldBeSlowStatus
+            ),
+            "scheduleService" to mapOf(
+                "shouldFail" to shouldFailSchedule,
+                "shouldBeSlow" to shouldBeSlowSchedule
             )
         )
     }
@@ -176,12 +250,15 @@ class DummyGrpcResilienceTestController(
         // 플래그 리셋
         shouldFailUser = false
         shouldFailStatus = false
+        shouldFailSchedule = false
         shouldBeSlowUser = false
         shouldBeSlowStatus = false
+        shouldBeSlowSchedule = false
 
         // 서킷 브레이커 리셋
         circuitBreakerRegistry.circuitBreaker("user-grpc").reset()
         circuitBreakerRegistry.circuitBreaker("status-grpc").reset()
+        circuitBreakerRegistry.circuitBreaker("schedule-grpc").reset()
 
         return mapOf("message" to "All controls and metrics reset successfully")
     }
@@ -197,11 +274,17 @@ class DummyGrpcResilienceTestController(
                 "circuitBreaker" to getCircuitBreakerState("status-grpc"),
                 "retry" to getRetryMetrics("status-grpc")
             ),
+            "scheduleGrpc" to mapOf(
+                "circuitBreaker" to getCircuitBreakerState("schedule-grpc"),
+                "retry" to getRetryMetrics("schedule-grpc")
+            ),
             "controlFlags" to mapOf(
                 "shouldFailUser" to shouldFailUser,
                 "shouldFailStatus" to shouldFailStatus,
+                "shouldFailSchedule" to shouldFailSchedule,
                 "shouldBeSlowUser" to shouldBeSlowUser,
-                "shouldBeSlowStatus" to shouldBeSlowStatus
+                "shouldBeSlowStatus" to shouldBeSlowStatus,
+                "shouldBeSlowSchedule" to shouldBeSlowSchedule,
             )
         )
     }
@@ -265,6 +348,27 @@ class DummyGrpcResilienceTestController(
                     receiptCode = 12346L
                 )
             )
+        )
+    }
+
+    private suspend fun simulateScheduleGrpcCall(type: String): InternalScheduleResponse {
+        // 느린 호출 시뮬레이션 (3초 지연)
+        if (shouldBeSlowSchedule) {
+            delay(3000)
+        }
+
+        // 일반 지연 (실제 네트워크 지연 시뮬레이션)
+        delay(Random.nextLong(100, 500))
+
+        // 실패 시뮬레이션
+        if (shouldFailSchedule) {
+            throw RuntimeException("Simulated gRPC Schedule Service failure")
+        }
+
+        // 성공 응답
+        return InternalScheduleResponse(
+            type = ScheduleType.FIRST_ANNOUNCEMENT,
+            date = LocalDateTime.now()
         )
     }
 

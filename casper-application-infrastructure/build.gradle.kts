@@ -110,6 +110,12 @@ dependencies {
     implementation(Dependencies.RESILIENCE4J_RETRY)
     implementation(Dependencies.RESILIENCE4J_SPRING_BOOT)
     implementation(Dependencies.RESILIENCE4J_KOTLIN)
+
+    runtimeOnly(Dependencies.NETTY) {
+        artifact {
+            classifier = osdetector.classifier
+        }
+    }
 }
 
 sourceSets {
