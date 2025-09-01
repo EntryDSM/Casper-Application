@@ -1,48 +1,21 @@
 package hs.kr.entrydsm.application.domain.formula.presentation.dto.response
 
-import hs.kr.entrydsm.domain.formula.entities.Formula
-import hs.kr.entrydsm.domain.formula.entities.FormulaSet
+import java.time.LocalDateTime
 
 data class FormulaSetResponse(
-    val id: String,
-    val name: String,
-    val type: String,
-    val formulas: List<FormulaResponse>,
-    val description: String? = null,
-    val isActive: Boolean
+    val success: Boolean,
+    val data: FormulaSetData
 ) {
-    companion object {
-        fun from(formulaSet: FormulaSet): FormulaSetResponse {
-            return FormulaSetResponse(
-                id = formulaSet.id.value,
-                name = formulaSet.name,
-                type = formulaSet.type.name,
-                formulas = formulaSet.formulas.map { FormulaResponse.from(it) },
-                description = formulaSet.description,
-                isActive = formulaSet.isActive
-            )
-        }
-    }
-}
-
-data class FormulaResponse(
-    val id: String,
-    val name: String,
-    val expression: String,
-    val order: Int,
-    val resultVariable: String? = null,
-    val description: String? = null
-) {
-    companion object {
-        fun from(formula: Formula): FormulaResponse {
-            return FormulaResponse(
-                id = formula.id,
-                name = formula.name,
-                expression = formula.expression,
-                order = formula.order,
-                resultVariable = formula.resultVariable,
-                description = formula.description
-            )
-        }
-    }
+    data class FormulaSetData(
+        val formulaSetId: String,
+        val name: String,
+        val description: String,
+        val applicationType: String,
+        val educationalStatus: String,
+        val region: String?,
+        val totalFormulas: Int,
+        val status: String,
+        val createdAt: LocalDateTime,
+        val updatedAt: LocalDateTime?
+    )
 }

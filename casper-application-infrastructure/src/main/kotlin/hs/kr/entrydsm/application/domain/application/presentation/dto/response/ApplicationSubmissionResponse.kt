@@ -1,27 +1,43 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.response
 
-import hs.kr.entrydsm.domain.application.entities.Application
-import hs.kr.entrydsm.domain.application.services.ScoreCalculationResult
 import java.time.LocalDateTime
 
-/**
- * 원서 제출 + 성적 계산 통합 응답 DTO
- */
 data class ApplicationSubmissionResponse(
-    val application: ApplicationResponse,
-    val scoreCalculation: ScoreCalculationResponse,
-    val submissionTimestamp: LocalDateTime = LocalDateTime.now(),
-    val status: String = "SUBMITTED_AND_CALCULATED"
+    val success: Boolean,
+    val data: SubmissionData
 ) {
-    companion object {
-        fun from(
-            application: Application, 
-            calculationResult: ScoreCalculationResult
-        ): ApplicationSubmissionResponse {
-            return ApplicationSubmissionResponse(
-                application = ApplicationResponse.from(application),
-                scoreCalculation = ScoreCalculationResponse.from(calculationResult)
-            )
-        }
-    }
+    data class SubmissionData(
+        val application: ApplicationInfo,
+        val calculation: CalculationInfo
+    )
+    
+    data class ApplicationInfo(
+        val applicationId: String,
+        val receiptCode: Long,
+        val applicantName: String,
+        val applicationType: String,
+        val educationalStatus: String,
+        val status: String,
+        val submittedAt: LocalDateTime
+    )
+    
+    data class CalculationInfo(
+        val calculationId: String,
+        val totalScore: Double,
+        val breakdown: Map<String, Double>,
+        val formulaExecution: FormulaExecutionInfo
+    )
+    
+    data class FormulaExecutionInfo(
+        val executedAt: LocalDateTime,
+        val executionTimeMs: Long,
+        val steps: List<FormulaStepInfo>
+    )
+    
+    data class FormulaStepInfo(
+        val stepName: String,
+        val formula: String,
+        val result: Double,
+        val variables: Map<String, Any>
+    )
 }

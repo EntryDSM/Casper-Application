@@ -1,7 +1,5 @@
 package hs.kr.entrydsm.domain.formula.spi
 
-import hs.kr.entrydsm.domain.application.values.ApplicationType
-import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.formula.entities.FormulaExecution
 import hs.kr.entrydsm.domain.formula.entities.FormulaSet
 import hs.kr.entrydsm.domain.formula.values.FormulaExecutionId
@@ -38,8 +36,8 @@ interface FormulaPort {
      * Application 조건에 맞는 FormulaSet 찾기
      */
     fun findByApplicationCriteria(
-        applicationType: ApplicationType,
-        educationalStatus: EducationalStatus,
+        applicationType: String,
+        educationalStatus: String,
         isDaejeon: Boolean
     ): FormulaSet?
     

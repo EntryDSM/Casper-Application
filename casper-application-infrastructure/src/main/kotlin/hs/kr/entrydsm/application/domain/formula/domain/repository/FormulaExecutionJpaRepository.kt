@@ -1,15 +1,36 @@
 package hs.kr.entrydsm.application.domain.formula.domain.repository
 
+import hs.kr.entrydsm.application.domain.formula.domain.entity.ExecutionStatusEnum
 import hs.kr.entrydsm.application.domain.formula.domain.entity.FormulaExecutionJpaEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
+import java.util.*
 
-interface FormulaExecutionJpaRepository : JpaRepository<FormulaExecutionJpaEntity, String> {
+@Repository
+interface FormulaExecutionJpaRepository : JpaRepository<FormulaExecutionJpaEntity, UUID> {
     
-    @Query("SELECT e FROM FormulaExecutionJpaEntity e LEFT JOIN FETCH e.executionSteps WHERE e.formulaSetId = :formulaSetId ORDER BY e.executedAt DESC")
-    fun findByFormulaSetIdWithSteps(@Param("formulaSetId") formulaSetId: String): List<FormulaExecutionJpaEntity>
+    fun findAllByFormulaSetId(formulaSetId: UUID): List<FormulaExecutionJpaEntity>
     
-    @Query("SELECT e FROM FormulaExecutionJpaEntity e LEFT JOIN FETCH e.executionSteps WHERE e.id = :id")
-    fun findByIdWithSteps(@Param("id") id: String): FormulaExecutionJpaEntity?
+    fun findAllByFormulaSetIdOrderByExecutedAtDesc(formulaSetId: UUID): List<FormulaExecutionJpaEntity>
+    
+    fun findAllByStatus(status: ExecutionStatusEnum): List<FormulaExecutionJpaEntity>
+    
+    @Query("SELECT f FROM FormulaExecutionJpaEntity f WHERE f.formulaSetId = :formulaSetId AND f.status = :status ORDER BY f.executedAt DESC")
+    fun findByFormulaSetIdAndStatus(
+        @Param("formulaSetId") formulaSetId: UUID,
+        @Param("status") status: ExecutionStatusEnum
+    ): List<FormulaExecutionJpaEntity>
+    
+    @Query("SELECT f FROM FormulaExecutionJpaEntity f WHERE f.executedAt BETWEEN :startDate AND :endDate ORDER BY f.executedAt DESC")
+    fun findByExecutedAtBetween(
+        @Param("startDate") startDate: LocalDateTime,
+        @Param("endDate") endDate: LocalDateTime
+    ): List<FormulaExecutionJpaEntity>
+    
+    fun countByFormulaSetId(formulaSetId: UUID): Long
+    
+    fun countByStatus(status: ExecutionStatusEnum): Long
 }

@@ -1,22 +1,28 @@
 package hs.kr.entrydsm.application.domain.formula.domain.repository
 
 import hs.kr.entrydsm.application.domain.formula.domain.entity.FormulaSetJpaEntity
-import hs.kr.entrydsm.application.domain.formula.domain.entity.enum.FormulaTypeEnum
+import hs.kr.entrydsm.application.domain.formula.domain.entity.enums.FormulaSetStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+import org.springframework.stereotype.Repository
+import java.util.*
 
-interface FormulaSetJpaRepository : JpaRepository<FormulaSetJpaEntity, String> {
+@Repository
+interface FormulaSetJpaRepository : JpaRepository<FormulaSetJpaEntity, UUID> {
     
-    fun findByTypeAndIsActiveTrue(type: FormulaTypeEnum): List<FormulaSetJpaEntity>
+    fun findAllByStatus(status: FormulaSetStatus): List<FormulaSetJpaEntity>
     
-    fun findByIsActiveTrue(): List<FormulaSetJpaEntity>
+    @Query("SELECT f FROM FormulaSetJpaEntity f WHERE f.applicationType = :applicationType AND f.educationalStatus = :educationalStatus AND (:region IS NULL OR f.region = :region) AND f.status = 'ACTIVE'")
+    fun findByApplicationCriteria(
+        @Param("applicationType") applicationType: String,
+        @Param("educationalStatus") educationalStatus: String,
+        @Param("region") region: String?
+    ): FormulaSetJpaEntity?
     
-    @Query("SELECT fs FROM FormulaSetJpaEntity fs LEFT JOIN FETCH fs.formulas WHERE fs.id = :id")
-    fun findByIdWithFormulas(id: String): FormulaSetJpaEntity?
-    
-    @Query("SELECT fs FROM FormulaSetJpaEntity fs LEFT JOIN FETCH fs.formulas WHERE fs.type = :type AND fs.isActive = true")
-    fun findByTypeWithFormulas(type: FormulaTypeEnum): List<FormulaSetJpaEntity>
-    
-    @Query("SELECT fs FROM FormulaSetJpaEntity fs LEFT JOIN FETCH fs.formulas WHERE fs.applicationType = :applicationType AND fs.educationalStatus = :educationalStatus AND fs.isDaejeon = :isDaejeon AND fs.isActive = true")
-    fun findByApplicationCriteriaWithFormulas(applicationType: String, educationalStatus: String, isDaejeon: Boolean): FormulaSetJpaEntity?
+    fun findAllByApplicationTypeAndEducationalStatusAndStatus(
+        applicationType: String,
+        educationalStatus: String,
+        status: FormulaSetStatus
+    ): List<FormulaSetJpaEntity>
 }

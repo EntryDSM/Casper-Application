@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.domain.formula.entities
 
-import hs.kr.entrydsm.domain.application.values.ApplicationType
-import hs.kr.entrydsm.domain.application.values.EducationalStatus
+
 import hs.kr.entrydsm.domain.formula.values.FormulaType
 import hs.kr.entrydsm.domain.formula.values.FormulaSetId
 import hs.kr.entrydsm.global.constants.ErrorCodes
@@ -22,8 +21,8 @@ data class FormulaSet(
     val formulas: List<Formula>,
     val description: String? = null,
     val isActive: Boolean = true,
-    val applicationType: ApplicationType? = null,
-    val educationalStatus: EducationalStatus? = null,
+    val applicationType: String? = null,
+    val educationalStatus: String? = null,
     val isDaejeon: Boolean? = null
 ) : AggregateRootInterface<FormulaSetId>() {
 
