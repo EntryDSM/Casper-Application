@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.global.grpc.client.status
 
 import com.google.protobuf.Empty
-import hs.kr.entrydsm.application.global.grpc.dto.status.ApplicationStatus
+import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusListResponse
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse
 import hs.kr.entrydsm.casper.status.proto.StatusServiceGrpc
