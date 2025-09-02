@@ -5,13 +5,13 @@ import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
 import hs.kr.entrydsm.domain.status.interfaces.StatusContract
 import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
-import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
 import hs.kr.entrydsm.domain.examcode.values.DistanceGroup
 import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
+import hs.kr.entrydsm.domain.application.aggregates.Application
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
@@ -59,7 +59,7 @@ class GrantExamCodesUseCase(
                 val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
                 ExamCodeInfo(
                     receiptCode = application.receiptCode,
-                    applicationType = application.applicationType!!, // 전형 유형
+                    applicationType = application.applicationType, // 전형 유형
                     distance = distance
                 )
             }
