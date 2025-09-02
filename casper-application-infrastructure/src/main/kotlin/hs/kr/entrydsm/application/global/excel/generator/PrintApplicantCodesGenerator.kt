@@ -1,6 +1,8 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.application.global.excel.model.ApplicantCode
+import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.status.aggregates.Status
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
@@ -10,22 +12,18 @@ import java.time.format.DateTimeFormatter
 
 @Component
 class PrintApplicantCodesGenerator {
-    fun execute(response: HttpServletResponse) {
+    fun execute(response: HttpServletResponse, applications: List<Application>, statuses: List<Status>) {
         val applicantCode = ApplicantCode()
         val sheet = applicantCode.getSheet()
         applicantCode.format()
 
-        // 더미 데이터로 테스트
-        val dummyData =
-            listOf(
-                Triple("DUMMY001", 1001L, "홍길동"),
-                Triple("DUMMY002", 1002L, "김철수"),
-                Triple("DUMMY003", 1003L, "이영희"),
-            )
-
-        dummyData.forEachIndexed { index, (examCode, receiptCode, name) ->
+        // TODO: 1차 합격자만 필터링하는 로직 필요
+        val statusMap = statuses.associateBy { it.receiptCode }
+        
+        applications.forEachIndexed { index, application ->
+            val status = statusMap[application.receiptCode]
             val row = sheet.createRow(index + 1)
-            insertCode(row, examCode, receiptCode, name)
+            insertCode(row, application, status)
         }
 
         try {
@@ -43,12 +41,11 @@ class PrintApplicantCodesGenerator {
 
     private fun insertCode(
         row: Row,
-        examCode: String,
-        receiptCode: Long,
-        name: String,
+        application: Application,
+        status: Status?,
     ) {
-        row.createCell(0).setCellValue(examCode)
-        row.createCell(1).setCellValue(receiptCode.toString())
-        row.createCell(2).setCellValue(name)
+        row.createCell(0).setCellValue(status?.examCode ?: "미발급")
+        row.createCell(1).setCellValue(application.receiptCode.toString())
+        row.createCell(2).setCellValue(application.applicantName ?: "")
     }
 }

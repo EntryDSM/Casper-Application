@@ -1,6 +1,10 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.application.global.excel.model.ApplicationInfo
+import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.school.aggregate.School
+import hs.kr.entrydsm.domain.status.aggregates.Status
+import hs.kr.entrydsm.domain.user.aggregates.User
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
@@ -10,21 +14,29 @@ import java.time.format.DateTimeFormatter
 
 @Component
 class PrintApplicationInfoGenerator {
-    fun execute(httpServletResponse: HttpServletResponse) {
+    fun execute(
+        httpServletResponse: HttpServletResponse,
+        applications: List<Application>,
+        users: List<User>,
+        schools: List<School>,
+        statuses: List<Status>,
+    ) {
         val applicationInfo = ApplicationInfo()
         val sheet = applicationInfo.getSheet()
         applicationInfo.format()
 
-        // 더미 데이터로 테스트
-        val dummyApplications = listOf(
-            createDummyApplication(1001L, "홍길동", "더미고등학교"),
-            createDummyApplication(1002L, "김철수", "테스트고등학교"),
-            createDummyApplication(1003L, "이영희", "샘플고등학교"),
-        )
+        val userMap = users.associateBy { it.id }
+        val schoolMap = schools.associateBy { it.code }
+        val statusMap = statuses.associateBy { it.receiptCode }
 
-        dummyApplications.forEachIndexed { index, dummyData ->
+        applications.forEachIndexed { index, application ->
+            val user = userMap[application.userId]
+            val status = statusMap[application.receiptCode]
+            // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
+            val school: School? = null
+            
             val row = sheet.createRow(index + 1)
-            insertCode(row, dummyData)
+            insertCode(row, application, user, school, status)
         }
 
         try {
@@ -42,64 +54,51 @@ class PrintApplicationInfoGenerator {
         }
     }
 
-    private fun createDummyApplication(
-        receiptCode: Long,
-        name: String,
-        schoolName: String,
-    ): Map<String, Any> {
-        return mapOf(
-            "receiptCode" to receiptCode,
-            "applicationType" to "일반전형",
-            "isDaejeon" to "대전",
-            "applicationRemark" to "해당없음",
-            "applicantName" to name,
-            "birthDate" to "2005-03-15",
-            "address" to "대전광역시 유성구 대덕대로 1234",
-            "applicantTel" to "010-1234-5678",
-            "sex" to "남",
-            "educationalStatus" to "졸업예정",
-            "graduateDate" to "2024",
-            "schoolName" to schoolName,
-            "classNumber" to "3",
-            "parentName" to "홍부모",
-            "parentTel" to "010-9876-5432",
-            "examCode" to "DUMMY${receiptCode.toString().takeLast(3)}",
-        )
-    }
-
     private fun insertCode(
         row: Row,
-        dummyData: Map<String, Any>,
+        application: Application,
+        user: User?,
+        school: School?,
+        status: Status?,
     ) {
-        row.createCell(0).setCellValue(dummyData["receiptCode"].toString())
-        row.createCell(1).setCellValue(dummyData["applicationType"].toString())
-        row.createCell(2).setCellValue(dummyData["isDaejeon"].toString())
-        row.createCell(3).setCellValue(dummyData["applicationRemark"].toString())
-        row.createCell(4).setCellValue(dummyData["applicantName"].toString())
-        row.createCell(5).setCellValue(dummyData["birthDate"].toString())
-        row.createCell(6).setCellValue(dummyData["address"].toString())
-        row.createCell(7).setCellValue(dummyData["applicantTel"].toString())
-        row.createCell(8).setCellValue(dummyData["sex"].toString())
-        row.createCell(9).setCellValue(dummyData["educationalStatus"].toString())
-        row.createCell(10).setCellValue(dummyData["graduateDate"].toString())
-        row.createCell(11).setCellValue(dummyData["schoolName"].toString())
-        row.createCell(12).setCellValue(dummyData["classNumber"].toString())
-        row.createCell(13).setCellValue(dummyData["parentName"].toString())
-        row.createCell(14).setCellValue(dummyData["parentTel"].toString())
+        row.createCell(0).setCellValue(application.receiptCode.toString())
+        row.createCell(1).setCellValue(translateApplicationType(application.applicationType?.name))
+        row.createCell(2).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
+        row.createCell(3).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
+        row.createCell(4).setCellValue(application.applicantName ?: "")
+        row.createCell(5).setCellValue("2005-03-15") // TODO: User 도메인에서 생일 정보 필요
+        row.createCell(6).setCellValue("${application.streetAddress ?: ""} ${application.detailAddress ?: ""}")
+        row.createCell(7).setCellValue(application.applicantTel ?: "")
+        row.createCell(8).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
+        row.createCell(9).setCellValue("졸업예정") // TODO: 학력구분 도메인 없어서 더미값
+        row.createCell(10).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
+        row.createCell(11).setCellValue(school?.name ?: "더미중학교")
+        row.createCell(12).setCellValue("3") // TODO: 학급 정보 도메인 없어서 더미값
+        row.createCell(13).setCellValue(application.parentName ?: "")
+        row.createCell(14).setCellValue(application.parentTel ?: "")
 
-        // 성적 더미 데이터
+        // TODO: 성적 도메인이 없어서 더미값 사용
         val dummyGrades = listOf("A", "B", "A", "B", "A", "B", "A")
         for (i in 15..42) {
             row.createCell(i).setCellValue(dummyGrades[(i - 15) % dummyGrades.size])
         }
 
-        // 점수 더미 데이터
+        // TODO: Score 도메인이 없어서 더미값 사용
         val scores = listOf(
             "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
-            "20.0", "O", "X", "5.0", "210.5", "200.0", dummyData["examCode"].toString()
+            "20.0", "O", "X", "5.0", "210.5", "200.0", status?.examCode ?: "미발급"
         )
         for (i in scores.indices) {
             row.createCell(43 + i).setCellValue(scores[i])
+        }
+    }
+
+    private fun translateApplicationType(applicationType: String?): String {
+        return when (applicationType) {
+            "COMMON" -> "일반전형"
+            "MEISTER" -> "마이스터전형"
+            "SOCIAL" -> "사회통합전형"
+            else -> "일반전형"
         }
     }
 }
