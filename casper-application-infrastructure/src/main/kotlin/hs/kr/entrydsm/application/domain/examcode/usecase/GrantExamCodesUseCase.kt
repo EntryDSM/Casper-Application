@@ -15,6 +15,16 @@ import hs.kr.entrydsm.domain.application.aggregates.Application
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
+/**
+ * 1차 전형에 합격한 학생들에게 수험번호를 부여하는 유스케이스입니다.
+ *
+ * @see hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
+ * @see hs.kr.entrydsm.domain.status.interfaces.StatusContract
+ * @see hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
+ * @see hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
+ * @see hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
+ * @see hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
+ */
 @UseCase
 class GrantExamCodesUseCase(
     private val applicationContract: ApplicationContract,
@@ -31,6 +41,9 @@ class GrantExamCodesUseCase(
         private const val SPECIAL_EXAM_CODE_PREFIX = "02"
     }
 
+    /**
+     * 1차 전형 합격자에게 수험번호를 부여합니다.
+     */
     override suspend fun execute() {
         val allFirstRoundPassedApplication = applicationContract.queryAllFirstRoundPassedApplication()
         val examCodeInfos = collectDistanceInfo(allFirstRoundPassedApplication)
@@ -46,6 +59,13 @@ class GrantExamCodesUseCase(
         saveExamCodes(examCodeInfos)
     }
 
+    /**
+     * 지원자들의 주소를 기반으로 학교와의 거리를 계산하여 수험번호 정보 리스트를 생성합니다.
+     *
+     * @param applications 지원자 리스트
+     * @return 수험번호 정보 리스트
+     * @throws ExamCodeException.failedGeocodeConversion 주소 변환 실패 시
+     */
     private suspend fun collectDistanceInfo(applications: List<Application>): List<ExamCodeInfo> = coroutineScope {
         applications.map { application ->
             async {
@@ -66,6 +86,12 @@ class GrantExamCodesUseCase(
         }.map { it.await() }
     }
 
+    /**
+     * 전형 유형별로 수험번호를 부여합니다.
+     *
+     * @param examCodeInfos 수험번호 정보 리스트
+     * @param applicationType 전형 유형
+     */
     private fun assignExamCodes(examCodeInfos: List<ExamCodeInfo>, applicationType: String) {
         val sortedByDistance = examCodeInfos.sortedByDescending { it.distance }
 
@@ -76,6 +102,13 @@ class GrantExamCodesUseCase(
         }
     }
 
+    /**
+     * 거리에 따라 지원자들을 그룹화합니다.
+     *
+     * @param sortedInfos 거리순으로 정렬된 수험번호 정보 리스트
+     * @param applicationType 전형 유형
+     * @return 거리 그룹 리스트
+     */
     private fun createDistanceGroups(sortedInfos: List<ExamCodeInfo>, applicationType: String): List<DistanceGroup> {
         val groups = mutableListOf<DistanceGroup>()
         val uniqueDistances = sortedInfos.map { it.distance }.distinct()
@@ -88,6 +121,11 @@ class GrantExamCodesUseCase(
     }
 
 
+    /**
+     * 거리 그룹 내에서 수험번호를 부여합니다.
+     *
+     * @param distanceGroup 거리 그룹
+     */
     private fun assignNumbersInGroup(distanceGroup: DistanceGroup) {
         distanceGroup.examCodeInfoList.forEach { examCodeInfo ->
             val receiptCode = String.format("%03d", examCodeInfo.receiptCode)
@@ -97,6 +135,11 @@ class GrantExamCodesUseCase(
     }
 
 
+    /**
+     * 부여된 수험번호를 저장합니다.
+     *
+     * @param examCodeInfos 수험번호 정보 리스트
+     */
     private suspend fun saveExamCodes(examCodeInfos: List<ExamCodeInfo>) {
         examCodeInfos.forEach { info ->
             info.examCode?.let { examCode ->
