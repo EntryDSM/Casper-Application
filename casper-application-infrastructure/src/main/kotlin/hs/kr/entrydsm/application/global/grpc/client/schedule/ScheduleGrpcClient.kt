@@ -40,7 +40,10 @@ class ScheduleGrpcClient(
             circuitBreaker = circuitBreaker,
             fallback = {
                 InternalScheduleResponse(
-                    type = toInternal(ScheduleServiceProto.Type.valueOf(type.uppercase())),
+                    type = toInternal(
+                        runCatching { ScheduleServiceProto.Type.valueOf(type.uppercase()) }
+                            .getOrDefault(ScheduleServiceProto.Type.START_DATE)
+                    ),
                     date = LocalDateTime.now()
                 )
             }
