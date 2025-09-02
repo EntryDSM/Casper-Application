@@ -3,7 +3,6 @@ package hs.kr.entrydsm.application.domain.examcode.usecase
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
-import hs.kr.entrydsm.domain.status.interfaces.StatusContract
 import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
@@ -12,13 +11,14 @@ import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
 import hs.kr.entrydsm.domain.examcode.values.DistanceGroup
 import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
+import hs.kr.entrydsm.domain.status.interfaces.SaveExamCodeContract
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
 @UseCase
 class GrantExamCodesUseCase(
     private val applicationContract: ApplicationContract,
-    private val statusContract: StatusContract,
+    private val saveExamCodeContract: SaveExamCodeContract,
     private val kakaoGeocodeContract: KakaoGeocodeContract,
     private val distanceUtil: DistanceUtil,
     private val baseLocationContract: BaseLocationContract,
@@ -100,7 +100,7 @@ class GrantExamCodesUseCase(
     private suspend fun saveExamCodes(examCodeInfos: List<ExamCodeInfo>) {
         examCodeInfos.forEach { info ->
             info.examCode?.let { examCode ->
-                statusContract.updateExamCode(info.receiptCode, examCode)
+                saveExamCodeContract.updateExamCode(info.receiptCode, examCode)
             }
         }
     }
