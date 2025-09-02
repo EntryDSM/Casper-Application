@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.domain.status.entity
+package hs.kr.entrydsm.application.domain.status.domain.entity
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.redis.core.RedisHash

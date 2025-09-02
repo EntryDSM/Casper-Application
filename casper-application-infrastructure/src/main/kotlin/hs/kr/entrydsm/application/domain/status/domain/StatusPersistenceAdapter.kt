@@ -1,6 +1,6 @@
-package hs.kr.entrydsm.application.domain.status
+package hs.kr.entrydsm.application.domain.status.domain
 
-import hs.kr.entrydsm.application.domain.status.repository.StatusCacheRepository
+import hs.kr.entrydsm.application.domain.status.domain.repository.StatusCacheRepository
 import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
 import hs.kr.entrydsm.domain.status.aggregates.Status
 import hs.kr.entrydsm.domain.status.aggregates.StatusCache
@@ -15,7 +15,7 @@ class StatusPersistenceAdapter(
 ) : StatusContract {
 
     override fun queryStatusByReceiptCode(receiptCode: Long): Status? = runBlocking {
-        statusGrpcClient.getStatusByReceiptCode(receiptCode).let {
+        statusGrpcClient.getStatusByReceiptCode(receiptCode)?.let {
             Status(
                 id = it.id,
                 examCode = it.examCode,

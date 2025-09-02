@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.global.grpc.dto.user
 
+import hs.kr.entrydsm.domain.user.value.UserRole
 import java.util.UUID
 
 /**
