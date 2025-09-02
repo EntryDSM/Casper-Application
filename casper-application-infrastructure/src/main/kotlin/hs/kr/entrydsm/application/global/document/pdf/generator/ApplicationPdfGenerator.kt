@@ -7,6 +7,8 @@ import com.itextpdf.layout.Document
 import hs.kr.entrydsm.application.global.document.pdf.data.PdfDataConverter
 import hs.kr.entrydsm.application.global.document.pdf.data.TemplateFileName
 import hs.kr.entrydsm.application.global.document.pdf.facade.PdfDocumentFacade
+import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.values.ApplicationType
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 import java.util.LinkedList
@@ -19,15 +21,15 @@ class ApplicationPdfGenerator(
     private val pdfDocumentFacade: PdfDocumentFacade,
 ) {
     fun generate(
-        application: Any,
-        score: Any,
+        application: Application,
+        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
     ): ByteArray {
         return generateApplicationPdf(application, score)
     }
 
     private fun generateApplicationPdf(
-        application: Any,
-        score: Any,
+        application: Application,
+        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
     ): ByteArray {
         val data = pdfDataConverter.applicationToInfo(application, score)
         val templates = getTemplateFileNames(application)
@@ -67,7 +69,7 @@ class ApplicationPdfGenerator(
         }
     }
 
-    private fun getTemplateFileNames(application: Any): MutableList<String> {
+    private fun getTemplateFileNames(application: Application): MutableList<String> {
         val result =
             LinkedList(
                 listOf(
@@ -79,10 +81,10 @@ class ApplicationPdfGenerator(
                 ),
             )
 
-        // TODO: 조건부 추천서 추가 로직
-        // if (!application.isQualificationExam() && !application.isCommonApplicationType()) {
-        //     result.add(2, TemplateFileName.RECOMMENDATION)
-        // }
+        // TODO: Score 도메인이 없어서 더미 조건으로 처리
+        if (application.applicationType != ApplicationType.COMMON) {
+            result.add(2, TemplateFileName.RECOMMENDATION)
+        }
 
         return result
     }
