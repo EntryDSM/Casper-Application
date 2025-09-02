@@ -79,7 +79,7 @@ class StatusGrpcClient {
      * @throws io.grpc.StatusRuntimeException gRPC 서버에서 오류가 발생한 경우
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
-    suspend fun getStatusByReceiptCode(receiptCode: Long): InternalStatusResponse {
+    suspend fun getStatusByReceiptCode(receiptCode: Long): InternalStatusResponse? {
         val statusStub = StatusServiceGrpc.newStub(channel)
 
         val request =
