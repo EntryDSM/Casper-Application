@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.status.domain.entity
 
+import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.data.annotation.Id
 import org.springframework.data.redis.core.RedisHash
 import org.springframework.data.redis.core.TimeToLive
