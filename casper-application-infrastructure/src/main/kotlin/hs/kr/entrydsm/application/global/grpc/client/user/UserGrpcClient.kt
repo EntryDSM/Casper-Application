@@ -1,13 +1,17 @@
 package hs.kr.entrydsm.application.global.grpc.client.user
 
+import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
 import hs.kr.entrydsm.application.global.grpc.dto.user.InternalUserResponse
 import hs.kr.entrydsm.domain.user.value.UserRole
 import hs.kr.entrydsm.casper.user.proto.UserServiceGrpc
 import hs.kr.entrydsm.casper.user.proto.UserServiceProto
+import io.github.resilience4j.circuitbreaker.CircuitBreaker
+import io.github.resilience4j.retry.Retry
 import io.grpc.Channel
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.devh.boot.grpc.client.inject.GrpcClient
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.UUID
 import kotlin.coroutines.resume
@@ -19,7 +23,10 @@ import kotlin.coroutines.resumeWithException
  * @property channel gRPC 통신을 위한 채널 (user-service로 자동 주입됨)
  */
 @Component
-class UserGrpcClient {
+class UserGrpcClient(
+    @Qualifier("userGrpcRetry") private val retry: Retry,
+    @Qualifier("userGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker
+) {
     @GrpcClient("user-service")
     lateinit var channel: Channel
 
@@ -33,38 +40,52 @@ class UserGrpcClient {
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
     suspend fun getUserInfoByUserId(userId: UUID): InternalUserResponse {
-        val userStub = UserServiceGrpc.newStub(channel)
-
-        val request =
-            UserServiceProto.GetUserInfoRequest.newBuilder()
-                .setUserId(userId.toString())
-                .build()
-
-        val response =
-            suspendCancellableCoroutine { continuation ->
-                userStub.getUserInfoByUserId(
-                    request,
-                    object : StreamObserver<UserServiceProto.GetUserInfoResponse> {
-                        override fun onNext(value: UserServiceProto.GetUserInfoResponse) {
-                            continuation.resume(value)
-                        }
-
-                        override fun onError(t: Throwable) {
-                            continuation.resumeWithException(t)
-                        }
-
-                        override fun onCompleted() {}
-                    },
+        return executeGrpcCallWithResilience(
+            retry = retry,
+            circuitBreaker = circuitBreaker,
+            fallback = {
+                InternalUserResponse(
+                    id = userId,
+                    phoneNumber = "N/A",
+                    name = "Unknown User",
+                    isParent = false,
+                    role = UserRole.USER
                 )
             }
+        ) {
+            val userStub = UserServiceGrpc.newStub(channel)
 
-        return InternalUserResponse(
-            id = UUID.fromString(response.id),
-            phoneNumber = response.phoneNumber,
-            name = response.name,
-            isParent = response.isParent,
-            role = mapProtoUserRole(response.role),
-        )
+            val request =
+                UserServiceProto.GetUserInfoRequest.newBuilder()
+                    .setUserId(userId.toString())
+                    .build()
+
+            val response =
+                suspendCancellableCoroutine { continuation ->
+                    userStub.getUserInfoByUserId(
+                        request,
+                        object : StreamObserver<UserServiceProto.GetUserInfoResponse> {
+                            override fun onNext(value: UserServiceProto.GetUserInfoResponse) {
+                                continuation.resume(value)
+                            }
+
+                            override fun onError(t: Throwable) {
+                                continuation.resumeWithException(t)
+                            }
+
+                            override fun onCompleted() {}
+                        },
+                    )
+                }
+
+                    InternalUserResponse(
+                id = UUID.fromString(response.id),
+                phoneNumber = response.phoneNumber,
+                name = response.name,
+                isParent = response.isParent,
+                role = mapProtoUserRole(response.role),
+            )
+        }
     }
 
     /**
