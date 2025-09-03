@@ -22,6 +22,13 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * 수험표 Excel 파일을 생성하는 Generator입니다.
+ *
+ * 템플릿 파일을 기반으로 수험표를 생성하며, 지원자 정보와 함께
+ * 사진을 포함한 완성된 수험표를 제공합니다. 각 수험표는 20행씩 차지하며
+ * 여러 지원자의 수험표가 하나의 파일에 연속으로 생성됩니다.
+ */
 @Component
 class PrintAdmissionTicketGenerator {
     companion object {
@@ -30,6 +37,16 @@ class PrintAdmissionTicketGenerator {
 
     private lateinit var drawing: XSSFDrawing
 
+    /**
+     * 수험표 Excel 파일을 생성하고 HTTP Response로 전송합니다.
+     *
+     * @param response HTTP 응답 객체
+     * @param applications 지원서 목록
+     * @param users 사용자 정보 목록
+     * @param schools 학교 정보 목록
+     * @param statuses 전형 상태 목록
+     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
+     */
     fun execute(
         response: HttpServletResponse,
         applications: List<Application>,

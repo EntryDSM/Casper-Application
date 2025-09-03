@@ -16,6 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
+/**
+ * Excel 파일 생성 기능을 테스트하기 위한 Controller입니다.
+ *
+ * 개발 환경에서 Excel Generator들의 동작을 확인할 수 있도록
+ * 더미 데이터를 사용하여 각종 Excel 파일을 생성하는 엔드포인트를 제공합니다.
+ * 실제 운영에서는 UseCase를 통해 실제 데이터가 사용됩니다.
+ */
 @RestController
 @RequestMapping("/api/excel/test")
 class ExcelTestController(

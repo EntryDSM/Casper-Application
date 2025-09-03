@@ -8,10 +8,24 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 
+/**
+ * 지원서 정보를 PDF 템플릿용 데이터로 변환하는 Converter입니다.
+ *
+ * Application, Score 등의 도메인 객체를 HTML 템플릿에서 사용할 수 있는
+ * Key-Value 형태의 데이터로 변환합니다. 누락된 도메인 정보는 더미값으로 처리하며
+ * 향후 도메인이 추가되면 TODO 주석을 따라 연동할 수 있습니다.
+ */
 @Component
 class PdfDataConverter(
     private val querySchoolContract: QuerySchoolContract
 ) {
+    /**
+     * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
+     *
+     * @param application 지원서 정보
+     * @param score Score 도메인 (현재 더미값 사용)
+     * @return 템플릿에 사용할 PdfData 객체
+     */
     fun applicationToInfo(
         application: Application,
         score: Any, // TODO: Score 도메인이 없어서 더미값 사용

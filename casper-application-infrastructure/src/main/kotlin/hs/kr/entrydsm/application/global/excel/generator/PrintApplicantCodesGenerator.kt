@@ -10,8 +10,22 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * 1차 합격자의 지원자번호목록 Excel 파일을 생성하는 Generator입니다.
+ *
+ * 수험번호, 접수번호, 성명으로 구성된 3개 컬럼의 Excel 파일을 생성하여
+ * 관리자가 1차 합격자 목록을 확인할 수 있도록 합니다.
+ */
 @Component
 class PrintApplicantCodesGenerator {
+    /**
+     * 지원자번호목록 Excel 파일을 생성하고 HTTP Response로 전송합니다.
+     *
+     * @param response HTTP 응답 객체
+     * @param applications 지원서 목록
+     * @param statuses 전형 상태 목록 (수험번호 포함)
+     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
+     */
     fun execute(response: HttpServletResponse, applications: List<Application>, statuses: List<Status>) {
         val applicantCode = ApplicantCode()
         val sheet = applicantCode.getSheet()
@@ -39,6 +53,13 @@ class PrintApplicantCodesGenerator {
         }
     }
 
+    /**
+     * Excel Row에 지원자 정보를 삽입합니다.
+     *
+     * @param row Excel의 Row 객체
+     * @param application 지원서 정보
+     * @param status 전형 상태 정보 (수험번호 포함)
+     */
     private fun insertCode(
         row: Row,
         application: Application,

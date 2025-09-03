@@ -12,8 +12,25 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * 전형자료 Excel 파일을 생성하는 Generator입니다.
+ *
+ * 60개 컬럼으로 구성된 상세한 전형자료를 포함하여 관리자가
+ * 지원자의 모든 정보를 종합적으로 확인할 수 있는 Excel 파일을 생성합니다.
+ * 개인정보, 성적, 출석, 봉사활동, 가산점 등의 정보가 포함됩니다.
+ */
 @Component
 class PrintApplicationInfoGenerator {
+    /**
+     * 전형자료 Excel 파일을 생성하고 HTTP Response로 전송합니다.
+     *
+     * @param httpServletResponse HTTP 응답 객체
+     * @param applications 지원서 목록
+     * @param users 사용자 정보 목록
+     * @param schools 학교 정보 목록
+     * @param statuses 전형 상태 목록
+     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
+     */
     fun execute(
         httpServletResponse: HttpServletResponse,
         applications: List<Application>,
@@ -54,6 +71,16 @@ class PrintApplicationInfoGenerator {
         }
     }
 
+    /**
+     * Excel Row에 지원자의 상세 전형 정보를 삽입합니다.
+     * 60개 컬럼에 개인정보부터 성적, 점수까지 모든 정보를 기록합니다.
+     *
+     * @param row Excel의 Row 객체
+     * @param application 지원서 정보
+     * @param user 사용자 정보
+     * @param school 학교 정보
+     * @param status 전형 상태 정보
+     */
     private fun insertCode(
         row: Row,
         application: Application,
@@ -93,6 +120,12 @@ class PrintApplicationInfoGenerator {
         }
     }
 
+    /**
+     * 지원유형을 한국어로 변환합니다.
+     *
+     * @param applicationType 지원유형 코드
+     * @return 변환된 한국어 지원유형명
+     */
     private fun translateApplicationType(applicationType: String?): String {
         return when (applicationType) {
             "COMMON" -> "일반전형"

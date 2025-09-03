@@ -13,6 +13,13 @@ import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 import java.util.LinkedList
 
+/**
+ * 지원서 PDF를 생성하는 Generator입니다.
+ *
+ * HTML 템플릿을 기반으로 지원서, 개인정보동의서, 소개서, 금연서약서 등
+ * 여러 문서를 하나의 PDF로 병합하여 완성된 지원서 PDF를 생성합니다.
+ * 지원유형에 따라 추천서 등 추가 문서가 포함될 수 있습니다.
+ */
 @Component
 class ApplicationPdfGenerator(
     private val pdfProcessor: PdfProcessor,
@@ -20,6 +27,13 @@ class ApplicationPdfGenerator(
     private val templateProcessor: TemplateProcessor,
     private val pdfDocumentFacade: PdfDocumentFacade,
 ) {
+    /**
+     * 지원서 PDF를 생성합니다.
+     *
+     * @param application 지원서 정보
+     * @param score Score 도메인 (현재 더미값 사용)
+     * @return 생성된 PDF 바이트 배열
+     */
     fun generate(
         application: Application,
         score: Any, // TODO: Score 도메인이 없어서 더미값 사용

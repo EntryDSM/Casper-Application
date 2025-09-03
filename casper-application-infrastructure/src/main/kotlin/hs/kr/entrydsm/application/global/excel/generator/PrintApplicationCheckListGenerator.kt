@@ -19,11 +19,29 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * 지원서 점검표 Excel 파일을 생성하는 Generator입니다.
+ *
+ * 각 지원자마다 20행씩 차지하는 복잡한 포맷의 점검표를 생성합니다.
+ * 개인정보, 성적, 출석정보, 점수 등이 시각적으로 구조화된 형태로 배치되며,
+ * 다양한 테두리 스타일과 셀 병합을 사용하여 가독성을 높입니다.
+ */
 @Component
 class PrintApplicationCheckListGenerator {
     private val workbook: Workbook = XSSFWorkbook()
     private val sheet: Sheet = workbook.createSheet("application Check List")
 
+    /**
+     * 지원서 점검표 Excel 파일을 생성하고 HTTP Response로 전송합니다.
+     * 각 지원자당 20행의 구조화된 점검표를 생성합니다.
+     *
+     * @param applications 지원서 목록
+     * @param users 사용자 정보 목록
+     * @param schools 학교 정보 목록
+     * @param statuses 전형 상태 목록
+     * @param httpServletResponse HTTP 응답 객체
+     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
+     */
     fun printApplicationCheckList(
         applications: List<Application>,
         users: List<User>,

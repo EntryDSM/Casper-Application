@@ -5,10 +5,22 @@ import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.util.HashMap
 
+/**
+ * 소개서 PDF용 데이터 변환기입니다.
+ *
+ * 지원서 정보를 소개서 템플릿에서 사용할 수 있는 데이터로 변환합니다.
+ * 소개서에는 개인정보, 학교정보, 자기소개서, 학업계획서 등이 포함됩니다.
+ */
 @Component
 class IntroductionPdfConverter(
     private val querySchoolContract: QuerySchoolContract
 ) {
+    /**
+     * 지원서 정보를 소개서 PDF 템플릿용 데이터로 변환합니다.
+     *
+     * @param application 지원서 정보
+     * @return 소개서 템플릿에 사용할 PdfData 객체
+     */
     fun execute(application: Application): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setIntroduction(application, values)
