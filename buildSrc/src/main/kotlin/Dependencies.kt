@@ -107,4 +107,7 @@ object Dependencies {
 
     // Netty
     const val NETTY = "io.netty:netty-resolver-dns-native-macos:${DependencyVersions.NETTY}"
+
+    //kafka
+    const val KAFKA = "org.springframework.kafka:spring-kafka"
 }
