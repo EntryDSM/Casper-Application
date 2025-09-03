@@ -2,7 +2,7 @@ package hs.kr.entrydsm.application.global.grpc.client.user
 
 import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
 import hs.kr.entrydsm.application.global.grpc.dto.user.InternalUserResponse
-import hs.kr.entrydsm.application.global.grpc.dto.user.UserRole
+import hs.kr.entrydsm.domain.user.value.UserRole
 import hs.kr.entrydsm.casper.user.proto.UserServiceGrpc
 import hs.kr.entrydsm.casper.user.proto.UserServiceProto
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
