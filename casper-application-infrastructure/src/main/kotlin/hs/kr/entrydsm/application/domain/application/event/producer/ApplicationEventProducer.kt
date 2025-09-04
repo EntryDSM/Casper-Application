@@ -20,8 +20,9 @@ import java.util.UUID
 @Component
 class ApplicationEventProducer(
     private val mapper: ObjectMapper,
-    private val createApplicationTemplate: KafkaTemplate<String, Any>
-): ApplicationCreateEventContract {
+    private val createApplicationTemplate: KafkaTemplate<String, Any>,
+    private val submitApplicationFinalTemplate: KafkaTemplate<String, Any>,
+) : ApplicationCreateEventContract {
 
     /**
      * 원서 생성 이벤트를 발행합니다.
@@ -37,6 +38,21 @@ class ApplicationEventProducer(
         createApplicationTemplate.send(
             KafkaTopics.CREATE_APPLICATION,
             mapper.writeValueAsString(createApplicationEvent)
+        )
+    }
+
+    /**
+     * 최종 제출 이벤트를 발행합니다.
+     *
+     * 원서가 성공적으로 최종 제출된 후 성적 서비스에서 해당 원서의 성적을
+     * 계산하도록 이벤트를 발행합니다.
+     *
+     * @param receiptCode 최종 제출한 원서의 접수번호
+     */
+    override fun submitApplicationFinal(receiptCode: Long) {
+        submitApplicationFinalTemplate.send(
+            KafkaTopics.SUBMIT_APPLICATION_FINAL,
+            receiptCode
         )
     }
 }
