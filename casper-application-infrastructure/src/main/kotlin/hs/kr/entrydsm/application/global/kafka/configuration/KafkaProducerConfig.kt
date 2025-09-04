@@ -42,6 +42,26 @@ class KafkaProducerConfig(
     }
 
     /**
+     * 최종 제출 이벤트 발행을 위한 KafkaTemplate을 생성합니다.
+     *
+     * @return 설정된 KafkaTemplate 인스턴스
+     */
+    @Bean
+    fun submitApplicationFinalTemplate(): KafkaTemplate<String, Any> {
+        return KafkaTemplate(submitApplicationFinalProducerFactory())
+    }
+
+    /**
+     * 최종 제출 이벤트용 Producer Factory를 생성합니다.
+     *
+     * @return 설정된 DefaultKafkaProducerFactory 인스턴스
+     */
+    @Bean
+    fun submitApplicationFinalProducerFactory(): DefaultKafkaProducerFactory<String, Any> {
+        return DefaultKafkaProducerFactory(producerConfig())
+    }
+
+    /**
      * Kafka Producer의 기본 설정을 구성합니다.
      * 
      * Confluent Cloud 연결을 위한 SASL 보안 설정과 직렬화 설정을 포함합니다.
