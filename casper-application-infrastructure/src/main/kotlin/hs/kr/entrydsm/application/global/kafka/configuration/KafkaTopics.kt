@@ -31,4 +31,10 @@ object KafkaTopics {
      * 이 이벤트 수신 시 보상 트랜잭션으로 원서를 삭제함
      */
     const val USER_RECEIPT_CODE_UPDATE_FAILED = "user-receipt-code-update-failed"
+
+    /**
+     * 최종 제출 이벤트 토픽
+     * 최종 제출 시 성적 서비스에 성적 계산을 요청하기 위해 사용
+     */
+    const val SUBMIT_APPLICATION_FINAL = "submit-application-final"
 }
