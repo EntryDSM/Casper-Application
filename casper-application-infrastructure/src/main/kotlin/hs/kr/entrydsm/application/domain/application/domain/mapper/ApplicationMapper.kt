@@ -1,6 +1,6 @@
-package hs.kr.entrydsm.application.domain.application.mapper
+package hs.kr.entrydsm.application.domain.application.domain.mapper
 
-import hs.kr.entrydsm.application.domain.application.entity.ApplicationJpaEntity
+import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import org.mapstruct.Mapper
 
