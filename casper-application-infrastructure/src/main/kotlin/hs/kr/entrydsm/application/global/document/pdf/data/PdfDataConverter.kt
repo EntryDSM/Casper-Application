@@ -61,6 +61,12 @@ class PdfDataConverter(
         return PdfData(values)
     }
 
+    /**
+     * 지원서의 접수번호를 설정합니다.
+     * 
+     * @param application 지원서 정보
+     * @param values 템플릿 데이터 맵
+     */
     private fun setReceiptCode(
         application: Application,
         values: MutableMap<String, Any>,
@@ -68,11 +74,22 @@ class PdfDataConverter(
         values["receiptCode"] = application.receiptCode.toString()
     }
 
+    /**
+     * 입학년도를 설정합니다. (현재 년도 + 1)
+     * 
+     * @param values 템플릿 데이터 맵
+     */
     private fun setEntranceYear(values: MutableMap<String, Any>) {
         val entranceYear: Int = LocalDate.now().plusYears(1).year
         values["entranceYear"] = entranceYear.toString()
     }
 
+    /**
+     * 보훈번호 정보를 설정합니다.
+     * 
+     * @param application 지원서 정보
+     * @param values 템플릿 데이터 맵
+     */
     private fun setVeteransNumber(
         application: Application,
         values: MutableMap<String, Any>,
@@ -80,6 +97,13 @@ class PdfDataConverter(
         values["veteransNumber"] = application.veteransNumber?.toString() ?: ""
     }
 
+    /**
+     * 지원자의 개인정보(이름, 성별, 주소, 생년월일 등)를 설정합니다.
+     * 일부 정보는 도메인에 없어서 더미값을 사용합니다.
+     * 
+     * @param application 지원서 정보
+     * @param values 템플릿 데이터 맵
+     */
     private fun setPersonalInfo(
         application: Application,
         values: MutableMap<String, Any>,
@@ -98,6 +122,13 @@ class PdfDataConverter(
         values["applicationRemark"] = "해당없음"
     }
 
+    /**
+     * 출석 및 봉사활동 정보를 설정합니다.
+     * 현재 관련 도메인이 없어서 더미값을 사용합니다.
+     * 
+     * @param application 지원서 정보
+     * @param values 템플릿 데이터 맵
+     */
     private fun setAttendanceAndVolunteer(
         application: Application,
         values: MutableMap<String, Any>,
@@ -329,6 +360,12 @@ class PdfDataConverter(
         values["schoolName"] = "더미중학교"
     }
 
+    /**
+     * 전화번호를 하이픈 포함 형태로 포맷팅합니다.
+     * 
+     * @param phoneNumber 포맷팅할 전화번호
+     * @return 하이픈으로 구분된 전화번호 문자열
+     */
     private fun toFormattedPhoneNumber(phoneNumber: String?): String {
         if (phoneNumber.isNullOrBlank()) {
             return ""
@@ -339,14 +376,32 @@ class PdfDataConverter(
         return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
     }
 
+    /**
+     * null 값을 빈 문자열로 변환합니다.
+     * 
+     * @param input 변환할 문자열
+     * @return 입력값이 null이면 빈 문자열, 그렇지 않으면 원래 값
+     */
     private fun setBlankIfNull(input: String?): String {
         return input ?: ""
     }
 
+    /**
+     * boolean 값을 체크박스 문자(☑/☐)로 변환합니다.
+     * 
+     * @param isTrue 변환할 boolean 값
+     * @return true이면 "☑", false이면 "☐"
+     */
     private fun toBallotBox(isTrue: Boolean): String {
         return if (isTrue) "☑" else "☐"
     }
 
+    /**
+     * boolean 값을 O/X 문자로 변환합니다.
+     * 
+     * @param isTrue 변환할 boolean 값
+     * @return true이면 "O", false이면 "X"
+     */
     private fun toCircleBallotbox(isTrue: Boolean): String {
         return if (isTrue) "O" else "X"
     }

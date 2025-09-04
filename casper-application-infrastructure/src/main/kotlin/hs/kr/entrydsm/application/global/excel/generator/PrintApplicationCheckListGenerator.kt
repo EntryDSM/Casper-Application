@@ -93,6 +93,17 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 더미 지원서 데이터를 생성합니다.
+     * 
+     * 테스트나 샘플 데이터 생성을 위한 임시 메서드로,
+     * 실제 지원서 정보가 없을 때 사용됩니다.
+     * 
+     * @param receiptCode 접수번호
+     * @param name 지원자 이름
+     * @param schoolName 학교명
+     * @return 더미 지원서 데이터 맵
+     */
     private fun createDummyApplication(
         receiptCode: Long,
         name: String,
@@ -117,6 +128,14 @@ class PrintApplicationCheckListGenerator {
         )
     }
 
+    /**
+     * 지정된 행 오프셋에 대해 시트 포맷을 설정합니다.
+     * 
+     * 셀 병합, 테두리 스타일, 셀 값을 설정하여
+     * 점검표의 기본 레이아웃을 생성합니다.
+     * 
+     * @param dh 행 오프셋 (각 지원자마다 20행씩 차지)
+     */
     private fun formatSheet(dh: Int) {
         sheet.apply {
             mergeRegions(dh)
@@ -125,6 +144,14 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 지정된 행 오프셋에 대해 셀 병합을 수행합니다.
+     * 
+     * 점검표의 각 섹션에서 필요한 셀들을 병합하여
+     * 시각적으로 구조화된 레이아웃을 만듭니다.
+     * 
+     * @param rowOffset 행 오프셋
+     */
     private fun Sheet.mergeRegions(rowOffset: Int) {
         val mergedRegions =
             arrayOf(
@@ -143,6 +170,12 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 지정된 영역이 이미 병합되어 있는지 확인합니다.
+     * 
+     * @param region 확인할 셀 영역
+     * @return 이미 병합되어 있으면 true, 그렇지 않으면 false
+     */
     private fun Sheet.isRegionMerged(region: CellRangeAddress): Boolean {
         return mergedRegions.any {
             it.firstRow == region.firstRow &&
@@ -152,6 +185,14 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 지정된 행 오프셋에 대해 테두리 스타일을 적용합니다.
+     * 
+     * 점선, 실선, 굵은 선 등 다양한 테두리 스타일을 
+     * 각 영역에 적절히 적용하여 시각적 구분을 제공합니다.
+     * 
+     * @param dh 행 오프셋
+     */
     private fun Sheet.applyBorderStyles(dh: Int) {
         val borderRegionsDashedBottom =
             arrayOf(
@@ -225,6 +266,14 @@ class PrintApplicationCheckListGenerator {
         setBorderStyle(borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
     }
 
+    /**
+     * 지정된 행 오프셋에 대해 고정 텍스트 값들을 설정합니다.
+     * 
+     * 헤더와 라벨 등 변하지 않는 텍스트들을 
+     * 점검표의 지정된 위치에 설정합니다.
+     * 
+     * @param dh 행 오프셋
+     */
     private fun Sheet.setCellValues(dh: Int) {
         val cellValues =
             mapOf(
@@ -264,6 +313,13 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 지정된 영역에 테두리 스타일을 설정합니다.
+     * 
+     * @param regions 테두리를 설정할 영역들의 배열
+     * @param borderStyle 적용할 테두리 스타일
+     * @param direction 테두리를 적용할 방향
+     */
     private fun setBorderStyle(
         regions: Array<IntArray>,
         borderStyle: BorderStyle,
@@ -286,6 +342,13 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 지정된 행과 열 위치의 셀을 가져오거나 생성합니다.
+     * 
+     * @param rowNum 행 번호
+     * @param cellNum 열 번호
+     * @return 해당 위치의 셀 객체
+     */
     private fun getCell(
         rowNum: Int,
         cellNum: Int,
@@ -294,6 +357,12 @@ class PrintApplicationCheckListGenerator {
         return row.getCell(cellNum) ?: row.createCell(cellNum)
     }
 
+    /**
+     * 지정된 행의 높이를 설정합니다.
+     * 
+     * @param rowIndex 행 인덱스
+     * @param height 설정할 높이 (포인트 단위)
+     */
     private fun setRowHeight(
         rowIndex: Int,
         height: Int,
@@ -302,6 +371,18 @@ class PrintApplicationCheckListGenerator {
         row.heightInPoints = height.toFloat()
     }
 
+    /**
+     * 지원서 데이터를 시트의 해당 위치에 삽입합니다.
+     * 
+     * 개인정보, 성적, 출석 정보 등을 점검표의 지정된 셀에 입력하며,
+     * 도메인에 없는 데이터는 더미값으로 대체합니다.
+     * 
+     * @param application 지원서 정보
+     * @param user 사용자 정보 (nullable)
+     * @param school 학교 정보 (nullable)
+     * @param status 전형 상태 정보 (nullable)
+     * @param dh 행 오프셋
+     */
     private fun insertDataIntoSheet(
         application: Application,
         user: User?,
@@ -364,6 +445,12 @@ class PrintApplicationCheckListGenerator {
         setRowHeight(dh + 0, 71)
     }
 
+    /**
+     * 전형 타입명을 한글로 변환합니다.
+     * 
+     * @param applicationType 영문 전형 타입 코드
+     * @return 한글 전형명
+     */
     private fun translateApplicationType(applicationType: String?): String {
         return when (applicationType) {
             "COMMON" -> "일반전형"
@@ -373,6 +460,12 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
+    /**
+     * 전화번호를 하이픈이 포함된 형태로 포맷팅합니다.
+     * 
+     * @param phoneNumber 포맷팅할 전화번호
+     * @return 하이픈으로 구분된 전화번호 문자열
+     */
     private fun formatPhoneNumber(phoneNumber: String?): String {
         if (phoneNumber.isNullOrBlank()) return ""
         if (phoneNumber.length == 8) {
@@ -381,6 +474,9 @@ class PrintApplicationCheckListGenerator {
         return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
     }
 
+    /**
+     * 테두리 적용 방향을 정의하는 열거형입니다.
+     */
     enum class Direction {
         TOP,
         BOTTOM,

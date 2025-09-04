@@ -73,13 +73,16 @@ class PrintApplicationInfoGenerator {
 
     /**
      * Excel Row에 지원자의 상세 전형 정보를 삽입합니다.
-     * 60개 컬럼에 개인정보부터 성적, 점수까지 모든 정보를 기록합니다.
+     * 
+     * 60개 컬럼에 개인정보부터 학기별 성적, 출석 정보, 봉사활동, 
+     * 가산점, 종합 점수까지 모든 정보를 기록합니다.
+     * 도메인에 없는 데이터는 더미값으로 대체됩니다.
      *
      * @param row Excel의 Row 객체
      * @param application 지원서 정보
-     * @param user 사용자 정보
-     * @param school 학교 정보
-     * @param status 전형 상태 정보
+     * @param user 사용자 정보 (nullable)
+     * @param school 학교 정보 (nullable)
+     * @param status 전형 상태 정보 (nullable)
      */
     private fun insertCode(
         row: Row,
@@ -121,10 +124,13 @@ class PrintApplicationInfoGenerator {
     }
 
     /**
-     * 지원유형을 한국어로 변환합니다.
+     * 전형 타입 코드를 한글명으로 변환합니다.
+     * 
+     * 영문 코드를 사용자에게 친숙한 한글 전형명으로 변환하며,
+     * 알 수 없는 타입인 경우 기본값으로 "일반전형"을 반환합니다.
      *
-     * @param applicationType 지원유형 코드
-     * @return 변환된 한국어 지원유형명
+     * @param applicationType 영문 전형 타입 코드
+     * @return 한글 전형명
      */
     private fun translateApplicationType(applicationType: String?): String {
         return when (applicationType) {

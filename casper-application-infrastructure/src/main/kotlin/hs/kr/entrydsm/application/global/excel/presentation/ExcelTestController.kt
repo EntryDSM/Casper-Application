@@ -31,6 +31,14 @@ class ExcelTestController(
     private val printAdmissionTicketGenerator: PrintAdmissionTicketGenerator,
     private val printApplicationCheckListGenerator: PrintApplicationCheckListGenerator,
 ) {
+    /**
+     * 지원자번호목록 Excel 파일을 다운로드합니다.
+     * 
+     * 테스트용 더미 데이터를 사용하여 지원자번호목록을 생성하고 
+     * HTTP 응답으로 Excel 파일을 전송합니다.
+     * 
+     * @param response HTTP 응답 객체
+     */
     @GetMapping("/applicant-codes")
     fun downloadApplicantCodes(response: HttpServletResponse) {
         // TODO: 실제 Application, Status 조회 로직 필요
@@ -40,6 +48,14 @@ class ExcelTestController(
         printApplicantCodesGenerator.execute(response, dummyApplications, dummyStatuses)
     }
 
+    /**
+     * 전형자료 Excel 파일을 다운로드합니다.
+     * 
+     * 테스트용 더미 데이터를 사용하여 상세한 전형자료를 생성하고
+     * HTTP 응답으로 Excel 파일을 전송합니다.
+     * 
+     * @param response HTTP 응답 객체
+     */
     @GetMapping("/application-info")
     fun downloadApplicationInfo(response: HttpServletResponse) {
         // TODO: 실제 Application, User, School, Status 조회 로직 필요
@@ -51,6 +67,14 @@ class ExcelTestController(
         printApplicationInfoGenerator.execute(response, dummyApplications, dummyUsers, dummySchools, dummyStatuses)
     }
 
+    /**
+     * 수험표 Excel 파일을 다운로드합니다.
+     * 
+     * 테스트용 더미 데이터를 사용하여 수험표를 생성하고
+     * HTTP 응답으로 Excel 파일을 전송합니다.
+     * 
+     * @param response HTTP 응답 객체
+     */
     @GetMapping("/admission-ticket")
     fun downloadAdmissionTicket(response: HttpServletResponse) {
         // TODO: 실제 Application, User, School, Status 조회 로직 필요
@@ -62,6 +86,14 @@ class ExcelTestController(
         printAdmissionTicketGenerator.execute(response, dummyApplications, dummyUsers, dummySchools, dummyStatuses)
     }
 
+    /**
+     * 점검표 Excel 파일을 다운로드합니다.
+     * 
+     * 테스트용 더미 데이터를 사용하여 지원서 점검표를 생성하고
+     * HTTP 응답으로 Excel 파일을 전송합니다.
+     * 
+     * @param response HTTP 응답 객체
+     */
     @GetMapping("/check-list")
     fun downloadCheckList(response: HttpServletResponse) {
         // TODO: 실제 Application, User, School, Status 조회 로직 필요
@@ -75,6 +107,14 @@ class ExcelTestController(
         )
     }
 
+    /**
+     * 테스트용 더미 지원서 데이터를 생성합니다.
+     * 
+     * 일반전형과 마이스터전형 각각 하나씩의 샘플 지원서를 생성하여
+     * Excel 생성기 테스트에 사용합니다.
+     * 
+     * @return 더미 지원서 목록
+     */
     private fun createDummyApplications(): List<Application> {
         return listOf(
             Application(
@@ -118,6 +158,14 @@ class ExcelTestController(
         )
     }
 
+    /**
+     * 테스트용 더미 사용자 데이터를 생성합니다.
+     * 
+     * 지원서와 연결될 사용자 정보를 생성하여
+     * Excel에서 사용자 관련 정보를 표시할 수 있도록 합니다.
+     * 
+     * @return 더미 사용자 목록
+     */
     private fun createDummyUsers(): List<User> {
         return listOf(
             User(
@@ -135,6 +183,14 @@ class ExcelTestController(
         )
     }
 
+    /**
+     * 테스트용 더미 학교 데이터를 생성합니다.
+     * 
+     * 지역별(대전, 서울) 학교 정보를 생성하여
+     * Excel에서 출신학교 정보를 표시할 수 있도록 합니다.
+     * 
+     * @return 더미 학교 목록
+     */
     private fun createDummySchools(): List<School> {
         return listOf(
             School(
@@ -156,6 +212,14 @@ class ExcelTestController(
         )
     }
 
+    /**
+     * 테스트용 더미 상태 데이터를 생성합니다.
+     * 
+     * 각 지원서와 연결될 전형 상태 정보를 생성하여
+     * Excel에서 수험번호와 전형 상태를 표시할 수 있도록 합니다.
+     * 
+     * @return 더미 상태 목록
+     */
     private fun createDummyStatuses(): List<Status> {
         return listOf(
             Status(

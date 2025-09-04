@@ -55,6 +55,9 @@ class PrintApplicantCodesGenerator {
 
     /**
      * Excel Row에 지원자 정보를 삽입합니다.
+     * 
+     * 수험번호, 접수번호, 성명을 각각 첫 번째, 두 번째, 세 번째 셀에 입력합니다.
+     * 수험번호가 없는 경우 "미발급"으로 표시됩니다.
      *
      * @param row Excel의 Row 객체
      * @param application 지원서 정보
