@@ -2,9 +2,9 @@ package hs.kr.entrydsm.application.global.grpc.client.user
 
 import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
 import hs.kr.entrydsm.application.global.grpc.dto.user.InternalUserResponse
-import hs.kr.entrydsm.domain.user.value.UserRole
 import hs.kr.entrydsm.casper.user.proto.UserServiceGrpc
 import hs.kr.entrydsm.casper.user.proto.UserServiceProto
+import hs.kr.entrydsm.domain.user.value.UserRole
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.retry.Retry
 import io.grpc.Channel
@@ -29,7 +29,8 @@ import kotlin.coroutines.resumeWithException
 @Component
 class UserGrpcClient(
     @Qualifier("userGrpcRetry") private val retry: Retry,
-    @Qualifier("userGrpcCircuitBreaker") private val circuitBreaker
+    @Qualifier("userGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker,
+
 ) {
     /**
      * gRPC 통신을 위한 채널
@@ -60,9 +61,9 @@ class UserGrpcClient(
                     phoneNumber = "N/A",
                     name = "Unknown User",
                     isParent = false,
-                    role = UserRole.USER
+                    role = UserRole.USER,
                 )
-            }
+            },
         ) {
             val userStub = UserServiceGrpc.newStub(channel)
 
@@ -89,7 +90,7 @@ class UserGrpcClient(
                     )
                 }
 
-                    InternalUserResponse(
+            InternalUserResponse(
                 id = UUID.fromString(response.id),
                 phoneNumber = response.phoneNumber,
                 name = response.name,

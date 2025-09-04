@@ -59,9 +59,8 @@ class PrintApplicationCheckListGenerator {
             applications.forEach { application ->
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
-                // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
-                val school: School? = null
-                
+                val school = application.schoolCode?.let { schoolMap[it] }
+
                 formatSheet(dh)
                 insertDataIntoSheet(application, user, school, status, dh)
                 dh += 20
@@ -391,14 +390,14 @@ class PrintApplicationCheckListGenerator {
         dh: Int,
     ) {
         getCell(dh + 1, 2).setCellValue(application.receiptCode.toString())
-        getCell(dh + 1, 3).setCellValue(school?.name ?: "더미중학교")
-        getCell(dh + 1, 6).setCellValue("졸업예정") // TODO: 학력구분 도메인 없어서 더미값
+        getCell(dh + 1, 3).setCellValue(school?.name ?: "")
+        getCell(dh + 1, 6).setCellValue(application.educationalStatus)
         getCell(dh + 1, 7).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
-        getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType?.name))
-        getCell(dh + 3, 2).setCellValue(application.applicantName ?: "")
+        getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
+        getCell(dh + 3, 2).setCellValue(application.applicantName)
         getCell(dh + 3, 6).setCellValue("30315") // TODO: 학번 정보 도메인 없어서 더미값
         getCell(dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
-        getCell(dh + 4, 2).setCellValue("2005-03-15") // TODO: User 도메인에서 생일 정보 필요
+        getCell(dh + 4, 2).setCellValue(application.birthDate ?: "")
         getCell(dh + 4, 6).setCellValue(formatPhoneNumber(application.applicantTel))
         getCell(dh + 5, 1).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
         getCell(dh + 5, 2).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
@@ -430,7 +429,7 @@ class PrintApplicationCheckListGenerator {
         getCell(dh + 11, 7).setCellValue("O")
         getCell(dh + 12, 7).setCellValue("X")
         getCell(dh + 13, 7).setCellValue("5.0")
-        
+
         // TODO: Score 도메인이 없어서 더미값 사용
         getCell(dh + 18, 2).setCellValue("180.0")
         getCell(dh + 18, 3).setCellValue("170.0")

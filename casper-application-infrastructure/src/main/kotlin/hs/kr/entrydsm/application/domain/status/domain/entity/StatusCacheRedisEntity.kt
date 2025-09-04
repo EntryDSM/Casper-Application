@@ -27,5 +27,6 @@ class StatusCacheRedisEntity(
     val isFirstRoundPass: Boolean,
     val isSecondRoundPass: Boolean,
     @TimeToLive
-    val ttl: Long
+    val ttl: Long,
+
 )

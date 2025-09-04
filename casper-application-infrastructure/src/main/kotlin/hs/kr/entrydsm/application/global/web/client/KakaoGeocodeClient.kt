@@ -19,7 +19,6 @@ class KakaoGeocodeClient(
     private val builder: WebClient.Builder,
     private val kakaoBaseProperties: KakaoProperties,
 ) : KakaoGeocodeContract {
-
     /**
      * 주소를 위경도로 변환합니다.
      *
@@ -41,7 +40,8 @@ class KakaoGeocodeClient(
             y to x
         }
 
-    private val webClient = builder
+    private val webClient =
+        builder
             .baseUrl(kakaoBaseProperties.url)
             .defaultHeader("Authorization", "KakaoAK ${kakaoBaseProperties.restKey}")
             .build()

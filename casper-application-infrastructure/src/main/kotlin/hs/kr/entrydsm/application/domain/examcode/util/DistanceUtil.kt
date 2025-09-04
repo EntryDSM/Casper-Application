@@ -27,10 +27,16 @@ class DistanceUtil {
      * @param compareLon 비교할 경도
      * @return 두 지점 간의 거리 (미터)
      */
-    fun haversine(baseLat: Double, baseLon: Double, compareLat: Double, compareLon: Double): Int {
+    fun haversine(
+        baseLat: Double,
+        baseLon: Double,
+        compareLat: Double,
+        compareLon: Double,
+    ): Int {
         val dLat = Math.toRadians(compareLat - baseLat)
         val dLon = Math.toRadians(compareLon - baseLon)
-        val a = sin(dLat / 2).pow(2.0) + cos(Math.toRadians(baseLat)) *
+        val a =
+            sin(dLat / 2).pow(2.0) + cos(Math.toRadians(baseLat)) *
                 cos(Math.toRadians(compareLat)) * sin(dLon / 2).pow(2.0)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return (R * c).roundToInt()

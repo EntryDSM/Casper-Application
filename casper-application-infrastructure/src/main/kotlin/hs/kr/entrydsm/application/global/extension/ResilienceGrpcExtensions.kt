@@ -13,8 +13,8 @@ suspend fun <T> executeGrpcCallWithResilience(
     retry: Retry,
     circuitBreaker: CircuitBreaker,
     fallback: suspend () -> T,
-    block: suspend () -> T
-): T = 
+    block: suspend () -> T,
+): T =
     try {
         retry.executeSuspendFunction {
             circuitBreaker.executeSuspendFunction(block)

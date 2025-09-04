@@ -49,9 +49,8 @@ class PrintApplicationInfoGenerator {
         applications.forEachIndexed { index, application ->
             val user = userMap[application.userId]
             val status = statusMap[application.receiptCode]
-            // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
-            val school: School? = null
-            
+            val school = application.schoolCode?.let { schoolMap[it] }
+
             val row = sheet.createRow(index + 1)
             insertCode(row, application, user, school, status)
         }
@@ -95,14 +94,14 @@ class PrintApplicationInfoGenerator {
         row.createCell(1).setCellValue(translateApplicationType(application.applicationType?.name))
         row.createCell(2).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
         row.createCell(3).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
-        row.createCell(4).setCellValue(application.applicantName ?: "")
-        row.createCell(5).setCellValue("2005-03-15") // TODO: User 도메인에서 생일 정보 필요
+        row.createCell(4).setCellValue(application.applicantName)
+        row.createCell(5).setCellValue(application.birthDate ?: "")
         row.createCell(6).setCellValue("${application.streetAddress ?: ""} ${application.detailAddress ?: ""}")
-        row.createCell(7).setCellValue(application.applicantTel ?: "")
+        row.createCell(7).setCellValue(application.applicantTel)
         row.createCell(8).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
-        row.createCell(9).setCellValue("졸업예정") // TODO: 학력구분 도메인 없어서 더미값
+        row.createCell(9).setCellValue(application.educationalStatus)
         row.createCell(10).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
-        row.createCell(11).setCellValue(school?.name ?: "더미중학교")
+        row.createCell(11).setCellValue(school?.name ?: "")
         row.createCell(12).setCellValue("3") // TODO: 학급 정보 도메인 없어서 더미값
         row.createCell(13).setCellValue(application.parentName ?: "")
         row.createCell(14).setCellValue(application.parentTel ?: "")
@@ -114,10 +113,11 @@ class PrintApplicationInfoGenerator {
         }
 
         // TODO: Score 도메인이 없어서 더미값 사용
-        val scores = listOf(
-            "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
-            "20.0", "O", "X", "5.0", "210.5", "200.0", status?.examCode ?: "미발급"
-        )
+        val scores =
+            listOf(
+                "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
+                "20.0", "O", "X", "5.0", "210.5", "200.0", status?.examCode ?: "미발급",
+            )
         for (i in scores.indices) {
             row.createCell(43 + i).setCellValue(scores[i])
         }

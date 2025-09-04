@@ -26,14 +26,18 @@ class PrintApplicantCodesGenerator {
      * @param statuses 전형 상태 목록 (수험번호 포함)
      * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
      */
-    fun execute(response: HttpServletResponse, applications: List<Application>, statuses: List<Status>) {
+    fun execute(
+        response: HttpServletResponse,
+        applications: List<Application>,
+        statuses: List<Status>,
+    ) {
         val applicantCode = ApplicantCode()
         val sheet = applicantCode.getSheet()
         applicantCode.format()
 
         // TODO: 1차 합격자만 필터링하는 로직 필요
         val statusMap = statuses.associateBy { it.receiptCode }
-        
+
         applications.forEachIndexed { index, application ->
             val status = statusMap[application.receiptCode]
             val row = sheet.createRow(index + 1)

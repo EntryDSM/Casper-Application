@@ -30,7 +30,7 @@ import kotlin.coroutines.resumeWithException
 @Component
 class StatusGrpcClient(
     @Qualifier("statusGrpcRetry") private val retry: Retry,
-    @Qualifier("statusGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker
+    @Qualifier("statusGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker,
 ) {
     /**
      * gRPC 통신을 위한 채널
@@ -56,47 +56,45 @@ class StatusGrpcClient(
             circuitBreaker = circuitBreaker,
             fallback = {
                 InternalStatusListResponse(statusList = emptyList())
-            }
+            },
         ) {
+            val statusStub = StatusServiceGrpc.newStub(channel)
 
+            val request = Empty.getDefaultInstance()
 
-        val statusStub = StatusServiceGrpc.newStub(channel)
+            val response =
+                suspendCancellableCoroutine { continuation ->
+                    statusStub.getStatusList(
+                        request,
+                        object : StreamObserver<StatusServiceProto.GetStatusListResponse> {
+                            override fun onNext(value: StatusServiceProto.GetStatusListResponse) {
+                                continuation.resume(value)
+                            }
 
-        val request = Empty.getDefaultInstance()
+                            override fun onError(t: Throwable) {
+                                continuation.resumeWithException(t)
+                            }
 
-        val response =
-            suspendCancellableCoroutine { continuation ->
-                statusStub.getStatusList(
-                    request,
-                    object : StreamObserver<StatusServiceProto.GetStatusListResponse> {
-                        override fun onNext(value: StatusServiceProto.GetStatusListResponse) {
-                            continuation.resume(value)
-                        }
-
-                        override fun onError(t: Throwable) {
-                            continuation.resumeWithException(t)
-                        }
-
-                        override fun onCompleted() {}
-                    },
-                )
-            }
-
-                InternalStatusListResponse(
-            statusList =
-                response.statusListList.map { statusElement ->
-                    InternalStatusResponse(
-                        id = statusElement.id,
-                        applicationStatus = mapProtoApplicationStatus(statusElement.applicationStatus),
-                        examCode = statusElement.examCode.takeIf { it.isNotBlank() },
-                        isFirstRoundPass = statusElement.isFirstRoundPass,
-                        isSecondRoundPass = statusElement.isSecondRoundPass,
-                        receiptCode = statusElement.receiptCode,
+                            override fun onCompleted() {}
+                        },
                     )
-                },
-        )
+                }
+
+            InternalStatusListResponse(
+                statusList =
+                    response.statusListList.map { statusElement ->
+                        InternalStatusResponse(
+                            id = statusElement.id,
+                            applicationStatus = mapProtoApplicationStatus(statusElement.applicationStatus),
+                            examCode = statusElement.examCode.takeIf { it.isNotBlank() },
+                            isFirstRoundPass = statusElement.isFirstRoundPass,
+                            isSecondRoundPass = statusElement.isSecondRoundPass,
+                            receiptCode = statusElement.receiptCode,
+                        )
+                    },
+            )
+        }
     }
-}
 
     /**
      * 접수번호로 특정 상태를 비동기적으로 조회합니다.
@@ -122,31 +120,33 @@ class StatusGrpcClient(
                     examCode = null,
                     isFirstRoundPass = false,
                     isSecondRoundPass = false,
-                    receiptCode = receiptCode
+                    receiptCode = receiptCode,
                 )
-            }
+            },
         ) {
             val statusStub = StatusServiceGrpc.newStub(channel)
-            val request = StatusServiceProto.GetStatusByReceiptCodeRequest.newBuilder()
-                .setReceiptCode(receiptCode)
-                .build()
+            val request =
+                StatusServiceProto.GetStatusByReceiptCodeRequest.newBuilder()
+                    .setReceiptCode(receiptCode)
+                    .build()
 
-            val response = suspendCancellableCoroutine { continuation ->
-                statusStub.getStatusByReceiptCode(
-                    request,
-                    object : StreamObserver<StatusServiceProto.GetStatusByReceiptCodeResponse> {
-                        override fun onNext(value: StatusServiceProto.GetStatusByReceiptCodeResponse) {
-                            continuation.resume(value)
-                        }
+            val response =
+                suspendCancellableCoroutine { continuation ->
+                    statusStub.getStatusByReceiptCode(
+                        request,
+                        object : StreamObserver<StatusServiceProto.GetStatusByReceiptCodeResponse> {
+                            override fun onNext(value: StatusServiceProto.GetStatusByReceiptCodeResponse) {
+                                continuation.resume(value)
+                            }
 
-                        override fun onError(t: Throwable) {
-                            continuation.resumeWithException(t)
-                        }
+                            override fun onError(t: Throwable) {
+                                continuation.resumeWithException(t)
+                            }
 
-                        override fun onCompleted() {}
-                    }
-                )
-            }
+                            override fun onCompleted() {}
+                        },
+                    )
+                }
 
             InternalStatusResponse(
                 id = response.status.id,
@@ -154,7 +154,7 @@ class StatusGrpcClient(
                 examCode = response.status.examCode.takeIf { it.isNotBlank() },
                 isFirstRoundPass = response.status.isFirstRoundPass,
                 isSecondRoundPass = response.status.isSecondRoundPass,
-                receiptCode = response.status.receiptCode
+                receiptCode = response.status.receiptCode,
             )
         }
     }
@@ -171,20 +171,24 @@ class StatusGrpcClient(
      * @throws io.grpc.StatusRuntimeException gRPC 서버에서 오류가 발생한 경우
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
-    suspend fun updateExamCode(receiptCode: Long, examCode: String) {
+    suspend fun updateExamCode(
+        receiptCode: Long,
+        examCode: String,
+    ) {
         return executeGrpcCallWithResilience(
             retry = retry,
             circuitBreaker = circuitBreaker,
             fallback = {
                 // Fallback: 로깅만 하고 조용히 실패
                 println("Failed to update exam code for receiptCode: $receiptCode")
-            }
+            },
         ) {
             val statusStub = StatusServiceGrpc.newStub(channel)
-            val request = StatusServiceProto.GetExamCodeRequest.newBuilder()
-                .setReceiptCode(receiptCode)
-                .setExamCode(examCode)
-                .build()
+            val request =
+                StatusServiceProto.GetExamCodeRequest.newBuilder()
+                    .setReceiptCode(receiptCode)
+                    .setExamCode(examCode)
+                    .build()
 
             suspendCancellableCoroutine { continuation ->
                 statusStub.updateExamCode(
@@ -199,7 +203,7 @@ class StatusGrpcClient(
                         }
 
                         override fun onCompleted() {}
-                    }
+                    },
                 )
             }
         }

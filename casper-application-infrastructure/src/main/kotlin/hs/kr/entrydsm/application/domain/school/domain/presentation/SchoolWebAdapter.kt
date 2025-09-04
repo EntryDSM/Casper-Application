@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@RestController
-@RequestMapping("/schools")
 /**
  * 학교 정보 API를 제공하는 WebAdapter 입니다.
  */
+@RestController
+@RequestMapping("/schools")
 class SchoolWebAdapter(
     private val querySchoolUseCase: QuerySchoolUseCase,
 ) {

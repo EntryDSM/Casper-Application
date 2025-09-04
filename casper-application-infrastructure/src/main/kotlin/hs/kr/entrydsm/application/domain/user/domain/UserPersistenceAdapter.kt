@@ -15,9 +15,8 @@ import java.util.UUID
  */
 @Component
 class UserPersistenceAdapter(
-    private val userGrpcClient: UserGrpcClient
+    private val userGrpcClient: UserGrpcClient,
 ) : UserContract {
-
     /**
      * 사용자 ID로 사용자 정보를 조회합니다.
      * 
@@ -38,4 +37,5 @@ class UserPersistenceAdapter(
         }
 
     }
+
 }

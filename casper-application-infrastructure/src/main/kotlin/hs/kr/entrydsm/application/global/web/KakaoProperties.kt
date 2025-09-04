@@ -10,24 +10,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  */
 @ConfigurationProperties(prefix = "kakao")
 data class KakaoProperties(
-
     /**
      * 카카오 지오코드의 기준이 되는 장소의 위도
      */
     val lat: Double,
-
     /**
      * 카카오 지오코드의 기준이 되는 장소의 경도
      */
     val lon: Double,
-
     /**
      * 카카오 REST API KEY
      */
     val restKey: String,
-
     /**
      * 카카오 Geocode API URL
      */
-    val url: String
+    val url: String,
 )

@@ -10,22 +10,22 @@ package hs.kr.entrydsm.application.global.document.pdf.data
 object TemplateFileName {
     /** 입학지원서 템플릿 */
     const val APPLICATION_FOR_ADMISSION = "application_for_admission"
-    
+
     /** 개인정보 수집·이용 동의서 템플릿 */
     const val PRIVACY_AGREEMENT = "privacy_agreement"
-    
+
     /** 자기소개서 템플릿 */
     const val INTRODUCTION = "introduction"
-    
+
     /** 금연서약서 템플릿 */
     const val NON_SMOKING = "nonsmoking"
-    
+
     /** 흡연 검사 관련 템플릿 */
     const val SMOKING_EXAMINE = "smoking_examine"
-    
+
     /** 추천서 템플릿 */
     const val RECOMMENDATION = "recommendation"
-    
+
     /** 관리자용 소개서 템플릿 */
     const val ADMIN_INTRODUCTION = "admin_introduction"
 }

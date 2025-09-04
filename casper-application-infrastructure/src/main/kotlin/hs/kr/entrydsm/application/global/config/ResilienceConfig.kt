@@ -10,9 +10,8 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class ResilienceConfig(
     private val circuitBreakerRegistry: CircuitBreakerRegistry,
-    private val retryRegistry: RetryRegistry
+    private val retryRegistry: RetryRegistry,
 ) {
-
     @Bean
     fun userGrpcCircuitBreaker(): CircuitBreaker {
         return circuitBreakerRegistry.circuitBreaker("user-grpc")

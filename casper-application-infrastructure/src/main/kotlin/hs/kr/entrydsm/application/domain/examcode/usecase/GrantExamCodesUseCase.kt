@@ -1,16 +1,16 @@
 package hs.kr.entrydsm.application.domain.examcode.usecase
 
-import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
-import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
-import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
+import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
 import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
+import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
 import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
 import hs.kr.entrydsm.domain.examcode.values.DistanceGroup
-import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
+import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
 import hs.kr.entrydsm.domain.status.interfaces.SaveExamCodeContract
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -19,7 +19,7 @@ import kotlinx.coroutines.coroutineScope
  * 1차 전형에 합격한 학생들에게 수험번호를 부여하는 유스케이스입니다.
  *
  * @property applicationContract ApplicationAggregate를 가져옵니다.
- * @property statusContract StatusAggregate를 업데이트합니다.
+ * @property saveExamCodeContract StatusAggregate를 업데이트합니다.
  * @property kakaoGeocodeContract 카카오 맵 API와 상호작용합니다.
  * @property distanceUtil 두 지점 사이의 거리를 구합니다.
  * @property baseLocationContract 기준이 되는 장소의 위경도를 가져옵니다.
@@ -32,10 +32,10 @@ class GrantExamCodesUseCase(
     private val baseLocationContract: BaseLocationContract,
     private val distanceUtil: DistanceUtil,
 ) : GrantExamCodesContract {
-
     companion object {
         /** 일반전형 수험번호 접두사 */
         private const val GENERAL_EXAM_CODE_PREFIX = "01"
+
         /** 특별전형 수험번호 접두사 */
         private const val SPECIAL_EXAM_CODE_PREFIX = "02"
     }
@@ -49,9 +49,10 @@ class GrantExamCodesUseCase(
         val examCodeInfos = collectDistanceInfo(allFirstRoundPassedApplication)
 
         val generalExamInfos = examCodeInfos.filter { it.applicationType == ApplicationType.COMMON }
-        val specialExamInfos = examCodeInfos.filter {
-            it.applicationType == ApplicationType.SOCIAL || it.applicationType == ApplicationType.MEISTER
-        }
+        val specialExamInfos =
+            examCodeInfos.filter {
+                it.applicationType == ApplicationType.SOCIAL || it.applicationType == ApplicationType.MEISTER
+            }
 
         assignExamCodes(generalExamInfos, GENERAL_EXAM_CODE_PREFIX)
         assignExamCodes(specialExamInfos, SPECIAL_EXAM_CODE_PREFIX)
@@ -66,28 +67,30 @@ class GrantExamCodesUseCase(
      * @return 학생들의 접수 코드, 전형 유형, 학교까지의 거리를 담은 리스트
      * @throws ExamCodeException.failedGeocodeConversion 주소 변환에 실패했을 경우
      */
-    private suspend fun collectDistanceInfo(applications: List<Application>): List<ExamCodeInfo> = coroutineScope {
-        applications.map { application ->
-            async {
-                val address = application.streetAddress as String
-                val coordinate = kakaoGeocodeContract.geocode(address)
-                    ?: throw ExamCodeException.failedGeocodeConversion(address)
+    private suspend fun collectDistanceInfo(applications: List<Application>): List<ExamCodeInfo> =
+        coroutineScope {
+            applications.map { application ->
+                async {
+                    val address = application.streetAddress as String
+                    val coordinate =
+                        kakaoGeocodeContract.geocode(address)
+                            ?: throw ExamCodeException.failedGeocodeConversion(address)
 
-                val baseLat = baseLocationContract.baseLat
-                val baseLon = baseLocationContract.baseLon
+                    val baseLat = baseLocationContract.baseLat
+                    val baseLon = baseLocationContract.baseLon
 
-                val userLat = coordinate.first
-                val userLon = coordinate.second
+                    val userLat = coordinate.first
+                    val userLon = coordinate.second
 
-                val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
-                ExamCodeInfo(
-                    receiptCode = application.receiptCode,
-                    applicationType = application.applicationType!!, // 전형 유형
-                    distance = distance
-                )
-            }
-        }.map { it.await() }
-    }
+                    val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
+                    ExamCodeInfo(
+                        receiptCode = application.receiptCode,
+                        applicationType = application.applicationType, // 전형 유형
+                        distance = distance,
+                    )
+                }
+            }.map { it.await() }
+        }
 
     /**
      * 학생들을 학교까지의 거리를 기준으로 그룹화하고, 그룹 내에서 수험번호를 부여합니다.
@@ -95,7 +98,10 @@ class GrantExamCodesUseCase(
      * @param examCodeInfos 학생들의 정보 리스트
      * @param applicationType 전형 유형 (일반, 특별)
      */
-    private fun assignExamCodes(examCodeInfos: List<ExamCodeInfo>, applicationType: String) {
+    private fun assignExamCodes(
+        examCodeInfos: List<ExamCodeInfo>,
+        applicationType: String,
+    ) {
         val sortedByDistance = examCodeInfos.sortedByDescending { it.distance }
 
         val distanceGroups = createDistanceGroups(sortedByDistance, applicationType)
@@ -112,7 +118,10 @@ class GrantExamCodesUseCase(
      * @param applicationType 전형 유형
      * @return 거리가 같은 학생들끼리 묶인 그룹 리스트
      */
-    private fun createDistanceGroups(sortedInfos: List<ExamCodeInfo>, applicationType: String): List<DistanceGroup> {
+    private fun createDistanceGroups(
+        sortedInfos: List<ExamCodeInfo>,
+        applicationType: String,
+    ): List<DistanceGroup> {
         val groups = mutableListOf<DistanceGroup>()
         val uniqueDistances = sortedInfos.map { it.distance }.distinct()
         uniqueDistances.forEachIndexed { index, distance ->
@@ -122,7 +131,6 @@ class GrantExamCodesUseCase(
         }
         return groups
     }
-
 
     /**
      * 같은 거리 그룹 내의 학생들에게 수험번호를 부여합니다.

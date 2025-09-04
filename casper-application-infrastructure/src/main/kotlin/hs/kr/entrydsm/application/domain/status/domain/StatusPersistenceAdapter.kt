@@ -20,9 +20,8 @@ import org.springframework.stereotype.Component
 @Component
 class StatusPersistenceAdapter(
     private val statusGrpcClient: StatusGrpcClient,
-    private val statusCacheRepository: StatusCacheRepository
+    private val statusCacheRepository: StatusCacheRepository,
 ) : StatusContract {
-
     /**
      * 접수번호로 원서 상태를 조회합니다.
      * 
@@ -63,7 +62,7 @@ class StatusPersistenceAdapter(
                     examCode = it.examCode,
                     isFirstRoundPass = it.isFirstRoundPass,
                     isSecondRoundPass = it.isSecondRoundPass,
-                    ttl = it.ttl
+                    ttl = it.ttl,
                 )
             }.orElse(null)
     }

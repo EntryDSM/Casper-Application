@@ -23,7 +23,7 @@ class IntroductionPdfGenerator(
     private val pdfProcessor: PdfProcessor,
     private val introductionPdfConverter: IntroductionPdfConverter,
     private val templateProcessor: TemplateProcessor,
-    private val pdfDocumentFacade: PdfDocumentFacade
+    private val pdfDocumentFacade: PdfDocumentFacade,
 ) {
     /**
      * 소개서 PDF를 생성합니다.
@@ -55,7 +55,10 @@ class IntroductionPdfGenerator(
         return pdfStream
     }
 
-    private fun mergeDocument(merger: PdfMerger, document: PdfDocument?) {
+    private fun mergeDocument(
+        merger: PdfMerger,
+        document: PdfDocument?,
+    ) {
         if (document != null) {
             merger.merge(document, 1, document.numberOfPages)
             document.close()

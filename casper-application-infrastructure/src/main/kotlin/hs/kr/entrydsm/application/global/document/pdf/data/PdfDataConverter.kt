@@ -17,7 +17,7 @@ import java.time.YearMonth
  */
 @Component
 class PdfDataConverter(
-    private val querySchoolContract: QuerySchoolContract
+    private val querySchoolContract: QuerySchoolContract,
 ) {
     /**
      * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
@@ -108,17 +108,16 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["userName"] = setBlankIfNull(application.applicantName)
+        values["userName"] = application.applicantName
         // TODO: application 도메인에서 성별 정보 가져오기 필요 - 현재 더미값
         values["isMale"] = toBallotBox(true)
         values["isFemale"] = toBallotBox(false)
-        values["address"] = setBlankIfNull(application.streetAddress)
-        values["detailAddress"] = setBlankIfNull(application.detailAddress)
-        // TODO: application 도메인에서 생일 정보 가져오기 필요 - 현재 더미값
-        values["birthday"] = setBlankIfNull("2000.01.01")
+        values["address"] = application.streetAddress ?: ""
+        values["detailAddress"] = application.detailAddress ?: ""
+        values["birthday"] = application.birthDate ?: ""
 
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
-        values["applicationType"] = application.applicationType?.name ?: "일반전형"
+        values["applicationType"] = application.applicationType.name
         values["applicationRemark"] = "해당없음"
     }
 
@@ -153,8 +152,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel ?: "01012345678")
-        values["parentTel"] = toFormattedPhoneNumber(application.parentTel ?: "01087654321")
+        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel)
+        values["parentTel"] = toFormattedPhoneNumber(application.parentTel ?: "")
     }
 
     private fun setGraduationClassification(
@@ -176,7 +175,7 @@ class PdfDataConverter(
     ) {
         val isDaejeon = application.isDaejeon ?: false
         val isCommon = application.applicationType == ApplicationType.COMMON
-        
+
         val list =
             listOf(
                 "isQualificationExam" to false, // TODO: 검정고시 정보 도메인 없어서 더미값
@@ -271,8 +270,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["selfIntroduction"] = setBlankIfNull(application.selfIntroduce)
-        values["studyPlan"] = setBlankIfNull(application.studyPlan)
+        values["selfIntroduction"] = application.selfIntroduce ?: ""
+        values["studyPlan"] = application.studyPlan ?: ""
         values["newLineChar"] = "\n"
     }
 
@@ -289,8 +288,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["parentName"] = application.parentName ?: "더미학부모"
-        values["parentRelation"] = application.parentRelation ?: "부"
+        values["parentName"] = application.parentName ?: ""
+        values["parentRelation"] = application.parentRelation ?: ""
     }
 
     private fun setRecommendations(
@@ -300,7 +299,7 @@ class PdfDataConverter(
         val isDaejeon = application.isDaejeon ?: false
         val isMeister = application.applicationType == ApplicationType.MEISTER
         val isSocialMerit = application.applicationType == ApplicationType.SOCIAL
-        
+
         values["isDaejeonAndMeister"] = markIfTrue(isDaejeon && isMeister)
         values["isDaejeonAndSocialMerit"] = markIfTrue(isDaejeon && isSocialMerit)
         values["isNotDaejeonAndMeister"] = markIfTrue(!isDaejeon && isMeister)
@@ -322,6 +321,7 @@ class PdfDataConverter(
     private fun emptySchoolInfo(): Map<String, Any> {
         return mapOf(
             "schoolCode" to "",
+            "schoolRegion" to "",
             "schoolClass" to "",
             "schoolTel" to "",
             "schoolName" to "",
@@ -343,21 +343,20 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: Application에 schoolCode 필드가 없어서 School 조회 불가
-        // TODO: schoolCode 필드 추가되면 아래와 같이 사용
-        // val school = querySchoolContract.querySchoolBySchoolCode(application.schoolCode)
-        // if (school != null) {
-        //     values["schoolCode"] = school.code
-        //     values["schoolRegion"] = school.regionName  
-        //     values["schoolTel"] = toFormattedPhoneNumber(school.tel)
-        //     values["schoolName"] = school.name
-        // }
-        
-        values["schoolCode"] = "더미학교코드"
-        values["schoolRegion"] = "더미지역"
-        values["schoolClass"] = "더미반" // TODO: 학급 정보는 별도 도메인 필요
-        values["schoolTel"] = toFormattedPhoneNumber("0421234567")
-        values["schoolName"] = "더미중학교"
+        val school =
+            application.schoolCode?.let {
+                querySchoolContract.querySchoolBySchoolCode(it)
+            }
+
+        if (school != null) {
+            values["schoolCode"] = school.code
+            values["schoolRegion"] = school.regionName ?: "미상"
+            values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
+            values["schoolName"] = school.name
+            values["schoolClass"] = "3" // TODO: 학급 정보는 별도 도메인 필요
+        } else {
+            values.putAll(emptySchoolInfo())
+        }
     }
 
     /**

@@ -23,7 +23,7 @@ import org.springframework.context.annotation.FilterType
         Filter(
             type = FilterType.ANNOTATION,
             classes = [
-                UseCase::class
+                UseCase::class,
             ],
         ),
     ],

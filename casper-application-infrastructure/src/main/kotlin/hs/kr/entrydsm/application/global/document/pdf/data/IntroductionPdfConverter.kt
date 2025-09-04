@@ -13,7 +13,7 @@ import java.util.HashMap
  */
 @Component
 class IntroductionPdfConverter(
-    private val querySchoolContract: QuerySchoolContract
+    private val querySchoolContract: QuerySchoolContract,
 ) {
     /**
      * 지원서 정보를 소개서 PDF 템플릿용 데이터로 변환합니다.
@@ -35,21 +35,21 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["userName"] = application.applicantName ?: "더미사용자명"
-        values["address"] = application.streetAddress ?: "더미주소"
-        values["detailAddress"] = application.detailAddress ?: "더미상세주소"
+        values["userName"] = application.applicantName
+        values["address"] = application.streetAddress ?: ""
+        values["detailAddress"] = application.detailAddress ?: ""
     }
 
     private fun setSchoolInfo(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: Application에 schoolCode 필드가 없어서 School 조회 불가
-        // TODO: schoolCode 필드 추가되면 아래와 같이 사용
-        // val school = querySchoolContract.querySchoolBySchoolCode(application.schoolCode)
-        // values["schoolName"] = school?.name ?: "더미중학교"
-        
-        values["schoolName"] = "더미중학교"
+        val school =
+            application.schoolCode?.let {
+                querySchoolContract.querySchoolBySchoolCode(it)
+            }
+
+        values["schoolName"] = school?.name ?: ""
     }
 
     private fun setReceiptCode(
@@ -63,7 +63,7 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel ?: "01012345678")
+        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel)
     }
 
     private fun toFormattedPhoneNumber(phoneNumber: String): String {
@@ -77,8 +77,8 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["selfIntroduction"] = application.selfIntroduce ?: "더미 자기소개 내용"
-        values["studyPlan"] = application.studyPlan ?: "더미 학업계획 내용"
+        values["selfIntroduction"] = application.selfIntroduce ?: ""
+        values["studyPlan"] = application.studyPlan ?: ""
         values["newLineChar"] = "\n"
         // TODO: Status 도메인에서 examCode 가져오기 필요
         values["examCode"] = "더미수험번호"
