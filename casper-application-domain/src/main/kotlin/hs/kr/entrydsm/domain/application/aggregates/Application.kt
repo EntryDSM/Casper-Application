@@ -22,5 +22,6 @@ data class Application(
     val studyPlan: String?,
     val selfIntroduce: String?,
     val userId: UUID,
-    val veteransNumber: Int?
+    val veteransNumber: Int?,
+    val schoolCode: String?
 )

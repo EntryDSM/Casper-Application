@@ -44,12 +44,11 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: Application에 schoolCode 필드가 없어서 School 조회 불가
-        // TODO: schoolCode 필드 추가되면 아래와 같이 사용
-        // val school = querySchoolContract.querySchoolBySchoolCode(application.schoolCode)
-        // values["schoolName"] = school?.name ?: "더미중학교"
+        val school = application.schoolCode?.let { 
+            querySchoolContract.querySchoolBySchoolCode(it) 
+        }
         
-        values["schoolName"] = "더미중학교"
+        values["schoolName"] = school?.name ?: ""
     }
 
     private fun setReceiptCode(

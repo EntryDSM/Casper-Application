@@ -59,8 +59,7 @@ class PrintApplicationCheckListGenerator {
             applications.forEach { application ->
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
-                // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
-                val school: School? = null
+                val school = application.schoolCode?.let { schoolMap[it] }
                 
                 formatSheet(dh)
                 insertDataIntoSheet(application, user, school, status, dh)
@@ -310,7 +309,7 @@ class PrintApplicationCheckListGenerator {
         dh: Int,
     ) {
         getCell(dh + 1, 2).setCellValue(application.receiptCode.toString())
-        getCell(dh + 1, 3).setCellValue(school?.name ?: "더미중학교")
+        getCell(dh + 1, 3).setCellValue(school?.name ?: "")
         getCell(dh + 1, 6).setCellValue("졸업예정") // TODO: 학력구분 도메인 없어서 더미값
         getCell(dh + 1, 7).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
         getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType?.name))

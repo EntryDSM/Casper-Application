@@ -291,6 +291,7 @@ class PdfDataConverter(
     private fun emptySchoolInfo(): Map<String, Any> {
         return mapOf(
             "schoolCode" to "",
+            "schoolRegion" to "",
             "schoolClass" to "",
             "schoolTel" to "",
             "schoolName" to "",
@@ -312,21 +313,19 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: Application에 schoolCode 필드가 없어서 School 조회 불가
-        // TODO: schoolCode 필드 추가되면 아래와 같이 사용
-        // val school = querySchoolContract.querySchoolBySchoolCode(application.schoolCode)
-        // if (school != null) {
-        //     values["schoolCode"] = school.code
-        //     values["schoolRegion"] = school.regionName  
-        //     values["schoolTel"] = toFormattedPhoneNumber(school.tel)
-        //     values["schoolName"] = school.name
-        // }
+        val school = application.schoolCode?.let { 
+            querySchoolContract.querySchoolBySchoolCode(it) 
+        }
         
-        values["schoolCode"] = "더미학교코드"
-        values["schoolRegion"] = "더미지역"
-        values["schoolClass"] = "더미반" // TODO: 학급 정보는 별도 도메인 필요
-        values["schoolTel"] = toFormattedPhoneNumber("0421234567")
-        values["schoolName"] = "더미중학교"
+        if (school != null) {
+            values["schoolCode"] = school.code
+            values["schoolRegion"] = school.regionName ?: "미상"
+            values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
+            values["schoolName"] = school.name
+            values["schoolClass"] = "3" // TODO: 학급 정보는 별도 도메인 필요
+        } else {
+            values.putAll(emptySchoolInfo())
+        }
     }
 
     private fun toFormattedPhoneNumber(phoneNumber: String?): String {

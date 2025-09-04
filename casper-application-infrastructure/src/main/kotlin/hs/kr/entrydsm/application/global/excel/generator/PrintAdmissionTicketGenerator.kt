@@ -90,8 +90,7 @@ class PrintAdmissionTicketGenerator {
         applications.forEach { application ->
             val user = userMap[application.userId]
             val status = statusMap[application.receiptCode]
-            // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
-            val school: School? = null
+            val school = application.schoolCode?.let { schoolMap[it] }
             
             fillApplicationData(sourceSheet, 0, application, user, school, status, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
@@ -209,7 +208,7 @@ class PrintAdmissionTicketGenerator {
     ) {
         setValue(sheet, "E4", status?.examCode ?: "미발급")
         setValue(sheet, "E6", application.applicantName ?: "")
-        setValue(sheet, "E8", school?.name ?: "더미중학교")
+        setValue(sheet, "E8", school?.name ?: "")
         setValue(sheet, "E10", if (application.isDaejeon == true) "대전" else "전국")
         setValue(sheet, "E12", translateApplicationType(application.applicationType?.name))
         setValue(sheet, "E14", application.receiptCode.toString())
