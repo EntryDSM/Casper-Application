@@ -39,7 +39,6 @@ class ApplicationJpaEntity(
     val studyPlan: String?,
     @Column(length = 1600)
     val selfIntroduce: String?,
-//    @field:NotNull
     @Column(unique = true, columnDefinition = "BINARY(16)")
     val userId: UUID,
     val veteransNumber: Int?,

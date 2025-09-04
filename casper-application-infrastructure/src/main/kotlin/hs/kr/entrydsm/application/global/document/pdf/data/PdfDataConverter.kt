@@ -84,17 +84,16 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["userName"] = setBlankIfNull(application.applicantName)
+        values["userName"] = application.applicantName
         // TODO: application 도메인에서 성별 정보 가져오기 필요 - 현재 더미값
         values["isMale"] = toBallotBox(true)
         values["isFemale"] = toBallotBox(false)
-        values["address"] = setBlankIfNull(application.streetAddress)
-        values["detailAddress"] = setBlankIfNull(application.detailAddress)
-        // TODO: application 도메인에서 생일 정보 가져오기 필요 - 현재 더미값
-        values["birthday"] = setBlankIfNull("2000.01.01")
+        values["address"] = application.streetAddress ?: ""
+        values["detailAddress"] = application.detailAddress ?: ""
+        values["birthday"] = application.birthDate ?: ""
 
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
-        values["applicationType"] = application.applicationType?.name ?: "일반전형"
+        values["applicationType"] = application.applicationType.name
         values["applicationRemark"] = "해당없음"
     }
 
@@ -122,8 +121,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel ?: "01012345678")
-        values["parentTel"] = toFormattedPhoneNumber(application.parentTel ?: "01087654321")
+        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel)
+        values["parentTel"] = toFormattedPhoneNumber(application.parentTel ?: "")
     }
 
     private fun setGraduationClassification(
@@ -240,8 +239,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["selfIntroduction"] = setBlankIfNull(application.selfIntroduce)
-        values["studyPlan"] = setBlankIfNull(application.studyPlan)
+        values["selfIntroduction"] = application.selfIntroduce ?: ""
+        values["studyPlan"] = application.studyPlan ?: ""
         values["newLineChar"] = "\n"
     }
 
@@ -258,8 +257,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["parentName"] = application.parentName ?: "더미학부모"
-        values["parentRelation"] = application.parentRelation ?: "부"
+        values["parentName"] = application.parentName ?: ""
+        values["parentRelation"] = application.parentRelation ?: ""
     }
 
     private fun setRecommendations(

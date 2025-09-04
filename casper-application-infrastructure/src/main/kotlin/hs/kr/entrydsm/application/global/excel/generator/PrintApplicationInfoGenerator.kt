@@ -91,12 +91,12 @@ class PrintApplicationInfoGenerator {
         row.createCell(1).setCellValue(translateApplicationType(application.applicationType?.name))
         row.createCell(2).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
         row.createCell(3).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
-        row.createCell(4).setCellValue(application.applicantName ?: "")
-        row.createCell(5).setCellValue("2005-03-15") // TODO: User 도메인에서 생일 정보 필요
+        row.createCell(4).setCellValue(application.applicantName)
+        row.createCell(5).setCellValue(application.birthDate ?: "")
         row.createCell(6).setCellValue("${application.streetAddress ?: ""} ${application.detailAddress ?: ""}")
-        row.createCell(7).setCellValue(application.applicantTel ?: "")
+        row.createCell(7).setCellValue(application.applicantTel)
         row.createCell(8).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
-        row.createCell(9).setCellValue("졸업예정") // TODO: 학력구분 도메인 없어서 더미값
+        row.createCell(9).setCellValue(application.educationalStatus)
         row.createCell(10).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
         row.createCell(11).setCellValue(school?.name ?: "")
         row.createCell(12).setCellValue("3") // TODO: 학급 정보 도메인 없어서 더미값

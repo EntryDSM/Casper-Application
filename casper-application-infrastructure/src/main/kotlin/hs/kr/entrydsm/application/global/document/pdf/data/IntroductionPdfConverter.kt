@@ -35,9 +35,9 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["userName"] = application.applicantName ?: "더미사용자명"
-        values["address"] = application.streetAddress ?: "더미주소"
-        values["detailAddress"] = application.detailAddress ?: "더미상세주소"
+        values["userName"] = application.applicantName
+        values["address"] = application.streetAddress ?: ""
+        values["detailAddress"] = application.detailAddress ?: ""
     }
 
     private fun setSchoolInfo(
@@ -63,7 +63,7 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel ?: "01012345678")
+        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel)
     }
 
     private fun toFormattedPhoneNumber(phoneNumber: String): String {
@@ -77,8 +77,8 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["selfIntroduction"] = application.selfIntroduce ?: "더미 자기소개 내용"
-        values["studyPlan"] = application.studyPlan ?: "더미 학업계획 내용"
+        values["selfIntroduction"] = application.selfIntroduce ?: ""
+        values["studyPlan"] = application.studyPlan ?: ""
         values["newLineChar"] = "\n"
         // TODO: Status 도메인에서 examCode 가져오기 필요
         values["examCode"] = "더미수험번호"

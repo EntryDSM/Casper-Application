@@ -207,10 +207,10 @@ class PrintAdmissionTicketGenerator {
         workbook: Workbook,
     ) {
         setValue(sheet, "E4", status?.examCode ?: "미발급")
-        setValue(sheet, "E6", application.applicantName ?: "")
+        setValue(sheet, "E6", application.applicantName)
         setValue(sheet, "E8", school?.name ?: "")
         setValue(sheet, "E10", if (application.isDaejeon == true) "대전" else "전국")
-        setValue(sheet, "E12", translateApplicationType(application.applicationType?.name))
+        setValue(sheet, "E12", translateApplicationType(application.applicationType.name))
         setValue(sheet, "E14", application.receiptCode.toString())
     }
 
