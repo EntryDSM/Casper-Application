@@ -37,7 +37,8 @@ class PdfTestController(
             studyPlan = "테스트 학업계획",
             selfIntroduce = "테스트 자기소개",
             userId = UUID.randomUUID(),
-            veteransNumber = null
+            veteransNumber = null,
+            schoolCode = "B100000001"
         )
         
         // TODO: Score 도메인이 없어서 더미값 사용
@@ -71,7 +72,8 @@ class PdfTestController(
             studyPlan = "테스트 학업계획",
             selfIntroduce = "테스트 자기소개",
             userId = UUID.randomUUID(),
-            veteransNumber = null
+            veteransNumber = null,
+            schoolCode = "B100000001"
         )
 
         val pdfBytes = introductionPdfGenerator.generate(listOf(dummyApp))

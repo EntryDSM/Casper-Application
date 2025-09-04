@@ -94,7 +94,8 @@ class ExcelTestController(
                 studyPlan = "열심히 공부하겠습니다",
                 selfIntroduce = "안녕하세요",
                 userId = UUID.randomUUID(),
-                veteransNumber = null
+                veteransNumber = null,
+                schoolCode = "B100000001"
             ),
             Application(
                 receiptCode = 1002L,
@@ -113,7 +114,8 @@ class ExcelTestController(
                 studyPlan = "기술을 배우고 싶습니다",
                 selfIntroduce = "기술에 관심이 많습니다",
                 userId = UUID.randomUUID(),
-                veteransNumber = null
+                veteransNumber = null,
+                schoolCode = "B100000002"
             )
         )
     }
