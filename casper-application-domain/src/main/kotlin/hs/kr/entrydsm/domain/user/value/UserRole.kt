@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.grpc.dto.user
+package hs.kr.entrydsm.domain.user.value
 
 /**
  * 사용자 역할을 나타내는 열거형 클래스입니다.

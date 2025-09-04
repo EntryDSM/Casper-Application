@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import hs.kr.entrydsm.application.domain.application.domain.entity.QApplicationJpaEntity.applicationJpaEntity
+import hs.kr.entrydsm.application.domain.application.entity.QApplicationJpaEntity.applicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.mapper.ApplicationMapper
 import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse

@@ -1,11 +1,27 @@
 package hs.kr.entrydsm.application.global.document.pdf.data
 
+import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.util.HashMap
 
+/**
+ * 소개서 PDF용 데이터 변환기입니다.
+ *
+ * 지원서 정보를 소개서 템플릿에서 사용할 수 있는 데이터로 변환합니다.
+ * 소개서에는 개인정보, 학교정보, 자기소개서, 학업계획서 등이 포함됩니다.
+ */
 @Component
-class IntroductionPdfConverter {
-    fun execute(application: Any): PdfData {
+class IntroductionPdfConverter(
+    private val querySchoolContract: QuerySchoolContract
+) {
+    /**
+     * 지원서 정보를 소개서 PDF 템플릿용 데이터로 변환합니다.
+     *
+     * @param application 지원서 정보
+     * @return 소개서 템플릿에 사용할 PdfData 객체
+     */
+    fun execute(application: Application): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setIntroduction(application, values)
         setPersonalInfo(application, values)
@@ -16,37 +32,38 @@ class IntroductionPdfConverter {
     }
 
     private fun setPersonalInfo(
-        application: Any,
+        application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: Application 도메인 모델 연동 필요
-        values["userName"] = "더미사용자명"
-        values["address"] = "더미주소"
-        values["detailAddress"] = "더미상세주소"
+        values["userName"] = application.applicantName ?: "더미사용자명"
+        values["address"] = application.streetAddress ?: "더미주소"
+        values["detailAddress"] = application.detailAddress ?: "더미상세주소"
     }
 
     private fun setSchoolInfo(
-        application: Any,
+        application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 교육상태 및 졸업정보 연동 필요
-        // 현재는 더미 데이터로 설정
+        // TODO: Application에 schoolCode 필드가 없어서 School 조회 불가
+        // TODO: schoolCode 필드 추가되면 아래와 같이 사용
+        // val school = querySchoolContract.querySchoolBySchoolCode(application.schoolCode)
+        // values["schoolName"] = school?.name ?: "더미중학교"
+        
         values["schoolName"] = "더미중학교"
     }
 
     private fun setReceiptCode(
-        application: Any,
+        application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: Application 도메인 모델 연동 필요
-        values["receiptCode"] = "더미수험번호"
+        values["receiptCode"] = application.receiptCode.toString()
     }
 
     private fun setPhoneNumber(
-        application: Any,
+        application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["applicantTel"] = toFormattedPhoneNumber("01012345678")
+        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel ?: "01012345678")
     }
 
     private fun toFormattedPhoneNumber(phoneNumber: String): String {
@@ -57,12 +74,13 @@ class IntroductionPdfConverter {
     }
 
     private fun setIntroduction(
-        application: Any,
+        application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["selfIntroduction"] = "더미 자기소개 내용"
-        values["studyPlan"] = "더미 학업계획 내용"
+        values["selfIntroduction"] = application.selfIntroduce ?: "더미 자기소개 내용"
+        values["studyPlan"] = application.studyPlan ?: "더미 학업계획 내용"
         values["newLineChar"] = "\n"
+        // TODO: Status 도메인에서 examCode 가져오기 필요
         values["examCode"] = "더미수험번호"
     }
 }

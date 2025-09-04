@@ -44,4 +44,10 @@ object DependencyVersions {
 
     // Caffeine
     const val CAFFEINE = "3.1.8"
+
+    // Resilience4j
+    const val RESILIENCE4J = "2.0.2"
+
+    // Netty
+    const val NETTY = "4.1.111.Final"
 }
