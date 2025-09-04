@@ -4,4 +4,5 @@ import java.util.UUID
 
 interface ApplicationCreateEventContract {
     fun publishCreateApplication(receiptCode: Long, userId: UUID)
+    fun submitApplicationFinal(receiptCode: Long)
 }
