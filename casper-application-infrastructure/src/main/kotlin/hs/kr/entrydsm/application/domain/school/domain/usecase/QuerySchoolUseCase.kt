@@ -1,9 +1,9 @@
 package hs.kr.entrydsm.application.domain.school.domain.usecase
 
-import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
+import hs.kr.entrydsm.application.global.annotation.usecase.ReadOnlyUseCase
 import hs.kr.entrydsm.domain.school.dto.QuerySchoolResponse
 import hs.kr.entrydsm.domain.school.dto.SchoolResponse
-import hs.kr.entrydsm.application.global.annotation.usecase.ReadOnlyUseCase
+import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolUseCaseContract
 
 /**
@@ -12,8 +12,7 @@ import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolUseCaseContract
 @ReadOnlyUseCase
 class QuerySchoolUseCase(
     private val querySchoolContract: QuerySchoolContract,
-): QuerySchoolUseCaseContract {
-
+) : QuerySchoolUseCaseContract {
     /**
      * 학교 이름으로 학교를 조회합니다.
      *

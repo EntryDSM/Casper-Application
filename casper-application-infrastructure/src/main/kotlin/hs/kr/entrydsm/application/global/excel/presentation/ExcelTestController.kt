@@ -36,7 +36,7 @@ class ExcelTestController(
         // TODO: 실제 Application, Status 조회 로직 필요
         val dummyApplications = createDummyApplications()
         val dummyStatuses = createDummyStatuses()
-        
+
         printApplicantCodesGenerator.execute(response, dummyApplications, dummyStatuses)
     }
 
@@ -47,7 +47,7 @@ class ExcelTestController(
         val dummyUsers = createDummyUsers()
         val dummySchools = createDummySchools()
         val dummyStatuses = createDummyStatuses()
-        
+
         printApplicationInfoGenerator.execute(response, dummyApplications, dummyUsers, dummySchools, dummyStatuses)
     }
 
@@ -58,7 +58,7 @@ class ExcelTestController(
         val dummyUsers = createDummyUsers()
         val dummySchools = createDummySchools()
         val dummyStatuses = createDummyStatuses()
-        
+
         printAdmissionTicketGenerator.execute(response, dummyApplications, dummyUsers, dummySchools, dummyStatuses)
     }
 
@@ -69,9 +69,13 @@ class ExcelTestController(
         val dummyUsers = createDummyUsers()
         val dummySchools = createDummySchools()
         val dummyStatuses = createDummyStatuses()
-        
+
         printApplicationCheckListGenerator.printApplicationCheckList(
-            dummyApplications, dummyUsers, dummySchools, dummyStatuses, response
+            dummyApplications,
+            dummyUsers,
+            dummySchools,
+            dummyStatuses,
+            response,
         )
     }
 
@@ -95,7 +99,7 @@ class ExcelTestController(
                 selfIntroduce = "안녕하세요",
                 userId = UUID.randomUUID(),
                 veteransNumber = null,
-                schoolCode = "B100000001"
+                schoolCode = "B100000001",
             ),
             Application(
                 receiptCode = 1002L,
@@ -115,8 +119,8 @@ class ExcelTestController(
                 selfIntroduce = "기술에 관심이 많습니다",
                 userId = UUID.randomUUID(),
                 veteransNumber = null,
-                schoolCode = "B100000002"
-            )
+                schoolCode = "B100000002",
+            ),
         )
     }
 
@@ -126,14 +130,14 @@ class ExcelTestController(
                 id = UUID.randomUUID(),
                 phoneNumber = "010-1234-5678",
                 name = "홍길동",
-                isParent = false
+                isParent = false,
             ),
             User(
                 id = UUID.randomUUID(),
                 phoneNumber = "010-2345-6789",
                 name = "김철수",
-                isParent = false
-            )
+                isParent = false,
+            ),
         )
     }
 
@@ -145,7 +149,7 @@ class ExcelTestController(
                 tel = "042-123-4567",
                 type = "중학교",
                 address = "대전광역시 유성구",
-                regionName = "대전"
+                regionName = "대전",
             ),
             School(
                 code = "B100000002",
@@ -153,8 +157,8 @@ class ExcelTestController(
                 tel = "02-234-5678",
                 type = "중학교",
                 address = "서울특별시 강남구",
-                regionName = "서울"
-            )
+                regionName = "서울",
+            ),
         )
     }
 
@@ -166,7 +170,7 @@ class ExcelTestController(
                 applicationStatus = ApplicationStatus.SUBMITTED,
                 isFirstRoundPass = true,
                 isSecondRoundPass = false,
-                receiptCode = 1001L
+                receiptCode = 1001L,
             ),
             Status(
                 id = 2L,
@@ -174,8 +178,8 @@ class ExcelTestController(
                 applicationStatus = ApplicationStatus.SUBMITTED,
                 isFirstRoundPass = true,
                 isSecondRoundPass = false,
-                receiptCode = 1002L
-            )
+                receiptCode = 1002L,
+            ),
         )
     }
 }

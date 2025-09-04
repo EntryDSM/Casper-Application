@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 class WebExamCodeAdapter(
     private val grantExamCodesContract: GrantExamCodesContract,
 ) {
-
     /**
      * `POST /exam-code`
      * 수험번호를 일괄적으로 부여합니다.

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 class BaseLocationAdapter(
     private val kakaoProperties: KakaoProperties,
 ) : BaseLocationContract {
-
     /**
      * 기준이 되는 장소의 위도입니다.
      * @see kakaoProperties.lat

@@ -9,18 +9,17 @@ import java.util.UUID
 
 @Component
 class UserPersistenceAdapter(
-    private val userGrpcClient: UserGrpcClient
+    private val userGrpcClient: UserGrpcClient,
 ) : UserContract {
-
-    override fun queryUserByUserId(userId: UUID): User = runBlocking {
-        userGrpcClient.getUserInfoByUserId(userId).run {
-            User(
-                id = id,
-                phoneNumber = phoneNumber,
-                name = name,
-                isParent = isParent,
-            )
+    override fun queryUserByUserId(userId: UUID): User =
+        runBlocking {
+            userGrpcClient.getUserInfoByUserId(userId).run {
+                User(
+                    id = id,
+                    phoneNumber = phoneNumber,
+                    name = name,
+                    isParent = isParent,
+                )
+            }
         }
-
-    }
 }

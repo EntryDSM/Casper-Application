@@ -60,7 +60,7 @@ class PrintApplicationCheckListGenerator {
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
                 val school = application.schoolCode?.let { schoolMap[it] }
-                
+
                 formatSheet(dh)
                 insertDataIntoSheet(application, user, school, status, dh)
                 dh += 20
@@ -348,7 +348,7 @@ class PrintApplicationCheckListGenerator {
         getCell(dh + 11, 7).setCellValue("O")
         getCell(dh + 12, 7).setCellValue("X")
         getCell(dh + 13, 7).setCellValue("5.0")
-        
+
         // TODO: Score 도메인이 없어서 더미값 사용
         getCell(dh + 18, 2).setCellValue("180.0")
         getCell(dh + 18, 3).setCellValue("170.0")

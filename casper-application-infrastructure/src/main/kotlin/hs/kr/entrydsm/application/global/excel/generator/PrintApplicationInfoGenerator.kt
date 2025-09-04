@@ -50,7 +50,7 @@ class PrintApplicationInfoGenerator {
             val user = userMap[application.userId]
             val status = statusMap[application.receiptCode]
             val school = application.schoolCode?.let { schoolMap[it] }
-            
+
             val row = sheet.createRow(index + 1)
             insertCode(row, application, user, school, status)
         }
@@ -110,10 +110,11 @@ class PrintApplicationInfoGenerator {
         }
 
         // TODO: Score 도메인이 없어서 더미값 사용
-        val scores = listOf(
-            "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
-            "20.0", "O", "X", "5.0", "210.5", "200.0", status?.examCode ?: "미발급"
-        )
+        val scores =
+            listOf(
+                "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
+                "20.0", "O", "X", "5.0", "210.5", "200.0", status?.examCode ?: "미발급",
+            )
         for (i in scores.indices) {
             row.createCell(43 + i).setCellValue(scores[i])
         }

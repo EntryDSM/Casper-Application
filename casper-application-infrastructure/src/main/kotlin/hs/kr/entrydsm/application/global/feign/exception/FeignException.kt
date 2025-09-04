@@ -10,7 +10,6 @@ sealed class FeignException(
     errorCode: ErrorCode,
     message: String,
 ) : DomainException(errorCode, message) {
-
     /**
      * Feign 서버 오류시 발생하는 예외입니다.
      */

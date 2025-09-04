@@ -24,7 +24,7 @@ import kotlin.coroutines.resumeWithException
 @Component
 class ScheduleGrpcClient(
     @Qualifier("scheduleGrpcRetry") private val retry: Retry,
-    @Qualifier("scheduleGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker
+    @Qualifier("scheduleGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker,
 ) {
     @GrpcClient("schedule-service")
     lateinit var channel: Channel
@@ -40,13 +40,14 @@ class ScheduleGrpcClient(
             circuitBreaker = circuitBreaker,
             fallback = {
                 InternalScheduleResponse(
-                    type = toInternal(
-                        runCatching { ScheduleServiceProto.Type.valueOf(type.uppercase()) }
-                            .getOrDefault(ScheduleServiceProto.Type.START_DATE)
-                    ),
-                    date = LocalDateTime.now()
+                    type =
+                        toInternal(
+                            runCatching { ScheduleServiceProto.Type.valueOf(type.uppercase()) }
+                                .getOrDefault(ScheduleServiceProto.Type.START_DATE),
+                        ),
+                    date = LocalDateTime.now(),
                 )
-            }
+            },
         ) {
             val scheduleStub = ScheduleServiceGrpc.newStub(channel)
 

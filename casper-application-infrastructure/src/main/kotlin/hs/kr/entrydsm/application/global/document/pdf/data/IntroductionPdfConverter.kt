@@ -13,7 +13,7 @@ import java.util.HashMap
  */
 @Component
 class IntroductionPdfConverter(
-    private val querySchoolContract: QuerySchoolContract
+    private val querySchoolContract: QuerySchoolContract,
 ) {
     /**
      * 지원서 정보를 소개서 PDF 템플릿용 데이터로 변환합니다.
@@ -44,10 +44,11 @@ class IntroductionPdfConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val school = application.schoolCode?.let { 
-            querySchoolContract.querySchoolBySchoolCode(it) 
-        }
-        
+        val school =
+            application.schoolCode?.let {
+                querySchoolContract.querySchoolBySchoolCode(it)
+            }
+
         values["schoolName"] = school?.name ?: ""
     }
 

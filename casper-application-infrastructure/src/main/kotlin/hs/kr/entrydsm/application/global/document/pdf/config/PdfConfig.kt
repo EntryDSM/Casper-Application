@@ -10,11 +10,12 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 class PdfConfig {
     @Bean
     fun pdfTemplateEngine(): TemplateEngine {
-        val templateResolver = ClassLoaderTemplateResolver().apply {
-            prefix = "classpath:/templates/"
-            suffix = ".html"
-            templateMode = TemplateMode.HTML
-        }
+        val templateResolver =
+            ClassLoaderTemplateResolver().apply {
+                prefix = "classpath:/templates/"
+                suffix = ".html"
+                templateMode = TemplateMode.HTML
+            }
         return TemplateEngine().apply {
             setTemplateResolver(templateResolver)
         }

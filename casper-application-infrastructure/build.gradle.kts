@@ -47,7 +47,7 @@ dependencies {
     implementation(Dependencies.SPRING_BOOT_STARTER_DATA_JPA)
     implementation(Dependencies.SPRING_CACHE)
 
-    //redis
+    // redis
     implementation(Dependencies.REDIS)
 
     // Kotlin

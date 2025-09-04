@@ -17,7 +17,7 @@ import java.time.YearMonth
  */
 @Component
 class PdfDataConverter(
-    private val querySchoolContract: QuerySchoolContract
+    private val querySchoolContract: QuerySchoolContract,
 ) {
     /**
      * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
@@ -145,7 +145,7 @@ class PdfDataConverter(
     ) {
         val isDaejeon = application.isDaejeon ?: false
         val isCommon = application.applicationType == ApplicationType.COMMON
-        
+
         val list =
             listOf(
                 "isQualificationExam" to false, // TODO: 검정고시 정보 도메인 없어서 더미값
@@ -269,7 +269,7 @@ class PdfDataConverter(
         val isDaejeon = application.isDaejeon ?: false
         val isMeister = application.applicationType == ApplicationType.MEISTER
         val isSocialMerit = application.applicationType == ApplicationType.SOCIAL
-        
+
         values["isDaejeonAndMeister"] = markIfTrue(isDaejeon && isMeister)
         values["isDaejeonAndSocialMerit"] = markIfTrue(isDaejeon && isSocialMerit)
         values["isNotDaejeonAndMeister"] = markIfTrue(!isDaejeon && isMeister)
@@ -313,10 +313,11 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val school = application.schoolCode?.let { 
-            querySchoolContract.querySchoolBySchoolCode(it) 
-        }
-        
+        val school =
+            application.schoolCode?.let {
+                querySchoolContract.querySchoolBySchoolCode(it)
+            }
+
         if (school != null) {
             values["schoolCode"] = school.code
             values["schoolRegion"] = school.regionName ?: "미상"

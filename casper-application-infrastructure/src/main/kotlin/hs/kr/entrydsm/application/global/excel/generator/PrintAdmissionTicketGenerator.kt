@@ -91,7 +91,7 @@ class PrintAdmissionTicketGenerator {
             val user = userMap[application.userId]
             val status = statusMap[application.receiptCode]
             val school = application.schoolCode?.let { schoolMap[it] }
-            
+
             fillApplicationData(sourceSheet, 0, application, user, school, status, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
             copyApplicationImage(application, targetSheet, currentRowIndex)
