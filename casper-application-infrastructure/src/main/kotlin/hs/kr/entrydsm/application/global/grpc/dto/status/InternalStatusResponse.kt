@@ -1,7 +1,5 @@
 package hs.kr.entrydsm.application.global.grpc.dto.status
 
-import hs.kr.entrydsm.domain.status.values.ApplicationStatus
-
 /**
  * 내부 gRPC 통신용 상태 응답 DTO 클래스입니다.
  * 상태 서비스와의 통신에서 상태 정보를 전달받는 데 사용됩니다.

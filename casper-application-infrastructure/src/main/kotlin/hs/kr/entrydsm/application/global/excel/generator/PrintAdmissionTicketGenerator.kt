@@ -1,9 +1,5 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.school.aggregate.School
-import hs.kr.entrydsm.domain.status.aggregates.Status
-import hs.kr.entrydsm.domain.user.aggregates.User
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellStyle
@@ -22,13 +18,6 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * 수험표 Excel 파일을 생성하는 Generator입니다.
- *
- * 템플릿 파일을 기반으로 수험표를 생성하며, 지원자 정보와 함께
- * 사진을 포함한 완성된 수험표를 제공합니다. 각 수험표는 20행씩 차지하며
- * 여러 지원자의 수험표가 하나의 파일에 연속으로 생성됩니다.
- */
 @Component
 class PrintAdmissionTicketGenerator {
     companion object {
@@ -37,24 +26,8 @@ class PrintAdmissionTicketGenerator {
 
     private lateinit var drawing: XSSFDrawing
 
-    /**
-     * 수험표 Excel 파일을 생성하고 HTTP Response로 전송합니다.
-     *
-     * @param response HTTP 응답 객체
-     * @param applications 지원서 목록
-     * @param users 사용자 정보 목록
-     * @param schools 학교 정보 목록
-     * @param statuses 전형 상태 목록
-     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
-     */
-    fun execute(
-        response: HttpServletResponse,
-        applications: List<Application>,
-        users: List<User>,
-        schools: List<School>,
-        statuses: List<Status>,
-    ) {
-        val targetWorkbook = generate(applications, users, schools, statuses)
+    fun execute(response: HttpServletResponse) {
+        val targetWorkbook = generate()
         try {
             setResponseHeaders(response)
             targetWorkbook.write(response.outputStream)
@@ -65,12 +38,7 @@ class PrintAdmissionTicketGenerator {
         }
     }
 
-    fun generate(
-        applications: List<Application>,
-        users: List<User>,
-        schools: List<School>,
-        statuses: List<Status>,
-    ): Workbook {
+    fun generate(): Workbook {
         val sourceWorkbook = loadSourceWorkbook()
         val targetWorkbook = XSSFWorkbook()
 
@@ -82,20 +50,32 @@ class PrintAdmissionTicketGenerator {
         val styleMap = createStyleMap(sourceWorkbook, targetWorkbook)
         targetSheet.setDefaultColumnWidth(13)
 
-        val userMap = users.associateBy { it.id }
-        val schoolMap = schools.associateBy { it.code }
-        val statusMap = statuses.associateBy { it.receiptCode }
+        // 더미 데이터
+        val dummyApplications =
+            listOf(
+                mapOf(
+                    "receiptCode" to 1001L,
+                    "examCode" to "DUMMY001",
+                    "applicantName" to "홍길동",
+                    "schoolName" to "더미고등학교",
+                    "isDaejeon" to "대전",
+                    "applicationType" to "일반전형",
+                ),
+                mapOf(
+                    "receiptCode" to 1002L,
+                    "examCode" to "DUMMY002",
+                    "applicantName" to "김철수",
+                    "schoolName" to "테스트고등학교",
+                    "isDaejeon" to "전국",
+                    "applicationType" to "마이스터전형",
+                ),
+            )
 
         var currentRowIndex = 0
-        applications.forEach { application ->
-            val user = userMap[application.userId]
-            val status = statusMap[application.receiptCode]
-            // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
-            val school: School? = null
-            
-            fillApplicationData(sourceSheet, 0, application, user, school, status, sourceWorkbook)
+        dummyApplications.forEach { dummyApp ->
+            fillApplicationData(sourceSheet, 0, dummyApp, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
-            copyApplicationImage(application, targetSheet, currentRowIndex)
+            copyDummyImage(targetSheet, currentRowIndex)
             currentRowIndex += 20
         }
 
@@ -201,41 +181,15 @@ class PrintAdmissionTicketGenerator {
     fun fillApplicationData(
         sheet: Sheet,
         startRowIndex: Int,
-        application: Application,
-        user: User?,
-        school: School?,
-        status: Status?,
+        dummyApp: Map<String, Any>,
         workbook: Workbook,
     ) {
-        setValue(sheet, "E4", status?.examCode ?: "미발급")
-        setValue(sheet, "E6", application.applicantName ?: "")
-        setValue(sheet, "E8", school?.name ?: "더미중학교")
-        setValue(sheet, "E10", if (application.isDaejeon == true) "대전" else "전국")
-        setValue(sheet, "E12", translateApplicationType(application.applicationType?.name))
-        setValue(sheet, "E14", application.receiptCode.toString())
-    }
-
-    fun copyApplicationImage(
-        application: Application,
-        targetSheet: Sheet,
-        targetRowIndex: Int,
-    ) {
-        // TODO: 이미지 파일 처리 로직 필요
-        if (!application.photoPath.isNullOrBlank()) {
-            // TODO: 실제 이미지 로드 로직
-            copyDummyImage(targetSheet, targetRowIndex)
-        } else {
-            copyDummyImage(targetSheet, targetRowIndex)
-        }
-    }
-
-    private fun translateApplicationType(applicationType: String?): String {
-        return when (applicationType) {
-            "COMMON" -> "일반전형"
-            "MEISTER" -> "마이스터전형"
-            "SOCIAL" -> "사회통합전형"
-            else -> "일반전형"
-        }
+        setValue(sheet, "E4", dummyApp["examCode"].toString())
+        setValue(sheet, "E6", dummyApp["applicantName"].toString())
+        setValue(sheet, "E8", dummyApp["schoolName"].toString())
+        setValue(sheet, "E10", dummyApp["isDaejeon"].toString())
+        setValue(sheet, "E12", dummyApp["applicationType"].toString())
+        setValue(sheet, "E14", dummyApp["receiptCode"].toString())
     }
 
     fun copyDummyImage(

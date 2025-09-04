@@ -1,9 +1,5 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.school.aggregate.School
-import hs.kr.entrydsm.domain.status.aggregates.Status
-import hs.kr.entrydsm.domain.user.aggregates.User
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.BorderStyle
@@ -19,59 +15,43 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * 지원서 점검표 Excel 파일을 생성하는 Generator입니다.
- *
- * 각 지원자마다 20행씩 차지하는 복잡한 포맷의 점검표를 생성합니다.
- * 개인정보, 성적, 출석정보, 점수 등이 시각적으로 구조화된 형태로 배치되며,
- * 다양한 테두리 스타일과 셀 병합을 사용하여 가독성을 높입니다.
- */
 @Component
 class PrintApplicationCheckListGenerator {
     private val workbook: Workbook = XSSFWorkbook()
     private val sheet: Sheet = workbook.createSheet("application Check List")
 
-    /**
-     * 지원서 점검표 Excel 파일을 생성하고 HTTP Response로 전송합니다.
-     * 각 지원자당 20행의 구조화된 점검표를 생성합니다.
-     *
-     * @param applications 지원서 목록
-     * @param users 사용자 정보 목록
-     * @param schools 학교 정보 목록
-     * @param statuses 전형 상태 목록
-     * @param httpServletResponse HTTP 응답 객체
-     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
-     */
-    fun printApplicationCheckList(
-        applications: List<Application>,
-        users: List<User>,
-        schools: List<School>,
-        statuses: List<Status>,
-        httpServletResponse: HttpServletResponse,
-    ) {
+    fun printApplicationCheckList(httpServletResponse: HttpServletResponse) {
         var outputStream: ServletOutputStream? = null
         var dh = 0
         try {
-            val userMap = users.associateBy { it.id }
-            val schoolMap = schools.associateBy { it.code }
-            val statusMap = statuses.associateBy { it.receiptCode }
+            // 더미 데이터
+            val dummyApplications =
+                listOf(
+                    createDummyApplication(1001L, "홍길동", "더미고등학교"),
+                    createDummyApplication(1002L, "김철수", "테스트고등학교"),
+                    createDummyApplication(1003L, "이영희", "샘플고등학교"),
+                )
 
-            applications.forEach { application ->
-                val user = userMap[application.userId]
-                val status = statusMap[application.receiptCode]
-                // TODO: Application에 schoolCode 필드 없어서 School 조회 불가
-                val school: School? = null
-                
+            dummyApplications.forEach { dummyData ->
                 formatSheet(dh)
-                insertDataIntoSheet(application, user, school, status, dh)
+                insertDataIntoSheet(dummyData, dh)
                 dh += 20
             }
 
             httpServletResponse.apply {
-                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                contentType =
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
                 val formatFilename = "attachment;filename=\"점검표"
-                val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년MM월dd일_HH시mm분"))
-                val fileName = String(("$formatFilename$time.xlsx\"").toByteArray(Charsets.UTF_8), Charsets.ISO_8859_1)
+                val time =
+                    LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("yyyy년MM월dd일_HH시mm분"))
+
+                val fileName =
+                    String(
+                        ("$formatFilename$time.xlsx\"").toByteArray(Charsets.UTF_8),
+                        Charsets.ISO_8859_1,
+                    )
                 setHeader("Content-Disposition", fileName)
             }
 
@@ -303,27 +283,24 @@ class PrintApplicationCheckListGenerator {
     }
 
     private fun insertDataIntoSheet(
-        application: Application,
-        user: User?,
-        school: School?,
-        status: Status?,
+        dummyData: Map<String, Any>,
         dh: Int,
     ) {
-        getCell(dh + 1, 2).setCellValue(application.receiptCode.toString())
-        getCell(dh + 1, 3).setCellValue(school?.name ?: "더미중학교")
-        getCell(dh + 1, 6).setCellValue("졸업예정") // TODO: 학력구분 도메인 없어서 더미값
-        getCell(dh + 1, 7).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
-        getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType?.name))
-        getCell(dh + 3, 2).setCellValue(application.applicantName ?: "")
-        getCell(dh + 3, 6).setCellValue("30315") // TODO: 학번 정보 도메인 없어서 더미값
-        getCell(dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
-        getCell(dh + 4, 2).setCellValue("2005-03-15") // TODO: User 도메인에서 생일 정보 필요
-        getCell(dh + 4, 6).setCellValue(formatPhoneNumber(application.applicantTel))
-        getCell(dh + 5, 1).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
-        getCell(dh + 5, 2).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
-        getCell(dh + 5, 6).setCellValue(formatPhoneNumber(application.parentTel))
+        getCell(dh + 1, 2).setCellValue(dummyData["receiptCode"].toString())
+        getCell(dh + 1, 3).setCellValue(dummyData["schoolName"].toString())
+        getCell(dh + 1, 6).setCellValue(dummyData["educationalStatus"].toString())
+        getCell(dh + 1, 7).setCellValue(dummyData["graduateYear"].toString())
+        getCell(dh + 4, 1).setCellValue(dummyData["applicationType"].toString())
+        getCell(dh + 3, 2).setCellValue(dummyData["applicantName"].toString())
+        getCell(dh + 3, 6).setCellValue(dummyData["studentNumber"].toString())
+        getCell(dh + 3, 1).setCellValue(dummyData["isDaejeon"].toString())
+        getCell(dh + 4, 2).setCellValue(dummyData["birthDate"].toString())
+        getCell(dh + 4, 6).setCellValue(dummyData["phoneNumber"].toString())
+        getCell(dh + 5, 1).setCellValue(dummyData["applicationRemark"].toString())
+        getCell(dh + 5, 2).setCellValue(dummyData["sex"].toString())
+        getCell(dh + 5, 6).setCellValue(dummyData["parentPhoneNumber"].toString())
 
-        // TODO: 출석 관련 도메인이 없어서 더미값 사용
+        // 출석 관련 더미 데이터
         getCell(dh + 8, 1).setCellValue("0")
         getCell(dh + 8, 2).setCellValue("0")
         getCell(dh + 8, 3).setCellValue("0")
@@ -333,7 +310,7 @@ class PrintApplicationCheckListGenerator {
         getCell(dh + 8, 7).setCellValue("15.0")
         getCell(dh + 10, 7).setCellValue("170.5")
 
-        // TODO: 성적 도메인이 없어서 더미값 사용
+        // 성적 더미 데이터
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val dummyGrades = listOf("A", "B", "A", "B", "A", "B", "A")
         subjects.forEachIndexed { index, subject ->
@@ -345,12 +322,9 @@ class PrintApplicationCheckListGenerator {
             getCell(rowIndex, 5).setCellValue(dummyGrades[index])
         }
 
-        // TODO: 대회/자격증 도메인이 없어서 더미값 사용
         getCell(dh + 11, 7).setCellValue("O")
         getCell(dh + 12, 7).setCellValue("X")
         getCell(dh + 13, 7).setCellValue("5.0")
-        
-        // TODO: Score 도메인이 없어서 더미값 사용
         getCell(dh + 18, 2).setCellValue("180.0")
         getCell(dh + 18, 3).setCellValue("170.0")
         getCell(dh + 18, 4).setCellValue("165.0")
@@ -362,23 +336,6 @@ class PrintApplicationCheckListGenerator {
         setRowHeight(dh + 6, 10)
         setRowHeight(dh + 9, 10)
         setRowHeight(dh + 0, 71)
-    }
-
-    private fun translateApplicationType(applicationType: String?): String {
-        return when (applicationType) {
-            "COMMON" -> "일반전형"
-            "MEISTER" -> "마이스터전형"
-            "SOCIAL" -> "사회통합전형"
-            else -> "일반전형"
-        }
-    }
-
-    private fun formatPhoneNumber(phoneNumber: String?): String {
-        if (phoneNumber.isNullOrBlank()) return ""
-        if (phoneNumber.length == 8) {
-            return phoneNumber.replace("(\\d{4})(\\d{4})".toRegex(), "$1-$2")
-        }
-        return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
     }
 
     enum class Direction {

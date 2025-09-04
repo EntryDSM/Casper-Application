@@ -19,7 +19,7 @@ import kotlinx.coroutines.coroutineScope
  * 1차 전형에 합격한 학생들에게 수험번호를 부여하는 유스케이스입니다.
  *
  * @property applicationContract ApplicationAggregate를 가져옵니다.
- * @property statusContract StatusAggregate를 업데이트합니다.
+ * @property saveExamCodeContract StatusAggregate를 업데이트합니다.
  * @property kakaoGeocodeContract 카카오 맵 API와 상호작용합니다.
  * @property distanceUtil 두 지점 사이의 거리를 구합니다.
  * @property baseLocationContract 기준이 되는 장소의 위경도를 가져옵니다.

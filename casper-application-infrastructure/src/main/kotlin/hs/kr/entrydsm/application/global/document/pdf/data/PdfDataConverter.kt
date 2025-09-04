@@ -1,34 +1,15 @@
 package hs.kr.entrydsm.application.global.document.pdf.data
 
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationType
-import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 
-/**
- * 지원서 정보를 PDF 템플릿용 데이터로 변환하는 Converter입니다.
- *
- * Application, Score 등의 도메인 객체를 HTML 템플릿에서 사용할 수 있는
- * Key-Value 형태의 데이터로 변환합니다. 누락된 도메인 정보는 더미값으로 처리하며
- * 향후 도메인이 추가되면 TODO 주석을 따라 연동할 수 있습니다.
- */
 @Component
-class PdfDataConverter(
-    private val querySchoolContract: QuerySchoolContract
-) {
-    /**
-     * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
-     *
-     * @param application 지원서 정보
-     * @param score Score 도메인 (현재 더미값 사용)
-     * @return 템플릿에 사용할 PdfData 객체
-     */
+class PdfDataConverter {
     fun applicationToInfo(
-        application: Application,
-        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
+        application: Any,
+        score: Any,
     ): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
@@ -62,10 +43,11 @@ class PdfDataConverter(
     }
 
     private fun setReceiptCode(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        values["receiptCode"] = application.receiptCode.toString()
+        // TODO: Application 도메인 모델 연동 필요
+        values["receiptCode"] = "더미데이터"
     }
 
     private fun setEntranceYear(values: MutableMap<String, Any>) {
@@ -74,35 +56,35 @@ class PdfDataConverter(
     }
 
     private fun setVeteransNumber(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        values["veteransNumber"] = application.veteransNumber?.toString() ?: ""
+        // TODO: Application 도메인 모델 연동 필요
+        values["veteransNumber"] = ""
     }
 
     private fun setPersonalInfo(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        values["userName"] = setBlankIfNull(application.applicantName)
-        // TODO: application 도메인에서 성별 정보 가져오기 필요 - 현재 더미값
+        // TODO: Application 도메인 모델 연동 필요
+        values["userName"] = setBlankIfNull("더미사용자명")
         values["isMale"] = toBallotBox(true)
         values["isFemale"] = toBallotBox(false)
-        values["address"] = setBlankIfNull(application.streetAddress)
-        values["detailAddress"] = setBlankIfNull(application.detailAddress)
-        // TODO: application 도메인에서 생일 정보 가져오기 필요 - 현재 더미값
+        values["address"] = setBlankIfNull("더미주소")
+        values["detailAddress"] = setBlankIfNull("더미상세주소")
         values["birthday"] = setBlankIfNull("2000.01.01")
 
-        values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
-        values["applicationType"] = application.applicationType?.name ?: "일반전형"
+        values["region"] = "대전"
+        values["applicationType"] = "일반전형"
         values["applicationRemark"] = "해당없음"
     }
 
     private fun setAttendanceAndVolunteer(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 출석/봉사 도메인이 없어서 더미값 사용
+        // TODO: ApplicationCase 도메인 모델 연동 필요
         values["absenceDayCount"] = 0
         values["latenessCount"] = 0
         values["earlyLeaveCount"] = 0
@@ -111,28 +93,39 @@ class PdfDataConverter(
     }
 
     private fun setGenderInfo(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: application 도메인에서 성별 정보 가져오기 필요 - 현재 더미값
         values["gender"] = setBlankIfNull("남")
     }
 
-    private fun setPhoneNumber(
-        application: Application,
+    private fun setSchoolInfo(
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        values["applicantTel"] = toFormattedPhoneNumber(application.applicantTel ?: "01012345678")
-        values["parentTel"] = toFormattedPhoneNumber(application.parentTel ?: "01087654321")
+        // TODO: 졸업정보 및 학교정보 연동 필요
+        values["schoolCode"] = "더미학교코드"
+        values["schoolRegion"] = "더미지역"
+        values["schoolClass"] = "더미반"
+        values["schoolTel"] = toFormattedPhoneNumber("0421234567")
+        values["schoolName"] = "더미중학교"
+    }
+
+    private fun setPhoneNumber(
+        application: Any,
+        values: MutableMap<String, Any>,
+    ) {
+        values["applicantTel"] = toFormattedPhoneNumber("01012345678")
+        values["parentTel"] = toFormattedPhoneNumber("01087654321")
     }
 
     private fun setGraduationClassification(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
         values.putAll(emptyGraduationClassification())
 
-        // TODO: 졸업정보 도메인이 없어서 더미값 사용
+        // TODO: 졸업정보 연동 필요
         val yearMonth = YearMonth.now()
         values["graduateYear"] = yearMonth.year.toString()
         values["graduateMonth"] = yearMonth.monthValue.toString()
@@ -140,31 +133,28 @@ class PdfDataConverter(
     }
 
     private fun setUserType(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        val isDaejeon = application.isDaejeon ?: false
-        val isCommon = application.applicationType == ApplicationType.COMMON
-        
         val list =
             listOf(
-                "isQualificationExam" to false, // TODO: 검정고시 정보 도메인 없어서 더미값
-                "isGraduate" to true, // TODO: 졸업정보 도메인 없어서 더미값
-                "isProspectiveGraduate" to false, // TODO: 졸업정보 도메인 없어서 더미값
-                "isDaejeon" to isDaejeon,
-                "isNotDaejeon" to !isDaejeon,
-                "isBasicLiving" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isFromNorth" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isLowestIncome" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isMulticultural" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isOneParent" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isTeenHouseholder" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isPrivilegedAdmission" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isNationalMerit" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isProtectedChildren" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isCommon" to isCommon,
-                "isMeister" to (application.applicationType == ApplicationType.MEISTER),
-                "isSocialMerit" to (application.applicationType == ApplicationType.SOCIAL),
+                "isQualificationExam" to false,
+                "isGraduate" to true,
+                "isProspectiveGraduate" to false,
+                "isDaejeon" to true,
+                "isNotDaejeon" to false,
+                "isBasicLiving" to false,
+                "isFromNorth" to false,
+                "isLowestIncome" to false,
+                "isMulticultural" to false,
+                "isOneParent" to false,
+                "isTeenHouseholder" to false,
+                "isPrivilegedAdmission" to false,
+                "isNationalMerit" to false,
+                "isProtectedChildren" to false,
+                "isCommon" to true,
+                "isMeister" to false,
+                "isSocialMerit" to false,
             )
 
         list.forEach { (key, value) ->
@@ -173,19 +163,20 @@ class PdfDataConverter(
     }
 
     private fun setExtraScore(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 상점/자격증 도메인이 없어서 더미값 사용
+        // TODO: ApplicationCase 연동 필요
         values["hasCompetitionPrize"] = toCircleBallotbox(false)
         values["hasCertificate"] = toCircleBallotbox(false)
     }
 
     private fun setGradeScore(
-        application: Application,
-        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
+        application: Any,
+        score: Any,
         values: MutableMap<String, Any>,
     ) {
+        // TODO: Score 도메인 모델 연동 필요
         with(values) {
             put("conversionScore1st", "80.0")
             put("conversionScore2nd", "85.0")
@@ -198,10 +189,10 @@ class PdfDataConverter(
     }
 
     private fun setAllSubjectScores(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 성적 도메인이 없어서 더미값 사용
+        // TODO: ApplicationCase 연동 필요 - 일반졸업 케이스로 더미 데이터
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "영어", "기술가정")
 
         subjects.forEach { subject ->
@@ -237,51 +228,47 @@ class PdfDataConverter(
     }
 
     private fun setIntroduction(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        values["selfIntroduction"] = setBlankIfNull(application.selfIntroduce)
-        values["studyPlan"] = setBlankIfNull(application.studyPlan)
+        values["selfIntroduction"] = setBlankIfNull("더미 자기소개")
+        values["studyPlan"] = setBlankIfNull("더미 학업계획")
         values["newLineChar"] = "\n"
     }
 
     private fun setTeacherInfo(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 교사정보 도메인이 없어서 더미값 사용
+        // TODO: 졸업정보 연동 필요
         values["teacherName"] = "더미선생님"
         values["teacherTel"] = toFormattedPhoneNumber("0421234567")
     }
 
     private fun setParentInfo(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        values["parentName"] = application.parentName ?: "더미학부모"
-        values["parentRelation"] = application.parentRelation ?: "부"
+        values["parentName"] = "더미학부모"
+        values["parentRelation"] = "부"
     }
 
     private fun setRecommendations(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        val isDaejeon = application.isDaejeon ?: false
-        val isMeister = application.applicationType == ApplicationType.MEISTER
-        val isSocialMerit = application.applicationType == ApplicationType.SOCIAL
-        
-        values["isDaejeonAndMeister"] = markIfTrue(isDaejeon && isMeister)
-        values["isDaejeonAndSocialMerit"] = markIfTrue(isDaejeon && isSocialMerit)
-        values["isNotDaejeonAndMeister"] = markIfTrue(!isDaejeon && isMeister)
-        values["isNotDaejeonAndSocialMerit"] = markIfTrue(!isDaejeon && isSocialMerit)
+        values["isDaejeonAndMeister"] = markIfTrue(false)
+        values["isDaejeonAndSocialMerit"] = markIfTrue(false)
+        values["isNotDaejeonAndMeister"] = markIfTrue(false)
+        values["isNotDaejeonAndSocialMerit"] = markIfTrue(false)
     }
 
     private fun setBase64Image(
-        application: Application,
+        application: Any,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 이미지 파일 처리 로직 필요
-        values["base64Image"] = application.photoPath ?: ""
+        // TODO: 이미지 파일 연동 필요
+        values["base64Image"] = ""
     }
 
     private fun markIfTrue(isTrue: Boolean): String {
@@ -306,27 +293,6 @@ class PdfDataConverter(
             "prospectiveGraduateYear" to "20__",
             "prospectiveGraduateMonth" to "__",
         )
-    }
-
-    private fun setSchoolInfo(
-        application: Application,
-        values: MutableMap<String, Any>,
-    ) {
-        // TODO: Application에 schoolCode 필드가 없어서 School 조회 불가
-        // TODO: schoolCode 필드 추가되면 아래와 같이 사용
-        // val school = querySchoolContract.querySchoolBySchoolCode(application.schoolCode)
-        // if (school != null) {
-        //     values["schoolCode"] = school.code
-        //     values["schoolRegion"] = school.regionName  
-        //     values["schoolTel"] = toFormattedPhoneNumber(school.tel)
-        //     values["schoolName"] = school.name
-        // }
-        
-        values["schoolCode"] = "더미학교코드"
-        values["schoolRegion"] = "더미지역"
-        values["schoolClass"] = "더미반" // TODO: 학급 정보는 별도 도메인 필요
-        values["schoolTel"] = toFormattedPhoneNumber("0421234567")
-        values["schoolName"] = "더미중학교"
     }
 
     private fun toFormattedPhoneNumber(phoneNumber: String?): String {

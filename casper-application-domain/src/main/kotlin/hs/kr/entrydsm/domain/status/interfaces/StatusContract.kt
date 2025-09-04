@@ -1,3 +1,4 @@
 package hs.kr.entrydsm.domain.status.interfaces
 
-interface StatusContract : ApplicationQueryStatusContract, ApplicationCommandStatusContract
+interface StatusContract :
+        SaveExamCodeContract

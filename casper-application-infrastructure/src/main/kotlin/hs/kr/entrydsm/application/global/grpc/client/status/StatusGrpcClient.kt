@@ -1,19 +1,15 @@
 package hs.kr.entrydsm.application.global.grpc.client.status
 
 import com.google.protobuf.Empty
-import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
+import hs.kr.entrydsm.application.global.grpc.dto.status.ApplicationStatus
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusListResponse
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse
 import hs.kr.entrydsm.casper.status.proto.StatusServiceGrpc
 import hs.kr.entrydsm.casper.status.proto.StatusServiceProto
-import hs.kr.entrydsm.domain.status.values.ApplicationStatus
-import io.github.resilience4j.circuitbreaker.CircuitBreaker
-import io.github.resilience4j.retry.Retry
 import io.grpc.Channel
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.devh.boot.grpc.client.inject.GrpcClient
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -24,10 +20,7 @@ import kotlin.coroutines.resumeWithException
  * @property channel gRPC 통신을 위한 채널 (status-service로 자동 주입됨)
  */
 @Component
-class StatusGrpcClient(
-    @Qualifier("statusGrpcRetry") private val retry: Retry,
-    @Qualifier("statusGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker
-) {
+class StatusGrpcClient {
     @GrpcClient("status-service")
     lateinit var channel: Channel
 
@@ -40,15 +33,6 @@ class StatusGrpcClient(
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
     suspend fun getStatusList(): InternalStatusListResponse {
-        return executeGrpcCallWithResilience(
-            retry = retry,
-            circuitBreaker = circuitBreaker,
-            fallback = {
-                InternalStatusListResponse(statusList = emptyList())
-            }
-        ) {
-
-
         val statusStub = StatusServiceGrpc.newStub(channel)
 
         val request = Empty.getDefaultInstance()
@@ -71,7 +55,7 @@ class StatusGrpcClient(
                 )
             }
 
-                InternalStatusListResponse(
+        return InternalStatusListResponse(
             statusList =
                 response.statusListList.map { statusElement ->
                     InternalStatusResponse(
@@ -85,7 +69,6 @@ class StatusGrpcClient(
                 },
         )
     }
-}
 
     /**
      * 접수번호로 특정 상태를 비동기적으로 조회합니다.
@@ -97,27 +80,15 @@ class StatusGrpcClient(
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
     suspend fun getStatusByReceiptCode(receiptCode: Long): InternalStatusResponse {
-        return executeGrpcCallWithResilience(
-            retry = retry,
-            circuitBreaker = circuitBreaker,
-            fallback = {
-                // Fallback: 기본 상태 반환
-                InternalStatusResponse(
-                    id = 0L,
-                    applicationStatus = ApplicationStatus.NOT_APPLIED,
-                    examCode = null,
-                    isFirstRoundPass = false,
-                    isSecondRoundPass = false,
-                    receiptCode = receiptCode
-                )
-            }
-        ) {
-            val statusStub = StatusServiceGrpc.newStub(channel)
-            val request = StatusServiceProto.GetStatusByReceiptCodeRequest.newBuilder()
+        val statusStub = StatusServiceGrpc.newStub(channel)
+
+        val request =
+            StatusServiceProto.GetStatusByReceiptCodeRequest.newBuilder()
                 .setReceiptCode(receiptCode)
                 .build()
 
-            val response = suspendCancellableCoroutine { continuation ->
+        val response =
+            suspendCancellableCoroutine { continuation ->
                 statusStub.getStatusByReceiptCode(
                     request,
                     object : StreamObserver<StatusServiceProto.GetStatusByReceiptCodeResponse> {
@@ -130,19 +101,17 @@ class StatusGrpcClient(
                         }
 
                         override fun onCompleted() {}
-                    }
+                    },
                 )
             }
-
-            InternalStatusResponse(
-                id = response.status.id,
-                applicationStatus = mapProtoApplicationStatus(response.status.applicationStatus),
-                examCode = response.status.examCode.takeIf { it.isNotBlank() },
-                isFirstRoundPass = response.status.isFirstRoundPass,
-                isSecondRoundPass = response.status.isSecondRoundPass,
-                receiptCode = response.status.receiptCode
-            )
-        }
+        return InternalStatusResponse(
+            id = response.status.id,
+            applicationStatus = mapProtoApplicationStatus(response.status.applicationStatus),
+            examCode = response.status.examCode.takeIf { it.isNotBlank() },
+            isFirstRoundPass = response.status.isFirstRoundPass,
+            isSecondRoundPass = response.status.isSecondRoundPass,
+            receiptCode = response.status.receiptCode,
+        )
     }
 
     /**
@@ -154,37 +123,33 @@ class StatusGrpcClient(
      * @throws io.grpc.StatusRuntimeException gRPC 서버에서 오류가 발생한 경우
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
-    suspend fun updateExamCode(receiptCode: Long, examCode: String) {
-        return executeGrpcCallWithResilience(
-            retry = retry,
-            circuitBreaker = circuitBreaker,
-            fallback = {
-                // Fallback: 로깅만 하고 조용히 실패
-                println("Failed to update exam code for receiptCode: $receiptCode")
-            }
-        ) {
-            val statusStub = StatusServiceGrpc.newStub(channel)
-            val request = StatusServiceProto.GetExamCodeRequest.newBuilder()
+    suspend fun updateExamCode(
+        receiptCode: Long,
+        examCode: String,
+    ) {
+        val statusStub = StatusServiceGrpc.newStub(channel)
+
+        val request =
+            StatusServiceProto.GetExamCodeRequest.newBuilder()
                 .setReceiptCode(receiptCode)
                 .setExamCode(examCode)
                 .build()
 
-            suspendCancellableCoroutine { continuation ->
-                statusStub.updateExamCode(
-                    request,
-                    object : StreamObserver<Empty> {
-                        override fun onNext(value: Empty) {
-                            continuation.resume(Unit)
-                        }
-
-                        override fun onError(t: Throwable) {
-                            continuation.resumeWithException(t)
-                        }
-
-                        override fun onCompleted() {}
+        suspendCancellableCoroutine { continuation ->
+            statusStub.updateExamCode(
+                request,
+                object : StreamObserver<Empty> {
+                    override fun onNext(value: Empty) {
+                        continuation.resume(Unit)
                     }
-                )
-            }
+
+                    override fun onError(t: Throwable) {
+                        continuation.resumeWithException(t)
+                    }
+
+                    override fun onCompleted() {}
+                },
+            )
         }
     }
 
