@@ -19,23 +19,35 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * 사용자 서비스와의 gRPC 통신을 담당하는 클라이언트 클래스입니다.
- *
- * @property channel gRPC 통신을 위한 채널 (user-service로 자동 주입됨)
+ * 
+ * Resilience4j의 Circuit Breaker와 Retry 패턴을 적용하여 
+ * 장애 상황에서도 안정적인 서비스 통신을 보장합니다.
+ * 
+ * @property retry gRPC 호출 실패 시 재시도를 위한 Retry 인스턴스
+ * @property circuitBreaker gRPC 호출 실패율이 높을 때 회로 차단을 위한 Circuit Breaker
  */
 @Component
 class UserGrpcClient(
     @Qualifier("userGrpcRetry") private val retry: Retry,
     @Qualifier("userGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker,
+
 ) {
+    /**
+     * gRPC 통신을 위한 채널
+     * user-service로 자동 주입됨
+     */
     @GrpcClient("user-service")
     lateinit var channel: Channel
 
     /**
      * 사용자 ID를 기반으로 사용자 정보를 비동기적으로 조회합니다.
-     * gRPC 비동기 스트리밍을 사용하여 사용자 서비스로부터 정보를 가져옵니다.
+     * 
+     * gRPC 비동기 스트리밍을 사용하여 사용자 서비스로부터 정보를 가져오며,
+     * Circuit Breaker와 Retry 패턴을 통해 장애 상황에 대비합니다.
+     * 장애 발생 시 기본 사용자 정보를 fallback으로 반환합니다.
      *
-     * @param userId 조회할 사용자의 고유 식별자(UUID)
-     * @return 조회된 사용자 정보를 담은 [InternalUserResponse] 객체
+     * @param userId 조회할 사용자의 고유 식별자
+     * @return 조회된 사용자 정보를 담은 InternalUserResponse 객체
      * @throws io.grpc.StatusRuntimeException gRPC 서버에서 오류가 발생한 경우
      * @throws java.util.concurrent.CancellationException 코루틴이 취소된 경우
      */
@@ -90,6 +102,9 @@ class UserGrpcClient(
 
     /**
      * gRPC 프로토콜 사용자 역할을 도메인 사용자 역할로 변환합니다.
+     * 
+     * Protocol Buffer의 UserRole enum을 도메인 계층의 UserRole enum으로 매핑하며,
+     * 예상치 못한 값이 들어올 경우 기본값으로 USER를 반환합니다.
      *
      * @param protoUserRole 변환할 gRPC 프로토콜 사용자 역할
      * @return 도메인 사용자 역할
