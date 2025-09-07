@@ -37,4 +37,40 @@ object KafkaTopics {
      * 최종 제출 시 성적 서비스에 성적 계산을 요청하기 위해 사용
      */
     const val SUBMIT_APPLICATION_FINAL = "submit-application-final"
+
+    /**
+     * 교육 상태 업데이트 이벤트 토픽
+     * 교육 상태 변경 시 관련 서비스에 알리기 위해 사용
+     */
+    const val UPDATE_EDUCATIONAL_STATUS = "update-educational-status"
+
+    /**
+     * 졸업자 전형 업데이트 이벤트 토픽
+     * 졸업자 전형으로 변경 시 성적 계산을 위해 사용
+     */
+    const val UPDATE_GRADUATION_CASE = "update-graduation-case"
+
+    /**
+     * 검정고시 전형 업데이트 이벤트 토픽
+     * 검정고시 전형으로 변경 시 성적 계산을 위해 사용
+     */
+    const val UPDATE_QUALIFICATION_CASE = "update-qualification-case"
+
+    /**
+     * 전형 업데이트 롤백 이벤트 토픽
+     * 전형 업데이트 실패 시 보상 트랜잭션을 위해 사용
+     */
+    const val UPDATE_APPLICATION_CASE_ROLLBACK = "update-application-case-rollback"
+
+    /**
+     * 성적 생성 롤백 이벤트 토픽
+     * 성적 생성 실패 시 보상 트랜잭션을 위해 사용
+     */
+    const val CREATE_APPLICATION_SCORE_ROLLBACK = "create-application-score-rollback"
+
+    /**
+     * 상태 생성 롤백 이벤트 토픽
+     * 상태 생성 실패 시 보상 트랜잭션을 위해 사용
+     */
+    const val CREATE_APPLICATION_STATUS_ROLLBACK = "create-application-status-rollback"
 }

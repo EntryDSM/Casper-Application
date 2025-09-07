@@ -22,6 +22,8 @@ class ApplicationEventProducer(
     private val mapper: ObjectMapper,
     private val createApplicationTemplate: KafkaTemplate<String, Any>,
     private val submitApplicationFinalTemplate: KafkaTemplate<String, Any>,
+    private val createApplicationScoreRollbackTemplate: KafkaTemplate<String, Any>,
+    private val updateEducationalStatusTemplate: KafkaTemplate<String, Any>
 ) : ApplicationCreateEventContract {
 
     /**
@@ -53,6 +55,38 @@ class ApplicationEventProducer(
         submitApplicationFinalTemplate.send(
             KafkaTopics.SUBMIT_APPLICATION_FINAL,
             receiptCode
+        )
+    }
+
+    /**
+     * 성적 생성 롤백 이벤트를 발행합니다.
+     *
+     * 성적 생성이 실패했을 때 보상 트랜잭션을 수행하도록
+     * 롤백 이벤트를 발행합니다.
+     *
+     * @param receiptCode 롤백할 접수번호
+     */
+    override fun publishCreateApplicationScoreRollback(receiptCode: Long) {
+        createApplicationScoreRollbackTemplate.send(
+            KafkaTopics.CREATE_APPLICATION_SCORE_ROLLBACK,
+            receiptCode
+        )
+    }
+
+    /**
+     * 교육 상태 업데이트 이벤트를 발행합니다.
+     *
+     * 교육 상태가 변경되었을 때 관련 서비스에서 후속 처리를
+     * 수행하도록 이벤트를 발행합니다.
+     *
+     * @param receiptCode 업데이트할 접수번호
+     * @param graduateDate 졸업일자
+     */
+    override fun publishUpdateEducationalStatus(receiptCode: Long, graduateDate: java.time.YearMonth) {
+        val updateEvent = hs.kr.entrydsm.application.domain.score.event.dto.UpdateEducationalStatusEvent(receiptCode, graduateDate)
+        updateEducationalStatusTemplate.send(
+            KafkaTopics.UPDATE_EDUCATIONAL_STATUS,
+            mapper.writeValueAsString(updateEvent)
         )
     }
 }
