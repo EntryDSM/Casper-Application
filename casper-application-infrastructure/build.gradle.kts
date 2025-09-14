@@ -113,6 +113,9 @@ dependencies {
 
     //kafka
     implementation(Dependencies.KAFKA)
+    
+    // Spring Cloud Config
+    implementation(Dependencies.SPRING_CLOUD_STARTER_CONFIG)
 }
 
 sourceSets {
