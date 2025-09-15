@@ -46,6 +46,7 @@ dependencies {
     implementation(Dependencies.SPRING_BOOT_STARTER_TEST)
     implementation(Dependencies.SPRING_BOOT_STARTER_DATA_JPA)
     implementation(Dependencies.SPRING_CACHE)
+    implementation(Dependencies.SPRING_BOOT_STARTER_SECURITY)
 
     // redis
     implementation(Dependencies.REDIS)
@@ -116,6 +117,9 @@ dependencies {
     
     // Spring Cloud Config
     implementation(Dependencies.SPRING_CLOUD_STARTER_CONFIG)
+
+    // swagger
+    implementation(Dependencies.SWAGGER)
 }
 
 sourceSets {

@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.domain.school.domain.presentation
 import hs.kr.entrydsm.application.domain.school.domain.presentation.dto.QuerySchoolWebResponse
 import hs.kr.entrydsm.application.domain.school.domain.presentation.dto.SchoolWebResponse
 import hs.kr.entrydsm.application.domain.school.domain.usecase.QuerySchoolUseCase
+import hs.kr.entrydsm.application.global.document.school.SchoolApiDocument
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/schools")
 class SchoolWebAdapter(
     private val querySchoolUseCase: QuerySchoolUseCase,
-) {
+) : SchoolApiDocument {
     /**
      * 학교 이름으로 학교를 검색합니다.
      *
@@ -25,7 +26,7 @@ class SchoolWebAdapter(
      */
     @Cacheable(value = ["school_info"], key = "#name")
     @GetMapping
-    fun querySchool(
+    override fun querySchool(
         @RequestParam(value = "school_name") name: String,
     ): QuerySchoolWebResponse {
         return QuerySchoolWebResponse(

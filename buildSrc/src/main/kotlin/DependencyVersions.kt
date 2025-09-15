@@ -50,4 +50,7 @@ object DependencyVersions {
 
     // Netty
     const val NETTY = "4.1.111.Final"
+
+    // Swagger
+    const val SWAGGER = "2.7.0"
 }

@@ -8,6 +8,7 @@ object Dependencies {
     const val SPRING_BOOT_STARTER_WEB = "org.springframework.boot:spring-boot-starter-web"
     const val SPRING_BOOT_STARTER_TEST = "org.springframework.boot:spring-boot-starter-test"
     const val SPRING_BOOT_STARTER_ACTUATOR  = "org.springframework.boot:spring-boot-starter-actuator"
+    const val SPRING_BOOT_STARTER_SECURITY = "org.springframework.boot:spring-boot-starter-security"
     const val SPRING_CONTEXT = "org.springframework:spring-context"
 
     //jexl
@@ -113,4 +114,7 @@ object Dependencies {
     
     // Spring Cloud Config
     const val SPRING_CLOUD_STARTER_CONFIG = "org.springframework.cloud:spring-cloud-starter-config"
+
+    //swagger
+    const val SWAGGER = "org.springdoc:springdoc-openapi-starter-webmvc-ui:${DependencyVersions.SWAGGER}"
 }
