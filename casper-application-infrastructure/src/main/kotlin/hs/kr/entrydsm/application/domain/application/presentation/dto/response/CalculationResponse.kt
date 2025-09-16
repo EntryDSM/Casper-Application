@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class CalculationResponse(
     val success: Boolean,
-    val data: CalculationData
+    val data: CalculationData,
 ) {
     data class CalculationData(
         val calculationId: String,
@@ -13,19 +13,19 @@ data class CalculationResponse(
         val breakdown: Map<String, Double>,
         val formulaExecution: FormulaExecutionDetail,
         val executedAt: LocalDateTime,
-        val executionTimeMs: Long
+        val executionTimeMs: Long,
     )
-    
+
     data class FormulaExecutionDetail(
-        val steps: List<CalculationStepDetail>
+        val steps: List<CalculationStepDetail>,
     )
-    
+
     data class CalculationStepDetail(
         val stepOrder: Int,
         val stepName: String,
         val formula: String,
         val result: Double,
         val variables: Map<String, Any>,
-        val executionTimeMs: Long
+        val executionTimeMs: Long,
     )
 }

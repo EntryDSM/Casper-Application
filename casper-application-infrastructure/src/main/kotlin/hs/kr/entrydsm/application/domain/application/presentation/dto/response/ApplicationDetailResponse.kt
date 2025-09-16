@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class ApplicationDetailResponse(
     val success: Boolean,
-    val data: ApplicationDetailData
+    val data: ApplicationDetailData,
 ) {
     data class ApplicationDetailData(
         val applicationId: String,
@@ -21,6 +21,6 @@ data class ApplicationDetailResponse(
         val submittedAt: LocalDateTime,
         val reviewedAt: LocalDateTime?,
         val createdAt: LocalDateTime,
-        val updatedAt: LocalDateTime
+        val updatedAt: LocalDateTime,
     )
 }

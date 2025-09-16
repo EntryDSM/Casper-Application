@@ -9,5 +9,5 @@ data class UserDetailResult(
     val email: String?,
     val birthDate: String?,
     val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
+    val updatedAt: LocalDateTime,
 )

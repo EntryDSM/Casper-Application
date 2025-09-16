@@ -9,22 +9,21 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class DomainConfig {
-    
     @Bean
     fun calculator(): Calculator {
         return Calculator.createDefault()
     }
-    
+
     @Bean
     fun expressionEvaluator(): ExpressionEvaluator {
         return ExpressionEvaluator.create()
     }
-    
+
     @Bean
     fun lexerAggregate(): LexerAggregate {
         return LexerAggregate()
     }
-    
+
     @Bean
     fun lrParser(): LRParser {
         return LRParser.createDefault()

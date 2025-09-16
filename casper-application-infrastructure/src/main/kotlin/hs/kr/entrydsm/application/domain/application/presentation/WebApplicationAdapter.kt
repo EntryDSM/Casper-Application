@@ -12,104 +12,115 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1")
 class WebApplicationAdapter(
-    private val applicationUseCase: ApplicationUseCase
+    private val applicationUseCase: ApplicationUseCase,
 ) {
-    
     @GetMapping("/prototypes")
     fun getPrototype(
         @RequestParam applicationType: String,
         @RequestParam educationalStatus: String,
-        @RequestParam(required = false) region: String?
+        @RequestParam(required = false) region: String?,
     ): ResponseEntity<PrototypeResponse> {
         val filter = ApplicationTypeFilter(applicationType, educationalStatus, region)
         val prototype = applicationUseCase.getPrototype(filter)
-        
-        val response = PrototypeResponse(
-            success = true,
-            data = PrototypeResponse.PrototypeData(
-                applicationType = prototype.applicationType,
-                educationalStatus = prototype.educationalStatus,
-                region = prototype.region,
-                applicationFields = prototype.application.mapValues { (_, fieldGroup) ->
-                    fieldGroup.mapValues { (_, field) ->
-                        PrototypeResponse.FieldInfo(
-                            type = field.type,
-                            required = field.required,
-                            description = field.description
-                        )
-                    }
-                },
-                scoreFields = prototype.score.mapValues { (_, fieldGroup) ->
-                    fieldGroup.mapValues { (_, field) ->
-                        PrototypeResponse.FieldInfo(
-                            type = field.type,
-                            required = field.required,
-                            description = field.description
-                        )
-                    }
-                },
-                formulas = prototype.formula.map { formula ->
-                    PrototypeResponse.FormulaInfo(
-                        step = formula.step,
-                        name = formula.name,
-                        expression = formula.expression,
-                        resultVariable = formula.resultVariable
-                    )
-                },
-                constants = prototype.constant
+
+        val response =
+            PrototypeResponse(
+                success = true,
+                data =
+                    PrototypeResponse.PrototypeData(
+                        applicationType = prototype.applicationType,
+                        educationalStatus = prototype.educationalStatus,
+                        region = prototype.region,
+                        applicationFields =
+                            prototype.application.mapValues { (_, fieldGroup) ->
+                                fieldGroup.mapValues { (_, field) ->
+                                    PrototypeResponse.FieldInfo(
+                                        type = field.type,
+                                        required = field.required,
+                                        description = field.description,
+                                    )
+                                }
+                            },
+                        scoreFields =
+                            prototype.score.mapValues { (_, fieldGroup) ->
+                                fieldGroup.mapValues { (_, field) ->
+                                    PrototypeResponse.FieldInfo(
+                                        type = field.type,
+                                        required = field.required,
+                                        description = field.description,
+                                    )
+                                }
+                            },
+                        formulas =
+                            prototype.formula.map { formula ->
+                                PrototypeResponse.FormulaInfo(
+                                    step = formula.step,
+                                    name = formula.name,
+                                    expression = formula.expression,
+                                    resultVariable = formula.resultVariable,
+                                )
+                            },
+                        constants = prototype.constant,
+                    ),
             )
-        )
-        
+
         return ResponseEntity.ok(response)
     }
-    
+
     @GetMapping("/types")
     fun getSupportedTypes(): ResponseEntity<SupportedTypesResponse> {
         val supportedTypes = applicationUseCase.getSupportedTypes()
-        
-        val response = SupportedTypesResponse(
-            success = true,
-            data = SupportedTypesResponse.TypesData(
-                applicationTypes = supportedTypes.applicationTypes.map { type ->
-                    SupportedTypesResponse.TypeInfo(
-                        code = type.code,
-                        name = type.name
-                    )
-                },
-                educationalStatuses = supportedTypes.educationalStatuses.map { status ->
-                    SupportedTypesResponse.TypeInfo(
-                        code = status.code,
-                        name = status.name
-                    )
-                }
+
+        val response =
+            SupportedTypesResponse(
+                success = true,
+                data =
+                    SupportedTypesResponse.TypesData(
+                        applicationTypes =
+                            supportedTypes.applicationTypes.map { type ->
+                                SupportedTypesResponse.TypeInfo(
+                                    code = type.code,
+                                    name = type.name,
+                                )
+                            },
+                        educationalStatuses =
+                            supportedTypes.educationalStatuses.map { status ->
+                                SupportedTypesResponse.TypeInfo(
+                                    code = status.code,
+                                    name = status.name,
+                                )
+                            },
+                    ),
             )
-        )
-        
+
         return ResponseEntity.ok(response)
     }
-    
+
     @PostMapping("/validate")
     fun validateScoreData(
-        @RequestBody request: ValidateScoreDataRequest
+        @RequestBody request: ValidateScoreDataRequest,
     ): ResponseEntity<ValidationResponse> {
-        val filter = ApplicationTypeFilter(
-            request.applicationType,
-            request.educationalStatus,
-            null
-        )
-        
-        val validationResult = applicationUseCase.validateScoreData(filter, request.scoreData)
-        
-        val response = ValidationResponse(
-            success = true,
-            data = ValidationResponse.ValidationData(
-                valid = validationResult.valid,
-                errors = validationResult.errors,
-                missingFields = validationResult.missingFields,
-                extraFields = validationResult.extraFields
+        val filter =
+            ApplicationTypeFilter(
+                request.applicationType,
+                request.educationalStatus,
+                null,
             )
-        )
-        
+
+        val validationResult = applicationUseCase.validateScoreData(filter, request.scoreData)
+
+        val response =
+            ValidationResponse(
+                success = true,
+                data =
+                    ValidationResponse.ValidationData(
+                        valid = validationResult.valid,
+                        errors = validationResult.errors,
+                        missingFields = validationResult.missingFields,
+                        extraFields = validationResult.extraFields,
+                    ),
+            )
+
         return ResponseEntity.ok(response)
     }
 }

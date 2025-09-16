@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class FormulaSetResponse(
     val success: Boolean,
-    val data: FormulaSetData
+    val data: FormulaSetData,
 ) {
     data class FormulaSetData(
         val formulaSetId: String,
@@ -16,6 +16,6 @@ data class FormulaSetResponse(
         val totalFormulas: Int,
         val status: String,
         val createdAt: LocalDateTime,
-        val updatedAt: LocalDateTime?
+        val updatedAt: LocalDateTime?,
     )
 }

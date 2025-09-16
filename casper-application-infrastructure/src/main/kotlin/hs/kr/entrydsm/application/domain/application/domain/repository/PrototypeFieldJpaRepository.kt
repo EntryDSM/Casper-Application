@@ -6,6 +6,11 @@ import java.util.UUID
 
 interface PrototypeFieldJpaRepository : JpaRepository<PrototypeFieldJpaEntity, UUID> {
     fun findAllByPrototypeId(prototypeId: UUID): List<PrototypeFieldJpaEntity>
-    fun findAllByPrototypeIdAndFieldCategory(prototypeId: UUID, fieldCategory: String): List<PrototypeFieldJpaEntity>
+
+    fun findAllByPrototypeIdAndFieldCategory(
+        prototypeId: UUID,
+        fieldCategory: String,
+    ): List<PrototypeFieldJpaEntity>
+
     fun deleteAllByPrototypeId(prototypeId: UUID)
 }

@@ -4,16 +4,16 @@ import java.time.LocalDateTime
 
 data class ApplicationListResponse(
     val success: Boolean,
-    val data: ApplicationListData
+    val data: ApplicationListData,
 ) {
     data class ApplicationListData(
         val applications: List<ApplicationSummary>,
         val total: Int,
         val page: Int,
         val size: Int,
-        val totalPages: Int
+        val totalPages: Int,
     )
-    
+
     data class ApplicationSummary(
         val applicationId: String,
         val receiptCode: Long,
@@ -21,6 +21,6 @@ data class ApplicationListResponse(
         val applicationType: String,
         val educationalStatus: String,
         val status: String,
-        val submittedAt: LocalDateTime
+        val submittedAt: LocalDateTime,
     )
 }

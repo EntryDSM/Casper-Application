@@ -11,26 +11,27 @@ import java.util.*
 
 @Repository
 interface FormulaExecutionJpaRepository : JpaRepository<FormulaExecutionJpaEntity, UUID> {
-    
     fun findAllByFormulaSetId(formulaSetId: UUID): List<FormulaExecutionJpaEntity>
-    
+
     fun findAllByFormulaSetIdOrderByExecutedAtDesc(formulaSetId: UUID): List<FormulaExecutionJpaEntity>
-    
+
     fun findAllByStatus(status: ExecutionStatusEnum): List<FormulaExecutionJpaEntity>
-    
-    @Query("SELECT f FROM FormulaExecutionJpaEntity f WHERE f.formulaSetId = :formulaSetId AND f.status = :status ORDER BY f.executedAt DESC")
+
+    @Query(
+        "SELECT f FROM FormulaExecutionJpaEntity f WHERE f.formulaSetId = :formulaSetId AND f.status = :status ORDER BY f.executedAt DESC",
+    )
     fun findByFormulaSetIdAndStatus(
         @Param("formulaSetId") formulaSetId: UUID,
-        @Param("status") status: ExecutionStatusEnum
+        @Param("status") status: ExecutionStatusEnum,
     ): List<FormulaExecutionJpaEntity>
-    
+
     @Query("SELECT f FROM FormulaExecutionJpaEntity f WHERE f.executedAt BETWEEN :startDate AND :endDate ORDER BY f.executedAt DESC")
     fun findByExecutedAtBetween(
         @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
+        @Param("endDate") endDate: LocalDateTime,
     ): List<FormulaExecutionJpaEntity>
-    
+
     fun countByFormulaSetId(formulaSetId: UUID): Long
-    
+
     fun countByStatus(status: ExecutionStatusEnum): Long
 }

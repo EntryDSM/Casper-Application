@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class UserDetailResponse(
     val success: Boolean,
-    val data: UserDetailData
+    val data: UserDetailData,
 ) {
     data class UserDetailData(
         val userId: String,
@@ -13,6 +13,6 @@ data class UserDetailResponse(
         val email: String?,
         val birthDate: String?,
         val createdAt: LocalDateTime,
-        val updatedAt: LocalDateTime
+        val updatedAt: LocalDateTime,
     )
 }

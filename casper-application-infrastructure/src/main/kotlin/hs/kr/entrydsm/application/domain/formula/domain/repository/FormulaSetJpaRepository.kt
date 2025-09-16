@@ -10,19 +10,20 @@ import java.util.*
 
 @Repository
 interface FormulaSetJpaRepository : JpaRepository<FormulaSetJpaEntity, UUID> {
-    
     fun findAllByStatus(status: FormulaSetStatus): List<FormulaSetJpaEntity>
-    
-    @Query("SELECT f FROM FormulaSetJpaEntity f WHERE f.applicationType = :applicationType AND f.educationalStatus = :educationalStatus AND (:region IS NULL OR f.region = :region) AND f.status = 'ACTIVE'")
+
+    @Query(
+        "SELECT f FROM FormulaSetJpaEntity f WHERE f.applicationType = :applicationType AND f.educationalStatus = :educationalStatus AND (:region IS NULL OR f.region = :region) AND f.status = 'ACTIVE'",
+    )
     fun findByApplicationCriteria(
         @Param("applicationType") applicationType: String,
         @Param("educationalStatus") educationalStatus: String,
-        @Param("region") region: String?
+        @Param("region") region: String?,
     ): FormulaSetJpaEntity?
-    
+
     fun findAllByApplicationTypeAndEducationalStatusAndStatus(
         applicationType: String,
         educationalStatus: String,
-        status: FormulaSetStatus
+        status: FormulaSetStatus,
     ): List<FormulaSetJpaEntity>
 }

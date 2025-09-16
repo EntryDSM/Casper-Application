@@ -24,45 +24,52 @@ class AdminUseCase(
     private val educationalStatusJpaRepository: EducationalStatusJpaRepository,
     private val prototypeJpaRepository: PrototypeJpaRepository,
     private val prototypeNodeJpaRepository: PrototypeNodeJpaRepository,
-    private val prototypeTreeMapper: PrototypeTreeMapper
+    private val prototypeTreeMapper: PrototypeTreeMapper,
 ) {
-    
-    fun createApplicationType(code: String, name: String): CreateApplicationTypeResult {
-        val entity = ApplicationTypeJpaEntity(
-            typeId = UUID.randomUUID(),
-            code = code,
-            name = name,
-            active = true,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-        
+    fun createApplicationType(
+        code: String,
+        name: String,
+    ): CreateApplicationTypeResult {
+        val entity =
+            ApplicationTypeJpaEntity(
+                typeId = UUID.randomUUID(),
+                code = code,
+                name = name,
+                active = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now(),
+            )
+
         val saved = applicationTypeJpaRepository.save(entity)
         return CreateApplicationTypeResult(
             typeId = saved.typeId.toString(),
             code = saved.code,
-            name = saved.name
+            name = saved.name,
         )
     }
-    
-    fun createEducationalStatus(code: String, name: String): CreateEducationalStatusResult {
-        val entity = EducationalStatusJpaEntity(
-            statusId = UUID.randomUUID(),
-            code = code,
-            name = name,
-            active = true,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-        
+
+    fun createEducationalStatus(
+        code: String,
+        name: String,
+    ): CreateEducationalStatusResult {
+        val entity =
+            EducationalStatusJpaEntity(
+                statusId = UUID.randomUUID(),
+                code = code,
+                name = name,
+                active = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now(),
+            )
+
         val saved = educationalStatusJpaRepository.save(entity)
         return CreateEducationalStatusResult(
             statusId = saved.statusId.toString(),
             code = saved.code,
-            name = saved.name
+            name = saved.name,
         )
     }
-    
+
     fun createPrototype(
         applicationType: String,
         educationalStatus: String,
@@ -70,27 +77,28 @@ class AdminUseCase(
         applicationFields: Map<String, Map<String, FieldDefinition>>,
         scoreFields: Map<String, Map<String, FieldDefinition>>,
         formulas: List<FormulaStep>,
-        constants: Map<String, Double>
+        constants: Map<String, Double>,
     ): ApplicationPrototype {
-        val prototype = ApplicationPrototype.create(
-            prototypeId = PrototypeId(UUID.randomUUID()),
-            applicationType = applicationType,
-            educationalStatus = educationalStatus,
-            region = region,
-            applicationFields = applicationFields,
-            scoreFields = scoreFields,
-            formulas = formulas,
-            constants = constants
-        )
-        
+        val prototype =
+            ApplicationPrototype.create(
+                prototypeId = PrototypeId(UUID.randomUUID()),
+                applicationType = applicationType,
+                educationalStatus = educationalStatus,
+                region = region,
+                applicationFields = applicationFields,
+                scoreFields = scoreFields,
+                formulas = formulas,
+                constants = constants,
+            )
+
         // Save prototype entity
         val entity = prototypeTreeMapper.toEntity(prototype)
         prototypeJpaRepository.save(entity)
-        
+
         // Save tree nodes
         val treeNodes = prototypeTreeMapper.createTreeNodes(prototype)
         prototypeNodeJpaRepository.saveAll(treeNodes)
-        
+
         return prototype
     }
 }

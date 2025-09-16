@@ -8,16 +8,25 @@ import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface PrototypeNodeJpaRepository : JpaRepository<PrototypeNodeJpaEntity, UUID> {
-    
     fun findAllByPrototypeIdOrderByNodeLevelAscSortOrderAsc(prototypeId: UUID): List<PrototypeNodeJpaEntity>
-    
-    fun findAllByPrototypeIdAndNodeType(prototypeId: UUID, nodeType: NodeType): List<PrototypeNodeJpaEntity>
-    
-    fun findByPrototypeIdAndNodeTypeAndParentNodeIdIsNull(prototypeId: UUID, nodeType: NodeType): PrototypeNodeJpaEntity?
-    
-    fun findAllByPrototypeIdAndParentNodeId(prototypeId: UUID, parentNodeId: UUID): List<PrototypeNodeJpaEntity>
-    
-    @Query("""
+
+    fun findAllByPrototypeIdAndNodeType(
+        prototypeId: UUID,
+        nodeType: NodeType,
+    ): List<PrototypeNodeJpaEntity>
+
+    fun findByPrototypeIdAndNodeTypeAndParentNodeIdIsNull(
+        prototypeId: UUID,
+        nodeType: NodeType,
+    ): PrototypeNodeJpaEntity?
+
+    fun findAllByPrototypeIdAndParentNodeId(
+        prototypeId: UUID,
+        parentNodeId: UUID,
+    ): List<PrototypeNodeJpaEntity>
+
+    @Query(
+        """
         WITH RECURSIVE tree_path AS (
             SELECT node_id, prototype_id, parent_node_id, node_name, node_type, node_level,
                    field_category, field_type, required, description, sort_order,
@@ -36,8 +45,12 @@ interface PrototypeNodeJpaRepository : JpaRepository<PrototypeNodeJpaEntity, UUI
             INNER JOIN tree_path tp ON n.parent_node_id = tp.node_id
         )
         SELECT * FROM tree_path ORDER BY order_path
-    """, nativeQuery = true)
-    fun findTreeByPrototypeId(@Param("prototypeId") prototypeId: UUID): List<PrototypeNodeJpaEntity>
-    
+    """,
+        nativeQuery = true,
+    )
+    fun findTreeByPrototypeId(
+        @Param("prototypeId") prototypeId: UUID,
+    ): List<PrototypeNodeJpaEntity>
+
     fun deleteAllByPrototypeId(prototypeId: UUID)
 }

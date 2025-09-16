@@ -4,13 +4,13 @@ import java.time.LocalDateTime
 
 data class FormulaSetListResponse(
     val success: Boolean,
-    val data: FormulaSetListData
+    val data: FormulaSetListData,
 ) {
     data class FormulaSetListData(
         val formulaSets: List<FormulaSetSummary>,
-        val total: Int
+        val total: Int,
     )
-    
+
     data class FormulaSetSummary(
         val formulaSetId: String,
         val name: String,
@@ -19,6 +19,6 @@ data class FormulaSetListResponse(
         val region: String?,
         val totalFormulas: Int,
         val status: String,
-        val createdAt: LocalDateTime
+        val createdAt: LocalDateTime,
     )
 }

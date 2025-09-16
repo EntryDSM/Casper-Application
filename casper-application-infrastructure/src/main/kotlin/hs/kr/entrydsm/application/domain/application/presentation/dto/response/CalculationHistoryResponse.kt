@@ -4,17 +4,17 @@ import java.time.LocalDateTime
 
 data class CalculationHistoryResponse(
     val success: Boolean,
-    val data: HistoryData
+    val data: HistoryData,
 ) {
     data class HistoryData(
         val applicationId: String,
-        val calculations: List<CalculationSummary>
+        val calculations: List<CalculationSummary>,
     )
-    
+
     data class CalculationSummary(
         val calculationId: String,
         val totalScore: Double,
         val executedAt: LocalDateTime,
-        val executionTimeMs: Long
+        val executionTimeMs: Long,
     )
 }

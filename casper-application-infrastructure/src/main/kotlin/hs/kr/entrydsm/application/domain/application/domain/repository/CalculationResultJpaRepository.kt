@@ -9,9 +9,10 @@ import java.util.*
 
 @Repository
 interface CalculationResultJpaRepository : JpaRepository<CalculationResultJpaEntity, UUID> {
-    
     fun findAllByApplicationIdOrderByExecutedAtDesc(applicationId: UUID): List<CalculationResultJpaEntity>
-    
+
     @Query("SELECT c FROM CalculationResultJpaEntity c WHERE c.applicationId = :applicationId ORDER BY c.executedAt DESC LIMIT 1")
-    fun findLatestByApplicationId(@Param("applicationId") applicationId: UUID): CalculationResultJpaEntity?
+    fun findLatestByApplicationId(
+        @Param("applicationId") applicationId: UUID,
+    ): CalculationResultJpaEntity?
 }

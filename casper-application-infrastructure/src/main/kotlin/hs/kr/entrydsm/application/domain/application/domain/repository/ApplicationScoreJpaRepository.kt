@@ -7,8 +7,7 @@ import java.util.*
 
 @Repository
 interface ApplicationScoreJpaRepository : JpaRepository<ApplicationScoreJpaEntity, UUID> {
-    
     fun findAllByApplicationId(applicationId: UUID): List<ApplicationScoreJpaEntity>
-    
+
     fun deleteAllByApplicationId(applicationId: UUID)
 }

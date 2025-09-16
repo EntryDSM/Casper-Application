@@ -7,12 +7,12 @@ data class CreateFormulaSetRequest(
     val educationalStatus: String,
     val region: String?,
     val formulas: List<FormulaStepRequest>,
-    val constants: Map<String, Double>
+    val constants: Map<String, Double>,
 ) {
     data class FormulaStepRequest(
         val step: Int,
         val name: String,
         val expression: String,
-        val resultVariable: String
+        val resultVariable: String,
     )
 }

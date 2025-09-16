@@ -6,5 +6,6 @@ import java.util.UUID
 
 interface EducationalStatusJpaRepository : JpaRepository<EducationalStatusJpaEntity, UUID> {
     fun findAllByActiveTrue(): List<EducationalStatusJpaEntity>
+
     fun findByCodeAndActiveTrue(code: String): EducationalStatusJpaEntity?
 }

@@ -6,5 +6,6 @@ import java.util.UUID
 
 interface ApplicationTypeJpaRepository : JpaRepository<ApplicationTypeJpaEntity, UUID> {
     fun findAllByActiveTrue(): List<ApplicationTypeJpaEntity>
+
     fun findByCodeAndActiveTrue(code: String): ApplicationTypeJpaEntity?
 }

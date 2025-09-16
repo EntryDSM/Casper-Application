@@ -10,5 +10,5 @@ data class CreatePrototypeRequest(
     val applicationFields: Map<String, Map<String, FieldDefinition>>,
     val scoreFields: Map<String, Map<String, FieldDefinition>>,
     val formulas: List<FormulaStep>,
-    val constants: Map<String, Double>
+    val constants: Map<String, Double>,
 )

@@ -24,7 +24,7 @@ application {
 dependencies {
     // Domain module
     implementation(project(":casper-application-domain"))
-    
+
     // Spring Boot
     implementation(Dependencies.SPRING_BOOT_STARTER)
     implementation(Dependencies.SPRING_BOOT_STARTER_WEB)
@@ -34,22 +34,22 @@ dependencies {
 
     // Database
     runtimeOnly(Dependencies.MYSQL_CONNECTOR)
-    
+
     // QueryDSL
     implementation(Dependencies.QUERYDSL_JPA)
     kapt(Dependencies.QUERYDSL_APT)
-    
+
     // MapStruct
     implementation(Dependencies.MAPSTRUCT)
     kapt(Dependencies.MAPSTRUCT_PROCESSOR)
-    
+
     // JSON
     implementation(Dependencies.JACKSON_MODULE_KOTLIN)
     implementation(Dependencies.JACKSON_DATATYPE_JSR310)
 
     // Kotlin
     implementation(Dependencies.KOTLIN_REFLECT)
-    
+
     // Test
     testImplementation(Dependencies.SPRING_BOOT_STARTER_TEST)
     testImplementation(Dependencies.KOTLIN_TEST)

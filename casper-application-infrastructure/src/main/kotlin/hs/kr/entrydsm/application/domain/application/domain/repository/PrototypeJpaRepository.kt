@@ -7,22 +7,23 @@ import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface PrototypeJpaRepository : JpaRepository<PrototypeJpaEntity, UUID> {
-    
-    @Query("""
+    @Query(
+        """
         SELECT p FROM PrototypeJpaEntity p 
         WHERE p.applicationType = :applicationType 
         AND p.educationalStatus = :educationalStatus 
         AND (:region IS NULL OR p.region = :region OR p.region IS NULL)
         ORDER BY p.region DESC NULLS LAST
-    """)
+    """,
+    )
     fun findByApplicationTypeAndEducationalStatusAndRegion(
         @Param("applicationType") applicationType: String,
         @Param("educationalStatus") educationalStatus: String,
-        @Param("region") region: String?
+        @Param("region") region: String?,
     ): List<PrototypeJpaEntity>
-    
+
     fun findByApplicationTypeAndEducationalStatus(
         applicationType: String,
-        educationalStatus: String
+        educationalStatus: String,
     ): List<PrototypeJpaEntity>
 }

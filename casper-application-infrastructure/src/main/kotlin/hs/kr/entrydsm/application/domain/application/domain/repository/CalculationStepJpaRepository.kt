@@ -7,6 +7,5 @@ import java.util.*
 
 @Repository
 interface CalculationStepJpaRepository : JpaRepository<CalculationStepJpaEntity, UUID> {
-    
     fun findAllByCalculationIdOrderByStepOrder(calculationId: UUID): List<CalculationStepJpaEntity>
 }

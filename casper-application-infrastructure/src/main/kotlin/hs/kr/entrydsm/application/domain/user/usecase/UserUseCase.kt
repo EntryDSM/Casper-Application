@@ -11,38 +11,39 @@ import java.util.*
 @Service
 @Transactional
 class UserUseCase(
-    private val userJpaRepository: UserJpaRepository
+    private val userJpaRepository: UserJpaRepository,
 ) {
-    
     fun createUser(
         name: String,
         phoneNumber: String,
         email: String?,
-        birthDate: String?
+        birthDate: String?,
     ): CreateUserResult {
-        val user = UserJpaEntity(
-            userId = UUID.randomUUID(),
-            name = name,
-            phoneNumber = phoneNumber,
-            email = email,
-            birthDate = birthDate
-        )
-        
+        val user =
+            UserJpaEntity(
+                userId = UUID.randomUUID(),
+                name = name,
+                phoneNumber = phoneNumber,
+                email = email,
+                birthDate = birthDate,
+            )
+
         val saved = userJpaRepository.save(user)
         return CreateUserResult(
             userId = saved.userId.toString(),
             name = saved.name,
             phoneNumber = saved.phoneNumber,
             email = saved.email,
-            birthDate = saved.birthDate
+            birthDate = saved.birthDate,
         )
     }
-    
+
     @Transactional(readOnly = true)
     fun getUserById(userId: String): UserDetailResult? {
-        val userEntity = userJpaRepository.findById(UUID.fromString(userId))
-            .orElse(null) ?: return null
-        
+        val userEntity =
+            userJpaRepository.findById(UUID.fromString(userId))
+                .orElse(null) ?: return null
+
         return UserDetailResult(
             userId = userEntity.userId.toString(),
             name = userEntity.name,
@@ -50,10 +51,10 @@ class UserUseCase(
             email = userEntity.email,
             birthDate = userEntity.birthDate,
             createdAt = userEntity.createdAt,
-            updatedAt = userEntity.updatedAt
+            updatedAt = userEntity.updatedAt,
         )
     }
-    
+
     @Transactional(readOnly = true)
     fun getAllUsers(): List<UserDetailResult> {
         return userJpaRepository.findAll().map { userEntity ->
@@ -64,7 +65,7 @@ class UserUseCase(
                 email = userEntity.email,
                 birthDate = userEntity.birthDate,
                 createdAt = userEntity.createdAt,
-                updatedAt = userEntity.updatedAt
+                updatedAt = userEntity.updatedAt,
             )
         }
     }

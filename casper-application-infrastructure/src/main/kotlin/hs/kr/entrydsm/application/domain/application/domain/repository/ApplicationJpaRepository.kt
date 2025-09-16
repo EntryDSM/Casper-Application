@@ -9,18 +9,19 @@ import java.util.*
 
 @Repository
 interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
-    
     fun findAllByUserId(userId: UUID): List<ApplicationJpaEntity>
-    
+
     @Query("SELECT a FROM ApplicationJpaEntity a WHERE a.applicationType = :applicationType AND a.educationalStatus = :educationalStatus")
     fun findByApplicationTypeAndEducationalStatus(
         @Param("applicationType") applicationType: String,
-        @Param("educationalStatus") educationalStatus: String
+        @Param("educationalStatus") educationalStatus: String,
     ): List<ApplicationJpaEntity>
-    
+
     @Query("SELECT a FROM ApplicationJpaEntity a WHERE a.receiptCode = :receiptCode")
-    fun findByReceiptCode(@Param("receiptCode") receiptCode: Long): ApplicationJpaEntity?
-    
+    fun findByReceiptCode(
+        @Param("receiptCode") receiptCode: Long,
+    ): ApplicationJpaEntity?
+
     @Query("SELECT COALESCE(MAX(a.receiptCode), 0) FROM ApplicationJpaEntity a")
     fun findMaxReceiptCode(): Long
 }

@@ -4,5 +4,5 @@ data class CreateUserRequest(
     val name: String,
     val phoneNumber: String,
     val email: String?,
-    val birthDate: String?
+    val birthDate: String?,
 )

@@ -11,22 +11,25 @@ import org.springframework.stereotype.Service
 
 @Service
 class ApplicationUseCase(
-    private val prototypePort: PrototypePort
+    private val prototypePort: PrototypePort,
 ) {
-    
     fun getPrototype(filter: ApplicationTypeFilter): ApplicationPrototype {
         return prototypePort.findPrototypeByApplicationType(filter)
             ?: throw DomainException(ErrorCodes.Common.RESOURCE_NOT_FOUND)
     }
-    
+
     fun getSupportedTypes(): SupportedApplicationTypes {
         return prototypePort.findSupportedTypes()
     }
-    
-    fun validateScoreData(filter: ApplicationTypeFilter, scoreData: Map<String, Any>): ValidationResult {
-        val prototype = prototypePort.findPrototypeByApplicationType(filter)
-            ?: throw DomainException(ErrorCodes.Common.RESOURCE_NOT_FOUND)
-        
+
+    fun validateScoreData(
+        filter: ApplicationTypeFilter,
+        scoreData: Map<String, Any>,
+    ): ValidationResult {
+        val prototype =
+            prototypePort.findPrototypeByApplicationType(filter)
+                ?: throw DomainException(ErrorCodes.Common.RESOURCE_NOT_FOUND)
+
         return prototypePort.validateScoreData(prototype, scoreData)
     }
 }
