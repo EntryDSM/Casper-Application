@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package casper.user;
+
+option java_package = "hs.kr.entrydsm.casper.user.proto";
+option java_outer_classname = "UserServiceProto";
+
+service UserService {
+  rpc GetUserInfoByUserId(GetUserInfoRequest) returns (GetUserInfoResponse);
+}
+
+message GetUserInfoRequest {
+  string user_id =1;
+}
+
+message GetUserInfoResponse{
+  string id = 1;
+  string phone_number = 2;
+  string name = 3;
+  bool is_parent = 4;
+  UserRole role = 5;
+}
+
+enum UserRole {
+  UNSPECIFIED = 0;
+  ROOT = 1;
+  USER = 2;
+  ADMIN = 3;
+}

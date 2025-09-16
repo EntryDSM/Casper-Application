@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package casper.schedule;
+
+option java_package = "hs.kr.entrydsm.casper.schedule.proto";
+option java_outer_classname = "ScheduleServiceProto";
+
+service ScheduleService {
+  rpc getScheduleByType(TypeRequest) returns (GetScheduleResponse);
+}
+
+message TypeRequest {
+  Type type = 1;
+}
+
+message GetScheduleResponse {
+  Type type = 1;
+  string date = 2;
+}
+
+enum Type {
+  START_DATE = 0;
+  FIRST_ANNOUNCEMENT = 1;
+  INTERVIEW = 2;
+  SECOND_ANNOUNCEMENT = 3;
+  END_DATE = 4;
+}
+

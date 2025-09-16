@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.domain.entity
 
-import hs.kr.entrydsm.application.domain.application.domain.entity.enums.ApplicationStatus
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -32,7 +33,7 @@ class ApplicationJpaEntity(
     @Column(name = "birth_date")
     val birthDate: String?,
     @Column(name = "application_type", nullable = false, length = 50)
-    val applicationType: String,
+    val applicationType: ApplicationType,
     @Column(name = "educational_status", nullable = false, length = 50)
     val educationalStatus: String,
     @Enumerated(EnumType.STRING)
@@ -46,6 +47,21 @@ class ApplicationJpaEntity(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
+    @get:JvmName("getIsDaejeon")
+    val isDaejeon: Boolean?,
+    @get:JvmName("getIsOutOfHeadcount")
+    var isOutOfHeadcount: Boolean?,
+    @Column(columnDefinition = "TEXT")
+    val photoPath: String?,
+    val parentRelation: String?,
+    val postalCode: String?,
+    val detailAddress: String?,
+    @Column(length = 1600)
+    val studyPlan: String?,
+    @Column(length = 1600)
+    val selfIntroduce: String?,
+    val veteransNumber: Int?,
+    val schoolCode: String?
 ) {
     @PreUpdate
     fun preUpdate() {
@@ -61,10 +77,20 @@ class ApplicationJpaEntity(
         parentName = null,
         parentTel = null,
         birthDate = null,
-        applicationType = "",
+        applicationType = ApplicationType.COMMON,
         educationalStatus = "",
         status = ApplicationStatus.SUBMITTED,
         submittedAt = LocalDateTime.now(),
         reviewedAt = null,
+        isDaejeon = true,
+        isOutOfHeadcount = false,
+        photoPath = null,
+        parentRelation = null,
+        postalCode = null,
+        detailAddress = null,
+        studyPlan = null,
+        selfIntroduce = null,
+        veteransNumber = null,
+        schoolCode = null
     )
 }

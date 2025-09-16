@@ -27,7 +27,28 @@ spring:
     hikari:
       auto-commit: true
 
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+  config:
+    import: "configserver:${SPRING_CLOUD_CONFIG_URL}"
+  cloud:
+    config:
+      label: ${SPRING_CLOUD_CONFIG_LABEL}
+      fail-fast: true
+      retry:
+        initial-interval: 1000
+        max-attempts: 6
+        max-interval: 2000
+        multiplier: 1.1
+  profiles:
+    active: ${SPRING_CLOUD_CONFIG_PROFILE}
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+encrypt:
+  key: ${ENCRYPT_KEY}
+  salt: ${ENCRYPT_SALT}
+
