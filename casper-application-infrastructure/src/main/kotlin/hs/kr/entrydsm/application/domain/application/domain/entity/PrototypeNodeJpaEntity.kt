@@ -1,7 +1,13 @@
 package hs.kr.entrydsm.application.domain.application.domain.entity
 
 import hs.kr.entrydsm.application.domain.application.domain.entity.enums.NodeType
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.PreUpdate
+import jakarta.persistence.Table
 import java.util.UUID
 
 @Entity
@@ -21,16 +27,21 @@ class PrototypeNodeJpaEntity(
     val nodeType: NodeType,
     @Column(name = "node_level", nullable = false)
     val nodeLevel: Int,
+    // "application" or "score" (FIELD일 때만)
     @Column(name = "field_category", length = 20)
-    val fieldCategory: String?, // "application" or "score" (FIELD일 때만)
+    val fieldCategory: String?,
+    // "string", "number", "boolean" (FIELD일 때만)
     @Column(name = "field_type", length = 20)
-    val fieldType: String?, // "string", "number", "boolean" (FIELD일 때만)
+    val fieldType: String?,
+    // 필수 여부 (FIELD일 때만)
     @Column(name = "required", nullable = true)
-    val required: Boolean?, // 필수 여부 (FIELD일 때만)
+    val required: Boolean?,
+    // 설명 (FIELD일 때만)
     @Column(name = "description", columnDefinition = "TEXT")
-    val description: String?, // 설명 (FIELD일 때만)
+    val description: String?,
+    // 같은 레벨에서 정렬 순서
     @Column(name = "sort_order", nullable = false)
-    val sortOrder: Int, // 같은 레벨에서 정렬 순서
+    val sortOrder: Int,
     @Column(name = "created_at", nullable = false)
     val createdAt: java.time.LocalDateTime = java.time.LocalDateTime.now(),
     @Column(name = "updated_at", nullable = false)

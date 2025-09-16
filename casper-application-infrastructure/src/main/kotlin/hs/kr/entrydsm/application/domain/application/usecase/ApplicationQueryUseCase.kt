@@ -5,13 +5,17 @@ import hs.kr.entrydsm.application.domain.application.domain.repository.Applicati
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationScoreJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationResultJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationStepJpaRepository
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.*
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationHistoryResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationResponse
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)

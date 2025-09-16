@@ -6,14 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface FormulaSetJpaRepository : JpaRepository<FormulaSetJpaEntity, UUID> {
     fun findAllByStatus(status: FormulaSetStatus): List<FormulaSetJpaEntity>
 
     @Query(
-        "SELECT f FROM FormulaSetJpaEntity f WHERE f.applicationType = :applicationType AND f.educationalStatus = :educationalStatus AND (:region IS NULL OR f.region = :region) AND f.status = 'ACTIVE'",
+        "SELECT f FROM FormulaSetJpaEntity f WHERE f.applicationType = :applicationType AND " +
+            "f.educationalStatus = :educationalStatus AND (:region IS NULL OR f.region = :region) AND " +
+            "f.status = 'ACTIVE'",
     )
     fun findByApplicationCriteria(
         @Param("applicationType") applicationType: String,

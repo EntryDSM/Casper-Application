@@ -1,10 +1,17 @@
 package hs.kr.entrydsm.application.domain.admin.presentation
 
-import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.*
-import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.*
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreatePrototypeRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreatePrototypeResponse
 import hs.kr.entrydsm.application.domain.admin.usecase.AdminUseCase
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/admin")

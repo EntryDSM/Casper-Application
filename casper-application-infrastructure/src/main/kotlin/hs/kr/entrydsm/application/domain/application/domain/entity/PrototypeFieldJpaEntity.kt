@@ -1,6 +1,10 @@
 package hs.kr.entrydsm.application.domain.application.domain.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.PreUpdate
+import jakarta.persistence.Table
 import java.util.UUID
 
 @Entity
@@ -11,12 +15,15 @@ class PrototypeFieldJpaEntity(
     val fieldId: UUID,
     @Column(name = "prototype_id", columnDefinition = "BINARY(16)", nullable = false)
     val prototypeId: UUID,
+    // "application" or "score"
     @Column(name = "field_category", nullable = false, length = 20)
-    val fieldCategory: String, // "application" or "score"
+    val fieldCategory: String,
+    // "personal.name", "grade3_1.korean"
     @Column(name = "field_key", nullable = false, length = 100)
-    val fieldKey: String, // "personal.name", "grade3_1.korean"
+    val fieldKey: String,
+    // "string", "number", "boolean"
     @Column(name = "field_type", nullable = false, length = 20)
-    val fieldType: String, // "string", "number", "boolean"
+    val fieldType: String,
     @Column(name = "required", nullable = false)
     val required: Boolean,
     @Column(name = "description", nullable = false, length = 200)

@@ -15,7 +15,7 @@ import hs.kr.entrydsm.domain.calculator.values.CalculationResult
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class ApplicationPersistenceService(

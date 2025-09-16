@@ -6,7 +6,7 @@ import hs.kr.entrydsm.application.domain.user.usecase.result.CreateUserResult
 import hs.kr.entrydsm.application.domain.user.usecase.result.UserDetailResult
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional

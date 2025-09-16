@@ -1,9 +1,16 @@
 package hs.kr.entrydsm.application.domain.application.domain.entity
 
 import hs.kr.entrydsm.application.domain.application.domain.entity.enums.ScoreType
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Index
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(

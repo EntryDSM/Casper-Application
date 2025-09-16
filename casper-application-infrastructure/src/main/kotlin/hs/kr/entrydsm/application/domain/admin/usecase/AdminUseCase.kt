@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.domain.admin.usecase
 
-import hs.kr.entrydsm.application.domain.admin.usecase.result.*
+import hs.kr.entrydsm.application.domain.admin.usecase.result.CreateApplicationTypeResult
+import hs.kr.entrydsm.application.domain.admin.usecase.result.CreateEducationalStatusResult
 import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationTypeJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.entity.EducationalStatusJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.mapper.PrototypeTreeMapper
@@ -15,7 +16,7 @@ import hs.kr.entrydsm.domain.application.values.PrototypeId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
