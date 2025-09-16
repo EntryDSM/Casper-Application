@@ -11,7 +11,7 @@ import java.io.IOException
  *
  * iText PDF 라이브러리에서 HTML을 PDF로 변환할 때 필요한 설정을 관리하며,
  * 특히 한글 폰트 설정을 담당하여 PDF에서 한글이 정상적으로 표시되도록 합니다.
- * 
+ *
  * @property fontPath 폰트 파일이 위치한 경로
  */
 @Component
@@ -20,7 +20,7 @@ class ConverterPropertiesCreator {
 
     /**
      * PDF 변환을 위한 ConverterProperties를 생성합니다.
-     * 
+     *
      * DefaultFontProvider를 설정하고 한글 폰트들을 등록하여
      * PDF 생성 시 한글 텍스트가 올바르게 렌더링되도록 합니다.
      *

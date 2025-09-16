@@ -2,7 +2,6 @@ package hs.kr.entrydsm.application.global.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -13,7 +12,6 @@ import org.springframework.security.web.SecurityFilterChain
  */
 @Configuration
 class SecurityConfig {
-
     /**
      * Spring Security 필터 체인을 구성합니다.
      * HTTP 보안 설정 및 경로별 접근 권한을 정의합니다.

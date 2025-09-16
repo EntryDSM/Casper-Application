@@ -13,14 +13,14 @@ data class PdfData(
 ) {
     /**
      * 데이터 맵을 반환합니다.
-     * 
+     *
      * @return 내부 데이터 맵
      */
     fun toMap(): MutableMap<String, Any> = values
 
     /**
      * 지정된 키의 값을 조회합니다.
-     * 
+     *
      * @param key 조회할 키
      * @return 해당 키의 값, 존재하지 않으면 null
      */
@@ -28,7 +28,7 @@ data class PdfData(
 
     /**
      * 지정된 키에 값을 설정합니다.
-     * 
+     *
      * @param key 설정할 키
      * @param value 설정할 값
      */

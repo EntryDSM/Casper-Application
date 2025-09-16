@@ -61,7 +61,7 @@ class ApplicationJpaEntity(
     @Column(length = 1600)
     val selfIntroduce: String?,
     val veteransNumber: Int?,
-    val schoolCode: String?
+    val schoolCode: String?,
 ) {
     @PreUpdate
     fun preUpdate() {
@@ -91,6 +91,6 @@ class ApplicationJpaEntity(
         studyPlan = null,
         selfIntroduce = null,
         veteransNumber = null,
-        schoolCode = null
+        schoolCode = null,
     )
 }

@@ -23,8 +23,8 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask> {
     exclude { fileTreeElement ->
         val path = fileTreeElement.file.absolutePath
         path.contains("build${File.separator}generated") ||
-                path.contains("grpckt") ||
-                path.endsWith("GrpcKt.kt")
+            path.contains("grpckt") ||
+            path.endsWith("GrpcKt.kt")
     }
 }
 
@@ -126,7 +126,7 @@ dependencies {
     implementation(Dependencies.RESILIENCE4J_SPRING_BOOT)
     implementation(Dependencies.RESILIENCE4J_KOTLIN)
 
-    //kafka
+    // kafka
     implementation(Dependencies.KAFKA)
 
     // Spring Cloud Config

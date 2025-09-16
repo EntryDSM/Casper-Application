@@ -20,10 +20,10 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * 상태 서비스와의 gRPC 통신을 담당하는 클라이언트 클래스입니다.
- * 
- * Resilience4j의 Circuit Breaker와 Retry 패턴을 적용하여 
+ *
+ * Resilience4j의 Circuit Breaker와 Retry 패턴을 적용하여
  * 장애 상황에서도 안정적인 서비스 통신을 보장합니다.
- * 
+ *
  * @property retry gRPC 호출 실패 시 재시도를 위한 Retry 인스턴스
  * @property circuitBreaker gRPC 호출 실패율이 높을 때 회로 차단을 위한 Circuit Breaker
  */
@@ -41,7 +41,7 @@ class StatusGrpcClient(
 
     /**
      * 모든 상태 리스트를 비동기적으로 조회합니다.
-     * 
+     *
      * gRPC 비동기 스트리밍을 사용하여 상태 서비스로부터 전체 상태 정보를 가져오며,
      * Circuit Breaker와 Retry 패턴을 통해 장애 상황에 대비합니다.
      * 장애 발생 시 빈 리스트를 fallback으로 반환합니다.
@@ -98,7 +98,7 @@ class StatusGrpcClient(
 
     /**
      * 접수번호로 특정 상태를 비동기적으로 조회합니다.
-     * 
+     *
      * gRPC 비동기 스트리밍을 사용하여 상태 서비스로부터 해당 접수번호의 상태 정보를 가져오며,
      * Circuit Breaker와 Retry 패턴을 통해 장애 상황에 대비합니다.
      * 장애 발생 시 기본 상태를 fallback으로 반환합니다.
@@ -161,7 +161,7 @@ class StatusGrpcClient(
 
     /**
      * 시험 코드를 비동기적으로 업데이트합니다.
-     * 
+     *
      * gRPC 비동기 스트리밍을 사용하여 상태 서비스에 시험 코드 업데이트를 요청하며,
      * Circuit Breaker와 Retry 패턴을 통해 장애 상황에 대비합니다.
      * 장애 발생 시 조용히 실패하고 로그를 남깁니다.
@@ -211,7 +211,7 @@ class StatusGrpcClient(
 
     /**
      * gRPC 프로토콜 지원 상태를 도메인 지원 상태로 변환합니다.
-     * 
+     *
      * Protocol Buffer의 ApplicationStatus enum을 도메인 계층의 ApplicationStatus enum으로 매핑하며,
      * 예상치 못한 값이 들어올 경우 기본값으로 NOT_APPLIED를 반환합니다.
      *

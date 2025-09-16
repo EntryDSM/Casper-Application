@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @Tag(name = "School", description = "학교 정보 조회 API")
 interface SchoolApiDocument {
-
     @Operation(
         summary = "학교 이름으로 학교 검색",
         description = "NEIS API를 통해 학교 이름으로 검색하여 일치하는 학교들의 목록을 조회합니다. 결과는 캐시됩니다.",

@@ -63,7 +63,7 @@ class PdfDataConverter(
 
     /**
      * 지원서의 접수번호를 설정합니다.
-     * 
+     *
      * @param application 지원서 정보
      * @param values 템플릿 데이터 맵
      */
@@ -76,7 +76,7 @@ class PdfDataConverter(
 
     /**
      * 입학년도를 설정합니다. (현재 년도 + 1)
-     * 
+     *
      * @param values 템플릿 데이터 맵
      */
     private fun setEntranceYear(values: MutableMap<String, Any>) {
@@ -86,7 +86,7 @@ class PdfDataConverter(
 
     /**
      * 보훈번호 정보를 설정합니다.
-     * 
+     *
      * @param application 지원서 정보
      * @param values 템플릿 데이터 맵
      */
@@ -100,7 +100,7 @@ class PdfDataConverter(
     /**
      * 지원자의 개인정보(이름, 성별, 주소, 생년월일 등)를 설정합니다.
      * 일부 정보는 도메인에 없어서 더미값을 사용합니다.
-     * 
+     *
      * @param application 지원서 정보
      * @param values 템플릿 데이터 맵
      */
@@ -124,7 +124,7 @@ class PdfDataConverter(
     /**
      * 출석 및 봉사활동 정보를 설정합니다.
      * 현재 관련 도메인이 없어서 더미값을 사용합니다.
-     * 
+     *
      * @param application 지원서 정보
      * @param values 템플릿 데이터 맵
      */
@@ -361,7 +361,7 @@ class PdfDataConverter(
 
     /**
      * 전화번호를 하이픈 포함 형태로 포맷팅합니다.
-     * 
+     *
      * @param phoneNumber 포맷팅할 전화번호
      * @return 하이픈으로 구분된 전화번호 문자열
      */
@@ -377,7 +377,7 @@ class PdfDataConverter(
 
     /**
      * null 값을 빈 문자열로 변환합니다.
-     * 
+     *
      * @param input 변환할 문자열
      * @return 입력값이 null이면 빈 문자열, 그렇지 않으면 원래 값
      */
@@ -387,7 +387,7 @@ class PdfDataConverter(
 
     /**
      * boolean 값을 체크박스 문자(☑/☐)로 변환합니다.
-     * 
+     *
      * @param isTrue 변환할 boolean 값
      * @return true이면 "☑", false이면 "☐"
      */
@@ -397,7 +397,7 @@ class PdfDataConverter(
 
     /**
      * boolean 값을 O/X 문자로 변환합니다.
-     * 
+     *
      * @param isTrue 변환할 boolean 값
      * @return true이면 "O", false이면 "X"
      */

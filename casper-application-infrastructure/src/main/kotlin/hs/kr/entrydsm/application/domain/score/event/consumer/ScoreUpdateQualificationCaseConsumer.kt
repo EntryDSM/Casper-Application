@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component
 
 /**
  * 검정고시 전형 업데이트 이벤트를 수신하여 성적을 업데이트하는 Consumer 클래스입니다.
- * 
+ *
  * 검정고시 전형으로 변경되었을 때 해당 전형에 맞는 성적 계산을 수행하는 역할을 담당합니다.
- * 
+ *
  * @property mapper JSON 역직렬화를 위한 ObjectMapper
  * @property scoreConsumeContract 성적 이벤트 처리를 위한 계약 인터페이스
  * @property applicationCaseEventProducer 롤백 이벤트 발행을 위한 Producer
@@ -26,36 +26,36 @@ import org.springframework.stereotype.Component
 class ScoreUpdateQualificationCaseConsumer(
     private val mapper: ObjectMapper,
     private val scoreConsumeContract: ScoreConsumeEventContract,
-    private val applicationCaseEventProducer: ApplicationCaseEventProducer
+    private val applicationCaseEventProducer: ApplicationCaseEventProducer,
 ) {
     private val logger = LoggerFactory.getLogger(ScoreUpdateQualificationCaseConsumer::class.java)
 
     /**
      * 검정고시 전형 업데이트 이벤트를 수신하여 성적을 업데이트합니다.
-     * 
+     *
      * UPDATE_QUALIFICATION_CASE 토픽에서 검정고시 전형 업데이트 이벤트를 수신하고,
      * 해당 접수번호의 성적을 검정고시 전형에 맞게 업데이트합니다.
      * 실패 시 재시도하며, 최종 실패 시 롤백 이벤트를 발행합니다.
-     * 
+     *
      * @param message 검정고시 전형 업데이트 이벤트 메시지
      */
     @Retryable(
         value = [Exception::class],
         maxAttempts = 3,
-        backoff = Backoff(delay = 100)
+        backoff = Backoff(delay = 100),
     )
     @KafkaListener(
         topics = [KafkaTopics.UPDATE_QUALIFICATION_CASE],
         groupId = "update-score",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "kafkaListenerContainerFactory",
     )
     fun updateQualificationCase(message: String) {
         try {
             val qualificationCase = mapper.readValue(message, QualificationCase::class.java)
             logger.info("검정고시 전형 성적 업데이트 시작: receiptCode=${qualificationCase.receiptCode}")
-            
+
             scoreConsumeContract.consumeUpdateQualificationCase(qualificationCase.receiptCode)
-            
+
             logger.info("검정고시 전형 성적 업데이트 완료: receiptCode=${qualificationCase.receiptCode}")
         } catch (e: Exception) {
             logger.error("검정고시 전형 성적 업데이트 실패: $message", e)
@@ -65,21 +65,24 @@ class ScoreUpdateQualificationCaseConsumer(
 
     /**
      * 검정고시 전형 성적 업데이트가 최종 실패했을 때 보상 트랜잭션을 수행합니다.
-     * 
+     *
      * 3번의 재시도가 모두 실패했을 때 호출되며,
      * 전형 업데이트 롤백 이벤트를 발행하여 데이터 일관성을 유지합니다.
-     * 
+     *
      * @param exception 발생한 예외
      * @param message 실패한 메시지
      */
     @Recover
-    fun recover(exception: Exception, message: String) {
+    fun recover(
+        exception: Exception,
+        message: String,
+    ) {
         try {
             val originQualificationCase = mapper.readValue(message, ApplicationCase::class.java)
             logger.error("검정고시 전형 성적 업데이트 최종 실패, 롤백 시작: receiptCode=${originQualificationCase.receiptCode}", exception)
-            
+
             applicationCaseEventProducer.publishUpdateApplicationCaseRollback(originQualificationCase.receiptCode)
-            
+
             logger.info("전형 업데이트 롤백 이벤트 발행 완료: receiptCode=${originQualificationCase.receiptCode}")
         } catch (e: Exception) {
             logger.error("전형 업데이트 롤백 처리 실패: $message", e)

@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
  */
 @Tag(name = "ExamCode", description = "수험번호 관리 API")
 interface ExamCodeApiDocument {
-
     @Operation(
         summary = "수험번호 일괄 부여",
         description = "모든 지원자에게 수험번호를 일괄적으로 부여합니다.",
