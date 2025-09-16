@@ -1,32 +1,4 @@
 spring:
-  output:
-    ansi:
-      enabled: always
-  
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    
-  jpa:
-    hibernate:
-      ddl-auto: ${DDL_AUTO:update}
-    show-sql: ${SHOW_SQL:true}
-    format-sql: ${FORMAT_SQL:true}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        default_batch_fetch_size: 100
-        jdbc:
-          batch_size: 20
-          order_inserts: true
-          order_updates: true
-        connection:
-          provider_disables_autocommit: false
-    hikari:
-      auto-commit: true
-
   application:
     name: ${SPRING_APPLICATION_NAME}
   config:
@@ -43,12 +15,6 @@ spring:
   profiles:
     active: ${SPRING_CLOUD_CONFIG_PROFILE}
 
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
 encrypt:
   key: ${ENCRYPT_KEY}
   salt: ${ENCRYPT_SALT}
-
