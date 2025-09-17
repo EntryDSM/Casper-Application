@@ -15,6 +15,9 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
 
+/**
+ * 어드민 관련 API 문서화를 위한 인터페이스입니다.
+ */
 @Tag(name = "어드민 API", description = "어드민 관련 API")
 interface AdminApiDocument {
 

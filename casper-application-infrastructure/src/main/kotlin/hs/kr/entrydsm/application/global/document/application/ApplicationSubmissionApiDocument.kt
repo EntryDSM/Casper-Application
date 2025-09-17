@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
 
+/**
+ * 원서 제출 관련 API 문서화를 위한 인터페이스입니다.
+ */
 @Tag(name = "원서 제출 API", description = "원서 제출 관련 API")
 interface ApplicationSubmissionApiDocument {
 

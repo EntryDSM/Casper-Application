@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 
+/**
+ * 원서 조회 관련 API 문서화를 위한 인터페이스입니다.
+ */
 @Tag(name = "원서 조회 API", description = "원서 조회 관련 API")
 interface ApplicationQueryApiDocument {
 

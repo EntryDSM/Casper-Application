@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 
+/**
+ * 사용자 관련 API 문서화를 위한 인터페이스입니다.
+ */
 @Tag(name = "사용자 API", description = "사용자 관련 API")
 interface UserApiDocument {
 

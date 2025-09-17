@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 
+/**
+ * 웹 애플리케이션 관련 API 문서화를 위한 인터페이스입니다.
+ */
 @Tag(name = "웹 애플리케이션 API", description = "웹 애플리케이션 관련 API")
 interface WebApplicationApiDocument {
 
