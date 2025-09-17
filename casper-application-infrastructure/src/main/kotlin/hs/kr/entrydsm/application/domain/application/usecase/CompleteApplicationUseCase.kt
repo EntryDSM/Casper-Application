@@ -93,7 +93,7 @@ class CompleteApplicationUseCase(
                             applicationId = applicationEntity.applicationId.toString(),
                             receiptCode = applicationEntity.receiptCode,
                             applicantName = applicationEntity.applicantName,
-                            applicationType = applicationEntity.applicationType,
+                            applicationType = applicationEntity.applicationType.toString(),
                             educationalStatus = applicationEntity.educationalStatus,
                             status = applicationEntity.status.toString(),
                             submittedAt = applicationEntity.submittedAt,

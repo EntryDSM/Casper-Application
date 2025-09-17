@@ -5,13 +5,13 @@ import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJp
 import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationScoreJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.entity.CalculationResultJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.entity.CalculationStepJpaEntity
-import hs.kr.entrydsm.application.domain.application.domain.entity.enums.ApplicationStatus
 import hs.kr.entrydsm.application.domain.application.domain.entity.enums.ScoreType
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationScoreJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationResultJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationStepJpaRepository
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
+import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -41,11 +41,21 @@ class ApplicationPersistenceService(
                 parentName = extractStringValue(applicationData, "parentName"),
                 parentTel = extractStringValue(applicationData, "parentTel"),
                 birthDate = extractStringValue(applicationData, "birthDate"),
-                applicationType = extractStringValue(applicationData, "applicationType") ?: "UNKNOWN",
+                applicationType = hs.kr.entrydsm.domain.application.values.ApplicationType.valueOf(extractStringValue(applicationData, "applicationType") ?: "COMMON"),
                 educationalStatus = extractStringValue(applicationData, "educationalStatus") ?: "UNKNOWN",
                 status = ApplicationStatus.SUBMITTED,
                 submittedAt = LocalDateTime.now(),
                 reviewedAt = null,
+                isDaejeon = null,
+                isOutOfHeadcount = null,
+                photoPath = null,
+                parentRelation = null,
+                postalCode = null,
+                detailAddress = null,
+                studyPlan = null,
+                selfIntroduce = null,
+                veteransNumber = null,
+                schoolCode = null,
             )
 
         return applicationRepository.save(entity)
