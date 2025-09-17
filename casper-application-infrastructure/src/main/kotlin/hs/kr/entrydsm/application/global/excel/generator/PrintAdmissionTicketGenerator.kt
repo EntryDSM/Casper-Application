@@ -67,13 +67,13 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 수험표 Excel 파일을 생성합니다.
-     * 
+     *
      * 템플릿 파일을 기반으로 여러 지원자의 수험표를 하나의 Excel 파일로 생성하며,
      * 각 수험표는 20행씩 차지합니다.
-     * 
+     *
      * @param applications 지원서 목록
      * @param users 사용자 정보 목록
-     * @param schools 학교 정보 목록  
+     * @param schools 학교 정보 목록
      * @param statuses 전형 상태 목록
      * @return 생성된 Excel 워크북 객체
      */
@@ -116,10 +116,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 소스 워크북 템플릿 파일을 로드합니다.
-     * 
-     * 클래스패스에서 Excel 템플릿 파일을 읽어와서 
+     *
+     * 클래스패스에서 Excel 템플릿 파일을 읽어와서
      * 수험표 생성의 기본 템플릿으로 사용합니다.
-     * 
+     *
      * @return 로드된 소스 워크북
      */
     fun loadSourceWorkbook(): Workbook {
@@ -129,10 +129,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 소스 워크북의 스타일을 타겟 워크북으로 복사하기 위한 스타일 매핑을 생성합니다.
-     * 
+     *
      * 템플릿의 모든 셀 스타일을 새로운 워크북으로 복제하여
      * 원본과 동일한 서식을 유지할 수 있도록 합니다.
-     * 
+     *
      * @param sourceWorkbook 소스 워크북 (템플릿)
      * @param targetWorkbook 타겟 워크북 (생성될 파일)
      * @return 소스 스타일과 타겟 스타일의 매핑 맵
@@ -156,10 +156,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 소스 시트의 특정 행 범위를 타겟 시트로 복사합니다.
-     * 
+     *
      * 지정된 행 범위의 모든 셀과 서식을 새로운 위치로 복사하며,
      * 병합된 셀 영역도 함께 복사합니다.
-     * 
+     *
      * @param sourceSheet 소스 시트
      * @param targetSheet 타겟 시트
      * @param sourceStartRow 복사할 시작 행 번호
@@ -186,12 +186,12 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 단일 행을 복사합니다.
-     * 
+     *
      * 행의 높이, 모든 셀 데이터와 서식을 복사하며,
      * 병합된 셀 영역도 함께 복사합니다.
-     * 
+     *
      * @param sourceSheet 소스 시트
-     * @param targetSheet 타겟 시트  
+     * @param targetSheet 타겟 시트
      * @param sourceRow 복사할 소스 행
      * @param targetRow 복사될 타겟 행
      * @param styleMap 스타일 매핑 맵
@@ -233,10 +233,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 단일 셀을 복사합니다.
-     * 
+     *
      * 셀의 값, 데이터 타입, 스타일을 모두 복사하여
      * 원본과 동일한 셀을 생성합니다.
-     * 
+     *
      * @param oldCell 복사할 소스 셀
      * @param newCell 복사될 타겟 셀
      * @param styleMap 스타일 매핑 맵
@@ -264,15 +264,15 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 지원서 데이터를 템플릿의 특정 위치에 채웁니다.
-     * 
+     *
      * 수험번호, 이름, 학교명, 지역, 전형유형, 접수번호 등의
      * 지원자 정보를 수험표의 지정된 셀에 입력합니다.
-     * 
+     *
      * @param sheet 데이터를 입력할 시트
      * @param startRowIndex 시작 행 인덱스
      * @param application 지원서 정보
      * @param user 사용자 정보 (nullable)
-     * @param school 학교 정보 (nullable)  
+     * @param school 학교 정보 (nullable)
      * @param status 전형 상태 정보 (nullable)
      * @param workbook 워크북 객체
      */
@@ -295,11 +295,11 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 지원자의 사진을 수험표에 복사합니다.
-     * 
+     *
      * 지원서에 등록된 사진 경로에서 이미지를 로드하여
      * 수험표의 지정된 위치에 삽입합니다.
      * 사진이 없는 경우 더미 이미지를 사용합니다.
-     * 
+     *
      * @param application 지원서 정보
      * @param targetSheet 타겟 시트
      * @param targetRowIndex 타겟 행 인덱스
@@ -320,9 +320,9 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 전형 타입명을 한글로 변환합니다.
-     * 
+     *
      * 영문 전형 타입 코드를 사용자에게 친숙한 한글명으로 변환합니다.
-     * 
+     *
      * @param applicationType 영문 전형 타입 코드
      * @return 한글 전형명
      */
@@ -337,10 +337,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 더미 이미지를 수험표에 삽입합니다.
-     * 
+     *
      * 실제 지원자 사진이 없는 경우 사용되며,
      * 빈 바이트 배열로 구성된 더미 이미지를 생성하여 삽입합니다.
-     * 
+     *
      * @param targetSheet 타겟 시트
      * @param targetRowIndex 이미지가 삽입될 행 인덱스
      */
@@ -369,10 +369,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * 지정된 셀 위치에 값을 설정합니다.
-     * 
+     *
      * Excel 셀 참조 형식(예: "A1", "B2")을 사용하여
      * 해당 위치의 셀에 문자열 값을 설정합니다.
-     * 
+     *
      * @param sheet 대상 시트
      * @param position Excel 셀 참조 형식의 위치 (예: "A1")
      * @param value 설정할 값
@@ -392,10 +392,10 @@ class PrintAdmissionTicketGenerator {
 
     /**
      * HTTP 응답 헤더를 설정합니다.
-     * 
+     *
      * Excel 파일 다운로드를 위한 Content-Type과 파일명을 설정하며,
      * 파일명에는 현재 시간이 포함됩니다.
-     * 
+     *
      * @param response HTTP 응답 객체
      */
     fun setResponseHeaders(response: HttpServletResponse) {

@@ -1,12 +1,16 @@
 plugins {
     kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
     kotlin(Plugins.KOTLIN_SPRING) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KOTLIN_JPA) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KOTLIN_ALLOPEN) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KOTLIN_NOARG) version PluginVersions.KOTLIN_VERSION
     kotlin(Plugins.KAPT)
     id(Plugins.KTLINT) version PluginVersions.KTLINT_VERSION
     id(Plugins.SPRING_BOOT) version PluginVersions.SPRING_BOOT_VERSION
     id(Plugins.SPRING_DEPENDENCY_MANAGEMENT) version PluginVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION
     id(Plugins.PROTOBUF) version PluginVersions.PROTOBUF_VERSION
     id(Plugins.GOOGLE_OSDETECTOR) version PluginVersions.GOOGLE_OSDETECTOR_VERSION
+    application
 }
 
 tasks.processResources {
@@ -30,6 +34,10 @@ repositories {
     mavenCentral()
 }
 
+application {
+    mainClass.set("hs.kr.entrydsm.application.CasperApplicationKt")
+}
+
 dependencyManagement {
     imports {
         mavenBom(Dependencies.SPRING_CLOUD)
@@ -47,13 +55,18 @@ dependencies {
     implementation(Dependencies.SPRING_BOOT_STARTER_DATA_JPA)
     implementation(Dependencies.SPRING_CACHE)
     implementation(Dependencies.SPRING_BOOT_STARTER_SECURITY)
+    implementation(Dependencies.SPRING_BOOT_STARTER_VALIDATION)
 
     // redis
     implementation(Dependencies.REDIS)
 
     // Kotlin
     implementation(Dependencies.KOTLIN_REFLECT)
+
+    // Test
+    testImplementation(Dependencies.SPRING_BOOT_STARTER_TEST)
     testImplementation(Dependencies.KOTLIN_TEST)
+    testImplementation(Dependencies.H2_DATABASE)
 
     // Utilities
     implementation(Dependencies.APACHE_COMMONS_JEXL)
@@ -72,6 +85,7 @@ dependencies {
 
     // Jackson
     implementation(Dependencies.JACKSON_MODULE_KOTLIN)
+    implementation(Dependencies.JACKSON_DATATYPE_JSR310)
 
     // gRPC
     implementation(Dependencies.GRPC_NETTY_SHADED)
@@ -112,14 +126,26 @@ dependencies {
     implementation(Dependencies.RESILIENCE4J_SPRING_BOOT)
     implementation(Dependencies.RESILIENCE4J_KOTLIN)
 
-    //kafka
+    // kafka
     implementation(Dependencies.KAFKA)
-    
+
     // Spring Cloud Config
     implementation(Dependencies.SPRING_CLOUD_STARTER_CONFIG)
 
     // swagger
     implementation(Dependencies.SWAGGER)
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
+}
+
+noArg {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }
 
 sourceSets {
@@ -177,6 +203,8 @@ kapt {
     arguments {
         arg("querydsl.entityAccessors", "true")
         arg("querydsl.generatedAnnotationClass", "jakarta.annotation.Generated")
+        arg("mapstruct.defaultComponentModel", "spring")
+        arg("mapstruct.unmappedTargetPolicy", "ignore")
     }
 }
 

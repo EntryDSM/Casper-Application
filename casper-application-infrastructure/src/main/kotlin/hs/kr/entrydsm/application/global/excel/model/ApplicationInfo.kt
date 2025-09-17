@@ -18,7 +18,7 @@ class ApplicationInfo {
 
     /**
      * 설정된 Workbook 객체를 반환합니다.
-     * 
+     *
      * @return Excel 워크북 객체
      */
     fun getWorkbook(): Workbook {
@@ -27,7 +27,7 @@ class ApplicationInfo {
 
     /**
      * 전형자료 시트 객체를 반환합니다.
-     * 
+     *
      * @return Excel 시트 객체
      */
     fun getSheet(): Sheet {
@@ -36,7 +36,7 @@ class ApplicationInfo {
 
     /**
      * 전형자료 Excel 시트의 헤더를 설정합니다.
-     * 
+     *
      * 60개 컬럼에 해당하는 모든 헤더를 순차적으로 생성하며,
      * 개인정보, 학기별 성적, 출석 정보, 가산점 등을 포함합니다.
      */

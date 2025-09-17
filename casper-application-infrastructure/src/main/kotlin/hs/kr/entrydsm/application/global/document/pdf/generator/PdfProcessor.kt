@@ -17,7 +17,7 @@ class PdfProcessor(
 ) {
     /**
      * HTML 문자열을 PDF로 변환합니다.
-     * 
+     *
      * iText HTML2PDF를 사용하여 HTML을 PDF로 변환하며,
      * 한글 폰트 설정과 기타 변환 옵션이 적용됩니다.
      *

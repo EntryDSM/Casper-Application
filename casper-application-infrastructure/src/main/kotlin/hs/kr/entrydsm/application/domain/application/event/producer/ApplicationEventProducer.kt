@@ -10,10 +10,10 @@ import java.util.UUID
 
 /**
  * 원서 생성 이벤트를 발행하는 Producer 클래스입니다.
- * 
+ *
  * 원서가 생성되었을 때 사용자 서비스에 접수번호 업데이트를 요청하기 위한
  * 이벤트를 Kafka로 발행하는 역할을 담당합니다.
- * 
+ *
  * @property mapper JSON 직렬화를 위한 ObjectMapper
  * @property createApplicationTemplate 원서 생성 이벤트 발행용 KafkaTemplate
  */
@@ -23,23 +23,25 @@ class ApplicationEventProducer(
     private val createApplicationTemplate: KafkaTemplate<String, Any>,
     private val submitApplicationFinalTemplate: KafkaTemplate<String, Any>,
     private val createApplicationScoreRollbackTemplate: KafkaTemplate<String, Any>,
-    private val updateEducationalStatusTemplate: KafkaTemplate<String, Any>
+    private val updateEducationalStatusTemplate: KafkaTemplate<String, Any>,
 ) : ApplicationCreateEventContract {
-
     /**
      * 원서 생성 이벤트를 발행합니다.
-     * 
+     *
      * 원서가 성공적으로 생성된 후 사용자 서비스에서 해당 사용자의 접수번호를
      * 업데이트하도록 이벤트를 발행합니다.
-     * 
+     *
      * @param receiptCode 생성된 원서의 접수번호
      * @param userId 원서를 생성한 사용자의 ID
      */
-    override fun publishCreateApplication(receiptCode: Long, userId: UUID) {
+    override fun publishCreateApplication(
+        receiptCode: Long,
+        userId: UUID,
+    ) {
         val createApplicationEvent = CreateApplicationEvent(receiptCode, userId)
         createApplicationTemplate.send(
             KafkaTopics.CREATE_APPLICATION,
-            mapper.writeValueAsString(createApplicationEvent)
+            mapper.writeValueAsString(createApplicationEvent),
         )
     }
 
@@ -54,7 +56,7 @@ class ApplicationEventProducer(
     override fun submitApplicationFinal(receiptCode: Long) {
         submitApplicationFinalTemplate.send(
             KafkaTopics.SUBMIT_APPLICATION_FINAL,
-            receiptCode
+            receiptCode,
         )
     }
 
@@ -69,7 +71,7 @@ class ApplicationEventProducer(
     override fun publishCreateApplicationScoreRollback(receiptCode: Long) {
         createApplicationScoreRollbackTemplate.send(
             KafkaTopics.CREATE_APPLICATION_SCORE_ROLLBACK,
-            receiptCode
+            receiptCode,
         )
     }
 
@@ -82,11 +84,14 @@ class ApplicationEventProducer(
      * @param receiptCode 업데이트할 접수번호
      * @param graduateDate 졸업일자
      */
-    override fun publishUpdateEducationalStatus(receiptCode: Long, graduateDate: java.time.YearMonth) {
+    override fun publishUpdateEducationalStatus(
+        receiptCode: Long,
+        graduateDate: java.time.YearMonth,
+    ) {
         val updateEvent = hs.kr.entrydsm.application.domain.score.event.dto.UpdateEducationalStatusEvent(receiptCode, graduateDate)
         updateEducationalStatusTemplate.send(
             KafkaTopics.UPDATE_EDUCATIONAL_STATUS,
-            mapper.writeValueAsString(updateEvent)
+            mapper.writeValueAsString(updateEvent),
         )
     }
 }

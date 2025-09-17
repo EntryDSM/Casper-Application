@@ -2,7 +2,13 @@ package hs.kr.entrydsm.application.domain.application.domain.entity
 
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.PreUpdate
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -55,7 +61,7 @@ class ApplicationJpaEntity(
     @Column(length = 1600)
     val selfIntroduce: String?,
     val veteransNumber: Int?,
-    val schoolCode: String?
+    val schoolCode: String?,
 ) {
     @PreUpdate
     fun preUpdate() {
@@ -85,6 +91,6 @@ class ApplicationJpaEntity(
         studyPlan = null,
         selfIntroduce = null,
         veteransNumber = null,
-        schoolCode = null
+        schoolCode = null,
     )
 }

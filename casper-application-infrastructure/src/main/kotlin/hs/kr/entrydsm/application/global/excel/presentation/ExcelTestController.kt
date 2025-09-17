@@ -4,16 +4,8 @@ import hs.kr.entrydsm.application.global.excel.generator.PrintAdmissionTicketGen
 import hs.kr.entrydsm.application.global.excel.generator.PrintApplicantCodesGenerator
 import hs.kr.entrydsm.application.global.excel.generator.PrintApplicationCheckListGenerator
 import hs.kr.entrydsm.application.global.excel.generator.PrintApplicationInfoGenerator
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationType
-import hs.kr.entrydsm.domain.status.aggregates.Status
-import hs.kr.entrydsm.domain.status.values.ApplicationStatus
-import hs.kr.entrydsm.domain.user.aggregates.User
-import jakarta.servlet.http.HttpServletResponse
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
 
 /**
  * Excel 파일 생성 기능을 테스트하기 위한 Controller입니다.
