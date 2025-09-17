@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.domain.application.presentation
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationSubmissionRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationSubmissionResponse
 import hs.kr.entrydsm.application.domain.application.usecase.CompleteApplicationUseCase
+import hs.kr.entrydsm.application.global.document.application.ApplicationSubmissionApiDocument
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -15,9 +16,9 @@ import java.time.LocalDateTime
 @RequestMapping("/api/v1")
 class ApplicationSubmissionController(
     private val completeApplicationUseCase: CompleteApplicationUseCase,
-) {
+) : ApplicationSubmissionApiDocument {
     @PostMapping("/applications")
-    fun submitApplication(
+    override fun submitApplication(
         @RequestBody request: ApplicationSubmissionRequest?,
     ): ResponseEntity<ApplicationSubmissionResponse> {
         return try {

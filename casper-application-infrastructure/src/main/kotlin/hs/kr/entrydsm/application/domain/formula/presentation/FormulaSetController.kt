@@ -8,6 +8,7 @@ import hs.kr.entrydsm.application.domain.formula.presentation.dto.response.Formu
 import hs.kr.entrydsm.application.domain.formula.presentation.dto.response.FormulaSetListResponse
 import hs.kr.entrydsm.application.domain.formula.presentation.dto.response.FormulaSetResponse
 import hs.kr.entrydsm.application.domain.formula.usecase.FormulaSetUseCase
+import hs.kr.entrydsm.application.global.document.formula.FormulaSetApiDocument
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -24,9 +25,9 @@ import java.util.UUID
 @RequestMapping("/api/v1")
 class FormulaSetController(
     private val formulaSetUseCase: FormulaSetUseCase,
-) {
+) : FormulaSetApiDocument {
     @PostMapping("/formulas")
-    fun createFormulaSet(
+    override fun createFormulaSet(
         @RequestBody request: CreateFormulaSetRequest?,
     ): ResponseEntity<FormulaSetResponse> {
         return try {
@@ -60,7 +61,7 @@ class FormulaSetController(
     }
 
     @PutMapping("/formulas/{formulaSetId}")
-    fun updateFormulaSet(
+    override fun updateFormulaSet(
         @PathVariable formulaSetId: String?,
         @RequestBody request: UpdateFormulaSetRequest?,
     ): ResponseEntity<FormulaSetResponse> {
@@ -99,7 +100,7 @@ class FormulaSetController(
     }
 
     @GetMapping("/formulas")
-    fun getFormulaSetList(): ResponseEntity<FormulaSetListResponse> {
+    override fun getFormulaSetList(): ResponseEntity<FormulaSetListResponse> {
         return try {
             val response = formulaSetUseCase.getFormulaSetList()
             ResponseEntity.ok(response)
@@ -109,7 +110,7 @@ class FormulaSetController(
     }
 
     @GetMapping("/formulas/{formulaSetId}")
-    fun getFormulaSetDetail(
+    override fun getFormulaSetDetail(
         @PathVariable formulaSetId: String?,
     ): ResponseEntity<FormulaSetDetailResponse> {
         return try {
@@ -135,7 +136,7 @@ class FormulaSetController(
     }
 
     @DeleteMapping("/formulas/{formulaSetId}")
-    fun deleteFormulaSet(
+    override fun deleteFormulaSet(
         @PathVariable formulaSetId: String?,
     ): ResponseEntity<Void> {
         return try {
@@ -161,7 +162,7 @@ class FormulaSetController(
     }
 
     @PostMapping("/formulas/{formulaSetId}/execute")
-    fun executeFormulas(
+    override fun executeFormulas(
         @PathVariable formulaSetId: String?,
         @RequestBody request: FormulaExecutionRequest?,
     ): ResponseEntity<FormulaExecutionResponse> {

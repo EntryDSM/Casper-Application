@@ -7,6 +7,7 @@ import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateA
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreatePrototypeResponse
 import hs.kr.entrydsm.application.domain.admin.usecase.AdminUseCase
+import hs.kr.entrydsm.application.global.document.admin.AdminApiDocument
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -17,9 +18,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/admin")
 class AdminController(
     private val adminUseCase: AdminUseCase,
-) {
+) : AdminApiDocument {
     @PostMapping("/application-types")
-    fun createApplicationType(
+    override fun createApplicationType(
         @RequestBody request: CreateApplicationTypeRequest,
     ): ResponseEntity<CreateApplicationTypeResponse> {
         val result = adminUseCase.createApplicationType(request.code, request.name)
@@ -37,7 +38,7 @@ class AdminController(
     }
 
     @PostMapping("/educational-statuses")
-    fun createEducationalStatus(
+    override fun createEducationalStatus(
         @RequestBody request: CreateEducationalStatusRequest,
     ): ResponseEntity<CreateEducationalStatusResponse> {
         val result = adminUseCase.createEducationalStatus(request.code, request.name)
@@ -55,7 +56,7 @@ class AdminController(
     }
 
     @PostMapping("/prototypes")
-    fun createPrototype(
+    override fun createPrototype(
         @RequestBody request: CreatePrototypeRequest,
     ): ResponseEntity<CreatePrototypeResponse> {
         val result =

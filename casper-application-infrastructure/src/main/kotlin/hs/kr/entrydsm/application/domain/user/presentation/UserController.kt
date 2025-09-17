@@ -5,6 +5,7 @@ import hs.kr.entrydsm.application.domain.user.presentation.dto.response.CreateUs
 import hs.kr.entrydsm.application.domain.user.presentation.dto.response.UserDetailResponse
 import hs.kr.entrydsm.application.domain.user.presentation.dto.response.UsersListResponse
 import hs.kr.entrydsm.application.domain.user.usecase.UserUseCase
+import hs.kr.entrydsm.application.global.document.user.UserApiDocument
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/users")
 class UserController(
     private val userUseCase: UserUseCase,
-) {
+) : UserApiDocument {
     @PostMapping
-    fun createUser(
+    override fun createUser(
         @RequestBody request: CreateUserRequest?,
     ): ResponseEntity<CreateUserResponse> {
         return try {
@@ -71,7 +72,7 @@ class UserController(
     }
 
     @GetMapping("/{userId}")
-    fun getUserById(
+    override fun getUserById(
         @PathVariable userId: String?,
     ): ResponseEntity<UserDetailResponse> {
         return try {
@@ -115,7 +116,7 @@ class UserController(
     }
 
     @GetMapping
-    fun getAllUsers(): ResponseEntity<UsersListResponse> {
+    override fun getAllUsers(): ResponseEntity<UsersListResponse> {
         return try {
             val results = userUseCase.getAllUsers()
 

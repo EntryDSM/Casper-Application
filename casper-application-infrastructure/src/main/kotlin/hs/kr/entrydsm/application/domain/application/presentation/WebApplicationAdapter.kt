@@ -5,6 +5,7 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.response.P
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.SupportedTypesResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ValidationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationUseCase
+import hs.kr.entrydsm.application.global.document.application.WebApplicationApiDocument
 import hs.kr.entrydsm.domain.application.values.ApplicationTypeFilter
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1")
 class WebApplicationAdapter(
     private val applicationUseCase: ApplicationUseCase,
-) {
+) : WebApplicationApiDocument {
     @GetMapping("/prototypes")
-    fun getPrototype(
+    override fun getPrototype(
         @RequestParam applicationType: String,
         @RequestParam educationalStatus: String,
         @RequestParam(required = false) region: String?,
@@ -73,7 +74,7 @@ class WebApplicationAdapter(
     }
 
     @GetMapping("/types")
-    fun getSupportedTypes(): ResponseEntity<SupportedTypesResponse> {
+    override fun getSupportedTypes(): ResponseEntity<SupportedTypesResponse> {
         val supportedTypes = applicationUseCase.getSupportedTypes()
 
         val response =
@@ -102,7 +103,7 @@ class WebApplicationAdapter(
     }
 
     @PostMapping("/validate")
-    fun validateScoreData(
+    override fun validateScoreData(
         @RequestBody request: ValidateScoreDataRequest,
     ): ResponseEntity<ValidationResponse> {
         val filter =

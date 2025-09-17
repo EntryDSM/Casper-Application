@@ -6,6 +6,7 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.response.A
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationHistoryResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationQueryUseCase
+import hs.kr.entrydsm.application.global.document.application.ApplicationQueryApiDocument
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1")
 class ApplicationQueryController(
     private val applicationQueryUseCase: ApplicationQueryUseCase,
-) {
+) : ApplicationQueryApiDocument {
     @GetMapping("/applications/{applicationId}")
-    fun getApplication(
+    override fun getApplication(
         @PathVariable applicationId: String?,
     ): ResponseEntity<ApplicationDetailResponse> {
         return try {
@@ -46,7 +47,7 @@ class ApplicationQueryController(
     }
 
     @GetMapping("/applications")
-    fun getApplications(
+    override fun getApplications(
         @RequestParam(required = false) applicationType: String?,
         @RequestParam(required = false) educationalStatus: String?,
         @RequestParam(defaultValue = "0") page: Int,
@@ -70,7 +71,7 @@ class ApplicationQueryController(
     }
 
     @GetMapping("/users/{userId}/applications")
-    fun getUserApplications(
+    override fun getUserApplications(
         @PathVariable userId: String?,
     ): ResponseEntity<ApplicationListResponse> {
         return try {
@@ -96,7 +97,7 @@ class ApplicationQueryController(
     }
 
     @GetMapping("/applications/{applicationId}/scores")
-    fun getApplicationScores(
+    override fun getApplicationScores(
         @PathVariable applicationId: String?,
     ): ResponseEntity<ApplicationScoresResponse> {
         return try {
@@ -122,7 +123,7 @@ class ApplicationQueryController(
     }
 
     @GetMapping("/applications/{applicationId}/calculations")
-    fun getCalculationResult(
+    override fun getCalculationResult(
         @PathVariable applicationId: String?,
     ): ResponseEntity<CalculationResponse> {
         return try {
@@ -148,7 +149,7 @@ class ApplicationQueryController(
     }
 
     @GetMapping("/applications/{applicationId}/calculations/history")
-    fun getCalculationHistory(
+    override fun getCalculationHistory(
         @PathVariable applicationId: String?,
     ): ResponseEntity<CalculationHistoryResponse> {
         return try {
