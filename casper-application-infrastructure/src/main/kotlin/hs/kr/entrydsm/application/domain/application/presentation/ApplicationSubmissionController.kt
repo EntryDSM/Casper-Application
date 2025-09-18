@@ -4,6 +4,7 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.request.Ap
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationSubmissionResponse
 import hs.kr.entrydsm.application.domain.application.usecase.CompleteApplicationUseCase
 import hs.kr.entrydsm.application.global.document.application.ApplicationSubmissionApiDocument
+import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,6 +17,7 @@ import java.time.LocalDateTime
 @RequestMapping("/api/v1")
 class ApplicationSubmissionController(
     private val completeApplicationUseCase: CompleteApplicationUseCase,
+    private val securityContract: SecurityContract,
 ) : ApplicationSubmissionApiDocument {
     @PostMapping("/applications")
     override fun submitApplication(
@@ -26,9 +28,8 @@ class ApplicationSubmissionController(
                 return createErrorResponse("요청 데이터가 없습니다", HttpStatus.BAD_REQUEST)
             }
 
-            if (request.userId.isBlank()) {
-                return createErrorResponse("사용자 ID가 필요합니다", HttpStatus.BAD_REQUEST)
-            }
+            // SecurityContract를 통해 현재 사용자 ID 추출
+            val userId = securityContract.getCurrentUserId()
 
             if (request.application.isEmpty()) {
                 return createErrorResponse("원서 정보가 필요합니다", HttpStatus.BAD_REQUEST)
@@ -36,12 +37,6 @@ class ApplicationSubmissionController(
 
             if (request.scores.isEmpty()) {
                 return createErrorResponse("성적 정보가 필요합니다", HttpStatus.BAD_REQUEST)
-            }
-
-            try {
-                java.util.UUID.fromString(request.userId)
-            } catch (e: IllegalArgumentException) {
-                return createErrorResponse("올바르지 않은 사용자 ID 형식입니다", HttpStatus.BAD_REQUEST)
             }
 
             val applicationType = request.application["applicationType"]
@@ -55,7 +50,7 @@ class ApplicationSubmissionController(
                 return createErrorResponse("학력 상태가 필요합니다", HttpStatus.BAD_REQUEST)
             }
 
-            val response = completeApplicationUseCase.execute(request)
+            val response = completeApplicationUseCase.execute(userId, request)
             ResponseEntity.status(HttpStatus.CREATED).body(response)
         } catch (e: IllegalArgumentException) {
             createErrorResponse(e.message ?: "잘못된 요청 파라미터입니다", HttpStatus.BAD_REQUEST)

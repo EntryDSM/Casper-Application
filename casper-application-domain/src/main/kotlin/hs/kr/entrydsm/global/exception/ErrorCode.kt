@@ -395,6 +395,10 @@ enum class ErrorCode(val code: String, val description: String) {
     // School 도메인 오류 (SCH)
     SCHOOL_INVALID_TYPE("SCH001", "유효하지 않은 학교 유형입니다"),
 
+    // Security 도메인 오류 (SEC)
+    SECURITY_INVALID_TOKEN("SEC001", "유효하지 않은 인증 토큰입니다"),
+    SECURITY_UNAUTHENTICATED("SEC002", "인증되지 않은 사용자입니다"),
+
     //feign error
     FEIGN_SERVER_ERROR("FGN001", "외부 API 서버 오류가 발생했습니다"),
 
