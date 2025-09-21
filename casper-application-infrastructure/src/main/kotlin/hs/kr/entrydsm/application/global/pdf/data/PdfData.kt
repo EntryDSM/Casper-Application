@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.data
+package hs.kr.entrydsm.application.global.pdf.data
 
 /**
  * PDF 템플릿에서 사용할 데이터를 담는 클래스입니다.

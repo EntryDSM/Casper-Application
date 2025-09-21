@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.data
+package hs.kr.entrydsm.application.global.pdf.data
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType

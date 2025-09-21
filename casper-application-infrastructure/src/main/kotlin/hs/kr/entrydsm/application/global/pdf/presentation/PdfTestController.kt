@@ -1,7 +1,7 @@
-package hs.kr.entrydsm.application.global.document.pdf.presentation
+package hs.kr.entrydsm.application.global.pdf.presentation
 
-import hs.kr.entrydsm.application.global.document.pdf.generator.ApplicationPdfGenerator
-import hs.kr.entrydsm.application.global.document.pdf.generator.IntroductionPdfGenerator
+import hs.kr.entrydsm.application.global.pdf.generator.ApplicationPdfGenerator
+import hs.kr.entrydsm.application.global.pdf.generator.IntroductionPdfGenerator
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus

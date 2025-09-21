@@ -1,12 +1,12 @@
-package hs.kr.entrydsm.application.global.document.pdf.generator
+package hs.kr.entrydsm.application.global.pdf.generator
 
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.utils.PdfMerger
 import com.itextpdf.layout.Document
-import hs.kr.entrydsm.application.global.document.pdf.data.PdfDataConverter
-import hs.kr.entrydsm.application.global.document.pdf.data.TemplateFileName
-import hs.kr.entrydsm.application.global.document.pdf.facade.PdfDocumentFacade
+import hs.kr.entrydsm.application.global.pdf.data.PdfDataConverter
+import hs.kr.entrydsm.application.global.pdf.data.TemplateFileName
+import hs.kr.entrydsm.application.global.pdf.facade.PdfDocumentFacade
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
