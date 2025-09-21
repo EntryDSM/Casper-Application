@@ -86,6 +86,18 @@ class SchoolPersistenceAdapter(
     }
 
     /**
+     * 여러 학교 코드로 학교 목록을 조회합니다.
+     *
+     * @param schoolCodes 학교 코드 목록
+     * @return 학교 정보 목록
+     */
+    override fun querySchoolsByCodes(schoolCodes: List<String>): List<School> {
+        return schoolCodes.mapNotNull { schoolCode ->
+            querySchoolBySchoolCode(schoolCode)
+        }
+    }
+
+    /**
      * 학교 정보를 캐시에 저장합니다.
      *
      * @param school 학교 정보
