@@ -7,6 +7,7 @@ import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.status.interfaces.StatusContract
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import java.util.UUID
 
 /**
  * Application 도메인의 퍼시스턴스 어댑터입니다.
@@ -20,6 +21,19 @@ class ApplicationPersistenceAdapter(
     private val applicationMapper: ApplicationMapper,
     private val statusContract: StatusContract,
 ) : ApplicationContract {
+
+    /**
+     * 사용자 ID로 원서 정보를 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 해당 사용자의 원서 정보, 없으면 null
+     */
+    override fun getApplicationByUserId(userId: UUID): Application? {
+        return applicationJpaRepository.findAllByUserId(userId)
+            .firstOrNull()
+            ?.let { applicationMapper.toModel(it) }
+    }
+
     /**
      * 1차 전형 합격 Application을 모두 조회합니다.
      *
@@ -40,5 +54,15 @@ class ApplicationPersistenceAdapter(
                     }
                 }
         }
+    }
+
+    /**
+     * 제출된 모든 원서를 조회합니다.
+     *
+     * @return 제출된 모든 원서 목록
+     */
+    fun querySubmittedApplications(): List<Application> {
+        return applicationJpaRepository.findAll()
+            .map { applicationMapper.toModel(it) }
     }
 }
