@@ -26,18 +26,18 @@ class AdminController(
     private val adminUseCase: AdminUseCase,
     private val getIntroductionPdfUseCase: GetIntroductionPdfUseCase
 ) : AdminApiDocument {
-    
+
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
-    override fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray> {
+    override suspend fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray> {
         val pdfBytes = getIntroductionPdfUseCase.execute()
-        
+
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
-        
+
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
             .body(pdfBytes)
     }
-    
+
     private fun encodeFileName(): String {
         val fileName = "introduction"
         return String(fileName.toByteArray(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1)

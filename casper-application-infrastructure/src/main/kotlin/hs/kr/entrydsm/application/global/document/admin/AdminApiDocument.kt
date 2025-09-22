@@ -42,7 +42,7 @@ interface AdminApiDocument {
             )
         ]
     )
-    fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray>
+    suspend fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray>
 
     @Operation(summary = "전형 타입 생성", description = "새로운 전형 타입을 생성합니다.")
     @ApiResponses(
