@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.data
+package hs.kr.entrydsm.application.global.pdf.data
 
 /**
  * PDF 생성에 사용되는 템플릿 파일명을 정의하는 객체입니다.

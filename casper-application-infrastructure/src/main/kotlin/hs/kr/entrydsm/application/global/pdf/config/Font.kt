@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.config
+package hs.kr.entrydsm.application.global.pdf.config
 
 /**
  * PDF 생성 시 사용할 폰트 설정을 관리하는 객체입니다.

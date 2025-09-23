@@ -1,7 +1,7 @@
-package hs.kr.entrydsm.application.global.document.pdf.generator
+package hs.kr.entrydsm.application.global.pdf.generator
 
 import com.itextpdf.html2pdf.HtmlConverter
-import hs.kr.entrydsm.application.global.document.pdf.config.ConverterPropertiesCreator
+import hs.kr.entrydsm.application.global.pdf.config.ConverterPropertiesCreator
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 

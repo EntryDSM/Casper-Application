@@ -1,13 +1,14 @@
-package hs.kr.entrydsm.application.global.document.pdf.generator
+package hs.kr.entrydsm.application.global.pdf.generator
 
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.utils.PdfMerger
 import com.itextpdf.layout.Document
-import hs.kr.entrydsm.application.global.document.pdf.data.PdfDataConverter
-import hs.kr.entrydsm.application.global.document.pdf.data.TemplateFileName
-import hs.kr.entrydsm.application.global.document.pdf.facade.PdfDocumentFacade
+import hs.kr.entrydsm.application.global.pdf.data.PdfDataConverter
+import hs.kr.entrydsm.application.global.pdf.data.TemplateFileName
+import hs.kr.entrydsm.application.global.pdf.facade.PdfDocumentFacade
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
@@ -26,7 +27,7 @@ class ApplicationPdfGenerator(
     private val pdfDataConverter: PdfDataConverter,
     private val templateProcessor: TemplateProcessor,
     private val pdfDocumentFacade: PdfDocumentFacade,
-) {
+) : ApplicationPdfGeneratorContract {
     /**
      * 지원서 PDF를 생성합니다.
      *
@@ -34,7 +35,7 @@ class ApplicationPdfGenerator(
      * @param score Score 도메인 (현재 더미값 사용)
      * @return 생성된 PDF 바이트 배열
      */
-    fun generate(
+    override fun generate(
         application: Application,
         score: Any, // TODO: Score 도메인이 없어서 더미값 사용
     ): ByteArray {

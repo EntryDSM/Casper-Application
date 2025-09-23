@@ -14,12 +14,35 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * 어드민 관련 API 문서화를 위한 인터페이스입니다.
  */
 @Tag(name = "어드민 API", description = "어드민 관련 API")
 interface AdminApiDocument {
+
+    @Operation(summary = "자기소개서 PDF 조회", description = "1차 합격자들의 자기소개서를 하나의 PDF로 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "자기소개서 PDF 생성 성공",
+                content = [
+                    Content(
+                        mediaType = "application/pdf",
+                        schema = Schema(type = "string", format = "binary")
+                    )
+                ]
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "PDF 생성 실패",
+                content = [Content(schema = Schema(hidden = true))]
+            )
+        ]
+    )
+    suspend fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray>
 
     @Operation(summary = "전형 타입 생성", description = "새로운 전형 타입을 생성합니다.")
     @ApiResponses(

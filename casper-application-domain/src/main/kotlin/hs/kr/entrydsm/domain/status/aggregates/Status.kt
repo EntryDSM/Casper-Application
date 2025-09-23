@@ -24,4 +24,12 @@ data class Status(
     val isFirstRoundPass: Boolean = false,
     val isSecondRoundPass: Boolean = false,
     val receiptCode: Long,
-)
+) {
+    /**
+     * 원서가 제출되었는지 여부를 확인합니다.
+     * SUBMITTED 이상의 상태일 때 제출된 것으로 간주합니다.
+     */
+    val isSubmitted: Boolean
+        get() = applicationStatus != ApplicationStatus.NOT_APPLIED && 
+                applicationStatus != ApplicationStatus.WRITING
+}

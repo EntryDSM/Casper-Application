@@ -46,6 +46,18 @@ class StatusPersistenceAdapter(
         }
 
     /**
+     * 여러 접수번호로 원서 상태 목록을 조회합니다.
+     *
+     * @param receiptCodes 조회할 접수번호 목록
+     * @return 조회된 상태 정보 목록
+     */
+    override fun queryStatusesByReceiptCodes(receiptCodes: List<Long>): List<Status> {
+        return receiptCodes.mapNotNull { receiptCode ->
+            queryStatusByReceiptCode(receiptCode)
+        }
+    }
+
+    /**
      * 캐시에서 접수번호로 원서 상태를 조회합니다.
      *
      * Redis 캐시 저장소에서 해당 접수번호의 상태 정보를 조회하여

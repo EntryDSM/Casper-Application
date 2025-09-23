@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.generator
+package hs.kr.entrydsm.application.global.pdf.generator
 
 import org.springframework.stereotype.Component
 import org.thymeleaf.TemplateEngine

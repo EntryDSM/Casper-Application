@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.config
+package hs.kr.entrydsm.application.global.pdf.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

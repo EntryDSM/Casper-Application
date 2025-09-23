@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.data
+package hs.kr.entrydsm.application.global.pdf.data
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
@@ -162,11 +162,32 @@ class PdfDataConverter(
     ) {
         values.putAll(emptyGraduationClassification())
 
-        // TODO: 졸업정보 도메인이 없어서 더미값 사용
-        val yearMonth = YearMonth.now()
-        values["graduateYear"] = yearMonth.year.toString()
-        values["graduateMonth"] = yearMonth.monthValue.toString()
-        values["educationalStatus"] = "${yearMonth.year}년 ${yearMonth.monthValue}월 중학교 졸업"
+        val currentYear = LocalDate.now().year
+        val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8 // 2월/8월 졸업
+        
+        when (application.educationalStatus) {
+            "졸업" -> {
+                values["graduateYear"] = currentYear.toString()
+                values["graduateMonth"] = graduationMonth.toString()
+                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 중학교 졸업"
+            }
+            "졸업예정" -> {
+                val graduateYear = currentYear + 1
+                values["prospectiveGraduateYear"] = graduateYear.toString()
+                values["prospectiveGraduateMonth"] = "2"
+                values["educationalStatus"] = "${graduateYear}년 2월 중학교 졸업예정"
+            }
+            "검정고시" -> {
+                values["qualificationExamPassedYear"] = currentYear.toString()
+                values["qualificationExamPassedMonth"] = graduationMonth.toString()
+                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 검정고시 합격"
+            }
+            else -> {
+                values["graduateYear"] = currentYear.toString()
+                values["graduateMonth"] = graduationMonth.toString()
+                values["educationalStatus"] = application.educationalStatus ?: "중학교 졸업"
+            }
+        }
     }
 
     private fun setUserType(
@@ -175,26 +196,31 @@ class PdfDataConverter(
     ) {
         val isDaejeon = application.isDaejeon ?: false
         val isCommon = application.applicationType == ApplicationType.COMMON
+        val isSocial = application.applicationType == ApplicationType.SOCIAL
+        
+        val isQualificationExam = application.educationalStatus == "검정고시"
+        val isGraduate = application.educationalStatus == "졸업"
+        val isProspectiveGraduate = application.educationalStatus == "졸업예정"
 
         val list =
             listOf(
-                "isQualificationExam" to false, // TODO: 검정고시 정보 도메인 없어서 더미값
-                "isGraduate" to true, // TODO: 졸업정보 도메인 없어서 더미값
-                "isProspectiveGraduate" to false, // TODO: 졸업정보 도메인 없어서 더미값
+                "isQualificationExam" to isQualificationExam,
+                "isGraduate" to isGraduate,
+                "isProspectiveGraduate" to isProspectiveGraduate,
                 "isDaejeon" to isDaejeon,
                 "isNotDaejeon" to !isDaejeon,
-                "isBasicLiving" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isFromNorth" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isLowestIncome" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isMulticultural" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isOneParent" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isTeenHouseholder" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isPrivilegedAdmission" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isNationalMerit" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
-                "isProtectedChildren" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
+                "isBasicLiving" to isSocial, // 사회통합전형인 경우 사회적배려 대상자로 추정
+                "isFromNorth" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isLowestIncome" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isMulticultural" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isOneParent" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isTeenHouseholder" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isPrivilegedAdmission" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isNationalMerit" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isProtectedChildren" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
                 "isCommon" to isCommon,
                 "isMeister" to (application.applicationType == ApplicationType.MEISTER),
-                "isSocialMerit" to (application.applicationType == ApplicationType.SOCIAL),
+                "isSocialMerit" to isSocial,
             )
 
         list.forEach { (key, value) ->
