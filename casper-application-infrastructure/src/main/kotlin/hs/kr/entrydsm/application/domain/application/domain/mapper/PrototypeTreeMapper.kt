@@ -204,8 +204,7 @@ class PrototypeTreeMapper(
             val groupName = groupNode.nodeName
             val fieldNodes =
                 nodeEntities.filter {
-                    it.nodeLevel == 3 && it.nodeType == NodeType.FIELD &&
-                        nodeEntities.any { parent -> parent.nodeId == it.parentNodeId && parent.nodeId == groupNode.nodeId }
+                    it.nodeLevel == 3 && it.nodeType == NodeType.FIELD && it.parentNodeId == groupNode.nodeId
                 }
 
             val fields = mutableMapOf<String, FieldDefinition>()
