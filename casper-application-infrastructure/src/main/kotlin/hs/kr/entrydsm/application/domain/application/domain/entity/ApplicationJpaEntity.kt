@@ -51,7 +51,7 @@ class ApplicationJpaEntity(
     @get:JvmName("getIsOutOfHeadcount")
     var isOutOfHeadcount: Boolean?,
     @Column(columnDefinition = "TEXT")
-    val photoPath: String?,
+    var photoPath: String?,
     val parentRelation: String?,
     val postalCode: String?,
     val detailAddress: String?,

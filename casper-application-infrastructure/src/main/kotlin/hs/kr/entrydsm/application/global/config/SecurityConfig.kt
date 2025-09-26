@@ -44,9 +44,10 @@ class SecurityConfig(
                     .requestMatchers("/webjars/**").permitAll()
                     .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
+                    .requestMatchers("/photo").hasRole(UserRole.USER.name)
                     .anyRequest().authenticated()
             }
-            .apply(filterConfig)
+            .with(filterConfig) { }
 
         return http.build()
     }
