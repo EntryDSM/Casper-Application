@@ -18,18 +18,18 @@ class FileUploadUseCase(
     @Transactional
     fun execute(file: File): String {
         val userId = securityAdapter.getCurrentUserId()
-        val photoUrl = uploadFilePort.upload(file, PathList.PHOTO)
+        val photo = uploadFilePort.upload(file, PathList.PHOTO)
 
         photoJpaRepository.findByUserId(userId)?.apply {
-            photo = photoUrl
+            this.photo = photo
             photoJpaRepository.save(this)
         } ?: photoJpaRepository.save(
             PhotoJpaEntity(
                 userId = userId,
-                photo = photoUrl
+                photo = photo
             )
         )
 
-        return photoUrl
+        return photo
     }
 }
