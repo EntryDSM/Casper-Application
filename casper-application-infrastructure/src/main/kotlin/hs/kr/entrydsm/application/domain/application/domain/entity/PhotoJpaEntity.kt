@@ -11,7 +11,6 @@ import java.util.UUID
 class PhotoJpaEntity(
     @Id
     val userId: UUID,
-
     @Column(name = "photo_path", nullable = false)
     var photo: String,
 )

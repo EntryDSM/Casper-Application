@@ -18,35 +18,41 @@ import java.util.Date
 @Component
 class AwsS3Adapter(
     private val amazonS3Client: AmazonS3Client,
-    private val awsProperties: AwsProperties
+    private val awsProperties: AwsProperties,
 ) : UploadFilePort, GenerateFileUrlPort {
-
     companion object {
         const val EXP_TIME = 1000 * 60 * 2
     }
 
-    override fun upload(file: File, path: String): String {
+    override fun upload(
+        file: File,
+        path: String,
+    ): String {
         runCatching { inputS3(file, path) }
             .also { file.delete() }
 
         return getS3Url(file.name)
     }
 
-    private fun inputS3(file: File, path: String) {
+    private fun inputS3(
+        file: File,
+        path: String,
+    ) {
         try {
             val inputStream = file.inputStream()
-            val objectMetadata = ObjectMetadata().apply {
-                contentLength = file.length()
-                contentType = Mimetypes.getInstance().getMimetype(file)
-            }
+            val objectMetadata =
+                ObjectMetadata().apply {
+                    contentLength = file.length()
+                    contentType = Mimetypes.getInstance().getMimetype(file)
+                }
 
             amazonS3Client.putObject(
                 PutObjectRequest(
                     awsProperties.bucket,
                     path,
                     inputStream,
-                    objectMetadata
-                ).withCannedAcl(CannedAccessControlList.PublicRead)
+                    objectMetadata,
+                ).withCannedAcl(CannedAccessControlList.PublicRead),
             )
         } catch (e: IOException) {
             throw FileExceptions.IOInterrupted()
@@ -57,15 +63,19 @@ class AwsS3Adapter(
         return amazonS3Client.getUrl(awsProperties.bucket, fileName).toString()
     }
 
-    override fun generateFileUrl(fileName: String, path: String): String {
-        val expiration = Date().apply {
-            time += EXP_TIME
-        }
+    override fun generateFileUrl(
+        fileName: String,
+        path: String,
+    ): String {
+        val expiration =
+            Date().apply {
+                time += EXP_TIME
+            }
         return amazonS3Client.generatePresignedUrl(
             GeneratePresignedUrlRequest(
                 awsProperties.bucket,
-                "${path}$fileName"
-            ).withMethod(HttpMethod.GET).withExpiration(expiration)
+                "${path}$fileName",
+            ).withMethod(HttpMethod.GET).withExpiration(expiration),
         ).toString()
     }
 }

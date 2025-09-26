@@ -3,8 +3,8 @@ package hs.kr.entrydsm.application.domain.application.usecase
 import hs.kr.entrydsm.application.domain.application.domain.entity.PhotoJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
-import hs.kr.entrydsm.domain.file.spi.UploadFilePort
 import hs.kr.entrydsm.domain.file.`object`.PathList
+import hs.kr.entrydsm.domain.file.spi.UploadFilePort
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -26,8 +26,8 @@ class FileUploadUseCase(
         } ?: photoJpaRepository.save(
             PhotoJpaEntity(
                 userId = userId,
-                photo = photo
-            )
+                photo = photo,
+            ),
         )
 
         return photo

@@ -12,13 +12,16 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/photo")
 @RestController
 class FileController(
-    private val fileUploadUseCase: FileUploadUseCase
+    private val fileUploadUseCase: FileUploadUseCase,
 ) {
     @PostMapping
-    fun uploadPhoto(@RequestPart(name = "image") file: MultipartFile): ResponseEntity<Map<String, String>> {
-        val photoUrl = fileUploadUseCase.execute(
-            file.let(ImageFileConverter::transferTo)
-        )
+    fun uploadPhoto(
+        @RequestPart(name = "image") file: MultipartFile,
+    ): ResponseEntity<Map<String, String>> {
+        val photoUrl =
+            fileUploadUseCase.execute(
+                file.let(ImageFileConverter::transferTo),
+            )
         return ResponseEntity.ok(mapOf("fileName" to photoUrl))
     }
 }

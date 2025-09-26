@@ -18,34 +18,33 @@ import org.springframework.web.bind.annotation.RequestBody
  */
 @Tag(name = "원서 제출 API", description = "원서 제출 관련 API")
 interface ApplicationSubmissionApiDocument {
-
     @Operation(summary = "원서 제출", description = "새로운 원서를 제출합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "201",
                 description = "원서 제출 성공",
-                content = [Content(schema = Schema(implementation = ApplicationSubmissionResponse::class))]
+                content = [Content(schema = Schema(implementation = ApplicationSubmissionResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "요청한 리소스를 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun submitApplication(
         @RequestBody request: ApplicationSubmissionRequest?,
-        @AuthenticationPrincipal userDetails: UserDetails
+        @AuthenticationPrincipal userDetails: UserDetails,
     ): ResponseEntity<ApplicationSubmissionResponse>
 }

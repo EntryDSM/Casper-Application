@@ -20,26 +20,25 @@ import org.springframework.web.bind.annotation.RequestBody
  */
 @Tag(name = "어드민 API", description = "어드민 관련 API")
 interface AdminApiDocument {
-
     @Operation(summary = "전형 타입 생성", description = "새로운 전형 타입을 생성합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
                 description = "전형 타입 생성 성공",
-                content = [Content(schema = Schema(implementation = CreateApplicationTypeResponse::class))]
+                content = [Content(schema = Schema(implementation = CreateApplicationTypeResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun createApplicationType(
         @RequestBody request: CreateApplicationTypeRequest,
@@ -51,19 +50,19 @@ interface AdminApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "학력 상태 생성 성공",
-                content = [Content(schema = Schema(implementation = CreateEducationalStatusResponse::class))]
+                content = [Content(schema = Schema(implementation = CreateEducationalStatusResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun createEducationalStatus(
         @RequestBody request: CreateEducationalStatusRequest,
@@ -75,19 +74,19 @@ interface AdminApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "프로토타입 생성 성공",
-                content = [Content(schema = Schema(implementation = CreatePrototypeResponse::class))]
+                content = [Content(schema = Schema(implementation = CreatePrototypeResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun createPrototype(
         @RequestBody request: CreatePrototypeRequest,

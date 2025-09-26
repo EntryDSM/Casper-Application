@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class FilterConfig : SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>() {
-    
     override fun configure(builder: HttpSecurity) {
         builder.addFilterBefore(
             JwtFilter(),

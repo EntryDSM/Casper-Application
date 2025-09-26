@@ -18,7 +18,10 @@ class CompleteApplicationUseCase(
     private val calculator: Calculator,
     private val applicationPersistenceService: ApplicationPersistenceService,
 ) {
-    fun execute(userId: UUID, request: ApplicationSubmissionRequest): ApplicationSubmissionResponse {
+    fun execute(
+        userId: UUID,
+        request: ApplicationSubmissionRequest,
+    ): ApplicationSubmissionResponse {
         val applicationType = request.application["applicationType"] as String
         val educationalStatus = request.application["educationalStatus"] as String
         val region = request.application["region"] as? String

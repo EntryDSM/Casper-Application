@@ -31,7 +31,7 @@ class ApplicationQueryUseCase(
     private val objectMapper: ObjectMapper,
     private val photoJpaRepository: PhotoJpaRepository,
     private val securityAdapter: SecurityAdapter,
-    private val generateFileUrlPort: GenerateFileUrlPort
+    private val generateFileUrlPort: GenerateFileUrlPort,
 ) {
     fun getApplicationById(applicationId: String): ApplicationDetailResponse {
         val uuid = UUID.fromString(applicationId)
@@ -61,7 +61,7 @@ class ApplicationQueryUseCase(
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
-                    photoPath = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO)
+                    photoPath = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
                 ),
         )
     }

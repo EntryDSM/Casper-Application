@@ -10,5 +10,4 @@ import org.springframework.data.repository.CrudRepository
  * 기본적인 CRUD 연산을 제공합니다.
  * 접수번호(Long)를 Primary Key로 사용합니다.
  */
-interface StatusCacheRepository : CrudRepository<StatusCacheRedisEntity, Long> {
-}
+interface StatusCacheRepository : CrudRepository<StatusCacheRedisEntity, Long>

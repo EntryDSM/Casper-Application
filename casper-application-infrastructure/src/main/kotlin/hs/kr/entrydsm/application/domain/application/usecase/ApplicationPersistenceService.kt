@@ -186,9 +186,10 @@ class ApplicationPersistenceService(
 
     private fun validateAndGetApplicationType(typeCode: String): String {
         // DB에서 해당 타입 코드가 존재하고 활성화되어 있는지 검증
-        val applicationTypeEntity = applicationTypeRepository.findByCodeAndActiveTrue(typeCode)
-            ?: throw IllegalArgumentException("Invalid or inactive application type: $typeCode")
-        
+        val applicationTypeEntity =
+            applicationTypeRepository.findByCodeAndActiveTrue(typeCode)
+                ?: throw IllegalArgumentException("Invalid or inactive application type: $typeCode")
+
         return applicationTypeEntity.code
     }
 

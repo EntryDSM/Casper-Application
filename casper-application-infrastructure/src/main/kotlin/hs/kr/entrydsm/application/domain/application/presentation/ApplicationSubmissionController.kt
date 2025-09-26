@@ -24,7 +24,7 @@ class ApplicationSubmissionController(
     @PostMapping("/applications")
     override fun submitApplication(
         @RequestBody request: ApplicationSubmissionRequest?,
-        @AuthenticationPrincipal userDetails: UserDetails
+        @AuthenticationPrincipal userDetails: UserDetails,
     ): ResponseEntity<ApplicationSubmissionResponse> {
         return try {
             if (request == null) {

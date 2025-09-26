@@ -15,9 +15,8 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(AwsProperties::class, AwsCredentialsProperties::class)
 class AwsS3Config(
     private val awsCredentialsProperties: AwsCredentialsProperties,
-    private val awsRegionProperties: AwsRegionProperties
+    private val awsRegionProperties: AwsRegionProperties,
 ) {
-
     @Bean
     fun amazonS3Client(): AmazonS3Client {
         val credentials = BasicAWSCredentials(awsCredentialsProperties.accessKey, awsCredentialsProperties.secretKey)
