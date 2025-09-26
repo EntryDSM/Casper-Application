@@ -91,7 +91,7 @@ class PrintApplicationInfoGenerator {
         status: Status?,
     ) {
         row.createCell(0).setCellValue(application.receiptCode.toString())
-        row.createCell(1).setCellValue(translateApplicationType(application.applicationType?.name))
+        row.createCell(1).setCellValue(translateApplicationType(application.applicationType))
         row.createCell(2).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
         row.createCell(3).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
         row.createCell(4).setCellValue(application.applicantName)

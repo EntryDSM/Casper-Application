@@ -393,7 +393,7 @@ class PrintApplicationCheckListGenerator {
         getCell(dh + 1, 3).setCellValue(school?.name ?: "")
         getCell(dh + 1, 6).setCellValue(application.educationalStatus)
         getCell(dh + 1, 7).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
-        getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
+        getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType))
         getCell(dh + 3, 2).setCellValue(application.applicantName)
         getCell(dh + 3, 6).setCellValue("30315") // TODO: 학번 정보 도메인 없어서 더미값
         getCell(dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")

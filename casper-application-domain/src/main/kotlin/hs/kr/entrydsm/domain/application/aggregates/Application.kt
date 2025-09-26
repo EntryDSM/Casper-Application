@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.domain.application.aggregates
 
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import hs.kr.entrydsm.global.annotation.aggregates.Aggregate
 import java.time.LocalDateTime
@@ -16,7 +15,7 @@ data class Application(
     val parentName: String?,
     val parentTel: String?,
     val birthDate: String?,
-    val applicationType: ApplicationType,
+    val applicationType: String,
     val educationalStatus: String,
     val status: ApplicationStatus,
     val streetAddress: String?,

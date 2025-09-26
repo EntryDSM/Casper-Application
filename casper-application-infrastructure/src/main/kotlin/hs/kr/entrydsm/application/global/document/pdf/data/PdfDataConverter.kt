@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.application.global.document.pdf.data
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -117,7 +116,7 @@ class PdfDataConverter(
         values["birthday"] = application.birthDate ?: ""
 
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
-        values["applicationType"] = application.applicationType.name
+//        values["applicationType"] = application.applicationType.name
         values["applicationRemark"] = "해당없음"
     }
 
@@ -174,7 +173,7 @@ class PdfDataConverter(
         values: MutableMap<String, Any>,
     ) {
         val isDaejeon = application.isDaejeon ?: false
-        val isCommon = application.applicationType == ApplicationType.COMMON
+        val isCommon = application.applicationType == "COMMON"
 
         val list =
             listOf(
@@ -193,8 +192,8 @@ class PdfDataConverter(
                 "isNationalMerit" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
                 "isProtectedChildren" to false, // TODO: 사회적배려 정보 도메인 없어서 더미값
                 "isCommon" to isCommon,
-                "isMeister" to (application.applicationType == ApplicationType.MEISTER),
-                "isSocialMerit" to (application.applicationType == ApplicationType.SOCIAL),
+                "isMeister" to (application.applicationType == "MEISTER"),
+                "isSocialMerit" to (application.applicationType == "SOCIAL"),
             )
 
         list.forEach { (key, value) ->
@@ -297,8 +296,8 @@ class PdfDataConverter(
         values: MutableMap<String, Any>,
     ) {
         val isDaejeon = application.isDaejeon ?: false
-        val isMeister = application.applicationType == ApplicationType.MEISTER
-        val isSocialMerit = application.applicationType == ApplicationType.SOCIAL
+        val isMeister = application.applicationType == "MEISTER"
+        val isSocialMerit = application.applicationType == "SOCIAL"
 
         values["isDaejeonAndMeister"] = markIfTrue(isDaejeon && isMeister)
         values["isDaejeonAndSocialMerit"] = markIfTrue(isDaejeon && isSocialMerit)

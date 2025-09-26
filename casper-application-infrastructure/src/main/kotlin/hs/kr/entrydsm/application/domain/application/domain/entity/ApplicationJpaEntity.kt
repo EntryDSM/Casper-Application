@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.application.domain.application.domain.entity
 
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -33,7 +32,7 @@ class ApplicationJpaEntity(
     @Column(name = "birth_date")
     val birthDate: String?,
     @Column(name = "application_type", nullable = false, length = 50)
-    val applicationType: ApplicationType,
+    val applicationType: String,
     @Column(name = "educational_status", nullable = false, length = 50)
     val educationalStatus: String,
     @Enumerated(EnumType.STRING)
@@ -77,7 +76,7 @@ class ApplicationJpaEntity(
         parentName = null,
         parentTel = null,
         birthDate = null,
-        applicationType = ApplicationType.COMMON,
+        applicationType = "COMMON",
         educationalStatus = "",
         status = ApplicationStatus.SUBMITTED,
         submittedAt = LocalDateTime.now(),

@@ -8,6 +8,7 @@ import hs.kr.entrydsm.application.domain.application.domain.entity.CalculationSt
 import hs.kr.entrydsm.application.domain.application.domain.entity.enums.ScoreType
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationScoreJpaRepository
+import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationTypeJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationResultJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationStepJpaRepository
 import hs.kr.entrydsm.domain.calculator.values.CalculationResult
@@ -23,6 +24,7 @@ class ApplicationPersistenceService(
     private val scoreRepository: ApplicationScoreJpaRepository,
     private val calculationResultRepository: CalculationResultJpaRepository,
     private val calculationStepRepository: CalculationStepJpaRepository,
+    private val applicationTypeRepository: ApplicationTypeJpaRepository,
     private val objectMapper: ObjectMapper,
 ) {
     fun saveApplication(
@@ -41,7 +43,7 @@ class ApplicationPersistenceService(
                 parentName = extractStringValue(applicationData, "parentName"),
                 parentTel = extractStringValue(applicationData, "parentTel"),
                 birthDate = extractStringValue(applicationData, "birthDate"),
-                applicationType = hs.kr.entrydsm.domain.application.values.ApplicationType.valueOf(extractStringValue(applicationData, "applicationType") ?: "COMMON"),
+                applicationType = validateAndGetApplicationType(extractStringValue(applicationData, "applicationType") ?: "COMMON"),
                 educationalStatus = extractStringValue(applicationData, "educationalStatus") ?: "UNKNOWN",
                 status = ApplicationStatus.SUBMITTED,
                 submittedAt = LocalDateTime.now(),
@@ -181,6 +183,14 @@ class ApplicationPersistenceService(
         val variables: Map<String, Any>,
         val executionTimeMs: Long,
     )
+
+    private fun validateAndGetApplicationType(typeCode: String): String {
+        // DB에서 해당 타입 코드가 존재하고 활성화되어 있는지 검증
+        val applicationTypeEntity = applicationTypeRepository.findByCodeAndActiveTrue(typeCode)
+            ?: throw IllegalArgumentException("Invalid or inactive application type: $typeCode")
+        
+        return applicationTypeEntity.code
+    }
 
     private fun extractStringValue(
         data: Map<String, Any>,

@@ -3,7 +3,6 @@ package hs.kr.entrydsm.application.global.document.pdf.presentation
 import hs.kr.entrydsm.application.global.document.pdf.generator.ApplicationPdfGenerator
 import hs.kr.entrydsm.application.global.document.pdf.generator.IntroductionPdfGenerator
 import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -32,7 +31,7 @@ class PdfTestController(
                 parentName = "테스트학부모",
                 parentTel = "01087654321",
                 birthDate = "2005-03-15",
-                applicationType = ApplicationType.COMMON,
+                applicationType = "COMMON",
                 educationalStatus = "졸업예정",
                 status = ApplicationStatus.SUBMITTED,
                 streetAddress = "테스트주소",
@@ -76,7 +75,7 @@ class PdfTestController(
                 parentName = "테스트학부모",
                 parentTel = "01087654321",
                 birthDate = "2005-03-15",
-                applicationType = ApplicationType.COMMON,
+                applicationType = "COMMON",
                 educationalStatus = "졸업예정",
                 status = ApplicationStatus.SUBMITTED,
                 streetAddress = "테스트주소",

@@ -7,6 +7,8 @@ import hs.kr.entrydsm.application.global.document.application.ApplicationSubmiss
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,6 +24,7 @@ class ApplicationSubmissionController(
     @PostMapping("/applications")
     override fun submitApplication(
         @RequestBody request: ApplicationSubmissionRequest?,
+        @AuthenticationPrincipal userDetails: UserDetails
     ): ResponseEntity<ApplicationSubmissionResponse> {
         return try {
             if (request == null) {

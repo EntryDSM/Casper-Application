@@ -8,7 +8,6 @@ import hs.kr.entrydsm.application.global.document.pdf.data.PdfDataConverter
 import hs.kr.entrydsm.application.global.document.pdf.data.TemplateFileName
 import hs.kr.entrydsm.application.global.document.pdf.facade.PdfDocumentFacade
 import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 import java.util.LinkedList
@@ -96,7 +95,7 @@ class ApplicationPdfGenerator(
             )
 
         // TODO: Score 도메인이 없어서 더미 조건으로 처리
-        if (application.applicationType != ApplicationType.COMMON) {
+        if (application.applicationType != "COMMON") {
             result.add(2, TemplateFileName.RECOMMENDATION)
         }
 
