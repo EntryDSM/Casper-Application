@@ -19,6 +19,6 @@ class FileController(
         val photoUrl = fileUploadUseCase.execute(
             file.let(ImageFileConverter::transferTo)
         )
-        return ResponseEntity.ok(mapOf("photo_url" to photoUrl))
+        return ResponseEntity.ok(mapOf("fileName" to photoUrl))
     }
 }
