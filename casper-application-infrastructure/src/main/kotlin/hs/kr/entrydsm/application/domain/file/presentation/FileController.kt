@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.domain.application.presentation
+package hs.kr.entrydsm.application.domain.file.presentation
 
 import hs.kr.entrydsm.application.domain.application.usecase.FileUploadUseCase
 import hs.kr.entrydsm.application.domain.file.presentation.converter.ImageFileConverter
