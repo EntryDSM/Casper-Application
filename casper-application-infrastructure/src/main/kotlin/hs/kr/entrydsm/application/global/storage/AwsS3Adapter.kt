@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.model.CannedAccessControlList
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
+import hs.kr.entrydsm.application.domain.file.presentation.exception.FileExceptions
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import hs.kr.entrydsm.domain.file.spi.UploadFilePort
 import org.springframework.stereotype.Component
@@ -28,7 +29,7 @@ class AwsS3Adapter(
         runCatching { inputS3(file, path) }
             .also { file.delete() }
 
-        return getS3Url(path)
+        return getS3Url(file.name)
     }
 
     private fun inputS3(file: File, path: String) {
@@ -48,12 +49,12 @@ class AwsS3Adapter(
                 ).withCannedAcl(CannedAccessControlList.PublicRead)
             )
         } catch (e: IOException) {
-            throw IllegalArgumentException("File Exception")
+            throw FileExceptions.IOInterrupted()
         }
     }
 
-    private fun getS3Url(path: String): String {
-        return amazonS3Client.getUrl(awsProperties.bucket, path).toString()
+    private fun getS3Url(fileName: String): String {
+        return amazonS3Client.getUrl(awsProperties.bucket, fileName).toString()
     }
 
     override fun generateFileUrl(fileName: String, path: String): String {
