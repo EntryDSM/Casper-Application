@@ -2,7 +2,8 @@ package hs.kr.entrydsm.application.domain.file.presentation
 
 import hs.kr.entrydsm.application.domain.application.usecase.FileUploadUseCase
 import hs.kr.entrydsm.application.domain.file.presentation.converter.ImageFileConverter
-import org.springframework.http.ResponseEntity
+import hs.kr.entrydsm.application.domain.file.presentation.dto.response.UploadPhotoResponse
+import hs.kr.entrydsm.application.global.document.file.FileApiDocument
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
@@ -13,15 +14,16 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 class FileController(
     private val fileUploadUseCase: FileUploadUseCase,
-) {
+) : FileApiDocument {
+
     @PostMapping
-    fun uploadPhoto(
+    override fun uploadPhoto(
         @RequestPart(name = "image") file: MultipartFile,
-    ): ResponseEntity<Map<String, String>> {
+    ): UploadPhotoResponse {
         val photoUrl =
             fileUploadUseCase.execute(
                 file.let(ImageFileConverter::transferTo),
             )
-        return ResponseEntity.ok(mapOf("fileName" to photoUrl))
+        return UploadPhotoResponse(fileName = photoUrl)
     }
 }
