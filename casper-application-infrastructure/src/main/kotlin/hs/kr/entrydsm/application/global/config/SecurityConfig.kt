@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
 
 /**
  * Spring Security 설정 클래스입니다.
@@ -30,8 +31,16 @@ class SecurityConfig(
     protected fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
-            .cors { }
-            .formLogin { it.disable() }
+            .cors { cors ->
+                cors.configurationSource { request ->
+                    val configuration = CorsConfiguration()
+                    configuration.allowedOriginPatterns = listOf("*")
+                    configuration.allowedMethods = listOf("*")
+                    configuration.allowedHeaders = listOf("*")
+                    configuration.allowCredentials = true
+                    configuration
+                }
+            }            .formLogin { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
