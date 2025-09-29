@@ -28,4 +28,7 @@ object TemplateFileName {
 
     /** 관리자용 소개서 템플릿 */
     const val ADMIN_INTRODUCTION = "admin_introduction"
+
+    /** 입학 동의서 템플릿 */
+    const val ENROLLMENT_AGREEMENT = "enrollment_agreement"
 }

@@ -93,6 +93,7 @@ class ApplicationPdfGenerator(
                     TemplateFileName.INTRODUCTION,
                     TemplateFileName.NON_SMOKING,
                     TemplateFileName.SMOKING_EXAMINE,
+                    TemplateFileName.ENROLLMENT_AGREEMENT,
                 ),
             )
 
