@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.domain.examcode.values
 
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 
 /**
  * 수험번호 생성을 위한 정보를 담는 값 객체입니다.
@@ -12,7 +11,7 @@ import hs.kr.entrydsm.domain.application.values.ApplicationType
  */
 data class ExamCodeInfo(
     val receiptCode: Long,
-    val applicationType: ApplicationType,
+    val applicationType: String,
     val distance: Int,
     var examCode: String? = null
 )

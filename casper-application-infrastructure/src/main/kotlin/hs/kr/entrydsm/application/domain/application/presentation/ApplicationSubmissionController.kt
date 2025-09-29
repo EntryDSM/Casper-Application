@@ -7,6 +7,8 @@ import hs.kr.entrydsm.application.global.document.application.ApplicationSubmiss
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,10 +21,12 @@ class ApplicationSubmissionController(
     private val completeApplicationUseCase: CompleteApplicationUseCase,
     private val securityContract: SecurityContract,
 ) : ApplicationSubmissionApiDocument {
-    @PostMapping("/applications")
-    override fun submitApplication(
-        @RequestBody request: ApplicationSubmissionRequest?,
-    ): ResponseEntity<ApplicationSubmissionResponse> {
+
+    @PostMapping
+    override fun createApplication(
+        @RequestHeader("X-User-Id") userId: String,
+        @Valid @RequestBody request: CreateApplicationRequest
+    ): ResponseEntity<CreateApplicationResponse> {
         return try {
             if (request == null) {
                 return createErrorResponse("요청 데이터가 없습니다", HttpStatus.BAD_REQUEST)

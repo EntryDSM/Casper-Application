@@ -23,12 +23,12 @@ class PdfDataConverter(
      * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
      *
      * @param application 지원서 정보
-     * @param score Score 도메인 (현재 더미값 사용)
+     * @param scoreDetails 계산된 점수 상세 정보
      * @return 템플릿에 사용할 PdfData 객체
      */
     fun applicationToInfo(
         application: Application,
-        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
+        scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
     ): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
@@ -39,7 +39,7 @@ class PdfDataConverter(
         setPhoneNumber(application, values)
         setGraduationClassification(application, values)
         setUserType(application, values)
-        setGradeScore(application, score, values)
+        setGradeScore(application, scoreDetails, values)
         setLocalDate(values)
         setIntroduction(application, values)
         setParentInfo(application, values)
@@ -117,7 +117,7 @@ class PdfDataConverter(
         values["birthday"] = application.birthDate ?: ""
 
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
-        values["applicationType"] = application.applicationType.name
+        values["applicationType"] = application.applicationType.displayName
         values["applicationRemark"] = "해당없음"
     }
 
@@ -132,12 +132,12 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 출석/봉사 도메인이 없어서 더미값 사용
-        values["absenceDayCount"] = 0
-        values["latenessCount"] = 0
-        values["earlyLeaveCount"] = 0
-        values["lectureAbsenceCount"] = 0
-        values["volunteerTime"] = 0
+        // 실제 출석/봉사활동 데이터 사용
+        values["absenceDayCount"] = application.absence ?: 0
+        values["latenessCount"] = application.tardiness ?: 0
+        values["earlyLeaveCount"] = application.earlyLeave ?: 0
+        values["lectureAbsenceCount"] = application.classExit ?: 0
+        values["volunteerTime"] = application.volunteer ?: 0
     }
 
     private fun setGenderInfo(
@@ -232,24 +232,24 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 상점/자격증 도메인이 없어서 더미값 사용
-        values["hasCompetitionPrize"] = toCircleBallotbox(false)
-        values["hasCertificate"] = toCircleBallotbox(false)
+        // 실제 가산점 데이터 사용
+        values["hasCompetitionPrize"] = toCircleBallotbox(application.algorithmAward ?: false)
+        values["hasCertificate"] = toCircleBallotbox(application.infoProcessingCert ?: false)
     }
 
     private fun setGradeScore(
         application: Application,
-        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
+        scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
         values: MutableMap<String, Any>,
     ) {
         with(values) {
-            put("conversionScore1st", "80.0")
-            put("conversionScore2nd", "85.0")
-            put("conversionScore3rd", "90.0")
-            put("conversionScore", "255.0")
-            put("attendanceScore", "15.0")
-            put("volunteerScore", "15.0")
-            put("finalScore", "285.0")
+            put("conversionScore", scoreDetails["교과성적"]?.toString() ?: "0.0")
+            put("attendanceScore", scoreDetails["출석점수"]?.toString() ?: "0.0")
+            put("volunteerScore", scoreDetails["봉사활동점수"]?.toString() ?: "0.0")
+            put("bonusScore", scoreDetails["가산점"]?.toString() ?: "0.0")
+            put("finalScore", scoreDetails["총점"]?.toString() ?: "0.0")
+            put("maxScore", scoreDetails["최대점수"]?.toString() ?: "0.0")
+            put("scorePercentage", application.getScorePercentage().toString())
         }
     }
 
@@ -257,29 +257,89 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 성적 도메인이 없어서 더미값 사용
-        val subjects = listOf("국어", "사회", "역사", "수학", "과학", "영어", "기술가정")
+        // 실제 성적 데이터 사용
+        val subjects = listOf("korean", "social", "history", "math", "science", "english", "techAndHome")
 
-        subjects.forEach { subject ->
-            val subjectPrefix =
-                when (subject) {
-                    "국어" -> "korean"
-                    "사회" -> "social"
-                    "역사" -> "history"
-                    "수학" -> "math"
-                    "과학" -> "science"
-                    "영어" -> "english"
-                    "기술가정" -> "techAndHome"
-                    else -> subject.lowercase()
-                }
-
+        subjects.forEach { subjectPrefix ->
             with(values) {
                 put("applicationCase", "기술∙가정")
-                put("${subjectPrefix}ThirdGradeSecondSemester", "A")
-                put("${subjectPrefix}ThirdGradeFirstSemester", "A")
-                put("${subjectPrefix}SecondGradeSecondSemester", "B")
-                put("${subjectPrefix}SecondGradeFirstSemester", "B")
+                
+                // 졸업자인 경우 3-2학기 성적 포함
+                if (application.educationalStatus == hs.kr.entrydsm.domain.application.values.EducationalStatus.GRADUATED) {
+                    put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
+                }
+                
+                put("${subjectPrefix}ThirdGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_1")))
+                put("${subjectPrefix}SecondGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_2")))
+                put("${subjectPrefix}SecondGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_1")))
             }
+        }
+    }
+    
+    private fun getSubjectScore(application: Application, subject: String, semester: String): Int? {
+        return when (subject) {
+            "korean" -> when (semester) {
+                "3_2" -> application.korean_3_2
+                "3_1" -> application.korean_3_1
+                "2_2" -> application.korean_2_2
+                "2_1" -> application.korean_2_1
+                else -> null
+            }
+            "social" -> when (semester) {
+                "3_2" -> application.social_3_2
+                "3_1" -> application.social_3_1
+                "2_2" -> application.social_2_2
+                "2_1" -> application.social_2_1
+                else -> null
+            }
+            "history" -> when (semester) {
+                "3_2" -> application.history_3_2
+                "3_1" -> application.history_3_1
+                "2_2" -> application.history_2_2
+                "2_1" -> application.history_2_1
+                else -> null
+            }
+            "math" -> when (semester) {
+                "3_2" -> application.math_3_2
+                "3_1" -> application.math_3_1
+                "2_2" -> application.math_2_2
+                "2_1" -> application.math_2_1
+                else -> null
+            }
+            "science" -> when (semester) {
+                "3_2" -> application.science_3_2
+                "3_1" -> application.science_3_1
+                "2_2" -> application.science_2_2
+                "2_1" -> application.science_2_1
+                else -> null
+            }
+            "english" -> when (semester) {
+                "3_2" -> application.english_3_2
+                "3_1" -> application.english_3_1
+                "2_2" -> application.english_2_2
+                "2_1" -> application.english_2_1
+                else -> null
+            }
+            "techAndHome" -> when (semester) {
+                "3_2" -> application.tech_3_2
+                "3_1" -> application.tech_3_1
+                "2_2" -> application.tech_2_2
+                "2_1" -> application.tech_2_1
+                else -> null
+            }
+            else -> null
+        }
+    }
+    
+    private fun getGradeDisplay(score: Int?): String {
+        return when (score) {
+            5 -> "A"
+            4 -> "B"
+            3 -> "C"
+            2 -> "D"
+            1 -> "E"
+            null -> "-"
+            else -> score.toString()
         }
     }
 

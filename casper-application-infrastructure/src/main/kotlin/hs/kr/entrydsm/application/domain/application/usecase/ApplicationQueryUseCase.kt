@@ -5,11 +5,15 @@ import hs.kr.entrydsm.application.domain.application.domain.repository.Applicati
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationScoreJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationResultJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationStepJpaRepository
+import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationHistoryResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationResponse
+import hs.kr.entrydsm.application.global.security.SecurityAdapter
+import hs.kr.entrydsm.domain.file.`object`.PathList
+import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -25,12 +29,18 @@ class ApplicationQueryUseCase(
     private val calculationResultRepository: CalculationResultJpaRepository,
     private val calculationStepRepository: CalculationStepJpaRepository,
     private val objectMapper: ObjectMapper,
+    private val photoJpaRepository: PhotoJpaRepository,
+    private val securityAdapter: SecurityAdapter,
+    private val generateFileUrlPort: GenerateFileUrlPort,
 ) {
     fun getApplicationById(applicationId: String): ApplicationDetailResponse {
         val uuid = UUID.fromString(applicationId)
         val application =
             applicationRepository.findById(uuid)
                 .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
+
+        val user = securityAdapter.getCurrentUserId()
+        val photoPath = photoJpaRepository.findByUserId(user)?.photo
 
         return ApplicationDetailResponse(
             success = true,
@@ -44,13 +54,14 @@ class ApplicationQueryUseCase(
                     parentName = application.parentName,
                     parentTel = application.parentTel,
                     birthDate = application.birthDate,
-                    applicationType = application.applicationType.toString(),
+                    applicationType = application.applicationType,
                     educationalStatus = application.educationalStatus,
                     status = application.status.toString(),
                     submittedAt = application.submittedAt,
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
+                    photoPath = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
                 ),
         )
     }
@@ -91,7 +102,7 @@ class ApplicationQueryUseCase(
                                 applicationId = app.applicationId.toString(),
                                 receiptCode = app.receiptCode,
                                 applicantName = app.applicantName,
-                                applicationType = app.applicationType.toString(),
+                                applicationType = app.applicationType,
                                 educationalStatus = app.educationalStatus,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
@@ -119,7 +130,7 @@ class ApplicationQueryUseCase(
                                 applicationId = app.applicationId.toString(),
                                 receiptCode = app.receiptCode,
                                 applicantName = app.applicantName,
-                                applicationType = app.applicationType.toString(),
+                                applicationType = app.applicationType,
                                 educationalStatus = app.educationalStatus,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,

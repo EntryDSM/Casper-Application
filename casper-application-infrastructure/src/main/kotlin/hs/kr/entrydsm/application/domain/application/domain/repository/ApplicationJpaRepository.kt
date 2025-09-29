@@ -24,4 +24,6 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
 
     @Query("SELECT COALESCE(MAX(a.receiptCode), 0) FROM ApplicationJpaEntity a")
     fun findMaxReceiptCode(): Long
+    
+    fun findByApplicationId(applicationId: UUID): ApplicationJpaEntity?
 }

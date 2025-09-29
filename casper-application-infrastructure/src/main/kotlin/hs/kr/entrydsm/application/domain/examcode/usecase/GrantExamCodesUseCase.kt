@@ -4,7 +4,6 @@ import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
 import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
-import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
@@ -48,10 +47,10 @@ class GrantExamCodesUseCase(
         val allFirstRoundPassedApplication = applicationContract.queryAllFirstRoundPassedApplication()
         val examCodeInfos = collectDistanceInfo(allFirstRoundPassedApplication)
 
-        val generalExamInfos = examCodeInfos.filter { it.applicationType == ApplicationType.COMMON }
+        val generalExamInfos = examCodeInfos.filter { it.applicationType == "COMMON" }
         val specialExamInfos =
             examCodeInfos.filter {
-                it.applicationType == ApplicationType.SOCIAL || it.applicationType == ApplicationType.MEISTER
+                it.applicationType == "SOCIAL" || it.applicationType == "MEISTER"
             }
 
         assignExamCodes(generalExamInfos, GENERAL_EXAM_CODE_PREFIX)
@@ -85,7 +84,7 @@ class GrantExamCodesUseCase(
                     val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
                     ExamCodeInfo(
                         receiptCode = application.receiptCode,
-                        applicationType = application.applicationType, // 전형 유형
+                        applicationType = application.applicationType.name, // 전형 유형
                         distance = distance,
                     )
                 }
