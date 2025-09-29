@@ -2,10 +2,8 @@ package hs.kr.entrydsm.application.domain.admin.presentation
 
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
-import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreatePrototypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
-import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreatePrototypeResponse
 import hs.kr.entrydsm.application.domain.admin.usecase.AdminUseCase
 import hs.kr.entrydsm.application.global.document.admin.AdminApiDocument
 import org.springframework.http.ResponseEntity
@@ -50,35 +48,6 @@ class AdminController(
                         statusId = result.statusId,
                         code = result.code,
                         name = result.name,
-                    ),
-            ),
-        )
-    }
-
-    @PostMapping("/prototypes")
-    override fun createPrototype(
-        @RequestBody request: CreatePrototypeRequest,
-    ): ResponseEntity<CreatePrototypeResponse> {
-        val result =
-            adminUseCase.createPrototype(
-                request.applicationType,
-                request.educationalStatus,
-                request.region,
-                request.applicationFields,
-                request.scoreFields,
-                request.formulas,
-                request.constants,
-            )
-
-        return ResponseEntity.ok(
-            CreatePrototypeResponse(
-                success = true,
-                data =
-                    CreatePrototypeResponse.PrototypeData(
-                        prototypeId = result.id.value.toString(),
-                        applicationType = result.applicationType,
-                        educationalStatus = result.educationalStatus,
-                        region = result.region,
                     ),
             ),
         )

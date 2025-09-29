@@ -14,25 +14,25 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 /**
  * JWT 인증을 처리하는 필터입니다.
- * 
- * Gateway에서 JWT를 파싱하여 헤더로 전달받은 사용자 정보를 
+ *
+ * Gateway에서 JWT를 파싱하여 헤더로 전달받은 사용자 정보를
  * Spring Security Context에 설정합니다.
  */
 class JwtFilter : OncePerRequestFilter() {
-    
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
         val userId: String? = request.getHeader("Request-User-Id")
-        val role: UserRole? = request.getHeader("Request-User-Role")?.let { 
-            try {
-                UserRole.valueOf(it)
-            } catch (e: IllegalArgumentException) {
-                null
+        val role: UserRole? =
+            request.getHeader("Request-User-Role")?.let {
+                try {
+                    UserRole.valueOf(it)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
             }
-        }
 
         if (userId == null || role == null) {
             filterChain.doFilter(request, response)
@@ -46,7 +46,7 @@ class JwtFilter : OncePerRequestFilter() {
 
         SecurityContextHolder.clearContext()
         SecurityContextHolder.getContext().authentication = authentication
-        
+
         filterChain.doFilter(request, response)
     }
 }

@@ -22,26 +22,25 @@ import org.springframework.web.bind.annotation.RequestBody
  */
 @Tag(name = "수식 집합 API", description = "수식 집합 관련 API")
 interface FormulaSetApiDocument {
-
     @Operation(summary = "수식 집합 생성", description = "새로운 수식 집합을 생성합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "201",
                 description = "수식 집합 생성 성공",
-                content = [Content(schema = Schema(implementation = FormulaSetResponse::class))]
+                content = [Content(schema = Schema(implementation = FormulaSetResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun createFormulaSet(
         @RequestBody request: CreateFormulaSetRequest?,
@@ -53,24 +52,24 @@ interface FormulaSetApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "수식 집합 수정 성공",
-                content = [Content(schema = Schema(implementation = FormulaSetResponse::class))]
+                content = [Content(schema = Schema(implementation = FormulaSetResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "수식 집합을 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun updateFormulaSet(
         @PathVariable formulaSetId: String?,
@@ -83,14 +82,14 @@ interface FormulaSetApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "수식 집합 목록 조회 성공",
-                content = [Content(schema = Schema(implementation = FormulaSetListResponse::class))]
+                content = [Content(schema = Schema(implementation = FormulaSetListResponse::class))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getFormulaSetList(): ResponseEntity<FormulaSetListResponse>
 
@@ -100,24 +99,24 @@ interface FormulaSetApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "수식 집합 상세 조회 성공",
-                content = [Content(schema = Schema(implementation = FormulaSetDetailResponse::class))]
+                content = [Content(schema = Schema(implementation = FormulaSetDetailResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "수식 집합을 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getFormulaSetDetail(
         @PathVariable formulaSetId: String?,
@@ -129,24 +128,24 @@ interface FormulaSetApiDocument {
             ApiResponse(
                 responseCode = "204",
                 description = "수식 집합 삭제 성공",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "수식 집합을 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun deleteFormulaSet(
         @PathVariable formulaSetId: String?,
@@ -158,24 +157,24 @@ interface FormulaSetApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "수식 실행 성공",
-                content = [Content(schema = Schema(implementation = FormulaExecutionResponse::class))]
+                content = [Content(schema = Schema(implementation = FormulaExecutionResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "수식 집합을 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun executeFormulas(
         @PathVariable formulaSetId: String?,

@@ -6,8 +6,11 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.response.A
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationHistoryResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationQueryUseCase
+import hs.kr.entrydsm.application.domain.application.usecase.ApplicationSubmissionUseCase
 import hs.kr.entrydsm.application.global.document.application.ApplicationQueryApiDocument
+import hs.kr.entrydsm.application.global.document.pdf.generator.ApplicationPdfGenerator
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1")
 class ApplicationQueryController(
     private val applicationQueryUseCase: ApplicationQueryUseCase,
+    private val applicationSubmissionUseCase: ApplicationSubmissionUseCase,
+    private val applicationPdfGenerator: ApplicationPdfGenerator,
 ) : ApplicationQueryApiDocument {
     @GetMapping("/applications/{applicationId}")
     override fun getApplication(
@@ -165,6 +170,46 @@ class ApplicationQueryController(
 
             val response = applicationQueryUseCase.getCalculationHistory(applicationId)
             ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.notFound().build()
+        } catch (e: NoSuchElementException) {
+            ResponseEntity.notFound().build()
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+        }
+    }
+
+    @GetMapping("/applications/{applicationId}/pdf")
+    fun generateApplicationPdf(
+        @PathVariable applicationId: String?,
+    ): ResponseEntity<ByteArray> {
+        return try {
+            if (applicationId.isNullOrBlank()) {
+                throw IllegalArgumentException("원서 ID가 필요합니다")
+            }
+
+            try {
+                java.util.UUID.fromString(applicationId)
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
+            }
+
+            // 실제 Application 도메인 조회
+            val applicationUuid = java.util.UUID.fromString(applicationId)
+            val application = applicationSubmissionUseCase.getApplicationById(applicationUuid)
+                ?: throw IllegalArgumentException("원서를 찾을 수 없습니다")
+            
+            // 점수 계산하여 실제 점수 사용
+            val updatedApplication = application.calculateAndUpdateScore()
+            val scoreDetails = updatedApplication.getScoreDetails()
+            
+            // Application 도메인으로부터 PDF 생성 (실제 계산된 점수 사용)
+            val pdfBytes = applicationPdfGenerator.generate(updatedApplication, scoreDetails)
+
+            ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header("Content-Disposition", "attachment; filename=application_${applicationId}.pdf")
+                .body(pdfBytes)
         } catch (e: IllegalArgumentException) {
             ResponseEntity.notFound().build()
         } catch (e: NoSuchElementException) {

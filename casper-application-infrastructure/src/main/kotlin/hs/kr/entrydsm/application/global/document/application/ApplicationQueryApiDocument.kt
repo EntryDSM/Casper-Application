@@ -20,31 +20,30 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @Tag(name = "원서 조회 API", description = "원서 조회 관련 API")
 interface ApplicationQueryApiDocument {
-
     @Operation(summary = "원서 상세 조회", description = "특정 원서의 상세 정보를 조회합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
                 description = "원서 상세 조회 성공",
-                content = [Content(schema = Schema(implementation = ApplicationDetailResponse::class))]
+                content = [Content(schema = Schema(implementation = ApplicationDetailResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "원서를 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getApplication(
         @PathVariable applicationId: String?,
@@ -56,19 +55,19 @@ interface ApplicationQueryApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "원서 목록 조회 성공",
-                content = [Content(schema = Schema(implementation = ApplicationListResponse::class))]
+                content = [Content(schema = Schema(implementation = ApplicationListResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getApplications(
         @RequestParam(required = false) applicationType: String?,
@@ -83,24 +82,24 @@ interface ApplicationQueryApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "사용자별 원서 목록 조회 성공",
-                content = [Content(schema = Schema(implementation = ApplicationListResponse::class))]
+                content = [Content(schema = Schema(implementation = ApplicationListResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "사용자를 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getUserApplications(
         @PathVariable userId: String?,
@@ -112,24 +111,24 @@ interface ApplicationQueryApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "원서 성적 조회 성공",
-                content = [Content(schema = Schema(implementation = ApplicationScoresResponse::class))]
+                content = [Content(schema = Schema(implementation = ApplicationScoresResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "원서를 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getApplicationScores(
         @PathVariable applicationId: String?,
@@ -141,24 +140,24 @@ interface ApplicationQueryApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "원서 계산 결과 조회 성공",
-                content = [Content(schema = Schema(implementation = CalculationResponse::class))]
+                content = [Content(schema = Schema(implementation = CalculationResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "원서를 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getCalculationResult(
         @PathVariable applicationId: String?,
@@ -170,24 +169,24 @@ interface ApplicationQueryApiDocument {
             ApiResponse(
                 responseCode = "200",
                 description = "원서 계산 이력 조회 성공",
-                content = [Content(schema = Schema(implementation = CalculationHistoryResponse::class))]
+                content = [Content(schema = Schema(implementation = CalculationHistoryResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "원서를 찾을 수 없음",
-                content = [Content(schema = Schema(hidden = true))]
+                content = [Content(schema = Schema(hidden = true))],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
     )
     fun getCalculationHistory(
         @PathVariable applicationId: String?,

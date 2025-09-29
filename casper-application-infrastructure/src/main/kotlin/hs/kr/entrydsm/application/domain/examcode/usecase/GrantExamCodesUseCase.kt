@@ -84,7 +84,7 @@ class GrantExamCodesUseCase(
                     val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
                     ExamCodeInfo(
                         receiptCode = application.receiptCode,
-                        applicationType = application.applicationType, // 전형 유형
+                        applicationType = application.applicationType.name, // 전형 유형
                         distance = distance,
                     )
                 }

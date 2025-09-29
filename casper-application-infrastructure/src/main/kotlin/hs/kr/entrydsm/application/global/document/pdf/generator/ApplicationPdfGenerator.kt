@@ -30,21 +30,21 @@ class ApplicationPdfGenerator(
      * 지원서 PDF를 생성합니다.
      *
      * @param application 지원서 정보
-     * @param score Score 도메인 (현재 더미값 사용)
+     * @param scoreDetails 계산된 점수 상세 정보
      * @return 생성된 PDF 바이트 배열
      */
     fun generate(
         application: Application,
-        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
+        scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
     ): ByteArray {
-        return generateApplicationPdf(application, score)
+        return generateApplicationPdf(application, scoreDetails)
     }
 
     private fun generateApplicationPdf(
         application: Application,
-        score: Any, // TODO: Score 도메인이 없어서 더미값 사용
+        scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
     ): ByteArray {
-        val data = pdfDataConverter.applicationToInfo(application, score)
+        val data = pdfDataConverter.applicationToInfo(application, scoreDetails)
         val templates = getTemplateFileNames(application)
 
         val outStream =
@@ -95,7 +95,7 @@ class ApplicationPdfGenerator(
             )
 
         // TODO: Score 도메인이 없어서 더미 조건으로 처리
-        if (application.applicationType != "COMMON") {
+        if (application.applicationType.name != "COMMON") {
             result.add(2, TemplateFileName.RECOMMENDATION)
         }
 
