@@ -30,8 +30,16 @@ class SecurityConfig(
     protected fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
-            .cors { }
-            .formLogin { it.disable() }
+            .cors { cors ->
+                cors.configurationSource { request ->
+                    val configuration = CorsConfiguration()
+                    configuration.allowedOriginPatterns = listOf("*")
+                    configuration.allowedMethods = listOf("*")
+                    configuration.allowedHeaders = listOf("*")
+                    configuration.allowCredentials = true
+                    configuration
+                }
+            }            .formLogin { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
@@ -44,9 +52,10 @@ class SecurityConfig(
                     .requestMatchers("/webjars/**").permitAll()
                     .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
+                    .requestMatchers("/photo").hasRole(UserRole.USER.name)
                     .anyRequest().authenticated()
             }
-            .apply(filterConfig)
+            .with(filterConfig) { }
 
         return http.build()
     }
