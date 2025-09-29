@@ -3,78 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>application.html</title>
+    <title>자기소개서 및 학업계획서</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: KoPubWorld_Dotum_Light;
+            padding: 20px;
+        }
         td {
             border: 1px solid black;
             text-align: center;
+            font-size: 11px;
+            padding: 8px;
         }
-
         table {
             border-collapse: collapse;
-            border-spacing: 0px;
+            border-spacing: 0;
             border: 1px solid black;
             width: 100%;
         }
+        .header-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .section-instruction {
+            text-align: left;
+            font-size: 11px;
+            padding: 10px;
+            margin-bottom: 5px;
+        }
+        .content-area {
+            min-height: 400px;
+            text-align: left;
+            padding: 10px;
+            vertical-align: top;
+            font-size: 11px;
+            line-height: 1.6;
+        }
     </style>
 </head>
-<body style="overflow-y: scroll;">
-<div class="WordSection2">
-    <p class="MsoNormal" style="text-align: center; margin: 0;">
-        <b>
-            <span style="font-size: 20pt; font-family: KoPubWorldDotum_Pro Medium;">자기소개서 및 학업계획서</span>
-        </b>
-    </p>
+<body>
+<div class="header-title">
+    <div>&lt;서식 3&gt; (인터넷접수 후 출력)</div>
 </div>
-<table style="border: 1px solid black; margin-bottom: 50px;">
-    <tr>
-        <td rowspan="3" style="width: 7%">인적<br/>사항</td>
-        <td style="padding: 10px; width: 10%">성명</td>
-        <td style="padding: 10px; width: 20%;">
-            <span th:text="${userName}"></span>
-            <span style="margin-left: 15px; font-size: small">(서명 또는 인)</span>
-        </td>
-        <td style="padding: 10px; width: 10%">
-            접 수 번 호
-        </td>
-        <td style="padding: 10px; width: 20%" colspan="3" th:text="${receiptCode}">
-        </td>
-    </tr>
-    <tr>
-        <td style="padding: 10px; width: 10%">연락처</td>
-        <td style="padding: 10px; width: 20%" th:text="${applicantTel}"></td>
-        <td style="padding: 10px; width: 10%">출신 중학교</td>
-        <td style="padding: 10px; width: 20%" colspan="3" th:text="${schoolName}"></td>
-    </tr>
-    <tr>
-        <td style="padding: 10px; width: 10%">주소</td>
-        <td style="padding: 10px; width: 20%" colspan="5" th:text="|${address} ${detailAddress}|"></td>
-    </tr>
-</table>
-<table style="margin-bottom: 50px; text-align: left;">
-    <tr>
-        <td style="text-align: left; font-size: 15.5px;">◎ <b>자기소개서</b> 내용은 특별한 형식이 없으며 개인의 특성 및 성장 과정, 취미·특기, 학교 생활, 가족
-            안에서의 역할, 남들보다 뛰어나다고 생각하는 자신의 장점(특성 혹은 능력)과 보완·발전시켜야 할 단점에 대하여 기술하십시오.
-        </td>
-    </tr>
-    <tr>
-        <td style="min-height: 230px; text-align: left; padding: 0px 7px;">
-            <p style="min-height: 230px; overflow-wrap: break-word; text-wrap: wrap; word-break: break-all; line-break: anywhere;"
-               th:utext="${#strings.replace(selfIntroduction, newLineChar, '&lt;br /&gt;')}"></p></td>
-    </tr>
-</table>
-<table style="margin-bottom: 50px;">
-    <tr>
-        <td style="text-align: left; font-size: 15.5px">◎ <b>학업계획서</b>는 자신이 본교를 선택하게 된 구체적인 사유(지원 동기)와 고등학생이 된 후 이루고자 하는<br/>목표를
-            달성하기 위한 학업계획을 상세하게 기술하십시오.
-        </td>
-    </tr>
-    <tr>
-        <td style=" min-height: 230px;text-align: left; padding: 0px 7px;">
-            <p style="min-height: 230px; overflow-wrap: break-word; text-wrap: wrap; word-break: break-all; line-break: anywhere;"
-               th:utext="${#strings.replace(studyPlan, newLineChar, '&lt;br /&gt;')}"></p></td>
-    </tr>
-</table>
+<div class="header-title" style="margin-top: 10px; font-size: 18px;">
+    자기소개서 및 학업계획서
 </div>
+
+<table style="margin-bottom: 20px;">
+    <tr>
+        <td rowspan="3" style="width: 10%; font-weight: 600;">인적<br/>사항</td>
+        <td style="width: 12%; font-weight: 600;">성 명</td>
+        <td style="width: 28%;">
+            <span th:text="${userName}"></span> (서명)
+        </td>
+        <td style="width: 12%; font-weight: 600;">접수번호</td>
+        <td style="width: 38%;" th:text="${receiptCode}"></td>
+    </tr>
+    <tr>
+        <td style="font-weight: 600;">전화번호</td>
+        <td th:text="${applicantTel}"></td>
+        <td style="font-weight: 600;">출신학교</td>
+        <td th:text="${schoolName}"></td>
+    </tr>
+    <tr>
+        <td style="font-weight: 600;">주 소</td>
+        <td colspan="3" th:text="${address} + ' ' + ${detailAddress}"></td>
+    </tr>
+</table>
+
+<table style="margin-bottom: 30px;">
+    <tr>
+        <td class="section-instruction">
+            ◎ <b>자기소개서</b> 내용은 특별한 형식이 없으며 개인의 특성 및 성장 과정, 취미 · 특기, 학교 생활, 가
+            족 안에서의 역할, 남들보다 뛰어나다고 생각하는 자신의 장점(특성 혹은 능력)과 보완 · 발전시켜야
+            할 단점에 대하여 기술하십시오.
+            <div style="margin-top: 5px;">(빈칸 포함 1,600자 이내)</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="content-area">
+            <p style="overflow-wrap: break-word; word-break: break-all; white-space: pre-wrap;"
+               th:utext="${#strings.replace(selfIntroduction, newLineChar, '&lt;br /&gt;')}"></p>
+        </td>
+    </tr>
+</table>
+
+<table style="margin-bottom: 20px;">
+    <tr>
+        <td class="section-instruction">
+            ◎ <b>학업계획서</b>는 자신이 본교를 선택하게 된 구체적인 사유(지원 동기)와 고등학생이 된 후 이루고자
+            하는 목표를 달성하기 위한 학업계획을 상세하게 기술하십시오.
+            <div style="margin-top: 5px;">(빈칸 포함 1,600자 이내)</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="content-area">
+            <p style="overflow-wrap: break-word; word-break: break-all; white-space: pre-wrap;"
+               th:utext="${#strings.replace(studyPlan, newLineChar, '&lt;br /&gt;')}"></p>
+        </td>
+    </tr>
+</table>
+
+<div style="text-align: center; margin-top: 30px; font-size: 10px;">- 15 -</div>
 </body>
 </html>

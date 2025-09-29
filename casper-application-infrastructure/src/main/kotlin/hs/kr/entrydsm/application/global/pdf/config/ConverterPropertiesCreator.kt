@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.config
+package hs.kr.entrydsm.application.global.pdf.config
 
 import com.itextpdf.html2pdf.ConverterProperties
 import com.itextpdf.html2pdf.resolver.font.DefaultFontProvider

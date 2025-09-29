@@ -1,15 +1,15 @@
-package hs.kr.entrydsm.application.global.document.pdf.generator
+package hs.kr.entrydsm.application.global.pdf.generator
 
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.utils.PdfMerger
-import hs.kr.entrydsm.application.global.document.pdf.data.IntroductionPdfConverter
-import hs.kr.entrydsm.application.global.document.pdf.data.TemplateFileName
-import hs.kr.entrydsm.application.global.document.pdf.facade.PdfDocumentFacade
+import hs.kr.entrydsm.application.global.pdf.data.IntroductionPdfConverter
+import hs.kr.entrydsm.application.global.pdf.data.TemplateFileName
+import hs.kr.entrydsm.application.global.pdf.facade.PdfDocumentFacade
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.interfaces.IntroductionPdfGeneratorContract
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
-import kotlin.collections.toMap
 
 /**
  * 소개서 PDF를 생성하는 Generator입니다.
@@ -24,14 +24,14 @@ class IntroductionPdfGenerator(
     private val introductionPdfConverter: IntroductionPdfConverter,
     private val templateProcessor: TemplateProcessor,
     private val pdfDocumentFacade: PdfDocumentFacade,
-) {
+) : IntroductionPdfGeneratorContract {
     /**
      * 소개서 PDF를 생성합니다.
      *
      * @param applicationList 지원서 목록 (1차 합격자)
      * @return 생성된 소개서 PDF 바이트 배열
      */
-    fun generate(applicationList: List<Application>): ByteArray {
+    override fun generate(applicationList: List<Application>): ByteArray {
         val outputStream = ByteArrayOutputStream()
         val mergedDocument = PdfDocument(PdfWriter(outputStream))
         val pdfMerger = PdfMerger(mergedDocument)

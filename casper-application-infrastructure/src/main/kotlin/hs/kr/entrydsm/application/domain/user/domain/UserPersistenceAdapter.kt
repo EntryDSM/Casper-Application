@@ -37,4 +37,16 @@ class UserPersistenceAdapter(
                 )
             }
         }
+
+    /**
+     * 여러 사용자 ID로 사용자 정보 목록을 조회합니다.
+     *
+     * @param userIds 조회할 사용자들의 고유 식별자 목록
+     * @return 조회된 사용자 정보 목록
+     */
+    override fun queryUsersByIds(userIds: List<UUID>): List<User> {
+        return userIds.map { userId ->
+            queryUserByUserId(userId)
+        }
+    }
 }

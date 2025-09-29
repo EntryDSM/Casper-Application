@@ -1,12 +1,12 @@
-package hs.kr.entrydsm.application.global.document.pdf.generator
+package hs.kr.entrydsm.application.global.pdf.generator
 
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.utils.PdfMerger
 import com.itextpdf.layout.Document
-import hs.kr.entrydsm.application.global.document.pdf.data.PdfDataConverter
-import hs.kr.entrydsm.application.global.document.pdf.data.TemplateFileName
-import hs.kr.entrydsm.application.global.document.pdf.facade.PdfDocumentFacade
+import hs.kr.entrydsm.application.global.pdf.data.PdfDataConverter
+import hs.kr.entrydsm.application.global.pdf.data.TemplateFileName
+import hs.kr.entrydsm.application.global.pdf.facade.PdfDocumentFacade
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
@@ -25,7 +25,7 @@ class ApplicationPdfGenerator(
     private val pdfDataConverter: PdfDataConverter,
     private val templateProcessor: TemplateProcessor,
     private val pdfDocumentFacade: PdfDocumentFacade,
-) {
+) : ApplicationPdfGeneratorContract {
     /**
      * 지원서 PDF를 생성합니다.
      *
@@ -33,7 +33,7 @@ class ApplicationPdfGenerator(
      * @param scoreDetails 계산된 점수 상세 정보
      * @return 생성된 PDF 바이트 배열
      */
-    fun generate(
+    override fun generate(
         application: Application,
         scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
     ): ByteArray {
@@ -91,6 +91,7 @@ class ApplicationPdfGenerator(
                     TemplateFileName.INTRODUCTION,
                     TemplateFileName.NON_SMOKING,
                     TemplateFileName.SMOKING_EXAMINE,
+                    TemplateFileName.ENROLLMENT_AGREEMENT,
                 ),
             )
 

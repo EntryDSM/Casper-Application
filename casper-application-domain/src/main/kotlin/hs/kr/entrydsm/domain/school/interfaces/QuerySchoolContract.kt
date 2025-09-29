@@ -21,4 +21,12 @@ interface QuerySchoolContract {
      * @return 학교 정보
      */
     fun querySchoolBySchoolCode(schoolCode: String): School?
+    
+    /**
+     * 여러 학교 코드로 학교 목록을 조회합니다.
+     *
+     * @param schoolCodes 학교 코드 목록
+     * @return 학교 정보 목록
+     */
+    fun querySchoolsByCodes(schoolCodes: List<String>): List<School>
 }

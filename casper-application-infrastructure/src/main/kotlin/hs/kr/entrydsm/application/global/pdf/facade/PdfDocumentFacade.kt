@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.facade
+package hs.kr.entrydsm.application.global.pdf.facade
 
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfReader

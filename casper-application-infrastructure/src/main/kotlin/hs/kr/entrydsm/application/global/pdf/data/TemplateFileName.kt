@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.document.pdf.data
+package hs.kr.entrydsm.application.global.pdf.data
 
 /**
  * PDF 생성에 사용되는 템플릿 파일명을 정의하는 객체입니다.
@@ -28,4 +28,7 @@ object TemplateFileName {
 
     /** 관리자용 소개서 템플릿 */
     const val ADMIN_INTRODUCTION = "admin_introduction"
+
+    /** 입학 동의서 템플릿 */
+    const val ENROLLMENT_AGREEMENT = "enrollment_agreement"
 }
