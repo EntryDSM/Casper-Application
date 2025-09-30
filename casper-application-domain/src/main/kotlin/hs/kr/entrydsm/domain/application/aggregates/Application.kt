@@ -35,6 +35,8 @@ data class Application(
     val postalCode: String?,
     val detailAddress: String?,
     val studyPlan: String?,
+
+
     val selfIntroduce: String?,
     val veteransNumber: Int?,
     val schoolCode: String?,

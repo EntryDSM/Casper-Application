@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.global.pdf.data
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -166,18 +167,18 @@ class PdfDataConverter(
         val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8 // 2월/8월 졸업
         
         when (application.educationalStatus) {
-            "졸업" -> {
+            EducationalStatus.GRADUATED -> {
                 values["graduateYear"] = currentYear.toString()
                 values["graduateMonth"] = graduationMonth.toString()
                 values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 중학교 졸업"
             }
-            "졸업예정" -> {
+            EducationalStatus.PROSPECTIVE_GRADUATE -> {
                 val graduateYear = currentYear + 1
                 values["prospectiveGraduateYear"] = graduateYear.toString()
                 values["prospectiveGraduateMonth"] = "2"
                 values["educationalStatus"] = "${graduateYear}년 2월 중학교 졸업예정"
             }
-            "검정고시" -> {
+            EducationalStatus.GED -> {
                 values["qualificationExamPassedYear"] = currentYear.toString()
                 values["qualificationExamPassedMonth"] = graduationMonth.toString()
                 values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 검정고시 합격"
@@ -198,9 +199,9 @@ class PdfDataConverter(
         val isCommon = application.applicationType == ApplicationType.COMMON
         val isSocial = application.applicationType == ApplicationType.SOCIAL
         
-        val isQualificationExam = application.educationalStatus == "검정고시"
-        val isGraduate = application.educationalStatus == "졸업"
-        val isProspectiveGraduate = application.educationalStatus == "졸업예정"
+        val isQualificationExam = application.educationalStatus == EducationalStatus.GED
+        val isGraduate = application.educationalStatus == EducationalStatus.GRADUATED
+        val isProspectiveGraduate = application.educationalStatus == EducationalStatus.PROSPECTIVE_GRADUATE
 
         val list =
             listOf(
@@ -265,7 +266,7 @@ class PdfDataConverter(
                 put("applicationCase", "기술∙가정")
                 
                 // 졸업자인 경우 3-2학기 성적 포함
-                if (application.educationalStatus == hs.kr.entrydsm.domain.application.values.EducationalStatus.GRADUATED) {
+                if (application.educationalStatus == EducationalStatus.GRADUATED) {
                     put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
                 }
                 

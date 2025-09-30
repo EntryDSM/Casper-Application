@@ -8,7 +8,7 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.response.C
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationQueryUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationSubmissionUseCase
 import hs.kr.entrydsm.application.global.document.application.ApplicationQueryApiDocument
-import hs.kr.entrydsm.application.global.document.pdf.generator.ApplicationPdfGenerator
+import hs.kr.entrydsm.application.global.pdf.generator.ApplicationPdfGenerator
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity

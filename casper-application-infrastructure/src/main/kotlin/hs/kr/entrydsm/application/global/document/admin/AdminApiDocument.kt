@@ -2,10 +2,8 @@ package hs.kr.entrydsm.application.global.document.admin
 
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
-import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreatePrototypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
-import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreatePrototypeResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -92,27 +90,4 @@ interface AdminApiDocument {
         @RequestBody request: CreateEducationalStatusRequest,
     ): ResponseEntity<CreateEducationalStatusResponse>
 
-    @Operation(summary = "프로토타입 생성", description = "새로운 프로토타입을 생성합니다.")
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "프로토타입 생성 성공",
-                content = [Content(schema = Schema(implementation = CreatePrototypeResponse::class))]
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(hidden = true))]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "서버 내부 오류",
-                content = [Content(schema = Schema(hidden = true))]
-            )
-        ]
-    )
-    fun createPrototype(
-        @RequestBody request: CreatePrototypeRequest,
-    ): ResponseEntity<CreatePrototypeResponse>
 }
