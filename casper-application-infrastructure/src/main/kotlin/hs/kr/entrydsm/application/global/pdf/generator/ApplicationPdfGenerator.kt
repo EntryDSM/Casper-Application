@@ -8,6 +8,7 @@ import hs.kr.entrydsm.application.global.pdf.data.PdfDataConverter
 import hs.kr.entrydsm.application.global.pdf.data.TemplateFileName
 import hs.kr.entrydsm.application.global.pdf.facade.PdfDocumentFacade
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 import java.util.LinkedList
