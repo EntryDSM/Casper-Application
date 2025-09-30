@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
 
 /**
  * Spring Security 설정 클래스입니다.
@@ -52,7 +53,7 @@ class SecurityConfig(
                     .requestMatchers("/webjars/**").permitAll()
                     .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
-                    .requestMatchers("/photo").hasRole(UserRole.USER.name)
+                    .requestMatchers("/photo").permitAll()
                     .anyRequest().authenticated()
             }
             .with(filterConfig) { }
