@@ -191,4 +191,28 @@ interface ApplicationQueryApiDocument {
     fun getCalculationHistory(
         @PathVariable applicationId: String?,
     ): ResponseEntity<CalculationHistoryResponse>
+
+    @Operation(summary = "원서 PDF 생성", description = "특정 원서의 PDF를 생성합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "원서 PDF 생성 성공",
+                content = [Content(mediaType = "application/pdf", schema = Schema(type = "string", format = "binary"))]
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "원서를 찾을 수 없음",
+                content = [Content(schema = Schema(hidden = true))]
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 내부 오류",
+                content = [Content(schema = Schema(hidden = true))]
+            )
+        ]
+    )
+    fun generateApplicationPdf(
+        @PathVariable applicationId: String?,
+    ): ResponseEntity<ByteArray>
 }
