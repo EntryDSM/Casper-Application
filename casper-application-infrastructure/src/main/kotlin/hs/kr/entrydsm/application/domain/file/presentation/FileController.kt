@@ -21,10 +21,10 @@ class FileController(
     override fun uploadPhoto(
         @RequestPart(name = "image") file: MultipartFile,
     ): UploadPhotoResponse {
-        val photoUrl =
+        return UploadPhotoResponse(
             fileUploadUseCase.execute(
-                file.let(ImageFileConverter::transferTo),
+                file.let(ImageFileConverter::transferTo)
             )
-        return UploadPhotoResponse(fileName = photoUrl)
+        )
     }
 }
