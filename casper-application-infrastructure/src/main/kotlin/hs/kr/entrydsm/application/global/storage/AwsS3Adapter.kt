@@ -28,15 +28,16 @@ class AwsS3Adapter(
         file: File,
         path: String,
     ): String {
-        runCatching { inputS3(file, path) }
+        val fileName = path + file.name
+        runCatching { inputS3(file, fileName) }
             .also { file.delete() }
 
-        return getS3Url(file.name)
+        return getS3Url(fileName)
     }
 
     private fun inputS3(
         file: File,
-        path: String,
+        fileName: String,
     ) {
         try {
             val inputStream = file.inputStream()
@@ -49,7 +50,7 @@ class AwsS3Adapter(
             amazonS3Client.putObject(
                 PutObjectRequest(
                     awsProperties.bucket,
-                    path,
+                    fileName,
                     inputStream,
                     objectMetadata,
                 ).withCannedAcl(CannedAccessControlList.PublicRead),
