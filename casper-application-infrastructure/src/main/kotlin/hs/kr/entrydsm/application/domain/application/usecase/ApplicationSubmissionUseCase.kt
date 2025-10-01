@@ -86,7 +86,6 @@ class ApplicationSubmissionUseCase(
             graduationDate = request.graduationDate,
             
             // Personal Info Fields
-            idPhoto = request.idPhoto,
             applicantGender = request.applicantGender,
             
             // Guardian Info Fields
@@ -146,7 +145,6 @@ class ApplicationSubmissionUseCase(
             gedEnglish = request.gedEnglish,
             
             // Additional Personal Info Fields
-            applicantNumber = request.applicantNumber,
             specialNotes = request.specialNotes,
             
             // Attendance & Service Fields
