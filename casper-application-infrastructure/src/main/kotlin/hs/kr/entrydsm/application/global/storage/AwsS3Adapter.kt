@@ -14,55 +14,50 @@ import org.springframework.stereotype.Component
 import java.io.File
 import java.io.IOException
 import java.util.Date
+import java.util.UUID
 
 @Component
 class AwsS3Adapter(
     private val amazonS3Client: AmazonS3Client,
     private val awsProperties: AwsProperties,
 ) : UploadFilePort, GenerateFileUrlPort {
+
     companion object {
         const val EXP_TIME = 1000 * 60 * 2
     }
 
-    override fun upload(
-        file: File,
-        path: String,
-    ): String {
-        val fileName = path + file.name
-        runCatching { inputS3(file, fileName) }
+    override fun upload(file: File, path: String): String {
+        val fileName = UUID.randomUUID().toString() + file.name
+        runCatching { inputS3(file, path, fileName) }
             .also { file.delete() }
 
-        return getS3Url(fileName)
+        return fileName
     }
 
-    private fun inputS3(
-        file: File,
-        fileName: String,
-    ) {
+    private fun inputS3(file: File, path: String, fileName: String) {
         try {
             val inputStream = file.inputStream()
-            val objectMetadata =
-                ObjectMetadata().apply {
-                    contentLength = file.length()
-                    contentType = Mimetypes.getInstance().getMimetype(file)
-                }
+            val objectMetadata = ObjectMetadata().apply {
+                contentLength = file.length()
+                contentType = Mimetypes.getInstance().getMimetype(file)
+            }
 
             amazonS3Client.putObject(
                 PutObjectRequest(
                     awsProperties.bucket,
-                    fileName,
+                    path+fileName,
                     inputStream,
-                    objectMetadata,
-                ).withCannedAcl(CannedAccessControlList.PublicRead),
+                    objectMetadata
+                ).withCannedAcl(CannedAccessControlList.PublicRead)
             )
         } catch (e: IOException) {
             throw FileExceptions.IOInterrupted()
         }
     }
 
-    private fun getS3Url(fileName: String): String {
-        return amazonS3Client.getUrl(awsProperties.bucket, fileName).toString()
-    }
+//    private fun getS3Url(fileName: String): String {
+//        return amazonS3Client.getUrl(awsProperties.bucket, fileName).toString()
+//    }
 
     override fun generateFileUrl(
         fileName: String,
