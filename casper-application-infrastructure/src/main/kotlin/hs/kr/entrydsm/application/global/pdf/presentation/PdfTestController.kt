@@ -80,7 +80,6 @@ class PdfTestController(
             graduationDate = "2025-02",
             
             // Personal Info Fields
-            idPhoto = null,
             applicantGender = "남",
             
             // Guardian Info Fields
@@ -140,7 +139,6 @@ class PdfTestController(
             gedEnglish = null,
             
             // Additional Personal Info Fields
-            applicantNumber = "010-1234-5678",
             specialNotes = "특이사항 없음",
             
             // Attendance & Service Fields
