@@ -30,8 +30,7 @@ data class CreateApplicationRequest(
     // 개인 정보
     val birthDate: String?,
     val applicantGender: String?,
-    val applicantNumber: String?,
-    
+
     // 주소 정보
     val streetAddress: String?,
     val postalCode: String?,
@@ -60,8 +59,7 @@ data class CreateApplicationRequest(
     
     // 사진 및 문서
     val photoPath: String?,
-    val idPhoto: String?,
-    
+
     // 자기소개서 및 학습계획서
     val studyPlan: String?,
     val selfIntroduce: String?,
