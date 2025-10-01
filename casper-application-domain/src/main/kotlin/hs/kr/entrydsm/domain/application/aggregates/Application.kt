@@ -36,7 +36,6 @@ data class Application(
     val detailAddress: String?,
     val studyPlan: String?,
 
-
     val selfIntroduce: String?,
     val veteransNumber: Int?,
     val schoolCode: String?,
@@ -47,7 +46,6 @@ data class Application(
     val graduationDate: String?,
     
     // Personal Info Fields
-    val idPhoto: String?,
     val applicantGender: String?,
     
     // Guardian Info Fields
@@ -107,7 +105,6 @@ data class Application(
     val gedEnglish: Int?,
     
     // Additional Personal Info Fields
-    val applicantNumber: String?,
     val specialNotes: String?,
     
     // Attendance & Service Fields
