@@ -25,7 +25,7 @@ interface AdminApiDocument {
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "자기소개서 PDF 생성 성공",
+                description = "자기소개서 PDF 조회 성공",
                 content = [
                     Content(
                         mediaType = "application/pdf",
@@ -35,7 +35,7 @@ interface AdminApiDocument {
             ),
             ApiResponse(
                 responseCode = "500",
-                description = "PDF 생성 실패",
+                description = "PDF 조회 실패",
                 content = [Content(schema = Schema(hidden = true))]
             )
         ]
