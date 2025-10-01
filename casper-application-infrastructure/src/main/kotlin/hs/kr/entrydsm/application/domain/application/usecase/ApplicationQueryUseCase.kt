@@ -61,7 +61,7 @@ class ApplicationQueryUseCase(
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
-                    photoPath = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
+                    photoUrl = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
                 ),
         )
     }

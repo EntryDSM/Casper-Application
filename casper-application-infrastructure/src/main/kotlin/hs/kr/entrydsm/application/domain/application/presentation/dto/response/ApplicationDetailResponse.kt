@@ -22,6 +22,6 @@ data class ApplicationDetailResponse(
         val reviewedAt: LocalDateTime?,
         val createdAt: LocalDateTime,
         val updatedAt: LocalDateTime,
-        val photoPath: String?,
+        val photoUrl: String?,
     )
 }
