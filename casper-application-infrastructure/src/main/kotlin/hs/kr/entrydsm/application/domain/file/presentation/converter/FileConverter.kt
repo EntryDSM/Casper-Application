@@ -4,6 +4,7 @@ import hs.kr.entrydsm.application.domain.file.presentation.exception.WebFileExce
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.Files
 import java.util.UUID
 
 interface FileConverter {
@@ -21,11 +22,14 @@ interface FileConverter {
     }
 
     private fun transferFile(multipartFile: MultipartFile): File {
-        return File("${UUID.randomUUID()}_${multipartFile.originalFilename}")
-            .apply {
-                FileOutputStream(this).use {
-                    it.write(multipartFile.bytes)
-                }
-            }
+        val file = Files.createTempFile(
+            UUID.randomUUID().toString(),
+            multipartFile.originalFilename,
+        ).toFile()
+
+        FileOutputStream(file).use {
+            it.write(multipartFile.bytes)
+        }
+        return file
     }
 }
