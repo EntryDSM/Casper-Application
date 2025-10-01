@@ -180,7 +180,7 @@ class ApplicationQueryController(
     }
 
     @GetMapping("/applications/{applicationId}/pdf")
-    fun generateApplicationPdf(
+    override fun generateApplicationPdf(
         @PathVariable applicationId: String?,
     ): ResponseEntity<ByteArray> {
         return try {
