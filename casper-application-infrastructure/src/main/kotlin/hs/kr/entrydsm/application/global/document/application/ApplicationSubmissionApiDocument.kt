@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -47,7 +48,7 @@ interface ApplicationSubmissionApiDocument {
     fun createApplication(
         @Parameter(description = "사용자 ID", required = true)
         @RequestHeader("X-User-Id") userId: String,
-        @RequestBody request: CreateApplicationRequest
+        @Valid @RequestBody request: CreateApplicationRequest
     ): ResponseEntity<CreateApplicationResponse>
     
     @Operation(
