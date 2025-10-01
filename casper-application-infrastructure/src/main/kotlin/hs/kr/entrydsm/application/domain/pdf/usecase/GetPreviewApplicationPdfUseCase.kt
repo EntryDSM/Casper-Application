@@ -70,7 +70,6 @@ class GetPreviewApplicationPdfUseCase(
             graduationDate = data["graduationDate"]?.toString(),
             
             // Personal Info Fields
-            idPhoto = data["idPhoto"]?.toString(),
             applicantGender = data["applicantGender"]?.toString(),
             
             // Guardian Info Fields
@@ -130,7 +129,6 @@ class GetPreviewApplicationPdfUseCase(
             gedEnglish = (data["gedEnglish"] as? Number)?.toInt(),
             
             // Additional Personal Info Fields
-            applicantNumber = data["applicantNumber"]?.toString(),
             specialNotes = data["specialNotes"]?.toString(),
             
             // Attendance & Service Fields
