@@ -5,7 +5,6 @@ import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
-import hs.kr.entrydsm.domain.score.interfaces.ScoreContract
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 
