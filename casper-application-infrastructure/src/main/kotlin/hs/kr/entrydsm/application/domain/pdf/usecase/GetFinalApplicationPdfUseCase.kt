@@ -44,15 +44,7 @@ class GetFinalApplicationPdfUseCase(
     private fun buildScoreDetailsMap(application: Application): Map<String, Any> {
         val scoreDetails = application.getScoreDetails()
         
-        return mapOf(
-            "교과성적" to (scoreDetails["subjectScore"] ?: 0.0),
-            "출석점수" to (scoreDetails["attendanceScore"] ?: 0.0),
-            "봉사활동점수" to (scoreDetails["volunteerScore"] ?: 0.0),
-            "가산점" to (scoreDetails["bonusScore"] ?: 0.0),
-            "총점" to (scoreDetails["totalScore"] ?: 0.0),
-            "최대점수" to application.getMaxScore(),
-            "점수백분율" to application.getScorePercentage()
-        )
+        return scoreDetails.mapValues { it.value as Any }
     }
 
     /**
