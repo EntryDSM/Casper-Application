@@ -37,7 +37,7 @@ class ApplicationSubmissionUseCase(
      */
     fun createApplication(userId: UUID, request: CreateApplicationRequest): CreateApplicationResponse {
         // 입력 데이터 검증
-        validationService.validateCreateApplicationRequest(request)
+        //validationService.validateCreateApplicationRequest(request)
         
         // 중복 원서 제출 방지
         val existingApplications = applicationRepository.findAllByUserId(userId)
@@ -70,27 +70,27 @@ class ApplicationSubmissionUseCase(
             createdAt = now,
             updatedAt = now,
             isDaejeon = request.isDaejeon,
-            isOutOfHeadcount = request.isOutOfHeadcount,
+            //isOutOfHeadcount = request.isOutOfHeadcount,
             photoPath = request.photoPath,
             parentRelation = request.parentRelation,
             postalCode = request.postalCode,
             detailAddress = request.detailAddress,
             studyPlan = request.studyPlan,
             selfIntroduce = request.selfIntroduce,
-            veteransNumber = request.veteransNumber,
+            //veteransNumber = request.veteransNumber,
             schoolCode = request.schoolCode,
             
             // Basic Info Fields
-            nationalMeritChild = request.nationalMeritChild,
-            specialAdmissionTarget = request.specialAdmissionTarget,
+            //nationalMeritChild = request.nationalMeritChild,
+            //specialAdmissionTarget = request.specialAdmissionTarget,
             graduationDate = request.graduationDate,
             
             // Personal Info Fields
             applicantGender = request.applicantGender,
             
             // Guardian Info Fields
-            guardianName = request.guardianName,
-            guardianNumber = request.guardianNumber,
+            //guardianName = request.guardianName,
+            //guardianNumber = request.guardianNumber,
             guardianGender = request.guardianGender,
             
             // School Info Fields
