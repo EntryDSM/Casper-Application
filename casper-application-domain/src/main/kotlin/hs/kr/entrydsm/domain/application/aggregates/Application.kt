@@ -30,7 +30,7 @@ data class Application(
     var updatedAt: LocalDateTime,
     val isDaejeon: Boolean?,
     //val isOutOfHeadcount: Boolean?,
-    val photoPath: String?,
+    //val photoPath: String?,
     val parentRelation: String?,
     val postalCode: String?,
     val detailAddress: String?,
@@ -41,8 +41,8 @@ data class Application(
     val schoolCode: String?,
     
     // Basic Info Fields
-    //val nationalMeritChild: Boolean?,
-    //val specialAdmissionTarget: Boolean?,
+    val nationalMeritChild: Boolean?,
+    val specialAdmissionTarget: Boolean?,
     val graduationDate: String?,
     
     // Personal Info Fields
