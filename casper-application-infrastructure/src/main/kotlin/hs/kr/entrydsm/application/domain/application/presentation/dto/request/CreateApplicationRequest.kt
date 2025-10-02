@@ -58,10 +58,10 @@ data class CreateApplicationRequest(
     val graduationDate: String?,
 
     // 특별 정보
-    val specialNotes: String?,
+    //val specialNotes: String?,
     
     // 증명 사진
-    val photoPath: String?,
+    //val photoPath: String?,
 
     // 자기소개서 및 학습계획서
     val studyPlan: String?,
