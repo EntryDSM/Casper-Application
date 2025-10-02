@@ -53,8 +53,8 @@ data class CreateApplicationRequest(
     val teacherName: String?,
     
     // 기본 정보 필드
-    //val nationalMeritChild: Boolean?,
-    //val specialAdmissionTarget: Boolean?,
+    val nationalMeritChild: Boolean?,
+    val specialAdmissionTarget: Boolean?,
     val graduationDate: String?,
 
     // 특별 정보
