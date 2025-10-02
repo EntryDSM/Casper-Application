@@ -17,44 +17,44 @@ class ApplicationValidationService {
      * @param request 원서 생성 요청 데이터
      * @throws IllegalArgumentException 검증 실패 시
      */
-    fun validateCreateApplicationRequest(request: CreateApplicationRequest) {
-        // 기본 필드 검증 (Bean Validation은 이미 적용됨)
-        
-        // 전형별 특별 검증
-        validateByApplicationType(request)
-        
-        // 학력별 검증
-        validateByEducationalStatus(request)
-        
-        // 성적 검증
-        validateScores(request)
-        
-        // 보호자 정보 검증
-        validateGuardianInfo(request)
-    }
+//    fun validateCreateApplicationRequest(request: CreateApplicationRequest) {
+//        // 기본 필드 검증 (Bean Validation은 이미 적용됨)
+//
+//        // 전형별 특별 검증
+//        validateByApplicationType(request)
+//
+//        // 학력별 검증
+//        validateByEducationalStatus(request)
+//
+//        // 성적 검증
+//        validateScores(request)
+//
+//        // 보호자 정보 검증
+//        validateGuardianInfo(request)
+//    }
     
-    /**
-     * 전형 타입별 특별 검증을 수행합니다.
-     */
-    private fun validateByApplicationType(request: CreateApplicationRequest) {
-        when (request.applicationType) {
-            "GENERAL" -> {
-                // 일반전형: 특별한 검증 없음
-            }
-            "MEISTER" -> {
-                // 마이스터전형: 추가 검증 로직
-                if (request.specialAdmissionTarget != true) {
-                    throw IllegalArgumentException("마이스터전형은 특별전형 대상자여야 합니다")
-                }
-            }
-            "SOCIAL" -> {
-                // 사회통합전형: 사회적 배려 대상자 검증
-                if (request.nationalMeritChild != true && request.veteransNumber == null) {
-                    throw IllegalArgumentException("사회통합전형은 국가유공자 자녀 또는 보훈대상자여야 합니다")
-                }
-            }
-        }
-    }
+//    /**
+//     * 전형 타입별 특별 검증을 수행합니다.
+//     */
+//    private fun validateByApplicationType(request: CreateApplicationRequest) {
+//        when (request.applicationType) {
+//            "GENERAL" -> {
+//                // 일반전형: 특별한 검증 없음
+//            }
+//            "MEISTER" -> {
+//                // 마이스터전형: 추가 검증 로직
+//                if (request.specialAdmissionTarget != true) {
+//                    throw IllegalArgumentException("마이스터전형은 특별전형 대상자여야 합니다")
+//                }
+//            }
+//            "SOCIAL" -> {
+//                // 사회통합전형: 사회적 배려 대상자 검증
+//                if (request.nationalMeritChild != true && request.veteransNumber == null) {
+//                    throw IllegalArgumentException("사회통합전형은 국가유공자 자녀 또는 보훈대상자여야 합니다")
+//                }
+//            }
+//        }
+//    }
     
     /**
      * 학력 상태별 검증을 수행합니다.
@@ -119,21 +119,21 @@ class ApplicationValidationService {
         }
     }
     
-    /**
-     * 보호자 정보를 검증합니다.
-     */
-    private fun validateGuardianInfo(request: CreateApplicationRequest) {
-        // 보호자 정보가 있으면 관계도 있어야 함
-        if (!request.parentName.isNullOrBlank() && request.parentRelation.isNullOrBlank()) {
-            throw IllegalArgumentException("보호자 이름이 있으면 관계도 입력해야 합니다")
-        }
-        
-        // 후견인 정보 검증
-        if (!request.guardianName.isNullOrBlank() && request.guardianNumber.isNullOrBlank()) {
-            throw IllegalArgumentException("후견인 이름이 있으면 연락처도 입력해야 합니다")
-        }
-    }
-    
+//    /**
+//     * 보호자 정보를 검증합니다.
+//     */
+//    private fun validateGuardianInfo(request: CreateApplicationRequest) {
+//        // 보호자 정보가 있으면 관계도 있어야 함
+//        if (!request.parentName.isNullOrBlank() && request.parentRelation.isNullOrBlank()) {
+//            throw IllegalArgumentException("보호자 이름이 있으면 관계도 입력해야 합니다")
+//        }
+//
+//        // 후견인 정보 검증
+//        if (!request.guardianName.isNullOrBlank() && request.guardianNumber.isNullOrBlank()) {
+//            throw IllegalArgumentException("후견인 이름이 있으면 연락처도 입력해야 합니다")
+//        }
+//    }
+//
     /**
      * 교과 성적 등급 범위를 검증합니다 (1-5등급).
      */
