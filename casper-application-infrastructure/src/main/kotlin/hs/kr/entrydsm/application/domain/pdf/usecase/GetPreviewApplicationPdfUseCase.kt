@@ -54,27 +54,27 @@ class GetPreviewApplicationPdfUseCase(
             createdAt = now,
             updatedAt = now,
             isDaejeon = data["isDaejeon"] as? Boolean,
-            isOutOfHeadcount = data["isOutOfHeadcount"] as? Boolean,
+            //isOutOfHeadcount = data["isOutOfHeadcount"] as? Boolean,
             photoPath = data["photoPath"]?.toString(),
             parentRelation = data["parentRelation"]?.toString(),
             postalCode = data["postalCode"]?.toString(),
             detailAddress = data["detailAddress"]?.toString(),
             studyPlan = data["studyPlan"]?.toString(),
             selfIntroduce = data["selfIntroduce"]?.toString(),
-            veteransNumber = (data["veteransNumber"] as? Number)?.toInt(),
+            //veteransNumber = (data["veteransNumber"] as? Number)?.toInt(),
             schoolCode = data["schoolCode"]?.toString(),
             
             // Basic Info Fields
-            nationalMeritChild = data["nationalMeritChild"] as? Boolean,
-            specialAdmissionTarget = data["specialAdmissionTarget"] as? Boolean,
+            //nationalMeritChild = data["nationalMeritChild"] as? Boolean,
+            //specialAdmissionTarget = data["specialAdmissionTarget"] as? Boolean,
             graduationDate = data["graduationDate"]?.toString(),
             
             // Personal Info Fields
             applicantGender = data["applicantGender"]?.toString(),
             
             // Guardian Info Fields
-            guardianName = data["guardianName"]?.toString(),
-            guardianNumber = data["guardianNumber"]?.toString(),
+            //guardianName = data["guardianName"]?.toString(),
+            //guardianNumber = data["guardianNumber"]?.toString(),
             guardianGender = data["guardianGender"]?.toString(),
             
             // School Info Fields
