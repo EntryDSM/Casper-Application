@@ -62,6 +62,8 @@ class ApplicationQueryUseCase(
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
                     photoUrl = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
+                    studyPlan = application.studyPlan,
+                    selfIntroduce = application.selfIntroduce
                 ),
         )
     }
