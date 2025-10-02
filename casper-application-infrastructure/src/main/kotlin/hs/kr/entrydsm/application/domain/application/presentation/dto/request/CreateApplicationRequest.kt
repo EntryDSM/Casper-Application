@@ -41,8 +41,8 @@ data class CreateApplicationRequest(
     val parentName: String?,
     val parentTel: String?,
     val parentRelation: String?,
-    val guardianName: String?,
-    val guardianNumber: String?,
+    //val guardianName: String?,
+    //val guardianNumber: String?,
     val guardianGender: String?,
     
     // 학교 정보
@@ -53,11 +53,14 @@ data class CreateApplicationRequest(
     val teacherName: String?,
     
     // 기본 정보 필드
-    val nationalMeritChild: Boolean?,
-    val specialAdmissionTarget: Boolean?,
+    //val nationalMeritChild: Boolean?,
+    //val specialAdmissionTarget: Boolean?,
     val graduationDate: String?,
+
+    // 특별 정보
+    val specialNotes: String?,
     
-    // 사진 및 문서
+    // 증명 사진
     val photoPath: String?,
 
     // 자기소개서 및 학습계획서
@@ -65,9 +68,9 @@ data class CreateApplicationRequest(
     val selfIntroduce: String?,
     
     // 특별 정보
-    val specialNotes: String?,
-    val veteransNumber: Int?,
-    val isOutOfHeadcount: Boolean?,
+    //val specialNotes: String?,
+    //val veteransNumber: Int?,
+    //val isOutOfHeadcount: Boolean?,
     
     // 성적 정보 - 3학년 1학기
     val korean_3_1: Int?,
