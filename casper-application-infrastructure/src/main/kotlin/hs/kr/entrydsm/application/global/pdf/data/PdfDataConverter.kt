@@ -48,7 +48,7 @@ class PdfDataConverter(
         setAttendanceAndVolunteer(application, values)
         setExtraScore(application, values)
         setTeacherInfo(application, values)
-        setVeteransNumber(application, values)
+        //setVeteransNumber(application, values)
 
         // TODO: 조건부 설정 로직 추가
         // if (application.isRecommendationsRequired()) {
@@ -91,12 +91,12 @@ class PdfDataConverter(
      * @param application 지원서 정보
      * @param values 템플릿 데이터 맵
      */
-    private fun setVeteransNumber(
-        application: Application,
-        values: MutableMap<String, Any>,
-    ) {
-        values["veteransNumber"] = application.veteransNumber?.toString() ?: ""
-    }
+//    private fun setVeteransNumber(
+//        application: Application,
+//        values: MutableMap<String, Any>,
+//    ) {
+//        values["veteransNumber"] = application.veteransNumber?.toString() ?: ""
+//    }
 
     /**
      * 지원자의 개인정보(이름, 성별, 주소, 생년월일 등)를 설정합니다.
