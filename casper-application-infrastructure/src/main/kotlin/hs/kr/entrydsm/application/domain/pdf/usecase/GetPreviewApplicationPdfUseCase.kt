@@ -14,7 +14,7 @@ import java.util.UUID
 @ReadOnlyUseCase
 class GetPreviewApplicationPdfUseCase(
     private val securityContract: SecurityContract,
-    private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract
+    private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract,
 ) {
 
     /**
@@ -33,7 +33,7 @@ class GetPreviewApplicationPdfUseCase(
      */
     private fun createTempApplication(userId: UUID, data: Map<String, Any>): Application {
         val now = LocalDateTime.now()
-        
+
         return Application(
             applicationId = UUID.randomUUID(),
             userId = userId,
@@ -53,14 +53,19 @@ class GetPreviewApplicationPdfUseCase(
             createdAt = now,
             updatedAt = now,
             isDaejeon = data["isDaejeon"] as? Boolean,
-            photoPath = data["photoPath"]?.toString(),
+            //photoPath = data["photoPath"]?.toString(),
             parentRelation = data["parentRelation"]?.toString(),
             postalCode = data["postalCode"]?.toString(),
             detailAddress = data["detailAddress"]?.toString(),
             studyPlan = data["studyPlan"]?.toString(),
             selfIntroduce = data["selfIntroduce"]?.toString(),
             schoolCode = data["schoolCode"]?.toString(),
-            
+
+            nationalMeritChild = data["nationalMeritChild"] as? Boolean,
+            specialAdmissionTarget = data["specialAdmissionTarget"] as? Boolean,
+
+
+
             graduationDate = data["graduationDate"]?.toString(),
             applicantGender = data["applicantGender"]?.toString(),
             guardianGender = data["guardianGender"]?.toString(),
