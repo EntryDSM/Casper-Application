@@ -139,7 +139,7 @@ class PdfTestController(
             gedEnglish = null,
             
             // Additional Personal Info Fields
-            specialNotes = "특이사항 없음",
+            //specialNotes = "특이사항 없음",
             
             // Attendance & Service Fields
             absence = 0,
