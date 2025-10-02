@@ -29,7 +29,7 @@ data class Application(
     val createdAt: LocalDateTime,
     var updatedAt: LocalDateTime,
     val isDaejeon: Boolean?,
-    val isOutOfHeadcount: Boolean?,
+    //val isOutOfHeadcount: Boolean?,
     val photoPath: String?,
     val parentRelation: String?,
     val postalCode: String?,
@@ -37,20 +37,20 @@ data class Application(
     val studyPlan: String?,
 
     val selfIntroduce: String?,
-    val veteransNumber: Int?,
+    //val veteransNumber: Int?,
     val schoolCode: String?,
     
     // Basic Info Fields
-    val nationalMeritChild: Boolean?,
-    val specialAdmissionTarget: Boolean?,
+    //val nationalMeritChild: Boolean?,
+    //val specialAdmissionTarget: Boolean?,
     val graduationDate: String?,
     
     // Personal Info Fields
     val applicantGender: String?,
     
     // Guardian Info Fields
-    val guardianName: String?,
-    val guardianNumber: String?,
+    //val guardianName: String?,
+    //val guardianNumber: String?,
     val guardianGender: String?,
     
     // School Info Fields
