@@ -110,9 +110,12 @@ class PdfDataConverter(
         values: MutableMap<String, Any>,
     ) {
         values["userName"] = application.applicantName
-        // TODO: application 도메인에서 성별 정보 가져오기 필요 - 현재 더미값
-        values["isMale"] = toBallotBox(true)
-        values["isFemale"] = toBallotBox(false)
+        
+        val isMale = application.applicantGender?.uppercase() == "MALE" || application.applicantGender == "남"
+        val isFemale = application.applicantGender?.uppercase() == "FEMALE" || application.applicantGender == "여"
+        values["isMale"] = toBallotBox(isMale)
+        values["isFemale"] = toBallotBox(isFemale)
+        
         values["address"] = application.streetAddress ?: ""
         values["detailAddress"] = application.detailAddress ?: ""
         values["birthday"] = application.birthDate ?: ""
@@ -145,8 +148,7 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: application 도메인에서 성별 정보 가져오기 필요 - 현재 더미값
-        values["gender"] = setBlankIfNull("남")
+        values["gender"] = setBlankIfNull(application.applicantGender ?: "")
     }
 
     private fun setPhoneNumber(
@@ -211,14 +213,14 @@ class PdfDataConverter(
                 "isDaejeon" to isDaejeon,
                 "isNotDaejeon" to !isDaejeon,
                 "isBasicLiving" to isSocial, // 사회통합전형인 경우 사회적배려 대상자로 추정
-                "isFromNorth" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isLowestIncome" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isMulticultural" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isOneParent" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isTeenHouseholder" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isPrivilegedAdmission" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isNationalMerit" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-                "isProtectedChildren" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isFromNorth" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isLowestIncome" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isMulticultural" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isOneParent" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isTeenHouseholder" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isPrivilegedAdmission" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isNationalMerit" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+//                "isProtectedChildren" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
                 "isCommon" to isCommon,
                 "isMeister" to (application.applicationType == ApplicationType.MEISTER),
                 "isSocialMerit" to isSocial,
@@ -366,9 +368,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // TODO: 교사정보 도메인이 없어서 더미값 사용
-        values["teacherName"] = "더미선생님"
-        values["teacherTel"] = toFormattedPhoneNumber("0421234567")
+        values["teacherName"] = application.teacherName ?: ""
+        values["teacherTel"] = toFormattedPhoneNumber(application.schoolPhone ?: "")
     }
 
     private fun setParentInfo(
@@ -440,7 +441,10 @@ class PdfDataConverter(
             values["schoolRegion"] = school.regionName ?: "미상"
             values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
             values["schoolName"] = school.name
-            values["schoolClass"] = "3" // TODO: 학급 정보는 별도 도메인 필요
+            values["schoolClass"] = application.studentId?.let { 
+                // studentId에서 학급 정보 추출 시도 (예: "30101" -> "1")
+                if (it.length >= 2) it.substring(1, 2) else "3"
+            } ?: "3"
         } else {
             values.putAll(emptySchoolInfo())
         }
