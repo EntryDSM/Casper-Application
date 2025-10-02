@@ -394,13 +394,13 @@ class PdfDataConverter(
         values["isNotDaejeonAndSocialMerit"] = markIfTrue(!isDaejeon && isSocialMerit)
     }
 
-    private fun setBase64Image(
-        application: Application,
-        values: MutableMap<String, Any>,
-    ) {
-        // TODO: 이미지 파일 처리 로직 필요
-        values["base64Image"] = application.photoPath ?: ""
-    }
+//    private fun setBase64Image(
+//        application: Application,
+//        values: MutableMap<String, Any>,
+//    ) {
+//        // TODO: 이미지 파일 처리 로직 필요
+//        values["base64Image"] = application.photoPath ?: ""
+//    }
 
     private fun markIfTrue(isTrue: Boolean): String {
         return if (isTrue) "◯" else ""
