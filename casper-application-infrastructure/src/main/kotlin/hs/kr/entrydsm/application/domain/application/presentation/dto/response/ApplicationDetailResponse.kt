@@ -23,5 +23,7 @@ data class ApplicationDetailResponse(
         val createdAt: LocalDateTime,
         val updatedAt: LocalDateTime,
         val photoUrl: String?,
+        val studyPlan: String?,
+        val selfIntroduce: String?
     )
 }
