@@ -1,5 +1,7 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
+import hs.kr.entrydsm.application.domain.application.domain.entity.PhotoJpaEntity
+import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.school.aggregate.School
 import hs.kr.entrydsm.domain.status.aggregates.Status
@@ -30,7 +32,9 @@ import java.time.format.DateTimeFormatter
  * 여러 지원자의 수험표가 하나의 파일에 연속으로 생성됩니다.
  */
 @Component
-class PrintAdmissionTicketGenerator {
+class PrintAdmissionTicketGenerator(
+    private val photoJpaRepository: PhotoJpaRepository
+) {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
     }
@@ -103,10 +107,12 @@ class PrintAdmissionTicketGenerator {
             val user = userMap[application.userId]
             val status = statusMap[application.receiptCode]
             val school = application.schoolCode?.let { schoolMap[it] }
+            val photoJpaEntity = photoJpaRepository.findByUserId(application.userId)
+                ?: IllegalArgumentException("Photo not found.")
 
             fillApplicationData(sourceSheet, 0, application, user, school, status, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
-            copyApplicationImage(application, targetSheet, currentRowIndex)
+            copyApplicationImage(photoJpaEntity as PhotoJpaEntity, targetSheet, currentRowIndex)
             currentRowIndex += 20
         }
 
@@ -305,12 +311,12 @@ class PrintAdmissionTicketGenerator {
      * @param targetRowIndex 타겟 행 인덱스
      */
     fun copyApplicationImage(
-        application: Application,
+        photoJpaEntity: PhotoJpaEntity,
         targetSheet: Sheet,
         targetRowIndex: Int,
     ) {
         // TODO: 이미지 파일 처리 로직 필요
-        if (!application.photoPath.isNullOrBlank()) {
+        if (!photoJpaEntity.photo.isNullOrBlank()) {
             // TODO: 실제 이미지 로드 로직
             copyDummyImage(targetSheet, targetRowIndex)
         } else {
