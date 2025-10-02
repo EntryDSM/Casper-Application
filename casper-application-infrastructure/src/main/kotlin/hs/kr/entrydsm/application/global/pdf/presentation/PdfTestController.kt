@@ -64,27 +64,27 @@ class PdfTestController(
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
             isDaejeon = true,
-            isOutOfHeadcount = false,
+            //isOutOfHeadcount = false,
             photoPath = null,
             parentRelation = "부",
             postalCode = "12345",
             detailAddress = "테스트상세주소",
             studyPlan = "테스트 학업계획",
             selfIntroduce = "테스트 자기소개",
-            veteransNumber = null,
+            //veteransNumber = null,
             schoolCode = "B100000001",
             
             // Basic Info Fields
-            nationalMeritChild = false,
-            specialAdmissionTarget = false,
+            //nationalMeritChild = false,
+            //specialAdmissionTarget = false,
             graduationDate = "2025-02",
             
             // Personal Info Fields
             applicantGender = "남",
             
             // Guardian Info Fields
-            guardianName = "테스트보호자",
-            guardianNumber = "01011111111",
+            //guardianName = "테스트보호자",
+            //guardianNumber = "01011111111",
             guardianGender = "여",
             
             // School Info Fields
