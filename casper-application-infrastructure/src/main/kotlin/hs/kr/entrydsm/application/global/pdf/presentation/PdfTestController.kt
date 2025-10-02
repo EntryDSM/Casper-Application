@@ -65,7 +65,7 @@ class PdfTestController(
             updatedAt = LocalDateTime.now(),
             isDaejeon = true,
             //isOutOfHeadcount = false,
-            photoPath = null,
+            //photoPath = null,
             parentRelation = "부",
             postalCode = "12345",
             detailAddress = "테스트상세주소",
@@ -75,8 +75,8 @@ class PdfTestController(
             schoolCode = "B100000001",
             
             // Basic Info Fields
-            //nationalMeritChild = false,
-            //specialAdmissionTarget = false,
+            nationalMeritChild = false,
+            specialAdmissionTarget = false,
             graduationDate = "2025-02",
             
             // Personal Info Fields
