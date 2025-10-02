@@ -37,7 +37,7 @@ class ApplicationJpaEntity(
     val educationalStatus: String,
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    val status: ApplicationStatus,
+    var status: ApplicationStatus,
     @Column(name = "submitted_at", nullable = false)
     val submittedAt: LocalDateTime,
     @Column(name = "reviewed_at")

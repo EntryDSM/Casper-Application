@@ -65,4 +65,28 @@ class ApplicationPersistenceAdapter(
         return applicationJpaRepository.findAll()
             .map { applicationMapper.toModel(it) }
     }
+
+    /**
+     * 접수번호로 원서 정보를 조회합니다.
+     *
+     * @param receiptCode 접수번호
+     * @return 해당 접수번호의 원서 정보, 없으면 null
+     */
+    override fun getApplicationByReceiptCode(receiptCode: Long): Application? {
+        return applicationJpaRepository.findByReceiptCode(receiptCode)
+            ?.let { applicationMapper.toModel(it) }
+    }
+
+    /**
+     * 원서 상태를 업데이트합니다.
+     *
+     * @param receiptCode 접수번호
+     * @param status 변경할 상태
+     */
+    override fun updateApplicationStatus(receiptCode: Long, status: hs.kr.entrydsm.domain.status.values.ApplicationStatus) {
+        applicationJpaRepository.findByReceiptCode(receiptCode)?.let { applicationEntity ->
+            applicationEntity.status = status
+            applicationJpaRepository.save(applicationEntity)
+        }
+    }
 }

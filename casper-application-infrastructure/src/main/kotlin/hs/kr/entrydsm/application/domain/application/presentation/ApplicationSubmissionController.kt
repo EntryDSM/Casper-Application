@@ -4,8 +4,10 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.request.Cr
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationSubmissionRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CreateApplicationResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ScoreCalculationResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CancelApplicationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.CompleteApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationSubmissionUseCase
+import hs.kr.entrydsm.domain.application.interfaces.CancelApplicationContract
 import hs.kr.entrydsm.application.global.document.application.ApplicationSubmissionApiDocument
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,6 +27,7 @@ import java.util.UUID
 class ApplicationSubmissionController(
     private val completeApplicationUseCase: CompleteApplicationUseCase,
     private val applicationSubmissionUseCase: ApplicationSubmissionUseCase,
+    private val cancelApplicationContract: CancelApplicationContract,
 ) : ApplicationSubmissionApiDocument {
 
     @PostMapping
@@ -183,5 +187,30 @@ class ApplicationSubmissionController(
             application = applicationData,
             scores = scoresData
         )
+    }
+
+    @DeleteMapping("/{receiptCode}")
+    override fun cancelApplication(
+        @RequestHeader("X-User-Id") userId: String,
+        @PathVariable receiptCode: Long,
+    ): ResponseEntity<CancelApplicationResponse> {
+        return try {
+            val userUuid = UUID.fromString(userId)
+            cancelApplicationContract.cancelApplication(userUuid, receiptCode)
+            
+            ResponseEntity.ok(
+                CancelApplicationResponse(
+                    success = true,
+                    message = "원서 접수가 취소되었습니다."
+                )
+            )
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(
+                CancelApplicationResponse(
+                    success = false,
+                    message = e.message ?: "원서 취소 중 오류가 발생했습니다."
+                )
+            )
+        }
     }
 }

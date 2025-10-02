@@ -403,7 +403,12 @@ enum class ErrorCode(val code: String, val description: String) {
     FEIGN_SERVER_ERROR("FGN001", "외부 API 서버 오류가 발생했습니다"),
 
     // ExamCode 오류 (EXA)
-    FAILED_GEOCODE_CONVERSION("EXA001", "주소를 변환할 수 없습니다");
+    FAILED_GEOCODE_CONVERSION("EXA001", "주소를 변환할 수 없습니다"),
+
+    // Application 오류 (APP)
+    APPLICATION_NOT_FOUND("APP001", "원서를 찾을 수 없습니다"),
+    APPLICATION_ACCESS_DENIED("APP002", "본인의 원서만 취소할 수 있습니다"),
+    APPLICATION_CANNOT_CANCEL("APP003", "제출된 원서만 취소할 수 있습니다");
 
     /**
      * 오류 코드의 도메인 접두사를 반환합니다.

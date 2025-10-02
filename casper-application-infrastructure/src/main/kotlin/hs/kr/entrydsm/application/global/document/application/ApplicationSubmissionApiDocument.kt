@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.global.document.application
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.CreateApplicationRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CreateApplicationResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ScoreCalculationResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CancelApplicationResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -82,4 +83,39 @@ interface ApplicationSubmissionApiDocument {
         @Parameter(description = "원서 ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
         @PathVariable applicationId: String
     ): ResponseEntity<ScoreCalculationResponse>
+    
+    @Operation(
+        summary = "원서 접수 취소",
+        description = "제출된 원서를 취소합니다. 본인의 원서만 취소할 수 있으며, SUBMITTED 상태의 원서만 취소 가능합니다."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "원서 취소 성공",
+                content = [Content(schema = Schema(implementation = CancelApplicationResponse::class))]
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 또는 원서를 찾을 수 없음",
+                content = [Content(schema = Schema(implementation = CancelApplicationResponse::class))]
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "본인의 원서가 아님",
+                content = [Content(schema = Schema(implementation = CancelApplicationResponse::class))]
+            ),
+            ApiResponse(
+                responseCode = "409",
+                description = "취소할 수 없는 상태의 원서",
+                content = [Content(schema = Schema(implementation = CancelApplicationResponse::class))]
+            )
+        ]
+    )
+    fun cancelApplication(
+        @Parameter(description = "사용자 ID", required = true)
+        @RequestHeader("X-User-Id") userId: String,
+        @Parameter(description = "접수번호", required = true, example = "12345")
+        @PathVariable receiptCode: Long
+    ): ResponseEntity<CancelApplicationResponse>
 }

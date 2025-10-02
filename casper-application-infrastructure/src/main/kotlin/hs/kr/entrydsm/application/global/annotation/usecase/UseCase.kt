@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.global.annotation.usecase
 
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -14,5 +15,6 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
+@Component
 @Transactional
 annotation class UseCase()
