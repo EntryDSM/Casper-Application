@@ -71,7 +71,7 @@ class ApplicationSubmissionUseCase(
             updatedAt = now,
             isDaejeon = request.isDaejeon,
             //isOutOfHeadcount = request.isOutOfHeadcount,
-            photoPath = request.photoPath,
+            //photoPath = request.photoPath,
             parentRelation = request.parentRelation,
             postalCode = request.postalCode,
             detailAddress = request.detailAddress,
@@ -81,8 +81,8 @@ class ApplicationSubmissionUseCase(
             schoolCode = request.schoolCode,
             
             // Basic Info Fields
-            //nationalMeritChild = request.nationalMeritChild,
-            //specialAdmissionTarget = request.specialAdmissionTarget,
+            nationalMeritChild = request.nationalMeritChild,
+            specialAdmissionTarget = request.specialAdmissionTarget,
             graduationDate = request.graduationDate,
             
             // Personal Info Fields
