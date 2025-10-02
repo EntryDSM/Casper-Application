@@ -115,7 +115,7 @@ class GetPreviewApplicationPdfUseCase(
             gedTech = (data["gedTech"] as? Number)?.toInt(),
             gedEnglish = (data["gedEnglish"] as? Number)?.toInt(),
             
-            specialNotes = data["specialNotes"]?.toString(),
+            //specialNotes = data["specialNotes"]?.toString(),
             
             absence = (data["absence"] as? Number)?.toInt(),
             tardiness = (data["tardiness"] as? Number)?.toInt(),
