@@ -105,7 +105,7 @@ data class Application(
     val gedEnglish: Int?,
     
     // Additional Personal Info Fields
-    val specialNotes: String?,
+    //val specialNotes: String?,
     
     // Attendance & Service Fields
     val absence: Int?,
