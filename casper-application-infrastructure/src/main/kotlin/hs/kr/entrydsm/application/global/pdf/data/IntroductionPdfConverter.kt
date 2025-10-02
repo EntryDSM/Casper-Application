@@ -80,7 +80,6 @@ class IntroductionPdfConverter(
         values["selfIntroduction"] = application.selfIntroduce ?: ""
         values["studyPlan"] = application.studyPlan ?: ""
         values["newLineChar"] = "\n"
-        // TODO: Status 도메인에서 examCode 가져오기 필요
-        values["examCode"] = "더미수험번호"
+        values["examCode"] = application.receiptCode.toString()
     }
 }
