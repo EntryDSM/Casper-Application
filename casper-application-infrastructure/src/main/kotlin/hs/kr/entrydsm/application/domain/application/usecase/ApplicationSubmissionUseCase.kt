@@ -145,7 +145,7 @@ class ApplicationSubmissionUseCase(
             gedEnglish = request.gedEnglish,
             
             // Additional Personal Info Fields
-            specialNotes = request.specialNotes,
+            //specialNotes = request.specialNotes,
             
             // Attendance & Service Fields
             absence = request.absence,
