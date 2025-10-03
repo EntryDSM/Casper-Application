@@ -42,12 +42,6 @@ data class PreviewPdfRequest(
     val specialAdmissionTarget: Boolean? = null,
     val graduationDate: String? = null,
 
-    // 특별 정보
-    val specialNotes: String? = null,
-    
-    // 증명 사진
-    val photoPath: String? = null,
-
     // 자기소개서 및 학습계획서
     val studyPlan: String? = null,
     val selfIntroduce: String? = null,
