@@ -191,7 +191,7 @@ class ApplicationSubmissionController(
 
     @DeleteMapping("/{receiptCode}")
     override fun cancelApplication(
-        @RequestHeader("X-User-Id") userId: String,
+        @RequestHeader("Request-User-Id") userId: String,
         @PathVariable receiptCode: Long,
     ): ResponseEntity<CancelApplicationResponse> {
         return try {
