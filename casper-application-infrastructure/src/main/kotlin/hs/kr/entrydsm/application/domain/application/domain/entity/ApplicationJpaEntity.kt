@@ -50,8 +50,6 @@ class ApplicationJpaEntity(
     val isDaejeon: Boolean?,
     @get:JvmName("getIsOutOfHeadcount")
     var isOutOfHeadcount: Boolean?,
-    @Column(columnDefinition = "TEXT")
-    var photoPath: String?,
     val parentRelation: String?,
     val postalCode: String?,
     val detailAddress: String?,
@@ -83,7 +81,6 @@ class ApplicationJpaEntity(
         reviewedAt = null,
         isDaejeon = true,
         isOutOfHeadcount = false,
-        photoPath = null,
         parentRelation = null,
         postalCode = null,
         detailAddress = null,

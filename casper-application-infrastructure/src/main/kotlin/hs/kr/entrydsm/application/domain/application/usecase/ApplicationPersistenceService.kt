@@ -50,7 +50,6 @@ class ApplicationPersistenceService(
                 reviewedAt = null,
                 isDaejeon = null,
                 isOutOfHeadcount = null,
-                photoPath = null,
                 parentRelation = null,
                 postalCode = null,
                 detailAddress = null,
