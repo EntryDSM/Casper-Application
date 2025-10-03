@@ -47,9 +47,9 @@ class ApplicationJpaEntity(
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
     @get:JvmName("getIsDaejeon")
-    val isDaejeon: Boolean?,
-    @get:JvmName("getIsOutOfHeadcount")
-    var isOutOfHeadcount: Boolean?,
+    val isDaejeon: Boolean,
+    //@get:JvmName("getIsOutOfHeadcount")
+    //var isOutOfHeadcount: Boolean?,
     val parentRelation: String?,
     val postalCode: String?,
     val detailAddress: String?,
@@ -57,7 +57,6 @@ class ApplicationJpaEntity(
     val studyPlan: String?,
     @Column(length = 1600)
     val selfIntroduce: String?,
-    val veteransNumber: Int?,
     val schoolCode: String?,
 ) {
     @PreUpdate
@@ -80,13 +79,11 @@ class ApplicationJpaEntity(
         submittedAt = LocalDateTime.now(),
         reviewedAt = null,
         isDaejeon = true,
-        isOutOfHeadcount = false,
         parentRelation = null,
         postalCode = null,
         detailAddress = null,
         studyPlan = null,
         selfIntroduce = null,
-        veteransNumber = null,
         schoolCode = null,
     )
 }
