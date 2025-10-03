@@ -24,6 +24,7 @@ data class ApplicationDetailResponse(
         val updatedAt: LocalDateTime,
         val photoUrl: String?,
         val studyPlan: String?,
-        val selfIntroduce: String?
+        val selfIntroduce: String?,
+        val isDaejeon: Boolean
     )
 }
