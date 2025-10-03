@@ -32,7 +32,7 @@ class ApplicationSubmissionController(
 
     @PostMapping
     override fun createApplication(
-        @RequestHeader("X-User-Id") userId: String,
+        @RequestHeader("Request-User-Id") userId: String,
         @Valid @RequestBody request: CreateApplicationRequest
     ): ResponseEntity<CreateApplicationResponse> {
         return try {
