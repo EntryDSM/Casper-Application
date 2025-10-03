@@ -43,7 +43,7 @@ class ApplicationPersistenceService(
                 parentName = extractStringValue(applicationData, "parentName"),
                 parentTel = extractStringValue(applicationData, "parentTel"),
                 birthDate = extractStringValue(applicationData, "birthDate"),
-                applicationType = validateAndGetApplicationType(extractStringValue(applicationData, "applicationType") ?: "COMMON"),
+                applicationType = extractStringValue(applicationData, "applicationType") ?: "COMMON",
                 educationalStatus = extractStringValue(applicationData, "educationalStatus") ?: "UNKNOWN",
                 status = ApplicationStatus.SUBMITTED,
                 submittedAt = LocalDateTime.now(),
