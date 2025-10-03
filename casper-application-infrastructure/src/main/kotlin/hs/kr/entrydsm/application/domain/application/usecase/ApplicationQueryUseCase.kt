@@ -63,7 +63,8 @@ class ApplicationQueryUseCase(
                     updatedAt = application.updatedAt,
                     photoUrl = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
                     studyPlan = application.studyPlan,
-                    selfIntroduce = application.selfIntroduce
+                    selfIntroduce = application.selfIntroduce,
+                    isDaejeon = application.isDaejeon
                 ),
         )
     }
@@ -108,6 +109,7 @@ class ApplicationQueryUseCase(
                                 educationalStatus = app.educationalStatus,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
+                                isDaejeon = app.isDaejeon
                             )
                         },
                     total = totalElements,
@@ -136,6 +138,7 @@ class ApplicationQueryUseCase(
                                 educationalStatus = app.educationalStatus,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
+                                isDaejeon = app.isDaejeon
                             )
                         },
                     total = applications.size,
