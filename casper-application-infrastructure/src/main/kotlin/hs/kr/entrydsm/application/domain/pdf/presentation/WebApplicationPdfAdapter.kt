@@ -26,7 +26,7 @@ class WebApplicationPdfAdapter(
      */
     @PostMapping("/preview")
     override fun previewPdf(@RequestBody request: PreviewPdfRequest): ResponseEntity<ByteArray> {
-        val pdfBytes = getPreviewApplicationPdfUseCase.execute(request.application, request.scores)
+        val pdfBytes = getPreviewApplicationPdfUseCase.execute(request)
         
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
