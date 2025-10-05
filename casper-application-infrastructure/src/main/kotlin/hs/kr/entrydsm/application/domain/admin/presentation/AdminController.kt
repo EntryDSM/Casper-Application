@@ -45,15 +45,16 @@ class AdminController(
     override fun createApplicationType(
         @RequestBody request: CreateApplicationTypeRequest,
     ): ResponseEntity<CreateApplicationTypeResponse> {
-        val result = adminUseCase.createApplicationType(request.code, request.name)
+        // Enum으로 관리되므로 생성 대신 조회 기능만 제공
+        val results = adminUseCase.getApplicationTypes()
         return ResponseEntity.ok(
             CreateApplicationTypeResponse(
                 success = true,
                 data =
                     CreateApplicationTypeResponse.TypeData(
-                        typeId = result.typeId,
-                        code = result.code,
-                        name = result.name,
+                        typeId = results.firstOrNull()?.typeId ?: "",
+                        code = results.firstOrNull()?.code ?: "",
+                        name = results.firstOrNull()?.name ?: "",
                     ),
             ),
         )
@@ -63,15 +64,16 @@ class AdminController(
     override fun createEducationalStatus(
         @RequestBody request: CreateEducationalStatusRequest,
     ): ResponseEntity<CreateEducationalStatusResponse> {
-        val result = adminUseCase.createEducationalStatus(request.code, request.name)
+        // Enum으로 관리되므로 생성 대신 조회 기능만 제공
+        val results = adminUseCase.getEducationalStatuses()
         return ResponseEntity.ok(
             CreateEducationalStatusResponse(
                 success = true,
                 data =
                     CreateEducationalStatusResponse.StatusData(
-                        statusId = result.statusId,
-                        code = result.code,
-                        name = result.name,
+                        statusId = results.firstOrNull()?.statusId ?: "",
+                        code = results.firstOrNull()?.code ?: "",
+                        name = results.firstOrNull()?.name ?: "",
                     ),
             ),
         )
