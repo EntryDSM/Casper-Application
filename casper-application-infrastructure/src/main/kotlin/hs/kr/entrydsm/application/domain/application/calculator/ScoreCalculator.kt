@@ -2,218 +2,186 @@ package hs.kr.entrydsm.application.domain.application.calculator
 
 import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
 import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
-import hs.kr.entrydsm.application.domain.application.enums.Achievement
 import org.springframework.stereotype.Component
+import kotlin.math.min
 
 /**
  * 2026학년도 대덕소프트웨어마이스터고 입학전형 점수 계산기
+ *
+ * 계산 기준:
+ * - 교과성적: 80점 만점 (전형별 배수 적용)
+ * - 출석점수: 15점 만점
+ * - 봉사활동점수: 15점 만점
+ * - 가산점: 일반전형 3점, 특별전형 9점
  */
 @Component
 class ScoreCalculator {
-
     /**
      * 전형별 점수 계산
      */
     fun calculateScore(
         applicationType: ApplicationType,
         educationalStatus: EducationalStatus,
-        scores: Map<String, Any>
+        scores: Map<String, Any>,
     ): ScoreResult {
-        return when (educationalStatus) {
-            EducationalStatus.PROSPECTIVE_GRADUATE -> calculateForProspectiveGraduate(applicationType, scores)
-            EducationalStatus.GRADUATE -> calculateForGraduate(applicationType, scores)
-            EducationalStatus.QUALIFICATION_EXAM -> calculateForQualificationExam(applicationType, scores)
+        return try {
+            val scoreInput = ScoreInput.from(scores)
+
+            val subjectScore =
+                calculateSubjectScore(
+                    applicationType,
+                    educationalStatus,
+                    scoreInput,
+                )
+
+            val attendanceScore = calculateAttendanceScore(scoreInput)
+            val volunteerScore = calculateVolunteerScore(scoreInput)
+            val bonusScore = calculateBonusScore(applicationType, scoreInput)
+
+            val totalScore = subjectScore + attendanceScore + volunteerScore + bonusScore
+
+            ScoreResult(
+                subjectScore = subjectScore,
+                attendanceScore = attendanceScore,
+                volunteerScore = volunteerScore,
+                bonusScore = bonusScore,
+                totalScore = totalScore,
+            )
+        } catch (e: Exception) {
+            throw ScoreCalculationException("점수 계산 중 오류 발생: ${e.message}", e)
         }
     }
 
     /**
-     * 졸업예정자 점수 계산 (최근 3개 학기)
+     * 교과성적 계산
+     */
+    private fun calculateSubjectScore(
+        applicationType: ApplicationType,
+        educationalStatus: EducationalStatus,
+        scoreInput: ScoreInput,
+    ): Double {
+        val baseScore =
+            when (educationalStatus) {
+            EducationalStatus.PROSPECTIVE_GRADUATE ->
+                calculateProspectiveGraduateSubjectScore(scoreInput)
+            EducationalStatus.GRADUATE ->
+                calculateGraduateSubjectScore(scoreInput)
+            EducationalStatus.QUALIFICATION_EXAM ->
+                calculateQualificationExamSubjectScore(scoreInput)
+        }
+
+        // 전형별 배수 적용 (일반전형 1.75, 특별전형 1.0)
+        return baseScore * applicationType.baseScoreMultiplier
+    }
+
+    /**
+     * 졸업예정자 교과성적 계산
      * - 3학년 1학기: 50% (40점)
      * - 2학년 2학기: 25% (20점)
      * - 2학년 1학기: 25% (20점)
      */
-    private fun calculateForProspectiveGraduate(
-        applicationType: ApplicationType,
-        scores: Map<String, Any>
-    ): ScoreResult {
-        // 3학년 1학기 성적 (50%, 40점)
-        val grade3_1_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_3_1"),
-            social = getIntValue(scores, "social_3_1"),
-            history = getIntValue(scores, "history_3_1"),
-            math = getIntValue(scores, "math_3_1"),
-            science = getIntValue(scores, "science_3_1"),
-            tech = getIntValue(scores, "tech_3_1"),
-            english = getIntValue(scores, "english_3_1")
-        )
-        val grade3_1_score = 8 * grade3_1_avg // 40점 만점
+    private fun calculateProspectiveGraduateSubjectScore(scoreInput: ScoreInput): Double {
+        // 3학년 1학기 (7과목 평균 × 8 = 40점)
+        val grade31 =
+            scoreInput.grade3_1
+                ?: throw ScoreCalculationException("졸업예정자는 3학년 1학기 성적이 필수입니다")
+        val score31 = calculateSemesterScore(grade31) * 8.0
 
-        // 2학년 2학기 성적 (25%, 20점)
-        val grade2_2_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_2_2"),
-            social = getIntValue(scores, "social_2_2"),
-            history = getIntValue(scores, "history_2_2"),
-            math = getIntValue(scores, "math_2_2"),
-            science = getIntValue(scores, "science_2_2"),
-            tech = getIntValue(scores, "tech_2_2"),
-            english = getIntValue(scores, "english_2_2")
-        )
-        val grade2_2_score = 4 * grade2_2_avg // 20점 만점
+        // 2학년 2학기 (7과목 평균 × 4 = 20점)
+        val grade22 =
+            scoreInput.grade2_2
+                ?: throw ScoreCalculationException("졸업예정자는 2학년 2학기 성적이 필수입니다")
+        val score22 = calculateSemesterScore(grade22) * 4.0
 
-        // 2학년 1학기 성적 (25%, 20점)
-        val grade2_1_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_2_1"),
-            social = getIntValue(scores, "social_2_1"),
-            history = getIntValue(scores, "history_2_1"),
-            math = getIntValue(scores, "math_2_1"),
-            science = getIntValue(scores, "science_2_1"),
-            tech = getIntValue(scores, "tech_2_1"),
-            english = getIntValue(scores, "english_2_1")
-        )
-        val grade2_1_score = 4 * grade2_1_avg // 20점 만점
+        // 2학년 1학기 (7과목 평균 × 4 = 20점)
+        val grade21 =
+            scoreInput.grade2_1
+                ?: throw ScoreCalculationException("졸업예정자는 2학년 1학기 성적이 필수입니다")
+        val score21 = calculateSemesterScore(grade21) * 4.0
 
-        val baseSubjectScore = grade3_1_score + grade2_2_score + grade2_1_score // 80점 만점
-        val subjectScore = baseSubjectScore * applicationType.baseScoreMultiplier
-
-        return calculateFinalScore(applicationType, subjectScore, scores)
+        return score31 + score22 + score21 // 최대 80점
     }
 
     /**
-     * 졸업자 점수 계산 (최근 4개 학기)
+     * 졸업자 교과성적 계산
      * - 3학년 2학기: 25% (20점)
-     * - 3학년 1학기: 25% (20점) 
+     * - 3학년 1학기: 25% (20점)
      * - 2학년 2학기: 25% (20점)
      * - 2학년 1학기: 25% (20점)
      */
-    private fun calculateForGraduate(
-        applicationType: ApplicationType,
-        scores: Map<String, Any>
-    ): ScoreResult {
-        // 각 학기별 성적 (각 25%, 20점)
-        val grade3_2_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_3_2"),
-            social = getIntValue(scores, "social_3_2"),
-            history = getIntValue(scores, "history_3_2"),
-            math = getIntValue(scores, "math_3_2"),
-            science = getIntValue(scores, "science_3_2"),
-            tech = getIntValue(scores, "tech_3_2"),
-            english = getIntValue(scores, "english_3_2")
-        )
-        val grade3_2_score = 4 * grade3_2_avg
+    private fun calculateGraduateSubjectScore(scoreInput: ScoreInput): Double {
+        val grade32 =
+            scoreInput.grade3_2
+                ?: throw ScoreCalculationException("졸업자는 3학년 2학기 성적이 필수입니다")
+        val score32 = calculateSemesterScore(grade32) * 4.0
 
-        val grade3_1_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_3_1"),
-            social = getIntValue(scores, "social_3_1"),
-            history = getIntValue(scores, "history_3_1"),
-            math = getIntValue(scores, "math_3_1"),
-            science = getIntValue(scores, "science_3_1"),
-            tech = getIntValue(scores, "tech_3_1"),
-            english = getIntValue(scores, "english_3_1")
-        )
-        val grade3_1_score = 4 * grade3_1_avg
+        val grade31 =
+            scoreInput.grade3_1
+                ?: throw ScoreCalculationException("졸업자는 3학년 1학기 성적이 필수입니다")
+        val score31 = calculateSemesterScore(grade31) * 4.0
 
-        val grade2_2_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_2_2"),
-            social = getIntValue(scores, "social_2_2"),
-            history = getIntValue(scores, "history_2_2"),
-            math = getIntValue(scores, "math_2_2"),
-            science = getIntValue(scores, "science_2_2"),
-            tech = getIntValue(scores, "tech_2_2"),
-            english = getIntValue(scores, "english_2_2")
-        )
-        val grade2_2_score = 4 * grade2_2_avg
+        val grade22 =
+            scoreInput.grade2_2
+                ?: throw ScoreCalculationException("졸업자는 2학년 2학기 성적이 필수입니다")
+        val score22 = calculateSemesterScore(grade22) * 4.0
 
-        val grade2_1_avg = calculateSemesterAverage(
-            korean = getIntValue(scores, "korean_2_1"),
-            social = getIntValue(scores, "social_2_1"),
-            history = getIntValue(scores, "history_2_1"),
-            math = getIntValue(scores, "math_2_1"),
-            science = getIntValue(scores, "science_2_1"),
-            tech = getIntValue(scores, "tech_2_1"),
-            english = getIntValue(scores, "english_2_1")
-        )
-        val grade2_1_score = 4 * grade2_1_avg
+        val grade21 =
+            scoreInput.grade2_1
+                ?: throw ScoreCalculationException("졸업자는 2학년 1학기 성적이 필수입니다")
+        val score21 = calculateSemesterScore(grade21) * 4.0
 
-        val baseSubjectScore = grade3_2_score + grade3_1_score + grade2_2_score + grade2_1_score // 80점 만점
-        val subjectScore = baseSubjectScore * applicationType.baseScoreMultiplier
-
-        return calculateFinalScore(applicationType, subjectScore, scores)
+        return score32 + score31 + score22 + score21 // 최대 80점
     }
 
     /**
-     * 검정고시 점수 계산
+     * 검정고시 교과성적 계산
+     * 6개 과목 평균 → 80점 만점으로 환산
      */
-    private fun calculateForQualificationExam(
-        applicationType: ApplicationType,
-        scores: Map<String, Any>
-    ): ScoreResult {
-        // 검정고시는 별도 환산점수 적용 (입학전형위원회 결정)
-        // 임시로 평균 점수 계산
-        val korean = getIntValue(scores, "gedKorean") ?: 0
-        val social = getIntValue(scores, "gedSocial") ?: 0
-        val math = getIntValue(scores, "gedMath") ?: 0
-        val science = getIntValue(scores, "gedScience") ?: 0
-        val english = getIntValue(scores, "gedEnglish") ?: 0
-        val tech = getIntValue(scores, "gedTech") ?: 0
+    private fun calculateQualificationExamSubjectScore(scoreInput: ScoreInput): Double {
+        val gedScores = scoreInput.gedScores
+            ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
 
-        val average = (korean + social + math + science + english + tech) / 6.0
-        val baseSubjectScore = (average / 100.0) * 80.0 // 80점 만점으로 환산
-        val subjectScore = baseSubjectScore * applicationType.baseScoreMultiplier
+        val average = gedScores.values
+            .map { it.toDouble() }
+            .average()
 
-        return calculateFinalScore(applicationType, subjectScore, scores)
+        // 100점 만점 → 80점 만점으로 환산
+        return (average / 100.0) * 80.0
     }
 
     /**
-     * 학기별 7개 교과 평균 계산
+     * 학기별 7과목 평균 성적 계산 (5점 만점 기준)
      */
-    private fun calculateSemesterAverage(
-        korean: Int?,
-        social: Int?,
-        history: Int?,
-        math: Int?,
-        science: Int?,
-        tech: Int?,
-        english: Int?
-    ): Double {
-        val grades = listOf(korean, social, history, math, science, tech, english)
-        val gradePoints = grades.map { Achievement.getGradePoint(it) }
-        return gradePoints.average()
-    }
-
-    /**
-     * 최종 점수 계산 (교과성적 + 출석점수 + 봉사활동점수 + 가산점)
-     */
-    private fun calculateFinalScore(
-        applicationType: ApplicationType,
-        subjectScore: Double,
-        scores: Map<String, Any>
-    ): ScoreResult {
-        val attendanceScore = calculateAttendanceScore(scores)
-        val volunteerScore = calculateVolunteerScore(scores)
-        val bonusScore = calculateBonusScore(applicationType, scores)
-
-        val totalScore = subjectScore + attendanceScore + volunteerScore + bonusScore
-
-        return ScoreResult(
-            subjectScore = subjectScore,
-            attendanceScore = attendanceScore,
-            volunteerScore = volunteerScore,
-            bonusScore = bonusScore,
-            totalScore = totalScore
+    private fun calculateSemesterScore(grades: SemesterGrades): Double {
+        val gradeList = listOf(
+            grades.korean,
+            grades.social,
+            grades.history,
+            grades.math,
+            grades.science,
+            grades.tech,
+            grades.english
         )
+
+        // 1~5 범위 검증
+        gradeList.forEach { grade ->
+            if (grade !in 1..5) {
+                throw ScoreCalculationException("성적은 1~5 사이여야 합니다: $grade")
+            }
+        }
+
+        return gradeList.average()
     }
 
     /**
      * 출석점수 계산 (15점 만점)
-     * 환산결석 = 결석일수 + (지각횟수/3) + (조퇴횟수/3) + (결과횟수/3)
+     * 환산 결석 = 결석 + (지각+조퇴+결과)/3
      */
-    private fun calculateAttendanceScore(scores: Map<String, Any>): Double {
-        val absence = getIntValue(scores, "absence") ?: 0
-        val tardiness = getIntValue(scores, "tardiness") ?: 0
-        val earlyLeave = getIntValue(scores, "earlyLeave") ?: 0
-        val classExit = getIntValue(scores, "classExit") ?: 0
+    private fun calculateAttendanceScore(scoreInput: ScoreInput): Double {
+        val attendance = scoreInput.attendance ?: AttendanceInfo()
 
-        val convertedAbsence = absence + (tardiness / 3.0) + (earlyLeave / 3.0) + (classExit / 3.0)
+        val convertedAbsence = attendance.absence +
+            (attendance.tardiness + attendance.earlyLeave + attendance.classExit) / 3.0
 
         return when {
             convertedAbsence >= 15 -> 0.0
@@ -238,29 +206,30 @@ class ScoreCalculator {
      * 봉사활동점수 계산 (15점 만점)
      * 15시간 이상: 15점, 14시간 이하: 시간 = 점수
      */
-    private fun calculateVolunteerScore(scores: Map<String, Any>): Double {
-        val volunteer = getIntValue(scores, "volunteer") ?: 0
-        return minOf(volunteer.toDouble(), 15.0)
+    private fun calculateVolunteerScore(scoreInput: ScoreInput): Double {
+        val volunteer = scoreInput.volunteerHours ?: 0
+        return min(volunteer.toDouble(), 15.0)
     }
 
     /**
      * 가산점 계산
-     * - 알고리즘 경진대회 수상: 3점
-     * - 특별전형 정보처리기능사: 6점
+     * - 알고리즘 경진대회 수상: 3점 (모든 전형)
+     * - 정보처리기능사: 6점 (특별전형만)
      */
-    private fun calculateBonusScore(applicationType: ApplicationType, scores: Map<String, Any>): Double {
+    private fun calculateBonusScore(
+        applicationType: ApplicationType,
+        scoreInput: ScoreInput,
+    ): Double {
         var bonusScore = 0.0
 
         // 알고리즘 경진대회 수상 (모든 전형 3점)
-        val algorithmAward = getBooleanValue(scores, "algorithmAward") ?: false
-        if (algorithmAward) {
+        if (scoreInput.algorithmAward == true) {
             bonusScore += 3.0
         }
 
         // 정보처리기능사 (특별전형만 6점)
-        if (applicationType == ApplicationType.MEISTER || applicationType == ApplicationType.SOCIAL) {
-            val infoProcessingCert = getBooleanValue(scores, "infoProcessingCert") ?: false
-            if (infoProcessingCert) {
+        if (applicationType != ApplicationType.COMMON) {
+            if (scoreInput.infoProcessingCert == true) {
                 bonusScore += 6.0
             }
         }
@@ -268,31 +237,146 @@ class ScoreCalculator {
         return bonusScore
     }
 
-    private fun getIntValue(data: Map<String, Any>, key: String): Int? {
-        return when (val value = data[key]) {
-            is Int -> value
-            is Number -> value.toInt()
-            is String -> value.toIntOrNull()
-            else -> null
-        }
-    }
-
-    private fun getBooleanValue(data: Map<String, Any>, key: String): Boolean? {
-        return when (val value = data[key]) {
-            is Boolean -> value
-            is String -> value.toBoolean()
-            else -> null
-        }
-    }
-
     /**
      * 점수 계산 결과
      */
     data class ScoreResult(
-        val subjectScore: Double,      // 교과성적
-        val attendanceScore: Double,   // 출석점수
-        val volunteerScore: Double,    // 봉사활동점수
-        val bonusScore: Double,        // 가산점
-        val totalScore: Double         // 총점
+        val subjectScore: Double, // 교과성적
+        val attendanceScore: Double, // 출석점수
+        val volunteerScore: Double, // 봉사활동점수
+        val bonusScore: Double, // 가산점
+        val totalScore: Double, // 총점
+    )
+
+    /**
+     * 점수 입력 데이터
+     */
+    data class ScoreInput(
+        val grade3_2: SemesterGrades? = null, // 3학년 2학기 (졸업자만)
+        val grade3_1: SemesterGrades? = null, // 3학년 1학기
+        val grade2_2: SemesterGrades? = null, // 2학년 2학기
+        val grade2_1: SemesterGrades? = null, // 2학년 1학기
+        val gedScores: Map<String, Int>? = null, // 검정고시 성적
+        val attendance: AttendanceInfo? = null, // 출결 정보
+        val volunteerHours: Int? = null, // 봉사활동 시간
+        val algorithmAward: Boolean? = null, // 알고리즘 대회 수상
+        val infoProcessingCert: Boolean? = null, // 정보처리기능사
+    ) {
+        companion object {
+            fun from(scores: Map<String, Any>): ScoreInput {
+                return ScoreInput(
+                    grade3_2 = extractSemesterGrades(scores, "3_2"),
+                    grade3_1 = extractSemesterGrades(scores, "3_1"),
+                    grade2_2 = extractSemesterGrades(scores, "2_2"),
+                    grade2_1 = extractSemesterGrades(scores, "2_1"),
+                    gedScores = extractGedScores(scores),
+                    attendance = extractAttendance(scores),
+                    volunteerHours = getIntOrNull(scores, "volunteer"),
+                    algorithmAward = getBooleanOrNull(scores, "algorithmAward"),
+                    infoProcessingCert = getBooleanOrNull(scores, "infoProcessingCert")
+                )
+            }
+
+            private fun extractSemesterGrades(
+                scores: Map<String, Any>,
+                semester: String,
+            ): SemesterGrades? {
+                val korean = getIntOrNull(scores, "korean_$semester")
+                val social = getIntOrNull(scores, "social_$semester")
+                val history = getIntOrNull(scores, "history_$semester")
+                val math = getIntOrNull(scores, "math_$semester")
+                val science = getIntOrNull(scores, "science_$semester")
+                val tech = getIntOrNull(scores, "tech_$semester")
+                val english = getIntOrNull(scores, "english_$semester")
+
+                // 모든 과목이 있어야 해당 학기 성적으로 인정
+                return if (korean != null && social != null && history != null &&
+                    math != null && science != null && tech != null && english != null
+                ) {
+                    SemesterGrades(korean, social, history, math, science, tech, english)
+                } else {
+                    null
+                }
+            }
+
+            private fun extractGedScores(scores: Map<String, Any>): Map<String, Int>? {
+                val gedScores = mutableMapOf<String, Int>()
+
+                listOf("Korean", "Social", "Math", "Science", "English", "Tech").forEach { subject ->
+                    val key = "ged$subject"
+                    getIntOrNull(scores, key)?.let { gedScores[subject] = it }
+                }
+
+                return if (gedScores.isEmpty()) null else gedScores
+            }
+
+            private fun extractAttendance(scores: Map<String, Any>): AttendanceInfo? {
+                val absence = getIntOrNull(scores, "absence")
+                val tardiness = getIntOrNull(scores, "tardiness")
+                val earlyLeave = getIntOrNull(scores, "earlyLeave")
+                val classExit = getIntOrNull(scores, "classExit")
+
+                return if (absence != null || tardiness != null ||
+                    earlyLeave != null || classExit != null
+                ) {
+                    AttendanceInfo(
+                        absence ?: 0,
+                        tardiness ?: 0,
+                        earlyLeave ?: 0,
+                        classExit ?: 0,
+                    )
+                } else {
+                    null
+                }
+            }
+
+            private fun getIntOrNull(data: Map<String, Any>, key: String): Int? {
+                return when (val value = data[key]) {
+                    is Int -> value
+                    is Number -> value.toInt()
+                    is String -> value.toIntOrNull()
+                    else -> null
+                }
+            }
+
+            private fun getBooleanOrNull(data: Map<String, Any>, key: String): Boolean? {
+                return when (val value = data[key]) {
+                    is Boolean -> value
+                    is String -> value.toBooleanStrictOrNull()
+                    else -> null
+                }
+            }
+        }
+    }
+
+    /**
+     * 학기별 성적 (성취도 1~5)
+     */
+    data class SemesterGrades(
+        val korean: Int,
+        val social: Int,
+        val history: Int,
+        val math: Int,
+        val science: Int,
+        val tech: Int,
+        val english: Int
+    )
+
+    /**
+     * 출결 정보
+     */
+    data class AttendanceInfo(
+        val absence: Int = 0, // 결석
+        val tardiness: Int = 0, // 지각
+        val earlyLeave: Int = 0, // 조퇴
+        val classExit: Int = 0, // 결과
     )
 }
+
+/**
+ * 점수 계산 예외
+ */
+class ScoreCalculationException(
+    message: String,
+    cause: Throwable? = null,
+) : RuntimeException(message, cause)

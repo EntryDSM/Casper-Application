@@ -1,156 +1,158 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
-import hs.kr.entrydsm.application.domain.application.calculator.ScoreCalculator
 import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
 import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationSubmissionRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationSubmissionResponse
-import hs.kr.entrydsm.domain.calculator.values.CalculationResult
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * 입학원서 제출 UseCase
+ *
+ * 원서 제출 요청을 처리하고 응답을 생성합니다.
+ * 단일 트랜잭션으로 모든 데이터를 저장합니다.
+ */
 @Service
 @Transactional
 class CompleteApplicationUseCase(
-    private val scoreCalculator: ScoreCalculator,
     private val applicationPersistenceService: ApplicationPersistenceService,
 ) {
-    fun execute(userId: UUID, request: ApplicationSubmissionRequest): ApplicationSubmissionResponse {
-        // 요청 데이터 검증
-        validateApplicationData(request.application)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-        // 제출한 유저 검증
-        if (applicationPersistenceService.existsApplicationByUserId(userId)) {
-            throw IllegalArgumentException("Already Submitted Application")
+    /**
+     * 입학원서를 제출합니다.
+     *
+     * @param userId 사용자 ID
+     * @param request 원서 제출 요청
+     * @return 원서 제출 응답
+     */
+    fun execute(
+        userId: UUID,
+        request: ApplicationSubmissionRequest,
+    ): ApplicationSubmissionResponse {
+        logger.info("원서 제출 요청: userId=$userId")
+
+        try {
+            // 원서 생성 (검증, 점수 계산, 저장 모두 포함)
+            val savedApplication =
+                applicationPersistenceService.createApplication(
+                    userId = userId,
+                    applicationData = request.application,
+                    scoresData = request.scores,
+                )
+
+            logger.info("원서 제출 완료: applicationId=${savedApplication.applicationId}, receiptCode=${savedApplication.receiptCode}")
+
+            // 응답 생성
+            return buildSuccessResponse(savedApplication)
+        } catch (e: Exception) {
+            logger.error("원서 제출 실패: userId=$userId", e)
+            throw e
         }
-        
-        // Enum 변환
-        val applicationType = ApplicationType.fromString(request.application["applicationType"] as String)
-        val educationalStatus = EducationalStatus.fromString(request.application["educationalStatus"] as String)
+    }
 
-        // 원서 저장
-        val applicationEntity = applicationPersistenceService.saveApplication(
-            userId = userId,
-            applicationData = request.application,
-        )
-
-        // 성적 저장
-        applicationPersistenceService.saveScores(
-            applicationId = applicationEntity.applicationId,
-            scores = request.scores,
-        )
-
-        // 2026학년도 대덕소프트웨어마이스터고 입학전형 점수 계산
-        val scoreResult = scoreCalculator.calculateScore(applicationType, educationalStatus, request.scores)
-        
-        // 계산 결과 생성
-        val calculationResult = CalculationResult.success(
-            result = scoreResult.totalScore,
-            executionTimeMs = 50L,
-            formula = "2026학년도 대덕소프트웨어마이스터고 입학전형 점수 계산"
-        )
-
-        // 계산 결과 저장
-        val calculationEntity = applicationPersistenceService.saveCalculationResult(
-            applicationId = applicationEntity.applicationId,
-            calculationResult = calculationResult,
-        )
-
+    /**
+     * 성공 응답을 생성합니다.
+     */
+    private fun buildSuccessResponse(application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity): ApplicationSubmissionResponse {
         return ApplicationSubmissionResponse(
             success = true,
-            data = ApplicationSubmissionResponse.SubmissionData(
-                application = ApplicationSubmissionResponse.ApplicationInfo(
-                    applicationId = applicationEntity.applicationId.toString(),
-                    receiptCode = applicationEntity.receiptCode,
-                    applicantName = applicationEntity.applicantName,
-                    applicationType = applicationEntity.applicationType,
-                    educationalStatus = applicationEntity.educationalStatus,
-                    status = applicationEntity.status.toString(),
-                    submittedAt = applicationEntity.submittedAt,
+            data =
+                ApplicationSubmissionResponse.SubmissionData(
+                    application =
+                        ApplicationSubmissionResponse.ApplicationInfo(
+                            applicationId = application.applicationId.toString(),
+                            receiptCode = application.receiptCode,
+                            applicantName = application.applicantName,
+                            applicationType = application.applicationType.name,
+                            educationalStatus = application.educationalStatus.name,
+                            status = application.status.toString(),
+                            submittedAt = application.submittedAt,
+                        ),
+                    calculation =
+                        ApplicationSubmissionResponse.CalculationInfo(
+                            calculationId = application.applicationId.toString(),
+                            totalScore = application.totalScore ?: 0.0,
+                            breakdown =
+                                mapOf(
+                                    "subjectScore" to (application.subjectScore ?: 0.0),
+                                    "attendanceScore" to (application.attendanceScore ?: 0.0),
+                                    "volunteerScore" to (application.volunteerScore ?: 0.0),
+                                    "bonusScore" to (application.bonusScore ?: 0.0),
+                                    "totalScore" to (application.totalScore ?: 0.0),
+                                ),
+                            formulaExecution =
+                                ApplicationSubmissionResponse.FormulaExecutionInfo(
+                                    executedAt = application.calculatedAt ?: application.submittedAt,
+                                    executionTimeMs = application.calculationTimeMs ?: 0L,
+                                    steps = createDetailedSteps(application),
+                                ),
+                        ),
                 ),
-                calculation = ApplicationSubmissionResponse.CalculationInfo(
-                    calculationId = calculationEntity.calculationId.toString(),
-                    totalScore = scoreResult.totalScore,
-                    breakdown = mapOf(
-                        "subjectScore" to scoreResult.subjectScore,
-                        "attendanceScore" to scoreResult.attendanceScore,
-                        "volunteerScore" to scoreResult.volunteerScore,
-                        "bonusScore" to scoreResult.bonusScore,
-                        "totalScore" to scoreResult.totalScore
-                    ),
-                    formulaExecution = ApplicationSubmissionResponse.FormulaExecutionInfo(
-                        executedAt = calculationEntity.executedAt,
-                        executionTimeMs = calculationEntity.executionTimeMs,
-                        steps = createDetailedSteps(applicationType, educationalStatus, scoreResult),
-                    ),
-                ),
-            ),
         )
     }
 
-    private fun validateApplicationData(applicationData: Map<String, Any>) {
-        val requiredFields = listOf("applicantName", "applicationType", "educationalStatus")
-        
-        requiredFields.forEach { field ->
-            if (!applicationData.containsKey(field) || applicationData[field]?.toString().isNullOrBlank()) {
-                throw IllegalArgumentException("필수 필드가 누락되었습니다: $field")
-            }
-        }
-    }
+    /**
+     * 점수 계산 단계 정보를 생성합니다.
+     */
+    private fun createDetailedSteps(application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity): List<ApplicationSubmissionResponse.FormulaStepInfo> {
+        val applicationType = application.applicationType
+        val educationalStatus = application.educationalStatus
 
-    private fun createDetailedSteps(
-        applicationType: ApplicationType,
-        educationalStatus: EducationalStatus,
-        scoreResult: ScoreCalculator.ScoreResult
-    ): List<ApplicationSubmissionResponse.FormulaStepInfo> {
         return listOf(
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "교과성적 계산",
-                formula = when (educationalStatus) {
-                    EducationalStatus.PROSPECTIVE_GRADUATE -> "졸업예정자: 3-1학기(50%) + 2-2학기(25%) + 2-1학기(25%)"
-                    EducationalStatus.GRADUATE -> "졸업자: 3-2학기(25%) + 3-1학기(25%) + 2-2학기(25%) + 2-1학기(25%)"
-                    EducationalStatus.QUALIFICATION_EXAM -> "검정고시: 입학전형위원회 결정 환산점수"
-                } + " × ${applicationType.baseScoreMultiplier}",
-                result = scoreResult.subjectScore,
-                variables = mapOf(
-                    "applicationType" to applicationType.displayName,
-                    "educationalStatus" to educationalStatus.displayName,
-                    "multiplier" to applicationType.baseScoreMultiplier
-                ),
+                formula =
+                    when (educationalStatus) {
+                        EducationalStatus.PROSPECTIVE_GRADUATE -> "졸업예정자: 3-1학기(50%) + 2-2학기(25%) + 2-1학기(25%)"
+                        EducationalStatus.GRADUATE -> "졸업자: 3-2학기(25%) + 3-1학기(25%) + 2-2학기(25%) + 2-1학기(25%)"
+                        EducationalStatus.QUALIFICATION_EXAM -> "검정고시: 평균 / 100 × 80"
+                    } + " × ${applicationType.baseScoreMultiplier}",
+                result = application.subjectScore ?: 0.0,
+                variables =
+                    mapOf(
+                        "applicationType" to applicationType.displayName,
+                        "educationalStatus" to educationalStatus.displayName,
+                        "multiplier" to applicationType.baseScoreMultiplier,
+                    ),
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "출석점수 계산",
                 formula = "15점 만점, 환산결석 = 결석 + (지각+조퇴+결과)/3",
-                result = scoreResult.attendanceScore,
+                result = application.attendanceScore ?: 0.0,
                 variables = mapOf("maxScore" to 15.0),
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "봉사활동점수 계산",
                 formula = "15시간 이상: 15점, 14시간 이하: 시간수 = 점수",
-                result = scoreResult.volunteerScore,
+                result = application.volunteerScore ?: 0.0,
                 variables = mapOf("maxScore" to 15.0),
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "가산점 계산",
                 formula = "알고리즘경진대회(3점) + 정보처리기능사(특별전형 6점)",
-                result = scoreResult.bonusScore,
-                variables = mapOf(
-                    "algorithmAward" to 3.0,
-                    "infoProcessingCert" to if (applicationType != ApplicationType.COMMON) 6.0 else 0.0
-                ),
+                result = application.bonusScore ?: 0.0,
+                variables =
+                    mapOf(
+                        "algorithmAward" to 3.0,
+                        "infoProcessingCert" to if (applicationType != ApplicationType.COMMON) 6.0 else 0.0,
+                    ),
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "최종점수 계산",
-                formula = "교과성적(${scoreResult.subjectScore}) + 출석점수(${scoreResult.attendanceScore}) + 봉사점수(${scoreResult.volunteerScore}) + 가산점(${scoreResult.bonusScore})",
-                result = scoreResult.totalScore,
-                variables = mapOf(
-                    "subjectScore" to scoreResult.subjectScore,
-                    "attendanceScore" to scoreResult.attendanceScore,
-                    "volunteerScore" to scoreResult.volunteerScore,
-                    "bonusScore" to scoreResult.bonusScore,
-                    "totalScore" to scoreResult.totalScore
-                ),
+                formula = "교과성적(${application.subjectScore ?: 0.0}) + 출석점수(${application.attendanceScore ?: 0.0}) + 봉사점수(${application.volunteerScore ?: 0.0}) + 가산점(${application.bonusScore ?: 0.0})",
+                result = application.totalScore ?: 0.0,
+                variables =
+                    mapOf(
+                        "subjectScore" to (application.subjectScore ?: 0.0),
+                        "attendanceScore" to (application.attendanceScore ?: 0.0),
+                        "volunteerScore" to (application.volunteerScore ?: 0.0),
+                        "bonusScore" to (application.bonusScore ?: 0.0),
+                        "totalScore" to (application.totalScore ?: 0.0),
+                    ),
             ),
         )
     }

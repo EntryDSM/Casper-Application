@@ -2,24 +2,36 @@ package hs.kr.entrydsm.application.domain.application.enums
 
 /**
  * 성취도별 교과 평점
- * 성취율(원점수)에 따른 성취도와 교과 평점 매핑
+ *
+ * 중학교 성적 체계:
+ * - 성취도 A, B, C, D, E (5단계)
+ * - 평점: A=5.0, B=4.0, C=3.0, D=2.0, E=1.0
  */
 enum class Achievement(
-    val score: Double,
+    val gradePoint: Int,
+    val displayName: String,
     val description: String
 ) {
-    A(5.0, "90% 이상"),
-    B(4.0, "80% 이상 ~ 90% 미만"),
-    C(3.0, "70% 이상 ~ 80% 미만"),
-    D(2.0, "60% 이상 ~ 70% 미만"),
-    E(1.0, "60% 미만");
+    A(5, "A", "매우 우수"),
+    B(4, "B", "우수"),
+    C(3, "C", "보통"),
+    D(2, "D", "미흡"),
+    E(1, "E", "매우 미흡");
 
     companion object {
         /**
-         * 원점수(Int)를 성취도로 변환
+         * 성취도 평점(1~5)으로 Achievement 조회
          */
-        fun fromScore(score: Int?): Achievement {
-            return when (score) {
+        fun fromGradePoint(gradePoint: Int): Achievement? {
+            return values().find { it.gradePoint == gradePoint }
+        }
+
+        /**
+         * 원점수를 성취도로 변환 (참고용)
+         * 실제 입학 전형에서는 성취도(1~5)를 직접 입력받습니다
+         */
+        fun fromRawScore(rawScore: Int): Achievement {
+            return when (rawScore) {
                 in 90..100 -> A
                 in 80..89 -> B
                 in 70..79 -> C
@@ -29,10 +41,10 @@ enum class Achievement(
         }
 
         /**
-         * 원점수를 교과 평점으로 변환
+         * 성취도 평점 검증
          */
-        fun getGradePoint(score: Int?): Double {
-            return fromScore(score).score
+        fun isValidGradePoint(gradePoint: Int): Boolean {
+            return gradePoint in 1..5
         }
     }
 }
