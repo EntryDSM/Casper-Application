@@ -6,6 +6,7 @@ import hs.kr.entrydsm.domain.user.value.UserRole
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -53,6 +54,7 @@ class SecurityConfig(
                     .requestMatchers("/webjars/**").permitAll()
                     .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
+                    .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers("/photo").hasRole(UserRole.USER.name)
                     .anyRequest().authenticated()
             }
