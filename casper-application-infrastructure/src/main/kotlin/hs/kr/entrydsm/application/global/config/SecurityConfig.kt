@@ -41,7 +41,8 @@ class SecurityConfig(
                     configuration.allowCredentials = true
                     configuration
                 }
-            }            .formLogin { it.disable() }
+            }
+            .formLogin { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
@@ -53,8 +54,8 @@ class SecurityConfig(
                     .requestMatchers("/swagger-resources/**").permitAll()
                     .requestMatchers("/webjars/**").permitAll()
                     .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
-                    .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
                     .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole(UserRole.ADMIN.name)
+                    .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
                     .requestMatchers("/photo").hasRole(UserRole.USER.name)
                     .anyRequest().authenticated()
             }
