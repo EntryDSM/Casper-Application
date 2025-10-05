@@ -1,9 +1,9 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
-import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
-import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationSubmissionRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationSubmissionResponse
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

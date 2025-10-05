@@ -74,7 +74,8 @@ class ApplicationPersistenceAdapter(
      */
     override fun getApplicationByReceiptCode(receiptCode: Long): Application? {
         return applicationJpaRepository.findByReceiptCode(receiptCode)
-            ?.let { applicationMapper.toModel(it) }
+            .map { applicationMapper.toModel(it) }
+            .orElse(null)
     }
 
     /**
@@ -83,8 +84,11 @@ class ApplicationPersistenceAdapter(
      * @param receiptCode 접수번호
      * @param status 변경할 상태
      */
-    override fun updateApplicationStatus(receiptCode: Long, status: hs.kr.entrydsm.domain.status.values.ApplicationStatus) {
-        applicationJpaRepository.findByReceiptCode(receiptCode)?.let { applicationEntity ->
+    override fun updateApplicationStatus(
+        receiptCode: Long,
+        status: hs.kr.entrydsm.domain.status.values.ApplicationStatus,
+    ) {
+        applicationJpaRepository.findByReceiptCode(receiptCode).ifPresent { applicationEntity ->
             applicationEntity.status = status
             applicationJpaRepository.save(applicationEntity)
         }

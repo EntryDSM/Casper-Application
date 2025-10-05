@@ -65,16 +65,16 @@ class GetFinalApplicationPdfUseCase(
             EducationalStatus.PROSPECTIVE_GRADUATE -> {
                 validateProspectiveGraduateScores(application)
             }
-            EducationalStatus.GRADUATED -> {
+            EducationalStatus.GRADUATE -> {
                 validateGraduateScores(application)
             }
-            EducationalStatus.GED -> {
+            EducationalStatus.QUALIFICATION_EXAM -> {
                 validateGedScores(application)
             }
         }
 
         // 출석 및 봉사활동 정보 검증 (검정고시 제외)
-        if (application.educationalStatus != EducationalStatus.GED) {
+        if (application.educationalStatus != EducationalStatus.QUALIFICATION_EXAM) {
             validateAttendanceAndVolunteer(application)
         }
     }

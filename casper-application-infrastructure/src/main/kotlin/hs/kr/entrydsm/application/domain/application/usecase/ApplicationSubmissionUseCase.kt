@@ -171,8 +171,8 @@ class ApplicationSubmissionUseCase(
                 applicationId = savedEntity.applicationId,
                 receiptCode = savedEntity.receiptCode,
                 applicantName = savedEntity.applicantName,
-                applicationType = savedEntity.applicationType,
-                educationalStatus = savedEntity.educationalStatus,
+                applicationType = savedEntity.applicationType.name,
+                educationalStatus = savedEntity.educationalStatus.name,
                 status = savedEntity.status.toString(),
                 submittedAt = savedEntity.submittedAt,
                 createdAt = savedEntity.createdAt
@@ -188,7 +188,8 @@ class ApplicationSubmissionUseCase(
      */
     @Transactional(readOnly = true)
     fun getApplicationById(applicationId: UUID): Application? {
-        val entity = applicationRepository.findByApplicationId(applicationId)
-        return entity?.let { applicationMapper.toModel(it) }
+        return applicationRepository.findByApplicationId(applicationId)
+            .map { applicationMapper.toModel(it) }
+            .orElse(null)
     }
 }

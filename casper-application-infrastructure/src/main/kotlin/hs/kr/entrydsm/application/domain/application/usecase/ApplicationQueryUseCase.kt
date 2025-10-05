@@ -2,16 +2,13 @@ package hs.kr.entrydsm.application.domain.application.usecase
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
-import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationScoreJpaRepository
-import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationResultJpaRepository
-import hs.kr.entrydsm.application.domain.application.domain.repository.CalculationStepJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationHistoryResponse
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationResponse
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.file.`object`.PathList
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import org.springframework.data.domain.PageRequest
@@ -21,13 +18,15 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * 원서 조회 UseCase
+ *
+ * 단일 테이블 구조로 모든 데이터를 조회합니다.
+ */
 @Service
 @Transactional(readOnly = true)
 class ApplicationQueryUseCase(
     private val applicationRepository: ApplicationJpaRepository,
-    private val scoreRepository: ApplicationScoreJpaRepository,
-    private val calculationResultRepository: CalculationResultJpaRepository,
-    private val calculationStepRepository: CalculationStepJpaRepository,
     private val objectMapper: ObjectMapper,
     private val photoJpaRepository: PhotoJpaRepository,
     private val securityAdapter: SecurityAdapter,
@@ -54,8 +53,8 @@ class ApplicationQueryUseCase(
                     parentName = application.parentName,
                     parentTel = application.parentTel,
                     birthDate = application.birthDate,
-                    applicationType = application.applicationType,
-                    educationalStatus = application.educationalStatus,
+                    applicationType = application.applicationType.name,
+                    educationalStatus = application.educationalStatus.name,
                     status = application.status.toString(),
                     submittedAt = application.submittedAt,
                     reviewedAt = application.reviewedAt,
@@ -80,7 +79,9 @@ class ApplicationQueryUseCase(
         val applications =
             when {
                 applicationType != null && educationalStatus != null -> {
-                    applicationRepository.findByApplicationTypeAndEducationalStatus(applicationType, educationalStatus)
+                    val typeEnum = ApplicationType.fromString(applicationType)
+                    val statusEnum = EducationalStatus.fromString(educationalStatus)
+                    applicationRepository.findByApplicationTypeAndEducationalStatus(typeEnum, statusEnum)
                 }
                 else -> applicationRepository.findAll()
             }
@@ -105,8 +106,8 @@ class ApplicationQueryUseCase(
                                 applicationId = app.applicationId.toString(),
                                 receiptCode = app.receiptCode,
                                 applicantName = app.applicantName,
-                                applicationType = app.applicationType,
-                                educationalStatus = app.educationalStatus,
+                                applicationType = app.applicationType.name,
+                                educationalStatus = app.educationalStatus.name,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon
@@ -134,8 +135,8 @@ class ApplicationQueryUseCase(
                                 applicationId = app.applicationId.toString(),
                                 receiptCode = app.receiptCode,
                                 applicantName = app.applicantName,
-                                applicationType = app.applicationType,
-                                educationalStatus = app.educationalStatus,
+                                applicationType = app.applicationType.name,
+                                educationalStatus = app.educationalStatus.name,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon
@@ -151,9 +152,12 @@ class ApplicationQueryUseCase(
 
     fun getApplicationScores(applicationId: String): ApplicationScoresResponse {
         val uuid = UUID.fromString(applicationId)
-        val scoreEntities = scoreRepository.findAllByApplicationId(uuid)
+        val application =
+            applicationRepository.findById(uuid)
+                .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
 
-        val scores = reconstructNestedScores(scoreEntities)
+        // JSON 필드에서 성적 데이터 파싱
+        val scores = objectMapper.readValue(application.scoresData, Map::class.java) as Map<String, Any>
 
         return ApplicationScoresResponse(
             success = true,
@@ -163,109 +167,5 @@ class ApplicationQueryUseCase(
                     scores = scores,
                 ),
         )
-    }
-
-    fun getCalculationResult(applicationId: String): CalculationResponse {
-        val uuid = UUID.fromString(applicationId)
-        val calculationResult =
-            calculationResultRepository.findLatestByApplicationId(uuid)
-                ?: throw IllegalArgumentException("계산 결과를 찾을 수 없습니다: $applicationId")
-
-        val steps = calculationStepRepository.findAllByCalculationIdOrderByStepOrder(calculationResult.calculationId)
-        val formulaSteps = objectMapper.readValue(calculationResult.formulaSteps, List::class.java) as List<Map<String, Any>>
-
-        return CalculationResponse(
-            success = true,
-            data =
-                CalculationResponse.CalculationData(
-                    calculationId = calculationResult.calculationId.toString(),
-                    applicationId = applicationId,
-                    totalScore = calculationResult.totalScore.toDouble(),
-                    breakdown = extractBreakdownFromSteps(steps),
-                    formulaExecution =
-                        CalculationResponse.FormulaExecutionDetail(
-                            steps =
-                                steps.map { step ->
-                                    CalculationResponse.CalculationStepDetail(
-                                        stepOrder = step.stepOrder,
-                                        stepName = step.stepName,
-                                        formula = step.formula,
-                                        result = step.result.toDouble(),
-                                        variables =
-                                            if (step.variablesUsed != null) {
-                                                objectMapper.readValue(step.variablesUsed, Map::class.java) as Map<String, Any>
-                                            } else {
-                                                emptyMap()
-                                            },
-                                        executionTimeMs = step.executionTimeMs,
-                                    )
-                                },
-                        ),
-                    executedAt = calculationResult.executedAt,
-                    executionTimeMs = calculationResult.executionTimeMs,
-                ),
-        )
-    }
-
-    fun getCalculationHistory(applicationId: String): CalculationHistoryResponse {
-        val uuid = UUID.fromString(applicationId)
-        val calculationResults = calculationResultRepository.findAllByApplicationIdOrderByExecutedAtDesc(uuid)
-
-        return CalculationHistoryResponse(
-            success = true,
-            data =
-                CalculationHistoryResponse.HistoryData(
-                    applicationId = applicationId,
-                    calculations =
-                        calculationResults.map { result ->
-                            CalculationHistoryResponse.CalculationSummary(
-                                calculationId = result.calculationId.toString(),
-                                totalScore = result.totalScore.toDouble(),
-                                executedAt = result.executedAt,
-                                executionTimeMs = result.executionTimeMs,
-                            )
-                        },
-                ),
-        )
-    }
-
-    private fun reconstructNestedScores(
-        scoreEntities: List<hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationScoreJpaEntity>,
-    ): Map<String, Any> {
-        val result = mutableMapOf<String, Any>()
-
-        scoreEntities.forEach { scoreEntity ->
-            val keys = scoreEntity.scoreKey.split(".")
-            var currentMap = result
-
-            for (i in 0 until keys.size - 1) {
-                val key = keys[i]
-                if (currentMap[key] == null) {
-                    currentMap[key] = mutableMapOf<String, Any>()
-                }
-                currentMap = currentMap[key] as MutableMap<String, Any>
-            }
-
-            val finalKey = keys.last()
-            val value =
-                when (scoreEntity.scoreType) {
-                    hs.kr.entrydsm.application.domain.application.domain.entity.enums.ScoreType.NUMBER ->
-                        scoreEntity.scoreValue.toDoubleOrNull() ?: scoreEntity.scoreValue
-                    hs.kr.entrydsm.application.domain.application.domain.entity.enums.ScoreType.BOOLEAN ->
-                        scoreEntity.scoreValue.toBooleanStrictOrNull() ?: scoreEntity.scoreValue
-                    else -> scoreEntity.scoreValue
-                }
-            currentMap[finalKey] = value
-        }
-
-        return result
-    }
-
-    private fun extractBreakdownFromSteps(
-        steps: List<hs.kr.entrydsm.application.domain.application.domain.entity.CalculationStepJpaEntity>,
-    ): Map<String, Double> {
-        return steps.associate { step ->
-            step.stepName to step.result.toDouble()
-        }
     }
 }

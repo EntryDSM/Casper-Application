@@ -169,7 +169,7 @@ class PdfDataConverter(
         val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8 // 2월/8월 졸업
         
         when (application.educationalStatus) {
-            EducationalStatus.GRADUATED -> {
+            EducationalStatus.GRADUATE -> {
                 values["graduateYear"] = currentYear.toString()
                 values["graduateMonth"] = graduationMonth.toString()
                 values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 중학교 졸업"
@@ -180,7 +180,7 @@ class PdfDataConverter(
                 values["prospectiveGraduateMonth"] = "2"
                 values["educationalStatus"] = "${graduateYear}년 2월 중학교 졸업예정"
             }
-            EducationalStatus.GED -> {
+            EducationalStatus.QUALIFICATION_EXAM -> {
                 values["qualificationExamPassedYear"] = currentYear.toString()
                 values["qualificationExamPassedMonth"] = graduationMonth.toString()
                 values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 검정고시 합격"
@@ -201,8 +201,8 @@ class PdfDataConverter(
         val isCommon = application.applicationType == ApplicationType.COMMON
         val isSocial = application.applicationType == ApplicationType.SOCIAL
         
-        val isQualificationExam = application.educationalStatus == EducationalStatus.GED
-        val isGraduate = application.educationalStatus == EducationalStatus.GRADUATED
+        val isQualificationExam = application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM
+        val isGraduate = application.educationalStatus == EducationalStatus.GRADUATE
         val isProspectiveGraduate = application.educationalStatus == EducationalStatus.PROSPECTIVE_GRADUATE
 
         val list =
@@ -268,7 +268,7 @@ class PdfDataConverter(
                 put("applicationCase", "기술∙가정")
                 
                 // 졸업자인 경우 3-2학기 성적 포함
-                if (application.educationalStatus == EducationalStatus.GRADUATED) {
+                if (application.educationalStatus == EducationalStatus.GRADUATE) {
                     put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
                 }
                 

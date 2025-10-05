@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.domain.entity
 
-import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
-import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

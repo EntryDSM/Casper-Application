@@ -35,9 +35,9 @@ class ScoreCalculationService {
      */
     fun calculateSubjectScore(application: Application): BigDecimal {
         val baseScore = when (application.educationalStatus) {
-            EducationalStatus.GRADUATED -> calculateGraduatedSubjectScore(application)
+            EducationalStatus.GRADUATE -> calculateGraduatedSubjectScore(application)
             EducationalStatus.PROSPECTIVE_GRADUATE -> calculateProspectiveGraduatedSubjectScore(application)
-            EducationalStatus.GED -> calculateGedSubjectScore(application)
+            EducationalStatus.QUALIFICATION_EXAM -> calculateGedSubjectScore(application)
         }
 
         // 전형별 환산 비율 적용

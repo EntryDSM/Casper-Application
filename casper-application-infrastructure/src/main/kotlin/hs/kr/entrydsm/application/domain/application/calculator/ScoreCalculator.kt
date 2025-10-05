@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.calculator
 
-import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
-import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import org.springframework.stereotype.Component
 import kotlin.math.min
 

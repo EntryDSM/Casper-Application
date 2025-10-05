@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.calculator.ScoreCalculator
 import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
-import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
-import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationAlreadySubmittedException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationDataConversionException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
 import hs.kr.entrydsm.application.domain.application.exception.InvalidApplicationTypeException
 import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

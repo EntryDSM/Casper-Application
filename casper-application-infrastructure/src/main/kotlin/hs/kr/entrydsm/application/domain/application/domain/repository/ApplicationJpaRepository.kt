@@ -1,8 +1,8 @@
 package hs.kr.entrydsm.application.domain.application.domain.repository
 
 import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
-import hs.kr.entrydsm.application.domain.application.enums.ApplicationType
-import hs.kr.entrydsm.application.domain.application.enums.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.ApplicationType
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query

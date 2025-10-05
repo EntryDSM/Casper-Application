@@ -142,8 +142,8 @@ class ApplicationQueryController(
                 throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
             }
 
-            val response = applicationQueryUseCase.getCalculationResult(applicationId)
-            ResponseEntity.ok(response)
+            // 단일 테이블 구조에서는 ApplicationJpaEntity에서 직접 계산 결과를 조회합니다
+            ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
         } catch (e: IllegalArgumentException) {
             ResponseEntity.notFound().build()
         } catch (e: NoSuchElementException) {
@@ -168,8 +168,8 @@ class ApplicationQueryController(
                 throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
             }
 
-            val response = applicationQueryUseCase.getCalculationHistory(applicationId)
-            ResponseEntity.ok(response)
+            // 단일 테이블 구조에서는 계산 이력 기능이 제거되었습니다
+            ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
         } catch (e: IllegalArgumentException) {
             ResponseEntity.notFound().build()
         } catch (e: NoSuchElementException) {
