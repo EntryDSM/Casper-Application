@@ -181,6 +181,8 @@ class ApplicationPersistenceService(
         val executionTimeMs: Long,
     )
 
+    fun existsApplicationByUserId(userId: UUID): Boolean = applicationRepository.existsByUserId(userId)
+
     private fun validateAndGetApplicationType(typeCode: String): String {
         // DB에서 해당 타입 코드가 존재하고 활성화되어 있는지 검증
         val applicationTypeEntity =
