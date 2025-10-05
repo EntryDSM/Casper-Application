@@ -21,7 +21,7 @@ class CompleteApplicationUseCase(
         validateApplicationData(request.application)
 
         // 제출한 유저 검증
-        if (applicationPersistenceService.existsApplicationByUserId(userId)) {
+        if (!applicationPersistenceService.existsApplicationByUserId(userId)) {
             throw IllegalArgumentException("Already Submitted Application")
         }
         
