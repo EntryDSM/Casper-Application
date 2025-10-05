@@ -26,4 +26,6 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
     fun findMaxReceiptCode(): Long
     
     fun findByApplicationId(applicationId: UUID): ApplicationJpaEntity?
+
+    fun existsByUserId(userId: UUID): Boolean
 }
