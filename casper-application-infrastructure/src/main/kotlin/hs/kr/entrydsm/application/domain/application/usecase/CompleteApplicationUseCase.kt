@@ -19,6 +19,11 @@ class CompleteApplicationUseCase(
     fun execute(userId: UUID, request: ApplicationSubmissionRequest): ApplicationSubmissionResponse {
         // 요청 데이터 검증
         validateApplicationData(request.application)
+
+        // 제출한 유저 검증
+        if (applicationPersistenceService.existsApplicationByUserId(userId)) {
+            throw IllegalArgumentException("Already Submitted Application")
+        }
         
         // Enum 변환
         val applicationType = ApplicationType.fromString(request.application["applicationType"] as String)
