@@ -104,19 +104,19 @@ class ApplicationJpaEntity(
 
     // ===== 계산된 점수 결과 =====
     @Column(name = "total_score", precision = 10, scale = 2)
-    val totalScore: Double?,
+    val totalScore: java.math.BigDecimal?,
 
     @Column(name = "subject_score", precision = 10, scale = 2)
-    val subjectScore: Double?,
+    val subjectScore: java.math.BigDecimal?,
 
     @Column(name = "attendance_score", precision = 10, scale = 2)
-    val attendanceScore: Double?,
+    val attendanceScore: java.math.BigDecimal?,
 
     @Column(name = "volunteer_score", precision = 10, scale = 2)
-    val volunteerScore: Double?,
+    val volunteerScore: java.math.BigDecimal?,
 
     @Column(name = "bonus_score", precision = 10, scale = 2)
-    val bonusScore: Double?,
+    val bonusScore: java.math.BigDecimal?,
 
     // ===== 계산 메타데이터 =====
     @Column(name = "calculated_at")
