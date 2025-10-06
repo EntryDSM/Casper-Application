@@ -5,10 +5,10 @@ import hs.kr.entrydsm.application.domain.excel.usecase.PrintApplicantCodesUseCas
 import hs.kr.entrydsm.application.domain.excel.usecase.PrintApplicationCheckListUseCase
 import hs.kr.entrydsm.application.domain.excel.usecase.PrintApplicationInfoUseCase
 import hs.kr.entrydsm.application.global.document.excel.ExcelApiDocument
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/admin/excel")
@@ -16,9 +16,8 @@ class WebExcelAdapter(
     private val printAdmissionTicketUseCase: PrintAdmissionTicketUseCase,
     private val printApplicantCodesUseCase: PrintApplicantCodesUseCase,
     private val printApplicationInfoUseCase: PrintApplicationInfoUseCase,
-    private val printApplicationCheckListUseCase: PrintApplicationCheckListUseCase
+    private val printApplicationCheckListUseCase: PrintApplicationCheckListUseCase,
 ) : ExcelApiDocument {
-
     @GetMapping("/admission-ticket")
     override fun printAdmissionTicket(response: HttpServletResponse) {
         printAdmissionTicketUseCase.execute(response)

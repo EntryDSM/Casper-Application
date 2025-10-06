@@ -8,7 +8,6 @@ import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.YearMonth
 
 /**
  * 지원서 정보를 PDF 템플릿용 데이터로 변환하는 Converter입니다.
@@ -49,7 +48,7 @@ class PdfDataConverter(
         setAttendanceAndVolunteer(application, values)
         setExtraScore(application, values)
         setTeacherInfo(application, values)
-        //setVeteransNumber(application, values)
+        // setVeteransNumber(application, values)
 
         // TODO: 조건부 설정 로직 추가
         // if (application.isRecommendationsRequired()) {
@@ -116,7 +115,7 @@ class PdfDataConverter(
         val isFemale = application.applicantGender == Gender.FEMALE
         values["isMale"] = toBallotBox(isMale)
         values["isFemale"] = toBallotBox(isFemale)
-        
+
         values["address"] = application.streetAddress ?: ""
         values["detailAddress"] = application.detailAddress ?: ""
         values["birthday"] = application.birthDate ?: ""
@@ -168,7 +167,7 @@ class PdfDataConverter(
 
         val currentYear = LocalDate.now().year
         val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8 // 2월/8월 졸업
-        
+
         when (application.educationalStatus) {
             EducationalStatus.GRADUATE -> {
                 values["graduateYear"] = currentYear.toString()
@@ -201,7 +200,7 @@ class PdfDataConverter(
         val isDaejeon = application.isDaejeon ?: false
         val isCommon = application.applicationType == ApplicationType.COMMON
         val isSocial = application.applicationType == ApplicationType.SOCIAL
-        
+
         val isQualificationExam = application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM
         val isGraduate = application.educationalStatus == EducationalStatus.GRADUATE
         val isProspectiveGraduate = application.educationalStatus == EducationalStatus.PROSPECTIVE_GRADUATE
@@ -267,74 +266,85 @@ class PdfDataConverter(
         subjects.forEach { subjectPrefix ->
             with(values) {
                 put("applicationCase", "기술∙가정")
-                
+
                 // 졸업자인 경우 3-2학기 성적 포함
                 if (application.educationalStatus == EducationalStatus.GRADUATE) {
                     put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
                 }
-                
+
                 put("${subjectPrefix}ThirdGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_1")))
                 put("${subjectPrefix}SecondGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_2")))
                 put("${subjectPrefix}SecondGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_1")))
             }
         }
     }
-    
-    private fun getSubjectScore(application: Application, subject: String, semester: String): Int? {
+
+    private fun getSubjectScore(
+        application: Application,
+        subject: String,
+        semester: String,
+    ): Int? {
         return when (subject) {
-            "korean" -> when (semester) {
-                "3_2" -> application.korean_3_2
-                "3_1" -> application.korean_3_1
-                "2_2" -> application.korean_2_2
-                "2_1" -> application.korean_2_1
-                else -> null
-            }
-            "social" -> when (semester) {
-                "3_2" -> application.social_3_2
-                "3_1" -> application.social_3_1
-                "2_2" -> application.social_2_2
-                "2_1" -> application.social_2_1
-                else -> null
-            }
-            "history" -> when (semester) {
-                "3_2" -> application.history_3_2
-                "3_1" -> application.history_3_1
-                "2_2" -> application.history_2_2
-                "2_1" -> application.history_2_1
-                else -> null
-            }
-            "math" -> when (semester) {
-                "3_2" -> application.math_3_2
-                "3_1" -> application.math_3_1
-                "2_2" -> application.math_2_2
-                "2_1" -> application.math_2_1
-                else -> null
-            }
-            "science" -> when (semester) {
-                "3_2" -> application.science_3_2
-                "3_1" -> application.science_3_1
-                "2_2" -> application.science_2_2
-                "2_1" -> application.science_2_1
-                else -> null
-            }
-            "english" -> when (semester) {
-                "3_2" -> application.english_3_2
-                "3_1" -> application.english_3_1
-                "2_2" -> application.english_2_2
-                "2_1" -> application.english_2_1
-                else -> null
-            }
-            "techAndHome" -> when (semester) {
-                "3_2" -> application.tech_3_2
-                "3_1" -> application.tech_3_1
-                "2_2" -> application.tech_2_2
-                "2_1" -> application.tech_2_1
-                else -> null
-            }
+            "korean" ->
+                when (semester) {
+                    "3_2" -> application.korean_3_2
+                    "3_1" -> application.korean_3_1
+                    "2_2" -> application.korean_2_2
+                    "2_1" -> application.korean_2_1
+                    else -> null
+                }
+            "social" ->
+                when (semester) {
+                    "3_2" -> application.social_3_2
+                    "3_1" -> application.social_3_1
+                    "2_2" -> application.social_2_2
+                    "2_1" -> application.social_2_1
+                    else -> null
+                }
+            "history" ->
+                when (semester) {
+                    "3_2" -> application.history_3_2
+                    "3_1" -> application.history_3_1
+                    "2_2" -> application.history_2_2
+                    "2_1" -> application.history_2_1
+                    else -> null
+                }
+            "math" ->
+                when (semester) {
+                    "3_2" -> application.math_3_2
+                    "3_1" -> application.math_3_1
+                    "2_2" -> application.math_2_2
+                    "2_1" -> application.math_2_1
+                    else -> null
+                }
+            "science" ->
+                when (semester) {
+                    "3_2" -> application.science_3_2
+                    "3_1" -> application.science_3_1
+                    "2_2" -> application.science_2_2
+                    "2_1" -> application.science_2_1
+                    else -> null
+                }
+            "english" ->
+                when (semester) {
+                    "3_2" -> application.english_3_2
+                    "3_1" -> application.english_3_1
+                    "2_2" -> application.english_2_2
+                    "2_1" -> application.english_2_1
+                    else -> null
+                }
+            "techAndHome" ->
+                when (semester) {
+                    "3_2" -> application.tech_3_2
+                    "3_1" -> application.tech_3_1
+                    "2_2" -> application.tech_2_2
+                    "2_1" -> application.tech_2_1
+                    else -> null
+                }
             else -> null
         }
     }
-    
+
     private fun getGradeDisplay(score: Int?): String {
         return when (score) {
             5 -> "A"
@@ -442,7 +452,7 @@ class PdfDataConverter(
             values["schoolRegion"] = school.regionName ?: "미상"
             values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
             values["schoolName"] = school.name
-            values["schoolClass"] = application.studentId?.let { 
+            values["schoolClass"] = application.studentId?.let {
                 // studentId에서 학급 정보 추출 시도 (예: "30101" -> "1")
                 if (it.length >= 2) it.substring(1, 2) else "3"
             } ?: "3"

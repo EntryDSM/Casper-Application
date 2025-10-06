@@ -4,9 +4,9 @@ import hs.kr.entrydsm.application.domain.pdf.presentation.dto.request.PreviewPdf
 import hs.kr.entrydsm.application.global.annotation.usecase.ReadOnlyUseCase
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
+import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
-import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
@@ -16,26 +16,28 @@ import java.util.UUID
 @ReadOnlyUseCase
 class GetPreviewApplicationPdfUseCase(
     private val securityContract: SecurityContract,
-    private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract
+    private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract,
 ) {
-
     /**
      * 프론트에서 전달받은 임시저장 데이터로 미리보기 PDF 생성
      */
     fun execute(request: PreviewPdfRequest): ByteArray {
         val userId = securityContract.getCurrentUserId()
-        
+
         val tempApplication = createTempApplication(userId, request)
-        
+
         return applicationPdfGeneratorContract.generate(tempApplication, emptyMap())
     }
 
     /**
      * PreviewPdfRequest로부터 임시 Application 도메인 객체 생성
      */
-    private fun createTempApplication(userId: UUID, request: PreviewPdfRequest): Application {
+    private fun createTempApplication(
+        userId: UUID,
+        request: PreviewPdfRequest,
+    ): Application {
         val now = LocalDateTime.now()
-        
+
         return Application(
             applicationId = UUID.randomUUID(),
             userId = userId,
@@ -113,7 +115,7 @@ class GetPreviewApplicationPdfUseCase(
             volunteer = request.volunteer,
             algorithmAward = request.algorithmAward,
             infoProcessingCert = request.infoProcessingCert,
-            totalScore = null
+            totalScore = null,
         )
     }
 
@@ -123,7 +125,7 @@ class GetPreviewApplicationPdfUseCase(
     private fun parseApplicationType(typeStr: String): ApplicationType {
         return when (typeStr.uppercase()) {
             "COMMON" -> ApplicationType.COMMON
-            "MEISTER" -> ApplicationType.MEISTER  
+            "MEISTER" -> ApplicationType.MEISTER
             "SOCIAL" -> ApplicationType.SOCIAL
             else -> ApplicationType.COMMON
         }

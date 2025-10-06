@@ -21,12 +21,14 @@ class AwsS3Adapter(
     private val amazonS3Client: AmazonS3Client,
     private val awsProperties: AwsProperties,
 ) : UploadFilePort, GenerateFileUrlPort {
-
     companion object {
         const val EXP_TIME = 1000 * 60 * 2
     }
 
-    override fun upload(file: File, path: String): String {
+    override fun upload(
+        file: File,
+        path: String,
+    ): String {
         val fileName = UUID.randomUUID().toString() + file.name
         runCatching { inputS3(file, path, fileName) }
             .also { file.delete() }
@@ -34,21 +36,26 @@ class AwsS3Adapter(
         return fileName
     }
 
-    private fun inputS3(file: File, path: String, fileName: String) {
+    private fun inputS3(
+        file: File,
+        path: String,
+        fileName: String,
+    ) {
         try {
             val inputStream = file.inputStream()
-            val objectMetadata = ObjectMetadata().apply {
-                contentLength = file.length()
-                contentType = Mimetypes.getInstance().getMimetype(file)
-            }
+            val objectMetadata =
+                ObjectMetadata().apply {
+                    contentLength = file.length()
+                    contentType = Mimetypes.getInstance().getMimetype(file)
+                }
 
             amazonS3Client.putObject(
                 PutObjectRequest(
                     awsProperties.bucket,
-                    path+fileName,
+                    path + fileName,
                     inputStream,
-                    objectMetadata
-                ).withCannedAcl(CannedAccessControlList.PublicRead)
+                    objectMetadata,
+                ).withCannedAcl(CannedAccessControlList.PublicRead),
             )
         } catch (e: IOException) {
             throw FileExceptions.IOInterrupted()

@@ -5,8 +5,8 @@ import hs.kr.entrydsm.application.global.excel.generator.PrintApplicationInfoGen
 import hs.kr.entrydsm.domain.school.interfaces.SchoolContract
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import hs.kr.entrydsm.domain.user.interfaces.ApplicationQueryUserContract
-import org.springframework.stereotype.Service
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.stereotype.Service
 
 @Service
 class PrintApplicationInfoUseCase(
@@ -14,7 +14,7 @@ class PrintApplicationInfoUseCase(
     private val applicationPersistenceAdapter: ApplicationPersistenceAdapter,
     private val schoolContract: SchoolContract,
     private val applicationQueryStatusContract: ApplicationQueryStatusContract,
-    private val applicationQueryUserContract: ApplicationQueryUserContract
+    private val applicationQueryUserContract: ApplicationQueryUserContract,
 ) {
     fun execute(httpServletResponse: HttpServletResponse) {
         val applications = applicationPersistenceAdapter.querySubmittedApplications()
@@ -31,7 +31,7 @@ class PrintApplicationInfoUseCase(
             applications = applications,
             users = users,
             schools = schools,
-            statuses = statuses
+            statuses = statuses,
         )
     }
 }

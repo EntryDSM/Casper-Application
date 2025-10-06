@@ -42,9 +42,10 @@ class ApplicationPdfGenerator(
     }
 
     private fun generateApplicationPdf(application: Application): ByteArray {
-        val calculatedScoreDetails = application.getScoreDetails()
-            .mapValues { it.value as Any }
-        
+        val calculatedScoreDetails =
+            application.getScoreDetails()
+                .mapValues { it.value as Any }
+
         val data = pdfDataConverter.applicationToInfo(application, calculatedScoreDetails)
         val templates = getTemplateFileNames(application)
 

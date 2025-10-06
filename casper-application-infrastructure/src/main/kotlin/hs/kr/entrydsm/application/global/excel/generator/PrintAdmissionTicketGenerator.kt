@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
  */
 @Component
 class PrintAdmissionTicketGenerator(
-    private val photoJpaRepository: PhotoJpaRepository
+    private val photoJpaRepository: PhotoJpaRepository,
 ) {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
@@ -107,8 +107,9 @@ class PrintAdmissionTicketGenerator(
             val user = userMap[application.userId]
             val status = statusMap[application.receiptCode]
             val school = application.schoolCode?.let { schoolMap[it] }
-            val photoJpaEntity = photoJpaRepository.findByUserId(application.userId)
-                ?: IllegalArgumentException("Photo not found.")
+            val photoJpaEntity =
+                photoJpaRepository.findByUserId(application.userId)
+                    ?: IllegalArgumentException("Photo not found.")
 
             fillApplicationData(sourceSheet, 0, application, user, school, status, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)

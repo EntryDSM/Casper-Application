@@ -7,9 +7,8 @@ import hs.kr.entrydsm.domain.application.interfaces.QueryAllFirstRoundPassedAppl
 @ReadOnlyUseCase
 class GetIntroductionPdfUseCase(
     private val queryAllFirstRoundPassedApplicationContract: QueryAllFirstRoundPassedApplicationContract,
-    private val introductionPdfGeneratorContract: IntroductionPdfGeneratorContract
+    private val introductionPdfGeneratorContract: IntroductionPdfGeneratorContract,
 ) {
-
     suspend fun execute(): ByteArray {
         val applications = queryAllFirstRoundPassedApplicationContract.queryAllFirstRoundPassedApplication()
         return introductionPdfGeneratorContract.generate(applications)

@@ -62,13 +62,13 @@ class ScoreCalculator {
     ): Double {
         val baseScore =
             when (educationalStatus) {
-            EducationalStatus.PROSPECTIVE_GRADUATE ->
-                calculateProspectiveGraduateSubjectScore(scoreInput)
-            EducationalStatus.GRADUATE ->
-                calculateGraduateSubjectScore(scoreInput)
-            EducationalStatus.QUALIFICATION_EXAM ->
-                calculateQualificationExamSubjectScore(scoreInput)
-        }
+                EducationalStatus.PROSPECTIVE_GRADUATE ->
+                    calculateProspectiveGraduateSubjectScore(scoreInput)
+                EducationalStatus.GRADUATE ->
+                    calculateGraduateSubjectScore(scoreInput)
+                EducationalStatus.QUALIFICATION_EXAM ->
+                    calculateQualificationExamSubjectScore(scoreInput)
+            }
 
         // 전형별 배수 적용 (일반전형 1.75, 특별전형 1.0)
         return baseScore * applicationType.baseScoreMultiplier
@@ -138,12 +138,14 @@ class ScoreCalculator {
      * 6개 과목 평균 → 80점 만점으로 환산
      */
     private fun calculateQualificationExamSubjectScore(scoreInput: ScoreInput): Double {
-        val gedScores = scoreInput.gedScores
-            ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
+        val gedScores =
+            scoreInput.gedScores
+                ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
 
-        val average = gedScores.values
-            .map { it.toDouble() }
-            .average()
+        val average =
+            gedScores.values
+                .map { it.toDouble() }
+                .average()
 
         // 100점 만점 → 80점 만점으로 환산
         return (average / 100.0) * 80.0
@@ -153,15 +155,16 @@ class ScoreCalculator {
      * 학기별 7과목 평균 성적 계산 (5점 만점 기준)
      */
     private fun calculateSemesterScore(grades: SemesterGrades): Double {
-        val gradeList = listOf(
-            grades.korean,
-            grades.social,
-            grades.history,
-            grades.math,
-            grades.science,
-            grades.tech,
-            grades.english
-        )
+        val gradeList =
+            listOf(
+                grades.korean,
+                grades.social,
+                grades.history,
+                grades.math,
+                grades.science,
+                grades.tech,
+                grades.english,
+            )
 
         // 1~5 범위 검증
         gradeList.forEach { grade ->
@@ -180,8 +183,9 @@ class ScoreCalculator {
     private fun calculateAttendanceScore(scoreInput: ScoreInput): Double {
         val attendance = scoreInput.attendance ?: AttendanceInfo()
 
-        val convertedAbsence = attendance.absence +
-            (attendance.tardiness + attendance.earlyLeave + attendance.classExit) / 3.0
+        val convertedAbsence =
+            attendance.absence +
+                (attendance.tardiness + attendance.earlyLeave + attendance.classExit) / 3.0
 
         return when {
             convertedAbsence >= 15 -> 0.0
@@ -273,7 +277,7 @@ class ScoreCalculator {
                     attendance = extractAttendance(scores),
                     volunteerHours = getIntOrNull(scores, "volunteer"),
                     algorithmAward = getBooleanOrNull(scores, "algorithmAward"),
-                    infoProcessingCert = getBooleanOrNull(scores, "infoProcessingCert")
+                    infoProcessingCert = getBooleanOrNull(scores, "infoProcessingCert"),
                 )
             }
 
@@ -330,7 +334,10 @@ class ScoreCalculator {
                 }
             }
 
-            private fun getIntOrNull(data: Map<String, Any>, key: String): Int? {
+            private fun getIntOrNull(
+                data: Map<String, Any>,
+                key: String,
+            ): Int? {
                 return when (val value = data[key]) {
                     is Int -> value
                     is Number -> value.toInt()
@@ -339,7 +346,10 @@ class ScoreCalculator {
                 }
             }
 
-            private fun getBooleanOrNull(data: Map<String, Any>, key: String): Boolean? {
+            private fun getBooleanOrNull(
+                data: Map<String, Any>,
+                key: String,
+            ): Boolean? {
                 return when (val value = data[key]) {
                     is Boolean -> value
                     is String -> value.toBooleanStrictOrNull()
@@ -359,7 +369,7 @@ class ScoreCalculator {
         val math: Int,
         val science: Int,
         val tech: Int,
-        val english: Int
+        val english: Int,
     )
 
     /**

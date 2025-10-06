@@ -22,6 +22,8 @@ data class ApplicationListResponse(
         val educationalStatus: String,
         val status: String,
         val submittedAt: LocalDateTime,
-        val isDaejeon: Boolean
+        val isDaejeon: Boolean,
+        val isSubmitted: Boolean,
+        val isArrived: Boolean,
     )
 }

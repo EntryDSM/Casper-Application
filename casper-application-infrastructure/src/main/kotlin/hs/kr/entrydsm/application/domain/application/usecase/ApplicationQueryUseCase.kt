@@ -1,9 +1,9 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
-import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
@@ -12,7 +12,6 @@ import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
-import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.file.`object`.PathList
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import org.springframework.data.domain.PageRequest
@@ -122,7 +121,9 @@ class ApplicationQueryUseCase(
                                 educationalStatus = app.educationalStatus.name,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
-                                isDaejeon = app.isDaejeon
+                                isDaejeon = app.isDaejeon,
+                                isSubmitted = true,
+                                isArrived = app.isArrived,
                             )
                         },
                     total = totalElements,
@@ -151,7 +152,9 @@ class ApplicationQueryUseCase(
                                 educationalStatus = app.educationalStatus.name,
                                 status = app.status.toString(),
                                 submittedAt = app.submittedAt,
-                                isDaejeon = app.isDaejeon
+                                isDaejeon = app.isDaejeon,
+                                isSubmitted = true,
+                                isArrived = app.isArrived,
                             )
                         },
                     total = applications.size,

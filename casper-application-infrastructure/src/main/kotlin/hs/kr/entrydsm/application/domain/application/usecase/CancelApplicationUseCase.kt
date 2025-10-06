@@ -13,10 +13,13 @@ import java.util.UUID
 class CancelApplicationUseCase(
     private val applicationContract: ApplicationContract,
 ) : CancelApplicationContract {
-    
-    override fun cancelApplication(userId: UUID, receiptCode: Long) {
-        val application = applicationContract.getApplicationByReceiptCode(receiptCode)
-            ?: throw ApplicationException(ErrorCode.APPLICATION_NOT_FOUND)
+    override fun cancelApplication(
+        userId: UUID,
+        receiptCode: Long,
+    ) {
+        val application =
+            applicationContract.getApplicationByReceiptCode(receiptCode)
+                ?: throw ApplicationException(ErrorCode.APPLICATION_NOT_FOUND)
 
         if (application.userId != userId) {
             throw ApplicationException(ErrorCode.APPLICATION_ACCESS_DENIED)

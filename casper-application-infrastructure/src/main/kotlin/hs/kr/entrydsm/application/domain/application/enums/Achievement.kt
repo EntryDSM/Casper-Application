@@ -10,13 +10,14 @@ package hs.kr.entrydsm.application.domain.application.enums
 enum class Achievement(
     val gradePoint: Int,
     val displayName: String,
-    val description: String
+    val description: String,
 ) {
     A(5, "A", "매우 우수"),
     B(4, "B", "우수"),
     C(3, "C", "보통"),
     D(2, "D", "미흡"),
-    E(1, "E", "매우 미흡");
+    E(1, "E", "매우 미흡"),
+    ;
 
     companion object {
         /**

@@ -57,7 +57,9 @@ class CompleteApplicationUseCase(
     /**
      * 성공 응답을 생성합니다.
      */
-    private fun buildSuccessResponse(application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity): ApplicationSubmissionResponse {
+    private fun buildSuccessResponse(
+        application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity,
+    ): ApplicationSubmissionResponse {
         return ApplicationSubmissionResponse(
             success = true,
             data =
@@ -98,7 +100,9 @@ class CompleteApplicationUseCase(
     /**
      * 점수 계산 단계 정보를 생성합니다.
      */
-    private fun createDetailedSteps(application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity): List<ApplicationSubmissionResponse.FormulaStepInfo> {
+    private fun createDetailedSteps(
+        application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity,
+    ): List<ApplicationSubmissionResponse.FormulaStepInfo> {
         val applicationType = application.applicationType
         val educationalStatus = application.educationalStatus
 

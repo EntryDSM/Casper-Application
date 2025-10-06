@@ -7,6 +7,7 @@ import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateE
 import hs.kr.entrydsm.application.domain.admin.usecase.AdminUseCase
 import hs.kr.entrydsm.application.domain.pdf.usecase.GetIntroductionPdfUseCase
 import hs.kr.entrydsm.application.global.document.admin.AdminApiDocument
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -16,15 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.nio.charset.StandardCharsets
-import jakarta.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/api/v1/admin")
 class AdminController(
     private val adminUseCase: AdminUseCase,
-    private val getIntroductionPdfUseCase: GetIntroductionPdfUseCase
+    private val getIntroductionPdfUseCase: GetIntroductionPdfUseCase,
 ) : AdminApiDocument {
-
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
     override suspend fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray> {
         val pdfBytes = getIntroductionPdfUseCase.execute()

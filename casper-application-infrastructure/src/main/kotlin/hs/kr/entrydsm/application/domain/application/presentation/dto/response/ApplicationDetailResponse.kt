@@ -27,7 +27,7 @@ data class ApplicationDetailResponse(
         val selfIntroduce: String?,
         val isDaejeon: Boolean,
         // 점수 정보
-        val scores: ScoreInfo?
+        val scores: ScoreInfo?,
     )
 
     data class ScoreInfo(
@@ -35,6 +35,6 @@ data class ApplicationDetailResponse(
         val subjectScore: Double?,
         val attendanceScore: Double?,
         val volunteerScore: Double?,
-        val bonusScore: Double?
+        val bonusScore: Double?,
     )
 }

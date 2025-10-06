@@ -16,15 +16,14 @@ import org.springframework.web.multipart.MultipartFile
 class FileController(
     private val fileUploadUseCase: FileUploadUseCase,
 ) : FileApiDocument {
-
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     override fun uploadPhoto(
         @RequestPart(name = "image") file: MultipartFile,
     ): UploadPhotoResponse {
         return UploadPhotoResponse(
             fileUploadUseCase.execute(
-                file.let(ImageFileConverter::transferTo)
-            )
+                file.let(ImageFileConverter::transferTo),
+            ),
         )
     }
 }

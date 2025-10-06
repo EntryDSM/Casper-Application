@@ -22,10 +22,11 @@ interface FileConverter {
     }
 
     private fun transferFile(multipartFile: MultipartFile): File {
-        val file = Files.createTempFile(
-            UUID.randomUUID().toString(),
-            multipartFile.originalFilename,
-        ).toFile()
+        val file =
+            Files.createTempFile(
+                UUID.randomUUID().toString(),
+                multipartFile.originalFilename,
+            ).toFile()
 
         FileOutputStream(file).use {
             it.write(multipartFile.bytes)

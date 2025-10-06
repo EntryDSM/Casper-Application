@@ -17,22 +17,16 @@ class UserJpaEntity(
     @Id
     @Column(name = "user_id", columnDefinition = "BINARY(16)")
     val userId: UUID,
-
     @Column(name = "name", nullable = false, length = 100)
     val name: String,
-
     @Column(name = "phone_number", nullable = false, length = 20)
     val phoneNumber: String,
-
     @Column(name = "email", length = 200)
     val email: String?,
-
     @Column(name = "birth_date", length = 10)
     val birthDate: String?,
-
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
-
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {

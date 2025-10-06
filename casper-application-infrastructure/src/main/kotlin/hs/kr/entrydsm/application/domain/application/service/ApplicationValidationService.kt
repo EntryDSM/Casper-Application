@@ -5,15 +5,14 @@ import org.springframework.stereotype.Service
 
 /**
  * 원서 검증 서비스
- * 
+ *
  * 원서 제출 시 비즈니스 규칙에 따른 검증을 수행합니다.
  */
 @Service
 class ApplicationValidationService {
-    
     /**
      * 원서 생성 요청 데이터를 검증합니다.
-     * 
+     *
      * @param request 원서 생성 요청 데이터
      * @throws IllegalArgumentException 검증 실패 시
      */
@@ -32,7 +31,7 @@ class ApplicationValidationService {
 //        // 보호자 정보 검증
 //        validateGuardianInfo(request)
 //    }
-    
+
 //    /**
 //     * 전형 타입별 특별 검증을 수행합니다.
 //     */
@@ -55,7 +54,7 @@ class ApplicationValidationService {
 //            }
 //        }
 //    }
-    
+
     /**
      * 학력 상태별 검증을 수행합니다.
      */
@@ -85,7 +84,7 @@ class ApplicationValidationService {
             }
         }
     }
-    
+
     /**
      * 성적 정보를 검증합니다.
      */
@@ -98,27 +97,27 @@ class ApplicationValidationService {
         validateGradeRange(request.social_3_1, "사회(3-1)")
         validateGradeRange(request.history_3_1, "한국사(3-1)")
         validateGradeRange(request.tech_3_1, "기술가정(3-1)")
-        
+
         // 검정고시 성적 범위 검증 (60-100점)
         validateGedScoreRange(request.gedKorean, "검정고시 국어")
         validateGedScoreRange(request.gedMath, "검정고시 수학")
         validateGedScoreRange(request.gedEnglish, "검정고시 영어")
         validateGedScoreRange(request.gedScience, "검정고시 과학")
         validateGedScoreRange(request.gedSocial, "검정고시 사회")
-        
+
         // 출결 정보 검증
         validateAttendanceRange(request.absence, "결석")
         validateAttendanceRange(request.tardiness, "지각")
         validateAttendanceRange(request.earlyLeave, "조퇴")
         validateAttendanceRange(request.classExit, "결과")
         validateAttendanceRange(request.unexcused, "무단")
-        
+
         // 봉사활동 시간 검증
         if (request.volunteer != null && request.volunteer < 0) {
             throw IllegalArgumentException("봉사활동 시간은 0 이상이어야 합니다")
         }
     }
-    
+
 //    /**
 //     * 보호자 정보를 검증합니다.
 //     */
@@ -134,33 +133,43 @@ class ApplicationValidationService {
 //        }
 //    }
 //
+
     /**
      * 교과 성적 등급 범위를 검증합니다 (1-5등급).
      */
-    private fun validateGradeRange(grade: Int?, subject: String) {
+    private fun validateGradeRange(
+        grade: Int?,
+        subject: String,
+    ) {
         if (grade != null && (grade < 1 || grade > 5)) {
             throw IllegalArgumentException("$subject 성적은 1-5등급 범위여야 합니다")
         }
     }
-    
+
     /**
      * 검정고시 성적 범위를 검증합니다 (60-100점).
      */
-    private fun validateGedScoreRange(score: Int?, subject: String) {
+    private fun validateGedScoreRange(
+        score: Int?,
+        subject: String,
+    ) {
         if (score != null && (score < 60 || score > 100)) {
             throw IllegalArgumentException("$subject 성적은 60-100점 범위여야 합니다")
         }
     }
-    
+
     /**
      * 출결 정보 범위를 검증합니다 (0 이상).
      */
-    private fun validateAttendanceRange(count: Int?, type: String) {
+    private fun validateAttendanceRange(
+        count: Int?,
+        type: String,
+    ) {
         if (count != null && count < 0) {
             throw IllegalArgumentException("$type 횟수는 0 이상이어야 합니다")
         }
     }
-    
+
     /**
      * 성적이 null인지 확인합니다.
      */

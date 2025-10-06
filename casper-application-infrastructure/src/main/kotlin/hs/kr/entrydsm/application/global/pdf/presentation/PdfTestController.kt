@@ -65,35 +65,30 @@ class PdfTestController(
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
             isDaejeon = true,
-            //isOutOfHeadcount = false,
-            //photoPath = null,
+            // isOutOfHeadcount = false,
+            // photoPath = null,
             parentRelation = "부",
             postalCode = "12345",
             detailAddress = "테스트상세주소",
             studyPlan = "테스트 학업계획",
             selfIntroduce = "테스트 자기소개",
-            //veteransNumber = null,
+            // veteransNumber = null,
             schoolCode = "B100000001",
-            
             // Basic Info Fields
             nationalMeritChild = false,
             specialAdmissionTarget = false,
             graduationDate = "2025-02",
-
             // Personal Info Fields
             applicantGender = Gender.fromString("남"),
-
             // Guardian Info Fields
-            //guardianName = "테스트보호자",
-            //guardianNumber = "01011111111",
+            // guardianName = "테스트보호자",
+            // guardianNumber = "01011111111",
             guardianGender = Gender.fromString("여"),
-
             // School Info Fields
             schoolName = "테스트중학교",
             studentId = "20231234",
             schoolPhone = "0421234567",
             teacherName = "테스트선생님",
-            
             // Grade 3-1 Score Fields
             korean_3_1 = 5,
             social_3_1 = 4,
@@ -102,7 +97,6 @@ class PdfTestController(
             science_3_1 = 5,
             tech_3_1 = 4,
             english_3_1 = 5,
-            
             // Grade 2-2 Score Fields
             korean_2_2 = 5,
             social_2_2 = 4,
@@ -111,7 +105,6 @@ class PdfTestController(
             science_2_2 = 5,
             tech_2_2 = 4,
             english_2_2 = 5,
-            
             // Grade 2-1 Score Fields
             korean_2_1 = 4,
             social_2_1 = 4,
@@ -120,7 +113,6 @@ class PdfTestController(
             science_2_1 = 4,
             tech_2_1 = 5,
             english_2_1 = 4,
-            
             // Grade 3-2 Score Fields (for graduates) - null for prospective graduates
             korean_3_2 = null,
             social_3_2 = null,
@@ -129,7 +121,6 @@ class PdfTestController(
             science_3_2 = null,
             tech_3_2 = null,
             english_3_2 = null,
-            
             // GED Score Fields - null for regular students
             gedKorean = null,
             gedSocial = null,
@@ -138,10 +129,8 @@ class PdfTestController(
             gedScience = null,
             gedTech = null,
             gedEnglish = null,
-            
             // Additional Personal Info Fields
-            //specialNotes = "특이사항 없음",
-            
+            // specialNotes = "특이사항 없음",
             // Attendance & Service Fields
             absence = 0,
             tardiness = 0,
@@ -151,9 +140,8 @@ class PdfTestController(
             volunteer = 20,
             algorithmAward = true,
             infoProcessingCert = false,
-            
             // Score Calculation Fields
-            totalScore = null
+            totalScore = null,
         )
     }
 }

@@ -21,7 +21,6 @@ class ApplicationPersistenceAdapter(
     private val applicationMapper: ApplicationMapper,
     private val statusContract: StatusContract,
 ) : ApplicationContract {
-
     /**
      * 사용자 ID로 원서 정보를 조회합니다.
      *

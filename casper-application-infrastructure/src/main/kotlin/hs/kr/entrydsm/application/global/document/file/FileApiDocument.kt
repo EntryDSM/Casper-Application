@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.application.global.document.file
 
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
 import hs.kr.entrydsm.application.domain.file.presentation.dto.response.UploadPhotoResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -13,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile
 
 @Tag(name = "증명사진 업로드 API", description = "증명사진 업로드 관련 API")
 interface FileApiDocument {
-
     @Operation(summary = "증명 사진 업로드", description = "원서에 사용될 증명 사진을 업로드합니다.")
     @ApiResponses(
         value = [
