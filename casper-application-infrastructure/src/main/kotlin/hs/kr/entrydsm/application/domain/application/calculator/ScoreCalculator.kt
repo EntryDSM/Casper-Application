@@ -79,27 +79,45 @@ class ScoreCalculator {
      * - 3학년 1학기: 50% (40점)
      * - 2학년 2학기: 25% (20점)
      * - 2학년 1학기: 25% (20점)
+     *
+     * 성적 부족 시 환산:
+     * - 3학년만: 3학년 평균으로 환산
+     * - 3학년 + 직전학기: 평균으로 환산
+     * - 3학년 + 직전전학기: 평균으로 환산
      */
     private fun calculateProspectiveGraduateSubjectScore(scoreInput: ScoreInput): Double {
-        // 3학년 1학기 (7과목 평균 × 8 = 40점)
         val grade31 =
             scoreInput.grade3_1
                 ?: throw ScoreCalculationException("졸업예정자는 3학년 1학기 성적이 필수입니다")
-        val score31 = calculateSemesterScore(grade31) * 8.0
+        val avg31 = calculateSemesterScore(grade31)
 
-        // 2학년 2학기 (7과목 평균 × 4 = 20점)
-        val grade22 =
-            scoreInput.grade2_2
-                ?: throw ScoreCalculationException("졸업예정자는 2학년 2학기 성적이 필수입니다")
-        val score22 = calculateSemesterScore(grade22) * 4.0
+        val grade22 = scoreInput.grade2_2
+        val grade21 = scoreInput.grade2_1
 
-        // 2학년 1학기 (7과목 평균 × 4 = 20점)
-        val grade21 =
-            scoreInput.grade2_1
-                ?: throw ScoreCalculationException("졸업예정자는 2학년 1학기 성적이 필수입니다")
-        val score21 = calculateSemesterScore(grade21) * 4.0
-
-        return score31 + score22 + score21 // 최대 80점
+        return when {
+            // 모든 학기 성적이 있는 경우
+            grade22 != null && grade21 != null -> {
+                val avg22 = calculateSemesterScore(grade22)
+                val avg21 = calculateSemesterScore(grade21)
+                avg31 * 8.0 + avg22 * 4.0 + avg21 * 4.0
+            }
+            // 3학년 + 2-2만 있는 경우: (3-1 + 2-2)/2로 2-1 대체
+            grade22 != null && grade21 == null -> {
+                val avg22 = calculateSemesterScore(grade22)
+                val avg21 = (avg31 + avg22) / 2.0
+                avg31 * 8.0 + avg22 * 4.0 + avg21 * 4.0
+            }
+            // 3학년 + 2-1만 있는 경우: (3-1 + 2-1)/2로 2-2 대체
+            grade22 == null && grade21 != null -> {
+                val avg21 = calculateSemesterScore(grade21)
+                val avg22 = (avg31 + avg21) / 2.0
+                avg31 * 8.0 + avg22 * 4.0 + avg21 * 4.0
+            }
+            // 3학년만 있는 경우: 3학년 평균으로 모든 학기 환산
+            else -> {
+                avg31 * 8.0 + avg31 * 4.0 + avg31 * 4.0
+            }
+        }
     }
 
     /**
@@ -108,34 +126,59 @@ class ScoreCalculator {
      * - 3학년 1학기: 25% (20점)
      * - 2학년 2학기: 25% (20점)
      * - 2학년 1학기: 25% (20점)
+     *
+     * 성적 부족 시 환산:
+     * - 3학년만: 3학년 평균으로 환산
+     * - 3학년 + 직전학기: 평균으로 환산
+     * - 3학년 + 직전전학기: 평균으로 환산
      */
     private fun calculateGraduateSubjectScore(scoreInput: ScoreInput): Double {
         val grade32 =
             scoreInput.grade3_2
                 ?: throw ScoreCalculationException("졸업자는 3학년 2학기 성적이 필수입니다")
-        val score32 = calculateSemesterScore(grade32) * 4.0
+        val avg32 = calculateSemesterScore(grade32)
 
         val grade31 =
             scoreInput.grade3_1
                 ?: throw ScoreCalculationException("졸업자는 3학년 1학기 성적이 필수입니다")
-        val score31 = calculateSemesterScore(grade31) * 4.0
+        val avg31 = calculateSemesterScore(grade31)
 
-        val grade22 =
-            scoreInput.grade2_2
-                ?: throw ScoreCalculationException("졸업자는 2학년 2학기 성적이 필수입니다")
-        val score22 = calculateSemesterScore(grade22) * 4.0
+        val grade22 = scoreInput.grade2_2
+        val grade21 = scoreInput.grade2_1
 
-        val grade21 =
-            scoreInput.grade2_1
-                ?: throw ScoreCalculationException("졸업자는 2학년 1학기 성적이 필수입니다")
-        val score21 = calculateSemesterScore(grade21) * 4.0
+        // 3학년 평균
+        val avg3 = (avg32 + avg31) / 2.0
 
-        return score32 + score31 + score22 + score21 // 최대 80점
+        return when {
+            // 모든 학기 성적이 있는 경우
+            grade22 != null && grade21 != null -> {
+                val avg22 = calculateSemesterScore(grade22)
+                val avg21 = calculateSemesterScore(grade21)
+                avg32 * 4.0 + avg31 * 4.0 + avg22 * 4.0 + avg21 * 4.0
+            }
+            // 3학년 + 2-2만 있는 경우: (3학년 평균 + 2-2)/2로 2-1 대체
+            grade22 != null && grade21 == null -> {
+                val avg22 = calculateSemesterScore(grade22)
+                val avg21 = (avg3 + avg22) / 2.0
+                avg32 * 4.0 + avg31 * 4.0 + avg22 * 4.0 + avg21 * 4.0
+            }
+            // 3학년 + 2-1만 있는 경우: (3학년 평균 + 2-1)/2로 2-2 대체
+            grade22 == null && grade21 != null -> {
+                val avg21 = calculateSemesterScore(grade21)
+                val avg22 = (avg3 + avg21) / 2.0
+                avg32 * 4.0 + avg31 * 4.0 + avg22 * 4.0 + avg21 * 4.0
+            }
+            // 3학년만 있는 경우: 3학년 평균으로 모든 학기 환산
+            else -> {
+                avg32 * 4.0 + avg31 * 4.0 + avg3 * 4.0 + avg3 * 4.0
+            }
+        }
     }
 
     /**
      * 검정고시 교과성적 계산
-     * 6개 과목 평균 → 80점 만점으로 환산
+     * 7개 과목 평균 → 80점 만점으로 환산
+     * (국어, 사회, 역사, 수학, 과학, 영어, 기술)
      */
     private fun calculateQualificationExamSubjectScore(scoreInput: ScoreInput): Double {
         val gedScores =
@@ -293,17 +336,18 @@ class ScoreCalculator {
                 scores: Map<String, Any>,
                 semester: String,
             ): SemesterGrades? {
-                val korean = getIntOrNull(scores, "korean_$semester")
-                val social = getIntOrNull(scores, "social_$semester")
-                val history = getIntOrNull(scores, "history_$semester")
-                val math = getIntOrNull(scores, "math_$semester")
-                val science = getIntOrNull(scores, "science_$semester")
-                val tech = getIntOrNull(scores, "tech_$semester")
-                val english = getIntOrNull(scores, "english_$semester")
+                val korean = getIntOrNull(scores, "korean_$semester") ?: 0
+                val social = getIntOrNull(scores, "social_$semester") ?: 0
+                val history = getIntOrNull(scores, "history_$semester") ?: 0
+                val math = getIntOrNull(scores, "math_$semester") ?: 0
+                val science = getIntOrNull(scores, "science_$semester") ?: 0
+                val tech = getIntOrNull(scores, "tech_$semester") ?: 0
+                val english = getIntOrNull(scores, "english_$semester") ?: 0
 
-                // 모든 과목이 있어야 해당 학기 성적으로 인정
-                return if (korean != null && social != null && history != null &&
-                    math != null && science != null && tech != null && english != null
+                // 적어도 하나의 과목이라도 있으면 해당 학기 성적으로 인정
+                // 없는 과목은 0으로 처리되며, calculateSemesterScore에서 0은 제외됨
+                return if (korean > 0 || social > 0 || history > 0 ||
+                    math > 0 || science > 0 || tech > 0 || english > 0
                 ) {
                     SemesterGrades(korean, social, history, math, science, tech, english)
                 } else {
@@ -314,8 +358,8 @@ class ScoreCalculator {
             private fun extractGedScores(scores: Map<String, Any>): Map<String, Int>? {
                 val gedScores = mutableMapOf<String, Int>()
 
-                listOf("Korean", "Social", "Math", "Science", "English", "Tech").forEach { subject ->
-                    val key = "ged$subject"
+                listOf("Korean", "Social", "History", "Math", "Science", "English", "Tech").forEach { subject ->
+                    val key = "qualification$subject"
                     getIntOrNull(scores, key)?.let { gedScores[subject] = it }
                 }
 
