@@ -143,7 +143,7 @@ class ApplicationJpaEntity(
         updatedAt = LocalDateTime.now()
     }
 
-    protected constructor() : this(
+    constructor() : this(
         applicationId = UUID.randomUUID(),
         userId = UUID.randomUUID(),
         receiptCode = 0L,

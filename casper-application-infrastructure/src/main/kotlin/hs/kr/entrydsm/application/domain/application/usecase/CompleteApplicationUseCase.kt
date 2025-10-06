@@ -75,14 +75,14 @@ class CompleteApplicationUseCase(
                     calculation =
                         ApplicationSubmissionResponse.CalculationInfo(
                             calculationId = application.applicationId.toString(),
-                            totalScore = application.totalScore ?: 0.0,
+                            totalScore = application.totalScore?.toDouble() ?: 0.0,
                             breakdown =
                                 mapOf(
-                                    "subjectScore" to (application.subjectScore ?: 0.0),
-                                    "attendanceScore" to (application.attendanceScore ?: 0.0),
-                                    "volunteerScore" to (application.volunteerScore ?: 0.0),
-                                    "bonusScore" to (application.bonusScore ?: 0.0),
-                                    "totalScore" to (application.totalScore ?: 0.0),
+                                    "subjectScore" to (application.subjectScore?.toDouble() ?: 0.0),
+                                    "attendanceScore" to (application.attendanceScore?.toDouble() ?: 0.0),
+                                    "volunteerScore" to (application.volunteerScore?.toDouble() ?: 0.0),
+                                    "bonusScore" to (application.bonusScore?.toDouble() ?: 0.0),
+                                    "totalScore" to (application.totalScore?.toDouble() ?: 0.0),
                                 ),
                             formulaExecution =
                                 ApplicationSubmissionResponse.FormulaExecutionInfo(
@@ -111,7 +111,7 @@ class CompleteApplicationUseCase(
                         EducationalStatus.GRADUATE -> "졸업자: 3-2학기(25%) + 3-1학기(25%) + 2-2학기(25%) + 2-1학기(25%)"
                         EducationalStatus.QUALIFICATION_EXAM -> "검정고시: 평균 / 100 × 80"
                     } + " × ${applicationType.baseScoreMultiplier}",
-                result = application.subjectScore ?: 0.0,
+                result = application.subjectScore?.toDouble() ?: 0.0,
                 variables =
                     mapOf(
                         "applicationType" to applicationType.displayName,
@@ -122,19 +122,19 @@ class CompleteApplicationUseCase(
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "출석점수 계산",
                 formula = "15점 만점, 환산결석 = 결석 + (지각+조퇴+결과)/3",
-                result = application.attendanceScore ?: 0.0,
+                result = application.attendanceScore?.toDouble() ?: 0.0,
                 variables = mapOf("maxScore" to 15.0),
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "봉사활동점수 계산",
                 formula = "15시간 이상: 15점, 14시간 이하: 시간수 = 점수",
-                result = application.volunteerScore ?: 0.0,
+                result = application.volunteerScore?.toDouble() ?: 0.0,
                 variables = mapOf("maxScore" to 15.0),
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "가산점 계산",
                 formula = "알고리즘경진대회(3점) + 정보처리기능사(특별전형 6점)",
-                result = application.bonusScore ?: 0.0,
+                result = application.bonusScore?.toDouble() ?: 0.0,
                 variables =
                     mapOf(
                         "algorithmAward" to 3.0,
@@ -143,15 +143,15 @@ class CompleteApplicationUseCase(
             ),
             ApplicationSubmissionResponse.FormulaStepInfo(
                 stepName = "최종점수 계산",
-                formula = "교과성적(${application.subjectScore ?: 0.0}) + 출석점수(${application.attendanceScore ?: 0.0}) + 봉사점수(${application.volunteerScore ?: 0.0}) + 가산점(${application.bonusScore ?: 0.0})",
-                result = application.totalScore ?: 0.0,
+                formula = "교과성적(${application.subjectScore?.toDouble() ?: 0.0}) + 출석점수(${application.attendanceScore?.toDouble() ?: 0.0}) + 봉사점수(${application.volunteerScore?.toDouble() ?: 0.0}) + 가산점(${application.bonusScore?.toDouble() ?: 0.0})",
+                result = application.totalScore?.toDouble() ?: 0.0,
                 variables =
                     mapOf(
-                        "subjectScore" to (application.subjectScore ?: 0.0),
-                        "attendanceScore" to (application.attendanceScore ?: 0.0),
-                        "volunteerScore" to (application.volunteerScore ?: 0.0),
-                        "bonusScore" to (application.bonusScore ?: 0.0),
-                        "totalScore" to (application.totalScore ?: 0.0),
+                        "subjectScore" to (application.subjectScore?.toDouble() ?: 0.0),
+                        "attendanceScore" to (application.attendanceScore?.toDouble() ?: 0.0),
+                        "volunteerScore" to (application.volunteerScore?.toDouble() ?: 0.0),
+                        "bonusScore" to (application.bonusScore?.toDouble() ?: 0.0),
+                        "totalScore" to (application.totalScore?.toDouble() ?: 0.0),
                     ),
             ),
         )
