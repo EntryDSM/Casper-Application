@@ -1,7 +1,14 @@
 package hs.kr.entrydsm.application.global.exception
 
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationAlreadySubmittedException
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationException
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
+import hs.kr.entrydsm.application.domain.application.exception.InvalidApplicationTypeException
+import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
 import hs.kr.entrydsm.application.global.error.ErrorDetail
 import hs.kr.entrydsm.application.global.error.ErrorResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -11,6 +18,114 @@ import java.time.LocalDateTime
 
 @RestControllerAdvice
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    // ===== Application 관련 예외 처리 =====
+
+    @ExceptionHandler(ApplicationNotFoundException::class)
+    fun handleApplicationNotFoundException(ex: ApplicationNotFoundException): ResponseEntity<ErrorResponse> {
+        log.warn("ApplicationNotFoundException: {}", ex.message)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "APPLICATION_NOT_FOUND",
+                        message = ex.message ?: "원서를 찾을 수 없습니다",
+                        details = null,
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse)
+    }
+
+    @ExceptionHandler(ApplicationAlreadySubmittedException::class)
+    fun handleApplicationAlreadySubmittedException(ex: ApplicationAlreadySubmittedException): ResponseEntity<ErrorResponse> {
+        log.warn("ApplicationAlreadySubmittedException: {}", ex.message)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "APPLICATION_ALREADY_SUBMITTED",
+                        message = ex.message ?: "이미 제출된 원서가 있습니다",
+                        details = null,
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse)
+    }
+
+    @ExceptionHandler(ApplicationValidationException::class)
+    fun handleApplicationValidationException(ex: ApplicationValidationException): ResponseEntity<ErrorResponse> {
+        log.warn("ApplicationValidationException: {}", ex.message)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "APPLICATION_VALIDATION_ERROR",
+                        message = ex.message ?: "원서 데이터 검증에 실패했습니다",
+                        details = null,
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(ScoreCalculationException::class)
+    fun handleScoreCalculationException(ex: ScoreCalculationException): ResponseEntity<ErrorResponse> {
+        log.error("ScoreCalculationException: {}", ex.message, ex)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "SCORE_CALCULATION_ERROR",
+                        message = ex.message ?: "점수 계산 중 오류가 발생했습니다",
+                        details = mapOf("cause" to (ex.cause?.message ?: "")),
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(InvalidApplicationTypeException::class)
+    fun handleInvalidApplicationTypeException(ex: InvalidApplicationTypeException): ResponseEntity<ErrorResponse> {
+        log.warn("InvalidApplicationTypeException: {}", ex.message)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "INVALID_APPLICATION_TYPE",
+                        message = ex.message ?: "잘못된 전형 유형 또는 교육 상태입니다",
+                        details = null,
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(ApplicationException::class)
+    fun handleApplicationException(ex: ApplicationException): ResponseEntity<ErrorResponse> {
+        log.error("ApplicationException: {}", ex.message, ex)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "APPLICATION_ERROR",
+                        message = ex.message ?: "원서 처리 중 오류가 발생했습니다",
+                        details = mapOf("exceptionType" to ex.javaClass.simpleName),
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse)
+    }
+
+    // ===== 일반 예외 처리 =====
+
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
         val errorResponse =

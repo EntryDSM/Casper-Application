@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -19,7 +20,7 @@ class UpdateApplicationArrivalUseCase(
     ) {
         val application =
             applicationRepository.findById(applicationId)
-                .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
+                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
         application.isArrived = isArrived
         applicationRepository.save(application)

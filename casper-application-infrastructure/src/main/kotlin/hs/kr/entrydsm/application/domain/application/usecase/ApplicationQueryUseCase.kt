@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
@@ -39,7 +40,7 @@ class ApplicationQueryUseCase(
         val uuid = UUID.fromString(applicationId)
         val application =
             applicationRepository.findById(uuid)
-                .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
+                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
         val user = securityAdapter.getCurrentUserId()
         val photoPath = photoJpaRepository.findByUserId(user)?.photo
@@ -169,7 +170,7 @@ class ApplicationQueryUseCase(
         val uuid = UUID.fromString(applicationId)
         val application =
             applicationRepository.findById(uuid)
-                .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
+                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
         // JSON 필드에서 성적 데이터 파싱
         val scores = objectMapper.readValue(application.scoresData, Map::class.java) as Map<String, Any>
@@ -190,7 +191,7 @@ class ApplicationQueryUseCase(
     fun getApplicationDomainModel(applicationId: UUID): Application {
         val entity =
             applicationRepository.findById(applicationId)
-                .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
+                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
         return entityToModel(entity)
     }

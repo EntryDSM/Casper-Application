@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation
 
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationSubmissionRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.CreateApplicationRequest
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CancelApplicationResponse
@@ -33,53 +34,38 @@ class ApplicationSubmissionController(
         @RequestHeader("Request-User-Id") userId: String,
         @Valid @RequestBody request: CreateApplicationRequest,
     ): ResponseEntity<CreateApplicationResponse> {
-        return try {
-            val userUuid = UUID.fromString(userId)
+        val userUuid =
+            try {
+                UUID.fromString(userId)
+            } catch (e: IllegalArgumentException) {
+                throw ApplicationValidationException("올바르지 않은 사용자 ID 형식입니다")
+            }
 
-            // CreateApplicationRequest를 ApplicationSubmissionRequest로 변환
-            val submissionRequest = convertToSubmissionRequest(request)
+        // CreateApplicationRequest를 ApplicationSubmissionRequest로 변환
+        val submissionRequest = convertToSubmissionRequest(request)
 
-            // CompleteApplicationUseCase 실행
-            val submissionResponse = completeApplicationUseCase.execute(userUuid, submissionRequest)
+        // CompleteApplicationUseCase 실행
+        val submissionResponse = completeApplicationUseCase.execute(userUuid, submissionRequest)
 
-            // CreateApplicationResponse로 변환
-            val response =
-                CreateApplicationResponse(
-                    success = submissionResponse.success,
-                    data =
-                        CreateApplicationResponse.ApplicationData(
-                            applicationId = UUID.fromString(submissionResponse.data.application.applicationId),
-                            receiptCode = submissionResponse.data.application.receiptCode,
-                            applicantName = submissionResponse.data.application.applicantName,
-                            applicationType = submissionResponse.data.application.applicationType,
-                            educationalStatus = submissionResponse.data.application.educationalStatus,
-                            status = submissionResponse.data.application.status,
-                            submittedAt = submissionResponse.data.application.submittedAt,
-                            createdAt = submissionResponse.data.application.submittedAt,
-                        ),
-                    message = "원서가 성공적으로 제출되었습니다.",
-                )
-
-            ResponseEntity.status(HttpStatus.CREATED).body(response)
-        } catch (e: IllegalArgumentException) {
-            logger.error("원서 제출 실패 - IllegalArgumentException: userId=$userId", e)
-            ResponseEntity.badRequest().body(
-                CreateApplicationResponse(
-                    success = false,
-                    data = null,
-                    message = e.message,
-                ),
+        // CreateApplicationResponse로 변환
+        val response =
+            CreateApplicationResponse(
+                success = submissionResponse.success,
+                data =
+                    CreateApplicationResponse.ApplicationData(
+                        applicationId = UUID.fromString(submissionResponse.data.application.applicationId),
+                        receiptCode = submissionResponse.data.application.receiptCode,
+                        applicantName = submissionResponse.data.application.applicantName,
+                        applicationType = submissionResponse.data.application.applicationType,
+                        educationalStatus = submissionResponse.data.application.educationalStatus,
+                        status = submissionResponse.data.application.status,
+                        submittedAt = submissionResponse.data.application.submittedAt,
+                        createdAt = submissionResponse.data.application.submittedAt,
+                    ),
+                message = "원서가 성공적으로 제출되었습니다.",
             )
-        } catch (e: Exception) {
-            logger.error("원서 제출 실패 - Exception: userId=$userId", e)
-            ResponseEntity.internalServerError().body(
-                CreateApplicationResponse(
-                    success = false,
-                    data = null,
-                    message = "원서 제출 중 오류가 발생했습니다: ${e.javaClass.simpleName} - ${e.message}",
-                ),
-            )
-        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
     private fun convertToSubmissionRequest(request: CreateApplicationRequest): ApplicationSubmissionRequest {
@@ -170,23 +156,20 @@ class ApplicationSubmissionController(
         @RequestHeader("Request-User-Id") userId: String,
         @PathVariable receiptCode: Long,
     ): ResponseEntity<CancelApplicationResponse> {
-        return try {
-            val userUuid = UUID.fromString(userId)
-            cancelApplicationContract.cancelApplication(userUuid, receiptCode)
+        val userUuid =
+            try {
+                UUID.fromString(userId)
+            } catch (e: IllegalArgumentException) {
+                throw ApplicationValidationException("올바르지 않은 사용자 ID 형식입니다")
+            }
 
-            ResponseEntity.ok(
-                CancelApplicationResponse(
-                    success = true,
-                    message = "원서 접수가 취소되었습니다.",
-                ),
-            )
-        } catch (e: Exception) {
-            ResponseEntity.badRequest().body(
-                CancelApplicationResponse(
-                    success = false,
-                    message = e.message ?: "원서 취소 중 오류가 발생했습니다.",
-                ),
-            )
-        }
+        cancelApplicationContract.cancelApplication(userUuid, receiptCode)
+
+        return ResponseEntity.ok(
+            CancelApplicationResponse(
+                success = true,
+                message = "원서 접수가 취소되었습니다.",
+            ),
+        )
     }
 }
