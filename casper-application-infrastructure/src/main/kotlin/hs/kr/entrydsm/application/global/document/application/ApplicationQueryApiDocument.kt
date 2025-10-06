@@ -80,6 +80,8 @@ interface ApplicationQueryApiDocument {
         @RequestParam(required = false) applicationType: String?,
         @Parameter(description = "학력 상태 (PROSPECTIVE_GRADUATE, GRADUATE, QUALIFICATION_EXAM)", required = false)
         @RequestParam(required = false) educationalStatus: String?,
+        @Parameter(description = "대전/전국 구분 (true: 대전, false: 전국)", required = false, example = "true")
+        @RequestParam(required = false) isDaejeon: Boolean?,
         @Parameter(description = "페이지 번호 (0부터 시작)", required = false, example = "0")
         @RequestParam(defaultValue = "0") page: Int,
         @Parameter(description = "페이지 크기 (1-100)", required = false, example = "20")

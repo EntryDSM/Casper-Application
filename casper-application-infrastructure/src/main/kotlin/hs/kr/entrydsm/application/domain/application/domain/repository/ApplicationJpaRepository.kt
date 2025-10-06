@@ -32,6 +32,46 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
     ): List<ApplicationJpaEntity>
 
     /**
+     * 전형 유형으로 원서 목록 조회
+     */
+    fun findByApplicationType(applicationType: ApplicationType): List<ApplicationJpaEntity>
+
+    /**
+     * 교육 상태로 원서 목록 조회
+     */
+    fun findByEducationalStatus(educationalStatus: EducationalStatus): List<ApplicationJpaEntity>
+
+    /**
+     * 대전/전국 구분으로 원서 목록 조회
+     */
+    fun findByIsDaejeon(isDaejeon: Boolean): List<ApplicationJpaEntity>
+
+    /**
+     * 전형 유형 + 대전/전국으로 원서 목록 조회
+     */
+    fun findByApplicationTypeAndIsDaejeon(
+        applicationType: ApplicationType,
+        isDaejeon: Boolean,
+    ): List<ApplicationJpaEntity>
+
+    /**
+     * 교육 상태 + 대전/전국으로 원서 목록 조회
+     */
+    fun findByEducationalStatusAndIsDaejeon(
+        educationalStatus: EducationalStatus,
+        isDaejeon: Boolean,
+    ): List<ApplicationJpaEntity>
+
+    /**
+     * 전형 유형 + 교육 상태 + 대전/전국으로 원서 목록 조회
+     */
+    fun findByApplicationTypeAndEducationalStatusAndIsDaejeon(
+        applicationType: ApplicationType,
+        educationalStatus: EducationalStatus,
+        isDaejeon: Boolean,
+    ): List<ApplicationJpaEntity>
+
+    /**
      * 상태별 원서 목록 조회
      */
     fun findAllByStatus(status: ApplicationStatus): List<ApplicationJpaEntity>

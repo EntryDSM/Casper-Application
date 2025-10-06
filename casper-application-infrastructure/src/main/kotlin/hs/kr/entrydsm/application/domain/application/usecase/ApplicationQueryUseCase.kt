@@ -83,17 +83,40 @@ class ApplicationQueryUseCase(
     fun getApplications(
         applicationType: String?,
         educationalStatus: String?,
+        isDaejeon: Boolean?,
         page: Int = 0,
         size: Int = 20,
     ): ApplicationListResponse {
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by("submittedAt").descending())
-
         val applications =
             when {
+                applicationType != null && educationalStatus != null && isDaejeon != null -> {
+                    val typeEnum = ApplicationType.fromString(applicationType)
+                    val statusEnum = EducationalStatus.fromString(educationalStatus)
+                    applicationRepository.findByApplicationTypeAndEducationalStatusAndIsDaejeon(typeEnum, statusEnum, isDaejeon)
+                }
                 applicationType != null && educationalStatus != null -> {
                     val typeEnum = ApplicationType.fromString(applicationType)
                     val statusEnum = EducationalStatus.fromString(educationalStatus)
                     applicationRepository.findByApplicationTypeAndEducationalStatus(typeEnum, statusEnum)
+                }
+                applicationType != null && isDaejeon != null -> {
+                    val typeEnum = ApplicationType.fromString(applicationType)
+                    applicationRepository.findByApplicationTypeAndIsDaejeon(typeEnum, isDaejeon)
+                }
+                educationalStatus != null && isDaejeon != null -> {
+                    val statusEnum = EducationalStatus.fromString(educationalStatus)
+                    applicationRepository.findByEducationalStatusAndIsDaejeon(statusEnum, isDaejeon)
+                }
+                applicationType != null -> {
+                    val typeEnum = ApplicationType.fromString(applicationType)
+                    applicationRepository.findByApplicationType(typeEnum)
+                }
+                educationalStatus != null -> {
+                    val statusEnum = EducationalStatus.fromString(educationalStatus)
+                    applicationRepository.findByEducationalStatus(statusEnum)
+                }
+                isDaejeon != null -> {
+                    applicationRepository.findByIsDaejeon(isDaejeon)
                 }
                 else -> applicationRepository.findAll()
             }

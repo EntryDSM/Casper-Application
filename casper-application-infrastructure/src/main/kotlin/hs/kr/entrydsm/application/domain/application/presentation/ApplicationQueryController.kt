@@ -47,6 +47,7 @@ class ApplicationQueryController(
     override fun getApplications(
         @RequestParam(required = false) applicationType: String?,
         @RequestParam(required = false) educationalStatus: String?,
+        @RequestParam(required = false) isDaejeon: Boolean?,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<ApplicationListResponse> {
@@ -57,7 +58,7 @@ class ApplicationQueryController(
             throw ApplicationValidationException("페이지 크기는 1~100 사이여야 합니다")
         }
 
-        val response = applicationQueryUseCase.getApplications(applicationType, educationalStatus, page, size)
+        val response = applicationQueryUseCase.getApplications(applicationType, educationalStatus, isDaejeon, page, size)
         return ResponseEntity.ok(response)
     }
 
