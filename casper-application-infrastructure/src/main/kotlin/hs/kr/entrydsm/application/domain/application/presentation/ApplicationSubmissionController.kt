@@ -100,26 +100,51 @@ class ApplicationSubmissionController(
         request.streetAddress?.let { applicationData["streetAddress"] = it }
         request.isDaejeon?.let { applicationData["isDaejeon"] = it }
         
-        // 성적 정보
+        // 성적 정보 - 3학년 1학기
         request.korean_3_1?.let { scoresData["korean_3_1"] = it }
-        request.math_3_1?.let { scoresData["math_3_1"] = it }
-        request.english_3_1?.let { scoresData["english_3_1"] = it }
-        request.science_3_1?.let { scoresData["science_3_1"] = it }
         request.social_3_1?.let { scoresData["social_3_1"] = it }
         request.history_3_1?.let { scoresData["history_3_1"] = it }
+        request.math_3_1?.let { scoresData["math_3_1"] = it }
+        request.science_3_1?.let { scoresData["science_3_1"] = it }
         request.tech_3_1?.let { scoresData["tech_3_1"] = it }
-        
-        request.korean_3_2?.let { scoresData["koreanGrade"] = it }
-        request.math_3_2?.let { scoresData["mathGrade"] = it }
-        request.english_3_2?.let { scoresData["englishGrade"] = it }
-        request.science_3_2?.let { scoresData["scienceGrade"] = it }
-        request.social_3_2?.let { scoresData["socialGrade"] = it }
-        request.history_3_2?.let { scoresData["historyGrade"] = it }
-        request.tech_3_2?.let { scoresData["techAndHomeGrade"] = it }
-        
-        // 출결 및 봉사 정보
-        request.absence?.let { scoresData["attendanceScore"] = 30 - (it * 1) } // 출석점수 계산
-        request.volunteer?.let { scoresData["volunteerScore"] = it } 
+        request.english_3_1?.let { scoresData["english_3_1"] = it }
+
+        // 성적 정보 - 3학년 2학기 (졸업생용)
+        request.korean_3_2?.let { scoresData["korean_3_2"] = it }
+        request.social_3_2?.let { scoresData["social_3_2"] = it }
+        request.history_3_2?.let { scoresData["history_3_2"] = it }
+        request.math_3_2?.let { scoresData["math_3_2"] = it }
+        request.science_3_2?.let { scoresData["science_3_2"] = it }
+        request.tech_3_2?.let { scoresData["tech_3_2"] = it }
+        request.english_3_2?.let { scoresData["english_3_2"] = it }
+
+        // 성적 정보 - 2학년 2학기
+        request.korean_2_2?.let { scoresData["korean_2_2"] = it }
+        request.social_2_2?.let { scoresData["social_2_2"] = it }
+        request.history_2_2?.let { scoresData["history_2_2"] = it }
+        request.math_2_2?.let { scoresData["math_2_2"] = it }
+        request.science_2_2?.let { scoresData["science_2_2"] = it }
+        request.tech_2_2?.let { scoresData["tech_2_2"] = it }
+        request.english_2_2?.let { scoresData["english_2_2"] = it }
+
+        // 성적 정보 - 2학년 1학기
+        request.korean_2_1?.let { scoresData["korean_2_1"] = it }
+        request.social_2_1?.let { scoresData["social_2_1"] = it }
+        request.history_2_1?.let { scoresData["history_2_1"] = it }
+        request.math_2_1?.let { scoresData["math_2_1"] = it }
+        request.science_2_1?.let { scoresData["science_2_1"] = it }
+        request.tech_2_1?.let { scoresData["tech_2_1"] = it }
+        request.english_2_1?.let { scoresData["english_2_1"] = it }
+
+        // 출결 정보
+        request.absence?.let { scoresData["absence"] = it }
+        request.tardiness?.let { scoresData["tardiness"] = it }
+        request.earlyLeave?.let { scoresData["earlyLeave"] = it }
+        request.classExit?.let { scoresData["classExit"] = it }
+        request.unexcused?.let { scoresData["unexcused"] = it }
+
+        // 봉사활동
+        request.volunteer?.let { scoresData["volunteer"] = it } 
         
         // 검정고시 성적
         request.gedKorean?.let { scoresData["qualificationKorean"] = it }

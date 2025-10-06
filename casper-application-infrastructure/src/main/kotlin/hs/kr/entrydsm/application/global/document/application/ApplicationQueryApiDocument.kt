@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.global.document.application
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -46,6 +47,7 @@ interface ApplicationQueryApiDocument {
         ],
     )
     fun getApplication(
+        @Parameter(description = "원서 ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
         @PathVariable applicationId: String?,
     ): ResponseEntity<ApplicationDetailResponse>
 
@@ -73,9 +75,13 @@ interface ApplicationQueryApiDocument {
         ],
     )
     fun getApplications(
+        @Parameter(description = "전형 유형 (COMMON, MEISTER, SOCIAL)", required = false)
         @RequestParam(required = false) applicationType: String?,
+        @Parameter(description = "학력 상태 (PROSPECTIVE_GRADUATE, GRADUATE, QUALIFICATION_EXAM)", required = false)
         @RequestParam(required = false) educationalStatus: String?,
+        @Parameter(description = "페이지 번호 (0부터 시작)", required = false, example = "0")
         @RequestParam(defaultValue = "0") page: Int,
+        @Parameter(description = "페이지 크기 (1-100)", required = false, example = "20")
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<ApplicationListResponse>
 
@@ -100,6 +106,7 @@ interface ApplicationQueryApiDocument {
         ]
     )
     fun generateApplicationPdf(
+        @Parameter(description = "원서 ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
         @PathVariable applicationId: String?,
     ): ResponseEntity<ByteArray>
 }
