@@ -6,6 +6,7 @@ import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -78,15 +79,15 @@ class PdfTestController(
             nationalMeritChild = false,
             specialAdmissionTarget = false,
             graduationDate = "2025-02",
-            
+
             // Personal Info Fields
-            applicantGender = "남",
-            
+            applicantGender = Gender.fromString("남"),
+
             // Guardian Info Fields
             //guardianName = "테스트보호자",
             //guardianNumber = "01011111111",
-            guardianGender = "여",
-            
+            guardianGender = Gender.fromString("여"),
+
             // School Info Fields
             schoolName = "테스트중학교",
             studentId = "20231234",

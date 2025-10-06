@@ -7,6 +7,7 @@ import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContr
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import java.time.LocalDateTime
@@ -63,8 +64,8 @@ class GetPreviewApplicationPdfUseCase(
             nationalMeritChild = request.nationalMeritChild,
             specialAdmissionTarget = request.specialAdmissionTarget,
             graduationDate = request.graduationDate,
-            applicantGender = request.applicantGender,
-            guardianGender = request.guardianGender,
+            applicantGender = Gender.fromString(request.applicantGender),
+            guardianGender = Gender.fromString(request.guardianGender),
             schoolName = request.schoolName,
             studentId = request.studentId,
             schoolPhone = request.schoolPhone,

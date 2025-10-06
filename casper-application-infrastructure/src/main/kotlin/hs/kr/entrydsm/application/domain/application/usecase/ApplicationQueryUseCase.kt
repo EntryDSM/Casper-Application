@@ -3,12 +3,16 @@ package hs.kr.entrydsm.application.domain.application.usecase
 import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
+import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
+import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.file.`object`.PathList
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import org.springframework.data.domain.PageRequest
@@ -63,7 +67,15 @@ class ApplicationQueryUseCase(
                     photoUrl = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
                     studyPlan = application.studyPlan,
                     selfIntroduce = application.selfIntroduce,
-                    isDaejeon = application.isDaejeon
+                    isDaejeon = application.isDaejeon,
+                    scores =
+                        ApplicationDetailResponse.ScoreInfo(
+                            totalScore = application.totalScore?.toDouble(),
+                            subjectScore = application.subjectScore?.toDouble(),
+                            attendanceScore = application.attendanceScore?.toDouble(),
+                            volunteerScore = application.volunteerScore?.toDouble(),
+                            bonusScore = application.bonusScore?.toDouble(),
+                        ),
                 ),
         )
     }
@@ -166,6 +178,102 @@ class ApplicationQueryUseCase(
                     applicationId = applicationId,
                     scores = scores,
                 ),
+        )
+    }
+
+    /**
+     * Entity를 Domain Model로 변환합니다.
+     */
+    fun getApplicationDomainModel(applicationId: UUID): Application {
+        val entity =
+            applicationRepository.findById(applicationId)
+                .orElseThrow { IllegalArgumentException("원서를 찾을 수 없습니다: $applicationId") }
+
+        return entityToModel(entity)
+    }
+
+    private fun entityToModel(entity: ApplicationJpaEntity): Application {
+        // JSON 필드에서 성적 데이터 파싱
+        val scores = objectMapper.readValue(entity.scoresData, Map::class.java) as Map<String, Any>
+
+        return Application(
+            applicationId = entity.applicationId,
+            userId = entity.userId,
+            receiptCode = entity.receiptCode,
+            applicantName = entity.applicantName,
+            applicantTel = entity.applicantTel,
+            parentName = entity.parentName,
+            parentTel = entity.parentTel,
+            birthDate = entity.birthDate,
+            applicationType = entity.applicationType,
+            educationalStatus = entity.educationalStatus,
+            status = entity.status,
+            submissionStatus = ApplicationSubmissionStatus.SUBMITTED,
+            streetAddress = null,
+            submittedAt = entity.submittedAt ?: entity.createdAt,
+            reviewedAt = entity.reviewedAt,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
+            isDaejeon = entity.isDaejeon,
+            parentRelation = entity.parentRelation,
+            postalCode = entity.postalCode,
+            detailAddress = entity.detailAddress,
+            studyPlan = entity.studyPlan,
+            selfIntroduce = entity.selfIntroduce,
+            schoolCode = entity.schoolCode,
+            nationalMeritChild = null,
+            specialAdmissionTarget = null,
+            graduationDate = null,
+            applicantGender = null,
+            guardianGender = null,
+            schoolName = null,
+            studentId = null,
+            schoolPhone = null,
+            teacherName = null,
+            korean_3_1 = scores["korean_3_1"] as? Int,
+            social_3_1 = scores["social_3_1"] as? Int,
+            history_3_1 = scores["history_3_1"] as? Int,
+            math_3_1 = scores["math_3_1"] as? Int,
+            science_3_1 = scores["science_3_1"] as? Int,
+            tech_3_1 = scores["tech_3_1"] as? Int,
+            english_3_1 = scores["english_3_1"] as? Int,
+            korean_2_2 = scores["korean_2_2"] as? Int,
+            social_2_2 = scores["social_2_2"] as? Int,
+            history_2_2 = scores["history_2_2"] as? Int,
+            math_2_2 = scores["math_2_2"] as? Int,
+            science_2_2 = scores["science_2_2"] as? Int,
+            tech_2_2 = scores["tech_2_2"] as? Int,
+            english_2_2 = scores["english_2_2"] as? Int,
+            korean_2_1 = scores["korean_2_1"] as? Int,
+            social_2_1 = scores["social_2_1"] as? Int,
+            history_2_1 = scores["history_2_1"] as? Int,
+            math_2_1 = scores["math_2_1"] as? Int,
+            science_2_1 = scores["science_2_1"] as? Int,
+            tech_2_1 = scores["tech_2_1"] as? Int,
+            english_2_1 = scores["english_2_1"] as? Int,
+            korean_3_2 = scores["korean_3_2"] as? Int,
+            social_3_2 = scores["social_3_2"] as? Int,
+            history_3_2 = scores["history_3_2"] as? Int,
+            math_3_2 = scores["math_3_2"] as? Int,
+            science_3_2 = scores["science_3_2"] as? Int,
+            tech_3_2 = scores["tech_3_2"] as? Int,
+            english_3_2 = scores["english_3_2"] as? Int,
+            gedKorean = scores["qualificationKorean"] as? Int,
+            gedSocial = scores["qualificationSocial"] as? Int,
+            gedHistory = scores["qualificationHistory"] as? Int,
+            gedMath = scores["qualificationMath"] as? Int,
+            gedScience = scores["qualificationScience"] as? Int,
+            gedTech = scores["qualificationOpt"] as? Int,
+            gedEnglish = scores["qualificationEnglish"] as? Int,
+            absence = scores["absence"] as? Int,
+            tardiness = scores["tardiness"] as? Int,
+            earlyLeave = scores["earlyLeave"] as? Int,
+            classExit = scores["classExit"] as? Int,
+            unexcused = scores["unexcused"] as? Int,
+            volunteer = scores["volunteer"] as? Int,
+            algorithmAward = (scores["extraScore"] as? Int ?: 0) >= 3,
+            infoProcessingCert = (scores["extraScore"] as? Int ?: 0) >= 2,
+            totalScore = entity.totalScore,
         )
     }
 }

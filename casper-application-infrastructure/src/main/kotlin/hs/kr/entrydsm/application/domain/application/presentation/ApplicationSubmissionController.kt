@@ -6,10 +6,10 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.response.C
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ScoreCalculationResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CancelApplicationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.CompleteApplicationUseCase
-import hs.kr.entrydsm.application.domain.application.usecase.ApplicationSubmissionUseCase
 import hs.kr.entrydsm.domain.application.interfaces.CancelApplicationContract
 import hs.kr.entrydsm.application.global.document.application.ApplicationSubmissionApiDocument
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -26,9 +26,10 @@ import java.util.UUID
 @RequestMapping("/api/v1/applications")
 class ApplicationSubmissionController(
     private val completeApplicationUseCase: CompleteApplicationUseCase,
-    private val applicationSubmissionUseCase: ApplicationSubmissionUseCase,
     private val cancelApplicationContract: CancelApplicationContract,
 ) : ApplicationSubmissionApiDocument {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     @PostMapping
     override fun createApplication(
@@ -62,6 +63,7 @@ class ApplicationSubmissionController(
             
             ResponseEntity.status(HttpStatus.CREATED).body(response)
         } catch (e: IllegalArgumentException) {
+            logger.error("원서 제출 실패 - IllegalArgumentException: userId=$userId", e)
             ResponseEntity.badRequest().body(
                 CreateApplicationResponse(
                     success = false,
@@ -70,67 +72,17 @@ class ApplicationSubmissionController(
                 )
             )
         } catch (e: Exception) {
+            logger.error("원서 제출 실패 - Exception: userId=$userId", e)
             ResponseEntity.internalServerError().body(
                 CreateApplicationResponse(
                     success = false,
                     data = null,
-                    message = "원서 제출 중 오류가 발생했습니다"
+                    message = "원서 제출 중 오류가 발생했습니다: ${e.javaClass.simpleName} - ${e.message}"
                 )
             )
         }
     }
 
-    @GetMapping("/{applicationId}/score")
-    override fun calculateScore(
-        @PathVariable applicationId: String
-    ): ResponseEntity<ScoreCalculationResponse> {
-        return try {
-            val applicationUuid = UUID.fromString(applicationId)
-            val application = applicationSubmissionUseCase.getApplicationById(applicationUuid)
-                ?: return ResponseEntity.notFound().build()
-            
-            val updatedApplication = application.calculateAndUpdateScore()
-            val scoreDetails = updatedApplication.getScoreDetails()
-            
-            val scoreData = ScoreCalculationResponse.ScoreData(
-                applicationId = applicationId,
-                subjectScore = scoreDetails["교과성적"]!!,
-                attendanceScore = scoreDetails["출석점수"]!!,
-                volunteerScore = scoreDetails["봉사활동점수"]!!,
-                bonusScore = scoreDetails["가산점"]!!,
-                totalScore = scoreDetails["총점"]!!,
-                maxScore = scoreDetails["최대점수"]!!,
-                scorePercentage = updatedApplication.getScorePercentage(),
-                applicationType = updatedApplication.applicationType.displayName,
-                educationalStatus = updatedApplication.educationalStatus.displayName
-            )
-            
-            ResponseEntity.ok(
-                ScoreCalculationResponse(
-                    success = true,
-                    data = scoreData,
-                    message = "점수 계산이 완료되었습니다"
-                )
-            )
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(
-                ScoreCalculationResponse(
-                    success = false,
-                    data = null,
-                    message = "유효하지 않은 원서 ID입니다"
-                )
-            )
-        } catch (e: Exception) {
-            ResponseEntity.internalServerError().body(
-                ScoreCalculationResponse(
-                    success = false,
-                    data = null,
-                    message = "점수 계산 중 오류가 발생했습니다"
-                )
-            )
-        }
-    }
-    
     private fun convertToSubmissionRequest(request: CreateApplicationRequest): ApplicationSubmissionRequest {
         val applicationData = mutableMapOf<String, Any>()
         val scoresData = mutableMapOf<String, Any>()

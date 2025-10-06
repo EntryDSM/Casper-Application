@@ -25,6 +25,16 @@ data class ApplicationDetailResponse(
         val photoUrl: String?,
         val studyPlan: String?,
         val selfIntroduce: String?,
-        val isDaejeon: Boolean
+        val isDaejeon: Boolean,
+        // 점수 정보
+        val scores: ScoreInfo?
+    )
+
+    data class ScoreInfo(
+        val totalScore: Double?,
+        val subjectScore: Double?,
+        val attendanceScore: Double?,
+        val volunteerScore: Double?,
+        val bonusScore: Double?
     )
 }

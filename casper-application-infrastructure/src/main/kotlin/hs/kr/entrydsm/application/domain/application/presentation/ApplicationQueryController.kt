@@ -2,11 +2,7 @@ package hs.kr.entrydsm.application.domain.application.presentation
 
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationHistoryResponse
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.CalculationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.ApplicationQueryUseCase
-import hs.kr.entrydsm.application.domain.application.usecase.ApplicationSubmissionUseCase
 import hs.kr.entrydsm.application.global.document.application.ApplicationQueryApiDocument
 import hs.kr.entrydsm.application.global.pdf.generator.ApplicationPdfGenerator
 import org.springframework.http.HttpStatus
@@ -22,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1")
 class ApplicationQueryController(
     private val applicationQueryUseCase: ApplicationQueryUseCase,
-    private val applicationSubmissionUseCase: ApplicationSubmissionUseCase,
     private val applicationPdfGenerator: ApplicationPdfGenerator,
 ) : ApplicationQueryApiDocument {
     @GetMapping("/applications/{applicationId}")
@@ -75,110 +70,6 @@ class ApplicationQueryController(
         }
     }
 
-    @GetMapping("/users/{userId}/applications")
-    override fun getUserApplications(
-        @PathVariable userId: String?,
-    ): ResponseEntity<ApplicationListResponse> {
-        return try {
-            if (userId.isNullOrBlank()) {
-                throw IllegalArgumentException("사용자 ID가 필요합니다")
-            }
-
-            try {
-                java.util.UUID.fromString(userId)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("올바르지 않은 사용자 ID 형식입니다")
-            }
-
-            val response = applicationQueryUseCase.getUserApplications(userId)
-            ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().build()
-        } catch (e: NoSuchElementException) {
-            ResponseEntity.notFound().build()
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
-        }
-    }
-
-    @GetMapping("/applications/{applicationId}/scores")
-    override fun getApplicationScores(
-        @PathVariable applicationId: String?,
-    ): ResponseEntity<ApplicationScoresResponse> {
-        return try {
-            if (applicationId.isNullOrBlank()) {
-                throw IllegalArgumentException("원서 ID가 필요합니다")
-            }
-
-            try {
-                java.util.UUID.fromString(applicationId)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
-            }
-
-            val response = applicationQueryUseCase.getApplicationScores(applicationId)
-            ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.notFound().build()
-        } catch (e: NoSuchElementException) {
-            ResponseEntity.notFound().build()
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
-        }
-    }
-
-    @GetMapping("/applications/{applicationId}/calculations")
-    override fun getCalculationResult(
-        @PathVariable applicationId: String?,
-    ): ResponseEntity<CalculationResponse> {
-        return try {
-            if (applicationId.isNullOrBlank()) {
-                throw IllegalArgumentException("원서 ID가 필요합니다")
-            }
-
-            try {
-                java.util.UUID.fromString(applicationId)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
-            }
-
-            // 단일 테이블 구조에서는 ApplicationJpaEntity에서 직접 계산 결과를 조회합니다
-            ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.notFound().build()
-        } catch (e: NoSuchElementException) {
-            ResponseEntity.notFound().build()
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
-        }
-    }
-
-    @GetMapping("/applications/{applicationId}/calculations/history")
-    override fun getCalculationHistory(
-        @PathVariable applicationId: String?,
-    ): ResponseEntity<CalculationHistoryResponse> {
-        return try {
-            if (applicationId.isNullOrBlank()) {
-                throw IllegalArgumentException("원서 ID가 필요합니다")
-            }
-
-            try {
-                java.util.UUID.fromString(applicationId)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
-            }
-
-            // 단일 테이블 구조에서는 계산 이력 기능이 제거되었습니다
-            ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.notFound().build()
-        } catch (e: NoSuchElementException) {
-            ResponseEntity.notFound().build()
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
-        }
-    }
-
     @GetMapping("/applications/{applicationId}/pdf")
     override fun generateApplicationPdf(
         @PathVariable applicationId: String?,
@@ -194,16 +85,17 @@ class ApplicationQueryController(
                 throw IllegalArgumentException("올바르지 않은 원서 ID 형식입니다")
             }
 
-            // 실제 Application 도메인 조회
+            // ApplicationQueryUseCase를 통해 Application 조회
+            val response = applicationQueryUseCase.getApplicationById(applicationId)
+            val application = response.data ?: throw IllegalArgumentException("원서를 찾을 수 없습니다")
+
+            // 도메인 모델로 변환하여 점수 계산
             val applicationUuid = java.util.UUID.fromString(applicationId)
-            val application = applicationSubmissionUseCase.getApplicationById(applicationUuid)
-                ?: throw IllegalArgumentException("원서를 찾을 수 없습니다")
-            
-            // 점수 계산하여 실제 점수 사용
-            val updatedApplication = application.calculateAndUpdateScore()
+            val applicationModel = applicationQueryUseCase.getApplicationDomainModel(applicationUuid)
+            val updatedApplication = applicationModel.calculateAndUpdateScore()
             val scoreDetails = updatedApplication.getScoreDetails()
-            
-            // Application 도메인으로부터 PDF 생성 (실제 계산된 점수 사용)
+
+            // Application 도메인으로부터 PDF 생성
             val pdfBytes = applicationPdfGenerator.generate(updatedApplication, scoreDetails)
 
             ResponseEntity.ok()
