@@ -64,7 +64,7 @@ class ApplicationQueryUseCase(
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
-                    photoUrl = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
+                    photoUrl = photoPath?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) } ?: "",
                     studyPlan = application.studyPlan,
                     selfIntroduce = application.selfIntroduce,
                     isDaejeon = application.isDaejeon,
@@ -196,7 +196,15 @@ class ApplicationQueryUseCase(
                 .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
         // JSON 필드에서 성적 데이터 파싱
-        val scores = objectMapper.readValue(application.scoresData, Map::class.java) as Map<String, Any>
+        val scores = if (application.scoresData != null && application.scoresData.isNotBlank()) {
+            try {
+                objectMapper.readValue(application.scoresData, Map::class.java) as Map<String, Any>
+            } catch (e: Exception) {
+                emptyMap()
+            }
+        } else {
+            emptyMap()
+        }
 
         return ApplicationScoresResponse(
             success = true,
@@ -221,7 +229,15 @@ class ApplicationQueryUseCase(
 
     private fun entityToModel(entity: ApplicationJpaEntity): Application {
         // JSON 필드에서 성적 데이터 파싱
-        val scores = objectMapper.readValue(entity.scoresData, Map::class.java) as Map<String, Any>
+        val scores = if (entity.scoresData != null && entity.scoresData.isNotBlank()) {
+            try {
+                objectMapper.readValue(entity.scoresData, Map::class.java) as Map<String, Any>
+            } catch (e: Exception) {
+                emptyMap()
+            }
+        } else {
+            emptyMap()
+        }
 
         return Application(
             applicationId = entity.applicationId,

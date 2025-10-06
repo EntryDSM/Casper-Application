@@ -38,36 +38,58 @@ class ApplicationPdfGenerator(
         application: Application,
         scoreDetails: Map<String, Any>,
     ): ByteArray {
-        val calculatedScoreDetails =
-            application.getScoreDetails()
-                .mapValues { it.value as Any }
-
-        val data = pdfDataConverter.applicationToInfo(application, calculatedScoreDetails)
-        val templates = getTemplateFileNames(application)
-
-        val outStream =
-            templates.stream()
-                .map { template ->
-                    templateProcessor.convertTemplateIntoHtmlString(template, data.toMap())
+        try {
+            val calculatedScoreDetails =
+                try {
+                    application.getScoreDetails()
+                        .mapValues { it.value as Any }
+                } catch (e: Exception) {
+                    throw RuntimeException("점수 계산 중 오류 발생: ${e.message}", e)
                 }
-                .map { html ->
-                    pdfProcessor.convertHtmlToPdf(html)
+
+            val data =
+                try {
+                    pdfDataConverter.applicationToInfo(application, calculatedScoreDetails)
+                } catch (e: Exception) {
+                    throw RuntimeException("PDF 데이터 변환 중 오류 발생: ${e.message}", e)
                 }
-                .toArray { size -> arrayOfNulls<ByteArrayOutputStream>(size) }
 
-        val outputStream = ByteArrayOutputStream()
-        val mergedDocument = PdfDocument(PdfWriter(outputStream))
-        val pdfMerger = PdfMerger(mergedDocument)
-        val document = Document(mergedDocument)
+            val templates = getTemplateFileNames(application)
 
-        for (pdfStream in outStream) {
-            val pdfDoc = pdfDocumentFacade.getPdfDocument(pdfStream!!)
-            mergeDocument(pdfMerger, pdfDoc)
+            val outStream =
+                templates.stream()
+                    .map { template ->
+                        try {
+                            templateProcessor.convertTemplateIntoHtmlString(template, data.toMap())
+                        } catch (e: Exception) {
+                            throw RuntimeException("템플릿($template) HTML 변환 중 오류 발생: ${e.message}", e)
+                        }
+                    }
+                    .map { html ->
+                        try {
+                            pdfProcessor.convertHtmlToPdf(html)
+                        } catch (e: Exception) {
+                            throw RuntimeException("HTML PDF 변환 중 오류 발생: ${e.message}", e)
+                        }
+                    }
+                    .toArray { size -> arrayOfNulls<ByteArrayOutputStream>(size) }
+
+            val outputStream = ByteArrayOutputStream()
+            val mergedDocument = PdfDocument(PdfWriter(outputStream))
+            val pdfMerger = PdfMerger(mergedDocument)
+            val document = Document(mergedDocument)
+
+            for (pdfStream in outStream) {
+                val pdfDoc = pdfDocumentFacade.getPdfDocument(pdfStream!!)
+                mergeDocument(pdfMerger, pdfDoc)
+            }
+
+            document.close()
+
+            return outputStream.toByteArray()
+        } catch (e: Exception) {
+            throw RuntimeException("PDF 생성 중 오류 발생: ${e.message}", e)
         }
-
-        document.close()
-
-        return outputStream.toByteArray()
     }
 
     private fun mergeDocument(
