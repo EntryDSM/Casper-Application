@@ -77,8 +77,11 @@ class ApplicationQueryController(
                 throw ApplicationValidationException("올바르지 않은 원서 ID 형식입니다")
             }
 
-        // 저장된 원서 데이터로 PDF 생성 (점수 재계산 없이)
-        val pdfBytes = applicationPdfGenerator.generateFromEntity(applicationUuid)
+        // Application 도메인 모델 조회
+        val application = applicationQueryUseCase.getApplicationDomainModel(applicationUuid)
+
+        // Application으로 PDF 생성
+        val pdfBytes = applicationPdfGenerator.generate(application, emptyMap())
 
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)

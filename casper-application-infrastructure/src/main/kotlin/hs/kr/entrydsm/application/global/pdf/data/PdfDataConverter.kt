@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.application.global.pdf.data
 
-import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
@@ -8,7 +7,6 @@ import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * 지원서 정보를 PDF 템플릿용 데이터로 변환하는 Converter입니다.
@@ -59,74 +57,6 @@ class PdfDataConverter(
         // if (!application.photoPath.isNullOrBlank()) {
         //     setBase64Image(application, values)
         // }
-
-        return PdfData(values)
-    }
-
-    /**
-     * ApplicationJpaEntity를 PDF 템플릿용 데이터로 변환합니다 (저장된 점수 사용).
-     *
-     * @param entity 원서 엔티티
-     * @param scores 성적 데이터 맵
-     * @param scoreDetails 저장된 점수 상세 정보
-     * @return 템플릿에 사용할 PdfData 객체
-     */
-    fun entityToInfo(
-        entity: ApplicationJpaEntity,
-        scores: Map<String, Any>,
-        scoreDetails: Map<String, Any>,
-    ): PdfData {
-        val values: MutableMap<String, Any> = HashMap()
-
-        // 기본 정보
-        values["receiptCode"] = entity.receiptCode.toString()
-        values["entranceYear"] = (LocalDate.now().plusYears(1).year).toString()
-        values["userName"] = entity.applicantName
-        values["applicantTel"] = toFormattedPhoneNumber(entity.applicantTel)
-        values["parentTel"] = toFormattedPhoneNumber(entity.parentTel ?: "")
-        values["address"] = "" // ApplicationJpaEntity에는 streetAddress 필드가 없음
-        values["detailAddress"] = entity.detailAddress ?: ""
-        values["birthday"] = entity.birthDate ?: ""
-        values["region"] = if (entity.isDaejeon) "대전" else "전국"
-        values["applicationType"] = entity.applicationType.displayName
-        values["applicationRemark"] = "해당없음"
-
-        // 전형 유형 체크박스 (초기화)
-        values["isCommon"] = toBallotBox(false)
-        values["isMeister"] = toBallotBox(false)
-        values["isSocial"] = toBallotBox(false)
-        when (entity.applicationType) {
-            ApplicationType.COMMON -> values["isCommon"] = toBallotBox(true)
-            ApplicationType.MEISTER -> values["isMeister"] = toBallotBox(true)
-            ApplicationType.SOCIAL -> values["isSocial"] = toBallotBox(true)
-        }
-
-        // 학력 상태
-        setGraduationClassificationFromEntity(entity, values)
-
-        // 부모 정보
-        values["parentName"] = entity.parentName ?: ""
-        values["parentRelation"] = entity.parentRelation ?: ""
-
-        // 소개서
-        values["studyPlan"] = entity.studyPlan ?: ""
-        values["selfIntroduce"] = entity.selfIntroduce ?: ""
-
-        // 출결 및 봉사
-        setAttendanceAndVolunteerFromScores(scores, values)
-
-        // 성적 점수
-        setGradeScoreFromScores(entity, scoreDetails, scores, values)
-
-        // 과목별 성적
-        setAllSubjectScoresFromMap(scores, values)
-
-        // 가산점
-        setExtraScoreFromScores(scores, values)
-
-        // 날짜
-        values["month"] = LocalDate.now().monthValue.toString()
-        values["day"] = LocalDate.now().dayOfMonth.toString()
 
         return PdfData(values)
     }
@@ -427,7 +357,7 @@ class PdfDataConverter(
     }
 
     private fun setLocalDate(values: MutableMap<String, Any>) {
-        val now: LocalDateTime = LocalDateTime.now()
+        val now: LocalDate = LocalDate.now()
         with(values) {
             put("year", now.year.toString())
             put("month", now.monthValue.toString())
@@ -574,117 +504,5 @@ class PdfDataConverter(
      */
     private fun toCircleBallotbox(isTrue: Boolean): String {
         return if (isTrue) "O" else "X"
-    }
-
-    // ===== Entity 전용 헬퍼 메서드 =====
-
-    private fun setGraduationClassificationFromEntity(
-        entity: ApplicationJpaEntity,
-        values: MutableMap<String, Any>,
-    ) {
-        values.putAll(emptyGraduationClassification())
-
-        val currentYear = LocalDate.now().year
-        val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8
-
-        when (entity.educationalStatus) {
-            EducationalStatus.GRADUATE -> {
-                values["graduateYear"] = currentYear.toString()
-                values["graduateMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 중학교 졸업"
-            }
-            EducationalStatus.PROSPECTIVE_GRADUATE -> {
-                val graduateYear = currentYear + 1
-                values["prospectiveGraduateYear"] = graduateYear.toString()
-                values["prospectiveGraduateMonth"] = "2"
-                values["educationalStatus"] = "${graduateYear}년 2월 중학교 졸업예정"
-            }
-            EducationalStatus.QUALIFICATION_EXAM -> {
-                values["qualificationExamPassedYear"] = currentYear.toString()
-                values["qualificationExamPassedMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 검정고시 합격"
-            }
-        }
-    }
-
-    private fun setAttendanceAndVolunteerFromScores(
-        scores: Map<String, Any>,
-        values: MutableMap<String, Any>,
-    ) {
-        values["absenceDayCount"] = scores["absence"] ?: 0
-        values["latenessCount"] = scores["tardiness"] ?: 0
-        values["earlyLeaveCount"] = scores["earlyLeave"] ?: 0
-        values["lectureAbsenceCount"] = scores["classExit"] ?: 0
-        values["volunteerTime"] = scores["volunteer"] ?: 0
-    }
-
-    private fun setGradeScoreFromScores(
-        entity: ApplicationJpaEntity,
-        scoreDetails: Map<String, Any>,
-        scores: Map<String, Any>,
-        values: MutableMap<String, Any>,
-    ) {
-        values["subjectGradeScore"] = scoreDetails["subjectScore"] ?: 0.0
-        values["attendanceScore"] = scoreDetails["attendanceScore"] ?: 0.0
-        values["volunteerScore"] = scoreDetails["volunteerScore"] ?: 0.0
-        values["bonusScore"] = scoreDetails["bonusScore"] ?: 0.0
-        values["totalScore"] = scoreDetails["totalScore"] ?: 0.0
-    }
-
-    private fun setAllSubjectScoresFromMap(
-        scores: Map<String, Any>,
-        values: MutableMap<String, Any>,
-    ) {
-        // 3학년 성적
-        values["korean_3_1"] = scores["korean_3_1"] ?: 0
-        values["social_3_1"] = scores["social_3_1"] ?: 0
-        values["history_3_1"] = scores["history_3_1"] ?: 0
-        values["math_3_1"] = scores["math_3_1"] ?: 0
-        values["science_3_1"] = scores["science_3_1"] ?: 0
-        values["tech_3_1"] = scores["tech_3_1"] ?: 0
-        values["english_3_1"] = scores["english_3_1"] ?: 0
-
-        values["korean_3_2"] = scores["korean_3_2"] ?: 0
-        values["social_3_2"] = scores["social_3_2"] ?: 0
-        values["history_3_2"] = scores["history_3_2"] ?: 0
-        values["math_3_2"] = scores["math_3_2"] ?: 0
-        values["science_3_2"] = scores["science_3_2"] ?: 0
-        values["tech_3_2"] = scores["tech_3_2"] ?: 0
-        values["english_3_2"] = scores["english_3_2"] ?: 0
-
-        // 2학년 성적
-        values["korean_2_1"] = scores["korean_2_1"] ?: 0
-        values["social_2_1"] = scores["social_2_1"] ?: 0
-        values["history_2_1"] = scores["history_2_1"] ?: 0
-        values["math_2_1"] = scores["math_2_1"] ?: 0
-        values["science_2_1"] = scores["science_2_1"] ?: 0
-        values["tech_2_1"] = scores["tech_2_1"] ?: 0
-        values["english_2_1"] = scores["english_2_1"] ?: 0
-
-        values["korean_2_2"] = scores["korean_2_2"] ?: 0
-        values["social_2_2"] = scores["social_2_2"] ?: 0
-        values["history_2_2"] = scores["history_2_2"] ?: 0
-        values["math_2_2"] = scores["math_2_2"] ?: 0
-        values["science_2_2"] = scores["science_2_2"] ?: 0
-        values["tech_2_2"] = scores["tech_2_2"] ?: 0
-        values["english_2_2"] = scores["english_2_2"] ?: 0
-
-        // 검정고시 성적
-        values["qualificationKorean"] = scores["qualificationKorean"] ?: 0
-        values["qualificationSocial"] = scores["qualificationSocial"] ?: 0
-        values["qualificationHistory"] = scores["qualificationHistory"] ?: 0
-        values["qualificationMath"] = scores["qualificationMath"] ?: 0
-        values["qualificationScience"] = scores["qualificationScience"] ?: 0
-        values["qualificationEnglish"] = scores["qualificationEnglish"] ?: 0
-        values["qualificationOpt"] = scores["qualificationOpt"] ?: 0
-    }
-
-    private fun setExtraScoreFromScores(
-        scores: Map<String, Any>,
-        values: MutableMap<String, Any>,
-    ) {
-        val extraScore = scores["extraScore"] as? Int ?: 0
-        values["hasAlgorithmAward"] = toBallotBox(extraScore >= 3)
-        values["hasInfoProcessingCert"] = toBallotBox(extraScore >= 2)
     }
 }
