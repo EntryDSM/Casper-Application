@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.global.document.application
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.UpdateApplicationArrivalResponse
+import hs.kr.entrydsm.application.domain.pdf.presentation.dto.request.PreviewPdfRequest
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 
 /**
@@ -109,6 +111,33 @@ interface ApplicationQueryApiDocument {
         ],
     )
     fun generateApplicationPdf(): ResponseEntity<ByteArray>
+
+    @Operation(
+        summary = "원서 미리보기 PDF 생성",
+        description = "임시저장 데이터로 원서 미리보기 PDF를 생성합니다. 제출 전 확인용입니다.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "미리보기 PDF 생성 성공",
+                content = [Content(mediaType = "application/pdf", schema = Schema(type = "string", format = "binary"))],
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 데이터",
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 내부 오류",
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
+    )
+    fun previewApplicationPdf(
+        @RequestBody request: PreviewPdfRequest,
+    ): ResponseEntity<ByteArray>
 
     @Operation(
         summary = "원서 학교 도착 여부 업데이트",
