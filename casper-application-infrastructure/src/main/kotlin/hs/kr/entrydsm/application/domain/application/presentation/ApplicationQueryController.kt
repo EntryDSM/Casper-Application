@@ -76,13 +76,8 @@ class ApplicationQueryController(
                 throw ApplicationValidationException("올바르지 않은 원서 ID 형식입니다")
             }
 
-        // 도메인 모델로 변환하여 점수 계산
-        val applicationModel = applicationQueryUseCase.getApplicationDomainModel(applicationUuid)
-        val updatedApplication = applicationModel.calculateAndUpdateScore()
-        val scoreDetails = updatedApplication.getScoreDetails()
-
-        // Application 도메인으로부터 PDF 생성
-        val pdfBytes = applicationPdfGenerator.generate(updatedApplication, scoreDetails)
+        // 저장된 원서 데이터로 PDF 생성 (점수 재계산 없이)
+        val pdfBytes = applicationPdfGenerator.generateFromEntity(applicationUuid)
 
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)
