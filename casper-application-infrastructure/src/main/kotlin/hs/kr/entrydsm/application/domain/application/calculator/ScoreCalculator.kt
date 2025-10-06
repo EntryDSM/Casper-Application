@@ -166,14 +166,22 @@ class ScoreCalculator {
                 grades.english,
             )
 
+        // 0이 아닌 성적만 필터링 (0은 성적이 없는 것으로 간주)
+        val validGrades = gradeList.filter { it > 0 }
+
+        // 유효한 성적이 없으면 0 반환
+        if (validGrades.isEmpty()) {
+            return 0.0
+        }
+
         // 1~5 범위 검증
-        gradeList.forEach { grade ->
+        validGrades.forEach { grade ->
             if (grade !in 1..5) {
                 throw ScoreCalculationException("성적은 1~5 사이여야 합니다: $grade")
             }
         }
 
-        return gradeList.average()
+        return validGrades.average()
     }
 
     /**
