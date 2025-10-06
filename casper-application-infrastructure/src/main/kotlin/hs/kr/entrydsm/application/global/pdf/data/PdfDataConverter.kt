@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.global.pdf.data
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -110,9 +111,9 @@ class PdfDataConverter(
         values: MutableMap<String, Any>,
     ) {
         values["userName"] = application.applicantName
-        
-        val isMale = application.applicantGender?.uppercase() == "MALE" || application.applicantGender == "남"
-        val isFemale = application.applicantGender?.uppercase() == "FEMALE" || application.applicantGender == "여"
+
+        val isMale = application.applicantGender == Gender.MALE
+        val isFemale = application.applicantGender == Gender.FEMALE
         values["isMale"] = toBallotBox(isMale)
         values["isFemale"] = toBallotBox(isFemale)
         
@@ -148,7 +149,7 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["gender"] = setBlankIfNull(application.applicantGender ?: "")
+        values["gender"] = application.applicantGender?.koreanName ?: ""
     }
 
     private fun setPhoneNumber(

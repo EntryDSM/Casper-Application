@@ -9,6 +9,7 @@ import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -86,12 +87,12 @@ class ApplicationSubmissionUseCase(
             graduationDate = request.graduationDate,
             
             // Personal Info Fields
-            applicantGender = request.applicantGender,
-            
+            applicantGender = Gender.fromString(request.applicantGender),
+
             // Guardian Info Fields
             //guardianName = request.guardianName,
             //guardianNumber = request.guardianNumber,
-            guardianGender = request.guardianGender,
+            guardianGender = Gender.fromString(request.guardianGender),
             
             // School Info Fields
             schoolName = request.schoolName,

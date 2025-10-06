@@ -3,6 +3,7 @@ package hs.kr.entrydsm.domain.application.aggregates
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import hs.kr.entrydsm.global.annotation.aggregates.Aggregate
 import java.math.BigDecimal
@@ -46,12 +47,12 @@ data class Application(
     val graduationDate: String?,
     
     // Personal Info Fields
-    val applicantGender: String?,
-    
+    val applicantGender: Gender?,
+
     // Guardian Info Fields
     //val guardianName: String?,
     //val guardianNumber: String?,
-    val guardianGender: String?,
+    val guardianGender: Gender?,
     
     // School Info Fields
     val schoolName: String?,
