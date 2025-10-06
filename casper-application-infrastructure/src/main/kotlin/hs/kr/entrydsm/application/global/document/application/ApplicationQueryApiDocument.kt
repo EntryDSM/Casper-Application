@@ -88,7 +88,7 @@ interface ApplicationQueryApiDocument {
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<ApplicationListResponse>
 
-    @Operation(summary = "원서 PDF 생성", description = "특정 원서의 PDF를 생성합니다.")
+    @Operation(summary = "원서 PDF 생성", description = "현재 로그인한 사용자의 원서 PDF를 생성합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
@@ -108,10 +108,7 @@ interface ApplicationQueryApiDocument {
             ),
         ],
     )
-    fun generateApplicationPdf(
-        @Parameter(description = "원서 ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
-        @PathVariable applicationId: String?,
-    ): ResponseEntity<ByteArray>
+    fun generateApplicationPdf(): ResponseEntity<ByteArray>
 
     @Operation(
         summary = "원서 학교 도착 여부 업데이트",

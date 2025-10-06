@@ -227,6 +227,24 @@ class ApplicationQueryUseCase(
         return entityToModel(entity)
     }
 
+    /**
+     * 현재 로그인한 사용자의 원서를 Domain Model로 조회합니다.
+     */
+    fun getCurrentUserApplication(): Application {
+        val userId = securityAdapter.getCurrentUserId()
+        val applications = applicationRepository.findAllByUserId(userId)
+
+        if (applications.isEmpty()) {
+            throw ApplicationNotFoundException("원서를 찾을 수 없습니다")
+        }
+
+        // 가장 최근 원서 반환
+        val entity = applications.maxByOrNull { it.createdAt }
+            ?: throw ApplicationNotFoundException("원서를 찾을 수 없습니다")
+
+        return entityToModel(entity)
+    }
+
     private fun entityToModel(entity: ApplicationJpaEntity): Application {
         // JSON 필드에서 성적 데이터 파싱
         val scores = if (entity.scoresData != null && entity.scoresData.isNotBlank()) {

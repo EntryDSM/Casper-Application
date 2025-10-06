@@ -62,30 +62,17 @@ class ApplicationQueryController(
         return ResponseEntity.ok(response)
     }
 
-    @GetMapping("/applications/{applicationId}/pdf")
-    override fun generateApplicationPdf(
-        @PathVariable applicationId: String?,
-    ): ResponseEntity<ByteArray> {
-        if (applicationId.isNullOrBlank()) {
-            throw ApplicationValidationException("원서 ID가 필요합니다")
-        }
-
-        val applicationUuid =
-            try {
-                UUID.fromString(applicationId)
-            } catch (e: IllegalArgumentException) {
-                throw ApplicationValidationException("올바르지 않은 원서 ID 형식입니다")
-            }
-
-        // Application 도메인 모델 조회
-        val application = applicationQueryUseCase.getApplicationDomainModel(applicationUuid)
+    @GetMapping("/applications/pdf")
+    override fun generateApplicationPdf(): ResponseEntity<ByteArray> {
+        // Application 도메인 모델 조회 (현재 로그인한 유저의 원서)
+        val application = applicationQueryUseCase.getCurrentUserApplication()
 
         // Application으로 PDF 생성
         val pdfBytes = applicationPdfGenerator.generate(application, emptyMap())
 
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)
-            .header("Content-Disposition", "attachment; filename=application_$applicationId.pdf")
+            .header("Content-Disposition", "attachment; filename=application_${application.applicationId}.pdf")
             .body(pdfBytes)
     }
 
