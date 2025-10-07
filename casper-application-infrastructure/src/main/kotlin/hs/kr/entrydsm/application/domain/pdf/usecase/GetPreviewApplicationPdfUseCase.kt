@@ -140,8 +140,8 @@ class GetPreviewApplicationPdfUseCase(
     private fun parseEducationalStatus(statusStr: String): EducationalStatus {
         return when (statusStr.uppercase()) {
             "PROSPECTIVE_GRADUATE" -> EducationalStatus.PROSPECTIVE_GRADUATE
-            "GRADUATED" -> EducationalStatus.GRADUATE
-            "GED" -> EducationalStatus.QUALIFICATION_EXAM
+            "GRADUATE" -> EducationalStatus.GRADUATE
+            "QUALIFICATION_EXAM" -> EducationalStatus.QUALIFICATION_EXAM
             else -> EducationalStatus.PROSPECTIVE_GRADUATE
         }
     }
