@@ -6,14 +6,12 @@ import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
-import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 
 @ReadOnlyUseCase
 class GetFinalApplicationPdfUseCase(
     private val securityContract: SecurityContract,
     private val applicationContract: ApplicationContract,
     private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract,
-    private val applicationQueryStatusContract: ApplicationQueryStatusContract,
 ) {
     fun execute(): ByteArray {
         val userId = securityContract.getCurrentUserId()
@@ -22,11 +20,8 @@ class GetFinalApplicationPdfUseCase(
             applicationContract.getApplicationByUserId(userId)
                 ?: throw IllegalStateException("원서 정보를 찾을 수 없습니다")
 
-        val status =
-            applicationQueryStatusContract.getStatusByReceiptCode(application.receiptCode)
-                ?: throw IllegalStateException("상태 정보를 찾을 수 없습니다")
-
-        if (!status.isSubmitted) {
+        if (application.status == hs.kr.entrydsm.domain.status.values.ApplicationStatus.WRITING ||
+            application.status == hs.kr.entrydsm.domain.status.values.ApplicationStatus.NOT_APPLIED) {
             throw IllegalStateException("제출되지 않은 원서입니다")
         }
 
