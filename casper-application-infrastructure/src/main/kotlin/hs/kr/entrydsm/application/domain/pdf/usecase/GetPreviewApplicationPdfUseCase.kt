@@ -8,6 +8,8 @@ import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.Gender
+import hs.kr.entrydsm.domain.file.`object`.PathList
+import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import java.time.LocalDateTime
@@ -18,6 +20,7 @@ class GetPreviewApplicationPdfUseCase(
     private val securityContract: SecurityContract,
     private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract,
     private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository,
+    private val generateFileUrlPort: GenerateFileUrlPort,
 ) {
     /**
      * 프론트에서 전달받은 임시저장 데이터로 미리보기 PDF 생성
@@ -25,10 +28,11 @@ class GetPreviewApplicationPdfUseCase(
     fun execute(request: PreviewPdfRequest): ByteArray {
         val userId = securityContract.getCurrentUserId()
 
-        // 증명사진 조회
-        val photoPath = photoJpaRepository.findByUserId(userId)?.photo
+        val photoKey = photoJpaRepository.findByUserId(userId)?.photo
 
-        val tempApplication = createTempApplication(userId, request, photoPath)
+        val photoUrl = photoKey?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) }
+
+        val tempApplication = createTempApplication(userId, request, photoUrl)
 
         return applicationPdfGeneratorContract.generate(tempApplication)
     }
@@ -62,7 +66,7 @@ class GetPreviewApplicationPdfUseCase(
             createdAt = now,
             updatedAt = now,
             isDaejeon = request.isDaejeon,
-            photoPath = photoPath,
+            photoPath = photoPath, // 전체 URL
             parentRelation = request.parentRelation,
             postalCode = request.postalCode,
             detailAddress = request.detailAddress,
@@ -125,9 +129,6 @@ class GetPreviewApplicationPdfUseCase(
         )
     }
 
-    /**
-     * 문자열을 ApplicationType enum으로 변환
-     */
     private fun parseApplicationType(typeStr: String): ApplicationType {
         return when (typeStr.uppercase()) {
             "COMMON" -> ApplicationType.COMMON
@@ -137,9 +138,6 @@ class GetPreviewApplicationPdfUseCase(
         }
     }
 
-    /**
-     * 문자열을 EducationalStatus enum으로 변환
-     */
     private fun parseEducationalStatus(statusStr: String): EducationalStatus {
         return when (statusStr.uppercase()) {
             "PROSPECTIVE_GRADUATE" -> EducationalStatus.PROSPECTIVE_GRADUATE

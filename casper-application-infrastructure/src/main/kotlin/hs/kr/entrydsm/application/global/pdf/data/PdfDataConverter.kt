@@ -1,8 +1,5 @@
 package hs.kr.entrydsm.application.global.pdf.data
 
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.GetObjectRequest
-import hs.kr.entrydsm.application.global.storage.AwsProperties
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
@@ -10,14 +7,13 @@ import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.net.URL
 import java.time.LocalDate
 import java.util.Base64
 
 @Component
 class PdfDataConverter(
-    private val querySchoolContract: QuerySchoolContract,
-    private val amazonS3: AmazonS3,
-    private val awsProperties: AwsProperties,
+    private val querySchoolContract: QuerySchoolContract
 ) {
 
     private val log by lazy { LoggerFactory.getLogger(this::class.java) }
@@ -49,22 +45,20 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val objectKey = application.photoPath
-        if (objectKey.isNullOrBlank()) {
+        val photoUrl = application.photoPath
+        if (photoUrl.isNullOrBlank()) {
             values["base64Image"] = ""
             return
         }
 
         try {
-            val getObjectRequest = GetObjectRequest(awsProperties.bucket, objectKey)
-            val s3Object = amazonS3.getObject(getObjectRequest)
-            val imageBytes = s3Object.objectContent.readAllBytes()
-
+            val imageUrl = URL(photoUrl)
+            val imageBytes = imageUrl.readBytes()
             values["base64Image"] = Base64.getEncoder().encodeToString(imageBytes)
-            log.info("S3에서 이미지를 성공적으로 가져와 인코딩했습니다: {}", objectKey)
+            log.info("URL로부터 이미지를 성공적으로 가져와 인코딩했습니다: {}", photoUrl)
 
         } catch (e: Exception) {
-            log.error("S3에서 이미지를 가져오는데 실패했습니다. Key: {}, 원인: {}", objectKey, e.message)
+            log.error("URL로부터 이미지를 가져오는데 실패했습니다. URL: {}, 원인: {}", photoUrl, e.message)
             values["base64Image"] = ""
         }
     }
