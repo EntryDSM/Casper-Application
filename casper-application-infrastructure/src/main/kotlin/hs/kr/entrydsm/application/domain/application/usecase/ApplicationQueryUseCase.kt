@@ -62,7 +62,7 @@ class ApplicationQueryUseCase(
                     birthDate = application.birthDate,
                     applicationType = application.applicationType.name,
                     educationalStatus = application.educationalStatus.name,
-                    status = status.applicationStatus.name,
+                    status = application.status.name,
                     submittedAt = application.submittedAt,
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
@@ -150,7 +150,7 @@ class ApplicationQueryUseCase(
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon,
                                 isSubmitted = true,
-                                isArrived = app.isArrived,
+                                isArrived = isArrivedDocuments(app),
                             )
                         },
                     total = totalElements,
@@ -181,7 +181,7 @@ class ApplicationQueryUseCase(
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon,
                                 isSubmitted = true,
-                                isArrived = isArrivedDocuments(app),
+                                isArrived = app.isArrived,
                             )
                         },
                     total = applications.size,
