@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/admin/excel")
+@RequestMapping("/api/v1/admin/excel")
 class WebExcelAdapter(
     private val printAdmissionTicketUseCase: PrintAdmissionTicketUseCase,
     private val printApplicantCodesUseCase: PrintApplicantCodesUseCase,
