@@ -54,7 +54,7 @@ class SecurityConfig(
                     .requestMatchers("/swagger-resources/**").permitAll()
                     .requestMatchers("/webjars/**").permitAll()
                     .requestMatchers("/api/v1/public/calculator/**").permitAll()
-                    .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
+                    .requestMatchers(HttpMethod.GET, "/admin/excel/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole(UserRole.ADMIN.name)
                     .requestMatchers("/api/v1/applications/**").hasRole(UserRole.USER.name)
                     .requestMatchers("/photo").hasRole(UserRole.USER.name)
