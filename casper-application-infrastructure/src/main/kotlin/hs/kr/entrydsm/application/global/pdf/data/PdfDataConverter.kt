@@ -320,6 +320,7 @@ class PdfDataConverter(
             3 -> "C"
             2 -> "D"
             1 -> "E"
+            0 -> "X"
             null -> "-"
             else -> score.toString()
         }
