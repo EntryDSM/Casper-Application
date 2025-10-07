@@ -92,8 +92,8 @@ class GetFinalApplicationPdfUseCase(
             )
 
         requiredFields.forEach { (fieldName, value) ->
-            if (value == null || value < 1 || value > 5) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (1-5점)")
+            if (value == null || value < 0 || value > 5) {
+                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점)")
             }
         }
     }
@@ -117,8 +117,8 @@ class GetFinalApplicationPdfUseCase(
             )
 
         additionalFields.forEach { (fieldName, value) ->
-            if (value == null || value < 1 || value > 5) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (1-5점)")
+            if (value == null || value < 0 || value > 5) {
+                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점)")
             }
         }
     }
