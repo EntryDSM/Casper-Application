@@ -6,7 +6,9 @@ import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.springframework.stereotype.Component
+import java.io.File
 import java.time.LocalDate
+import java.util.Base64
 
 /**
  * 지원서 정보를 PDF 템플릿용 데이터로 변환하는 Converter입니다.
@@ -72,19 +74,6 @@ class PdfDataConverter(
     }
 
     /**
-     * 보훈번호 정보를 설정합니다.
-     *
-     * @param application 지원서 정보
-     * @param values 템플릿 데이터 맵
-     */
-//    private fun setVeteransNumber(
-//        application: Application,
-//        values: MutableMap<String, Any>,
-//    ) {
-//        values["veteransNumber"] = application.veteransNumber?.toString() ?: ""
-//    }
-
-    /**
      * 지원자의 개인정보(이름, 성별, 주소, 생년월일 등)를 설정합니다.
      * 일부 정보는 도메인에 없어서 더미값을 사용합니다.
      *
@@ -108,7 +97,7 @@ class PdfDataConverter(
 
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
         values["applicationType"] = application.applicationType.displayName
-        
+
         // 특기사항: 국가유공자자녀 또는 특례입학대상
         val remarks = mutableListOf<String>()
         if (application.nationalMeritChild == true) {
@@ -122,7 +111,6 @@ class PdfDataConverter(
 
     /**
      * 출석 및 봉사활동 정보를 설정합니다.
-     * 현재 관련 도메인이 없어서 더미값을 사용합니다.
      *
      * @param application 지원서 정보
      * @param values 템플릿 데이터 맵
@@ -131,7 +119,6 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // 실제 출석/봉사활동 데이터 사용
         values["absenceDayCount"] = application.absence ?: 0
         values["latenessCount"] = application.tardiness ?: 0
         values["earlyLeaveCount"] = application.earlyLeave ?: 0
@@ -207,15 +194,7 @@ class PdfDataConverter(
                 "isProspectiveGraduate" to isProspectiveGraduate,
                 "isDaejeon" to isDaejeon,
                 "isNotDaejeon" to !isDaejeon,
-                "isBasicLiving" to isSocial, // 사회통합전형인 경우 사회적배려 대상자로 추정
-//                "isFromNorth" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isLowestIncome" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isMulticultural" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isOneParent" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isTeenHouseholder" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isPrivilegedAdmission" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isNationalMerit" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
-//                "isProtectedChildren" to false, // TODO: 사회적배려 세부 정보 도메인 없어서 더미값
+                "isBasicLiving" to isSocial,
                 "isCommon" to isCommon,
                 "isMeister" to (application.applicationType == ApplicationType.MEISTER),
                 "isSocialMerit" to isSocial,
@@ -230,7 +209,6 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // 실제 가산점 데이터 사용
         values["hasCompetitionPrize"] = toCircleBallotbox(application.algorithmAward ?: false)
         values["hasCertificate"] = toCircleBallotbox(application.infoProcessingCert ?: false)
     }
@@ -264,14 +242,12 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // 실제 성적 데이터 사용
         val subjects = listOf("korean", "social", "history", "math", "science", "english", "techAndHome")
 
         subjects.forEach { subjectPrefix ->
             with(values) {
                 put("applicationCase", "기술∙가정")
 
-                // 졸업자인 경우 3-2학기 성적 포함
                 if (application.educationalStatus == EducationalStatus.GRADUATE) {
                     put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
                 }
@@ -413,7 +389,23 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["base64Image"] = application.photoPath ?: ""
+        val photoPath = application.photoPath
+        if (photoPath.isNullOrBlank()) {
+            values["base64Image"] = ""
+            return
+        }
+
+        try {
+            val file = File(photoPath)
+            if (file.exists()) {
+                val fileContent = file.readBytes()
+                values["base64Image"] = Base64.getEncoder().encodeToString(fileContent)
+            } else {
+                values["base64Image"] = ""
+            }
+        } catch (e: Exception) {
+            values["base64Image"] = ""
+        }
     }
 
     private fun markIfTrue(isTrue: Boolean): String {
@@ -456,7 +448,6 @@ class PdfDataConverter(
             values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
             values["schoolName"] = school.name
             values["schoolClass"] = application.studentId?.let {
-                // studentId에서 학급 정보 추출 시도 (예: "30101" -> "1")
                 if (it.length >= 2) it.substring(1, 2) else "3"
             } ?: "3"
         } else {
@@ -464,12 +455,6 @@ class PdfDataConverter(
         }
     }
 
-    /**
-     * 전화번호를 하이픈 포함 형태로 포맷팅합니다.
-     *
-     * @param phoneNumber 포맷팅할 전화번호
-     * @return 하이픈으로 구분된 전화번호 문자열
-     */
     private fun toFormattedPhoneNumber(phoneNumber: String?): String {
         if (phoneNumber.isNullOrBlank()) {
             return ""
@@ -480,32 +465,14 @@ class PdfDataConverter(
         return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
     }
 
-    /**
-     * null 값을 빈 문자열로 변환합니다.
-     *
-     * @param input 변환할 문자열
-     * @return 입력값이 null이면 빈 문자열, 그렇지 않으면 원래 값
-     */
     private fun setBlankIfNull(input: String?): String {
         return input ?: ""
     }
 
-    /**
-     * boolean 값을 체크박스 문자(☑/☐)로 변환합니다.
-     *
-     * @param isTrue 변환할 boolean 값
-     * @return true이면 "☑", false이면 "☐"
-     */
     private fun toBallotBox(isTrue: Boolean): String {
         return if (isTrue) "☑" else "☐"
     }
 
-    /**
-     * boolean 값을 O/X 문자로 변환합니다.
-     *
-     * @param isTrue 변환할 boolean 값
-     * @return true이면 "O", false이면 "X"
-     */
     private fun toCircleBallotbox(isTrue: Boolean): String {
         return if (isTrue) "O" else "X"
     }
