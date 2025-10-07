@@ -239,14 +239,24 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
+        val totalScore = application.totalScore ?: java.math.BigDecimal.ZERO
+        val maxScore = java.math.BigDecimal("300.0")
+        val percentage = if (maxScore > java.math.BigDecimal.ZERO) {
+            totalScore.divide(maxScore, 4, java.math.RoundingMode.HALF_UP)
+                .multiply(java.math.BigDecimal("100"))
+                .toDouble()
+        } else {
+            0.0
+        }
+
         with(values) {
             put("conversionScore", "0.0")
             put("attendanceScore", "0.0")
             put("volunteerScore", "0.0")
             put("bonusScore", "0.0")
-            put("finalScore", application.totalScore?.toString() ?: "0.0")
-            put("maxScore", "300.0")
-            put("scorePercentage", application.getScorePercentage().toString())
+            put("finalScore", totalScore.toString())
+            put("maxScore", maxScore.toString())
+            put("scorePercentage", percentage.toString())
         }
     }
 
