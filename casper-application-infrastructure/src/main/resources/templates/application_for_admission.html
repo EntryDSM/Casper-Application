@@ -5,7 +5,7 @@
     <style>
         @page {
             size: A4;
-            margin: 20mm; /* A4 용지 여백 설정 */
+            margin: 15mm; /* A4 용지 여백 줄임 */
         }
         * {
             margin: 0;
@@ -21,34 +21,34 @@
         td {
             border: 1px solid rgba(0,0,0,0.6);
             text-align: center;
-            font-size: 10px; /* 폰트 크기 미세 조정 */
+            font-size: 9.5px; /* 폰트 크기 미세 조정 */
             font-family: KoPubWorld_Dotum_Light;
-            padding: 3px; /* 패딩 미세 조정 */
+            padding: 2px; /* 패딩 미세 조정 */
         }
         th {
             background-color: #f2f2f2;
             text-align: center;
             border: 1px solid rgba(0,0,0,0.6);
             font-family: KoPubWorld_Dotum_Light;
-            font-size: 10px; /* 폰트 크기 미세 조정 */
+            font-size: 9.5px; /* 폰트 크기 미세 조정 */
             font-weight: 600;
-            padding: 3px; /* 패딩 미세 조정 */
+            padding: 2px; /* 패딩 미세 조정 */
         }
         .header-title {
             text-align: center;
-            font-size: 16px;
+            font-size: 15px; /* 폰트 크기 미세 조정 */
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 10px; /* 여백 줄임 */
         }
         .section-title {
             text-align: center;
-            font-size: 14px;
+            font-size: 13px; /* 폰트 크기 미세 조정 */
             font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 15px;
+            margin-top: 15px; /* 여백 줄임 */
+            margin-bottom: 10px; /* 여백 줄임 */
         }
         table {
-            page-break-inside: auto; /* 테이블이 페이지 경계에서 잘리지 않도록 함 */
+            page-break-inside: auto;
         }
         tr {
             page-break-inside: avoid;
@@ -61,13 +61,13 @@
     <div class="header-title">
         <span>&lt;서식 1&gt; (인터넷접수 후 출력)</span>
     </div>
-    <div class="header-title" style="margin-top: 10px;">
+    <div class="header-title" style="margin-top: 8px;">
         <span th:text="${entranceYear} + '학년도 대덕소프트웨어마이스터고등학교 입학원서'">
             2026학년도 대덕소프트웨어마이스터고등학교 입학원서
         </span>
     </div>
 
-    <table style="border: 1px solid black; border-collapse: collapse; width: 100%; margin-top: 10px;">
+    <table style="border: 1px solid black; border-collapse: collapse; width: 100%; margin-top: 8px;">
         <tr>
             <th style="width: 11%">접수번호</th>
             <td style="width: 23%" th:text="${receiptCode}"></td>
@@ -89,7 +89,7 @@
                         alt="사진(3cm×4cm)"
                         th:src="|data:image/*;base64,${base64Image}|"
                 />
-                <div style="font-size: 10px; margin-top: 3px;">사진<br/>(3cm×4cm)</div>
+                <div style="font-size: 9px; margin-top: 2px;">사진<br/>(3cm×4cm)</div>
             </td>
         </tr>
         <tr>
@@ -131,7 +131,7 @@
         </tr>
     </table>
 
-    <table style="border: 1px solid black; border-collapse: collapse; width: 100%; margin-top: 10px;">
+    <table style="border: 1px solid black; border-collapse: collapse; width: 100%; margin-top: 8px;">
         <tr>
             <th colspan="5" style="width: 71%">교과성적(성취도)</th>
             <th colspan="2" style="width: 29%">출결 및 봉사활동</th>
@@ -143,8 +143,8 @@
             <th style="width: 15%">직전학기</th>
             <th style="width: 15%">직전전학기</th>
             <th style="width: 17%">미인정결석</th>
-            <td style="text-align: right; padding-right: 10px;">
-                <span style="margin-right: 5px" th:text="${absenceDayCount}"></span>일
+            <td style="text-align: right; padding-right: 8px;">
+                <span style="margin-right: 4px" th:text="${absenceDayCount}"></span>일
             </td>
         </tr>
         <tr>
@@ -154,8 +154,8 @@
             <td th:text="${koreanSecondGradeSecondSemester}"></td>
             <td th:text="${koreanSecondGradeFirstSemester}"></td>
             <th>미인정지각</th>
-            <td style="text-align: right; padding-right: 10px;">
-                <span style="margin-right: 5px" th:text="${latenessCount}"></span>회
+            <td style="text-align: right; padding-right: 8px;">
+                <span style="margin-right: 4px" th:text="${latenessCount}"></span>회
             </td>
         </tr>
         <tr>
@@ -165,8 +165,8 @@
             <td th:text="${socialSecondGradeSecondSemester}"></td>
             <td th:text="${socialSecondGradeFirstSemester}"></td>
             <th>미인정조퇴</th>
-            <td style="text-align: right; padding-right: 10px;">
-                <span style="margin-right: 5px" th:text="${earlyLeaveCount}"></span>회
+            <td style="text-align: right; padding-right: 8px;">
+                <span style="margin-right: 4px" th:text="${earlyLeaveCount}"></span>회
             </td>
         </tr>
         <tr>
@@ -176,8 +176,8 @@
             <td th:text="${historySecondGradeSecondSemester}"></td>
             <td th:text="${historySecondGradeFirstSemester}"></td>
             <th>미인정결과</th>
-            <td style="text-align: right; padding-right: 10px;">
-                <span style="margin-right: 5px" th:text="${lectureAbsenceCount}"></span>회
+            <td style="text-align: right; padding-right: 8px;">
+                <span style="margin-right: 4px" th:text="${lectureAbsenceCount}"></span>회
             </td>
         </tr>
         <tr>
@@ -187,8 +187,8 @@
             <td th:text="${mathSecondGradeSecondSemester}"></td>
             <td th:text="${mathSecondGradeFirstSemester}"></td>
             <th>봉사활동 시간</th>
-            <td style="text-align: right; padding-right: 10px;">
-                <span style="margin-right: 5px" th:text="${volunteerTime}"></span>시간
+            <td style="text-align: right; padding-right: 8px;">
+                <span style="margin-right: 4px" th:text="${volunteerTime}"></span>시간
             </td>
         </tr>
         <tr>
@@ -219,33 +219,33 @@
         </tr>
     </table>
 
-    <div style="margin-top: 20px; padding: 15px; border: 1px solid black;">
-        <div style="font-size: 12px; margin-bottom: 15px;">
+    <div style="margin-top: 15px; padding: 10px; border: 1px solid black;">
+        <div style="font-size: 11px; margin-bottom: 10px;">
             본인은 귀 고등학교에 입학하고자 소정의 서류를 갖추어 지원합니다.
         </div>
-        <div style="text-align: center; font-size: 11px; margin-bottom: 10px;">
+        <div style="text-align: center; font-size: 10px; margin-bottom: 8px;">
             <span th:text="${year}">2025</span>년
-            <span style="margin: 0 20px;" th:text="${month}"></span>월
-            <span style="margin-left: 20px;" th:text="${day}"></span>일
+            <span style="margin: 0 15px;" th:text="${month}"></span>월
+            <span style="margin-left: 15px;" th:text="${day}"></span>일
         </div>
-        <table style="border: none; width: 100%; font-size: 11px;">
+        <table style="border: none; width: 100%; font-size: 10px;">
             <tr>
                 <td style="border: none; width: 70%; vertical-align: top;">
-                    <div style="text-align: center; margin-bottom: 10px;">
+                    <div style="text-align: center; margin-bottom: 8px;">
                         <div>지원자 : <span th:text="${userName}"></span> (서명 또는 인)</div>
                         <div>보호자 : <span th:text="${parentName}"></span> (서명 또는 인)</div>
                     </div>
-                    <div style="font-weight: bold; margin-top: 15px;">대덕소프트웨어마이스터고등학교장 귀하</div>
+                    <div style="font-weight: bold; margin-top: 10px;">대덕소프트웨어마이스터고등학교장 귀하</div>
                 </td>
-                <td style="border: none; width: 30%; vertical-align: top; padding-left: 10px;">
+                <td style="border: none; width: 30%; vertical-align: top; padding-left: 8px;">
                     <div>보훈번호: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
-                    <div style="margin-top: 10px;">위 학생은 국가유공자자녀임을 확인함.</div>
-                    <div style="text-align: center; margin-top: 10px;">
+                    <div style="margin-top: 8px;">위 학생은 국가유공자자녀임을 확인함.</div>
+                    <div style="text-align: center; margin-top: 8px;">
                         <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${year}">2025</span>년
                         <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${month}"></span>월
                         <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${day}"></span>일
                     </div>
-                    <div style="margin-top: 10px;">
+                    <div style="margin-top: 8px;">
                         교사: <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span> (서명 또는 인)
                     </div>
                 </td>
@@ -254,24 +254,24 @@
     </div>
 
     <div class="section-title">추 천 서</div>
-    <div style="border: 1px solid black; padding: 15px; font-size: 11px;">
-        <div style="margin-bottom: 10px;">
+    <div style="border: 1px solid black; padding: 10px; font-size: 10px;">
+        <div style="margin-bottom: 8px;">
             본 입학원서의 내용은 사실과 다름이 없으며, 위 학생은 귀교에 입학 적격자로 인정되므로 추천합니다.
         </div>
-        <div style="text-align: center; margin-bottom: 10px;">
+        <div style="text-align: center; margin-bottom: 8px;">
             <span th:text="${year}">2025</span>년
             <span th:text="${month}"></span>월
             <span th:text="${day}"></span>일
         </div>
-        <div style="text-align: center; margin-bottom: 10px;">
+        <div style="text-align: center; margin-bottom: 8px;">
             <span th:text="${schoolName}"></span>장 (직인)
         </div>
-        <div style="font-weight: bold; margin-top: 15px;">
+        <div style="font-weight: bold; margin-top: 10px;">
             대덕소프트웨어마이스터고등학교장 귀하
         </div>
     </div>
 
-    <table style="border: 1px solid black; border-collapse: collapse; width: 100%; margin-top: 10px;">
+    <table style="border: 1px solid black; border-collapse: collapse; width: 100%; margin-top: 8px;">
         <tr>
             <th style="width: 15%">원서작성자</th>
             <td style="width: 60%">
@@ -282,7 +282,7 @@
         </tr>
     </table>
 
-    <div style="text-align: center; margin-top: 20px; font-size: 10px;">- 13 -</div>
+    <div style="text-align: center; margin-top: 15px; font-size: 9px;">- 13 -</div>
 </div>
 </body>
 </html>
