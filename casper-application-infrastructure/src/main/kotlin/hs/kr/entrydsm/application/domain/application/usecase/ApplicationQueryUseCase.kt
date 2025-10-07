@@ -254,6 +254,9 @@ class ApplicationQueryUseCase(
             emptyMap()
         }
 
+        // 증명사진 조회
+        val photoPath = photoJpaRepository.findByUserId(entity.userId)?.photo
+
         return Application(
             applicationId = entity.applicationId,
             userId = entity.userId,
@@ -273,6 +276,7 @@ class ApplicationQueryUseCase(
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             isDaejeon = entity.isDaejeon,
+            photoPath = photoPath,
             parentRelation = entity.parentRelation,
             postalCode = entity.postalCode,
             detailAddress = entity.detailAddress,

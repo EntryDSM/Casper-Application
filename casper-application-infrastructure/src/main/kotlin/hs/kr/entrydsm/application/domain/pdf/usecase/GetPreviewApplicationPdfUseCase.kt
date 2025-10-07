@@ -17,6 +17,7 @@ import java.util.UUID
 class GetPreviewApplicationPdfUseCase(
     private val securityContract: SecurityContract,
     private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract,
+    private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository,
 ) {
     /**
      * 프론트에서 전달받은 임시저장 데이터로 미리보기 PDF 생성
@@ -24,7 +25,10 @@ class GetPreviewApplicationPdfUseCase(
     fun execute(request: PreviewPdfRequest): ByteArray {
         val userId = securityContract.getCurrentUserId()
 
-        val tempApplication = createTempApplication(userId, request)
+        // 증명사진 조회
+        val photoPath = photoJpaRepository.findByUserId(userId)?.photo
+
+        val tempApplication = createTempApplication(userId, request, photoPath)
 
         return applicationPdfGeneratorContract.generate(tempApplication)
     }
@@ -35,6 +39,7 @@ class GetPreviewApplicationPdfUseCase(
     private fun createTempApplication(
         userId: UUID,
         request: PreviewPdfRequest,
+        photoPath: String?,
     ): Application {
         val now = LocalDateTime.now()
 
@@ -57,6 +62,7 @@ class GetPreviewApplicationPdfUseCase(
             createdAt = now,
             updatedAt = now,
             isDaejeon = request.isDaejeon,
+            photoPath = photoPath,
             parentRelation = request.parentRelation,
             postalCode = request.postalCode,
             detailAddress = request.detailAddress,

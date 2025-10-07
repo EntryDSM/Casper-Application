@@ -27,6 +27,7 @@ class ApplicationSubmissionUseCase(
     private val applicationRepository: ApplicationJpaRepository,
     private val applicationMapper: ApplicationMapper,
     private val validationService: ApplicationValidationService,
+    private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository,
 ) {
     /**
      * 새로운 원서를 생성합니다.
@@ -47,6 +48,9 @@ class ApplicationSubmissionUseCase(
         if (existingApplications.isNotEmpty()) {
             throw IllegalStateException("이미 제출된 원서가 있습니다")
         }
+
+        // 증명사진 조회
+        val photoPath = photoJpaRepository.findByUserId(userId)?.photo
 
         // 임시 수험번호 (나중에 동적 생성으로 변경)
         val receiptCode = 1000L + System.currentTimeMillis() % 100000
@@ -74,8 +78,7 @@ class ApplicationSubmissionUseCase(
                 createdAt = now,
                 updatedAt = now,
                 isDaejeon = request.isDaejeon,
-                // isOutOfHeadcount = request.isOutOfHeadcount,
-                // photoPath = request.photoPath,
+                photoPath = photoPath,
                 parentRelation = request.parentRelation,
                 postalCode = request.postalCode,
                 detailAddress = request.detailAddress,

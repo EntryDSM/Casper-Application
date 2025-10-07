@@ -43,16 +43,7 @@ class PdfDataConverter(
         setAttendanceAndVolunteer(application, values)
         setExtraScore(application, values)
         setTeacherInfo(application, values)
-        // setVeteransNumber(application, values)
-
-        // TODO: 조건부 설정 로직 추가
-        // if (application.isRecommendationsRequired()) {
-        //     setRecommendations(application, values)
-        // }
-
-        // if (!application.photoPath.isNullOrBlank()) {
-        //     setBase64Image(application, values)
-        // }
+        setBase64Image(application, values)
 
         return PdfData(values)
     }
@@ -117,7 +108,16 @@ class PdfDataConverter(
 
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
         values["applicationType"] = application.applicationType.displayName
-        values["applicationRemark"] = "해당없음"
+        
+        // 특기사항: 국가유공자자녀 또는 특례입학대상
+        val remarks = mutableListOf<String>()
+        if (application.nationalMeritChild == true) {
+            remarks.add("국가유공자자녀")
+        }
+        if (application.specialAdmissionTarget == true) {
+            remarks.add("특례입학대상")
+        }
+        values["applicationRemark"] = if (remarks.isEmpty()) "해당없음" else remarks.joinToString(", ")
     }
 
     /**
@@ -409,13 +409,12 @@ class PdfDataConverter(
         values["isNotDaejeonAndSocialMerit"] = markIfTrue(!isDaejeon && isSocialMerit)
     }
 
-//    private fun setBase64Image(
-//        application: Application,
-//        values: MutableMap<String, Any>,
-//    ) {
-//        // TODO: 이미지 파일 처리 로직 필요
-//        values["base64Image"] = application.photoPath ?: ""
-//    }
+    private fun setBase64Image(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
+        values["base64Image"] = application.photoPath ?: ""
+    }
 
     private fun markIfTrue(isTrue: Boolean): String {
         return if (isTrue) "◯" else ""
