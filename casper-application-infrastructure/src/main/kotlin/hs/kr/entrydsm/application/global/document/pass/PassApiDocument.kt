@@ -39,8 +39,16 @@ interface PassApiDocument {
                 description = "합격 여부 조회 성공",
                 content = [Content(schema = Schema(implementation = QueryIsSecondRoundPassResponse::class))]
             ),
-            ApiResponse(responseCode = "403", description = "인증되지 않은 사용자"),
-            ApiResponse(responseCode = "404", description = "지원자 또는 전형 정보를 찾을 수 없음"),
+            ApiResponse(
+                responseCode = "403",
+                description = "인증되지 않은 사용자",
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "지원자 또는 전형 정보를 찾을 수 없음",
+                content = [Content(schema = Schema(hidden = true))],
+            ),
         ]
     )
     suspend fun queryIsSecondRound(): QueryIsSecondRoundPassResponse
