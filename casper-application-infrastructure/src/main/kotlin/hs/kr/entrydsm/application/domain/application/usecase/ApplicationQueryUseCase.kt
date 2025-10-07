@@ -16,6 +16,7 @@ import hs.kr.entrydsm.domain.file.`object`.PathList
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import hs.kr.entrydsm.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
+import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -33,7 +34,7 @@ class ApplicationQueryUseCase(
     private val photoJpaRepository: PhotoJpaRepository,
     private val securityAdapter: SecurityAdapter,
     private val generateFileUrlPort: GenerateFileUrlPort,
-    private val applicationQueryStatusContract: ApplicationQueryStatusContract
+    private val applicationQueryStatusContract: ApplicationQueryStatusContract,
 ) {
     fun getApplicationById(applicationId: String): ApplicationDetailResponse {
         val uuid = UUID.fromString(applicationId)
@@ -180,7 +181,7 @@ class ApplicationQueryUseCase(
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon,
                                 isSubmitted = true,
-                                isArrived = app.isArrived,
+                                isArrived = isArrivedDocuments(app),
                             )
                         },
                     total = applications.size,
@@ -342,5 +343,17 @@ class ApplicationQueryUseCase(
             infoProcessingCert = (scores["extraScore"] as? Int ?: 0) >= 2,
             totalScore = entity.totalScore,
         )
+    }
+
+    private fun isArrivedDocuments(application: ApplicationJpaEntity): Boolean {
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
+
+        return when(status.applicationStatus) {
+            ApplicationStatus.DOCUMENTS_RECEIVED -> true
+            ApplicationStatus.SCREENING_IN_PROGRESS -> true
+            ApplicationStatus.RESULT_ANNOUNCED -> true
+            else -> false
+        }
     }
 }
