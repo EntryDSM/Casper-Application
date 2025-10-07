@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.global.grpc.dto.schedule
 
+import hs.kr.entrydsm.domain.schedule.values.ScheduleType
 import java.time.LocalDateTime
 
 /**

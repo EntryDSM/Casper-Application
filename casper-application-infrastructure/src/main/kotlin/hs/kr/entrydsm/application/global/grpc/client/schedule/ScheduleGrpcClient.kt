@@ -2,9 +2,9 @@ package hs.kr.entrydsm.application.global.grpc.client.schedule
 
 import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
 import hs.kr.entrydsm.application.global.grpc.dto.schedule.InternalScheduleResponse
-import hs.kr.entrydsm.application.global.grpc.dto.schedule.ScheduleType
 import hs.kr.entrydsm.casper.schedule.proto.ScheduleServiceGrpc
 import hs.kr.entrydsm.casper.schedule.proto.ScheduleServiceProto
+import hs.kr.entrydsm.domain.schedule.values.ScheduleType
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.retry.Retry
 import io.grpc.Channel
