@@ -10,11 +10,12 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.response.A
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
 import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.file.`object`.PathList
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
+import hs.kr.entrydsm.domain.status.exception.StatusExceptions
+import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -32,12 +33,16 @@ class ApplicationQueryUseCase(
     private val photoJpaRepository: PhotoJpaRepository,
     private val securityAdapter: SecurityAdapter,
     private val generateFileUrlPort: GenerateFileUrlPort,
+    private val applicationQueryStatusContract: ApplicationQueryStatusContract
 ) {
     fun getApplicationById(applicationId: String): ApplicationDetailResponse {
         val uuid = UUID.fromString(applicationId)
         val application =
             applicationRepository.findById(uuid)
                 .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
+
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
 
         val user = securityAdapter.getCurrentUserId()
         val photoPath = photoJpaRepository.findByUserId(user)?.photo
@@ -56,7 +61,7 @@ class ApplicationQueryUseCase(
                     birthDate = application.birthDate,
                     applicationType = application.applicationType.name,
                     educationalStatus = application.educationalStatus.name,
-                    status = application.status.toString(),
+                    status = status.applicationStatus.name,
                     submittedAt = application.submittedAt,
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
