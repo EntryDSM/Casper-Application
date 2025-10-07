@@ -1,32 +1,28 @@
 package hs.kr.entrydsm.application.global.pdf.data
 
+import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.s3.model.GetObjectRequest
+import hs.kr.entrydsm.application.global.storage.AwsProperties
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.net.URL
 import java.time.LocalDate
 import java.util.Base64
 
-/**
- * 지원서 정보를 PDF 템플릿용 데이터로 변환하는 Converter입니다.
- *
- * Application, Score 등의 도메인 객체를 HTML 템플릿에서 사용할 수 있는
- * Key-Value 형태의 데이터로 변환합니다. 누락된 도메인 정보는 더미값으로 처리하며
- * 향후 도메인이 추가되면 TODO 주석을 따라 연동할 수 있습니다.
- */
 @Component
 class PdfDataConverter(
     private val querySchoolContract: QuerySchoolContract,
+    private val amazonS3: AmazonS3,
+    private val awsProperties: AwsProperties,
 ) {
-    /**
-     * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
-     *
-     * @param application 지원서 정보
-     * @return 템플릿에 사용할 PdfData 객체
-     */
+
+    private val log by lazy { LoggerFactory.getLogger(this::class.java) }
+
     fun applicationToInfo(application: Application): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
@@ -45,19 +41,36 @@ class PdfDataConverter(
         setAttendanceAndVolunteer(application, values)
         setExtraScore(application, values)
         setTeacherInfo(application, values)
-        setBase64Image(application, values)
+        setBase64Image(application, values) // ⭐️ 수정된 메서드가 호출됩니다.
 
         return PdfData(values)
     }
 
-    // ... (이하 다른 메서드들은 이전과 동일)
+    private fun setBase64Image(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
+        val photoPath = application.photoPath
+        if (photoPath.isNullOrBlank()) {
+            values["base64Image"] = ""
+            return
+        }
 
-    /**
-     * 지원서의 접수번호를 설정합니다.
-     *
-     * @param application 지원서 정보
-     * @param values 템플릿 데이터 맵
-     */
+        try {
+            val objectKey = URL(photoPath).path.substring(1)
+
+            val s3Object = amazonS3.getObject(GetObjectRequest(awsProperties.bucket, objectKey))
+            val imageBytes = s3Object.objectContent.readAllBytes()
+
+            values["base64Image"] = Base64.getEncoder().encodeToString(imageBytes)
+            log.info("Successfully fetched and encoded image from S3: {}", objectKey)
+
+        } catch (e: Exception) {
+            log.error("Failed to get image from S3. path: {}, error: {}", photoPath, e.message)
+            values["base64Image"] = ""
+        }
+    }
+
     private fun setReceiptCode(
         application: Application,
         values: MutableMap<String, Any>,
@@ -65,23 +78,11 @@ class PdfDataConverter(
         values["receiptCode"] = application.receiptCode.toString()
     }
 
-    /**
-     * 입학년도를 설정합니다. (현재 년도 + 1)
-     *
-     * @param values 템플릿 데이터 맵
-     */
     private fun setEntranceYear(values: MutableMap<String, Any>) {
         val entranceYear: Int = LocalDate.now().plusYears(1).year
         values["entranceYear"] = entranceYear.toString()
     }
 
-    /**
-     * 지원자의 개인정보(이름, 성별, 주소, 생년월일 등)를 설정합니다.
-     * 일부 정보는 도메인에 없어서 더미값을 사용합니다.
-     *
-     * @param application 지원서 정보
-     * @param values 템플릿 데이터 맵
-     */
     private fun setPersonalInfo(
         application: Application,
         values: MutableMap<String, Any>,
@@ -100,7 +101,6 @@ class PdfDataConverter(
         values["region"] = if (application.isDaejeon == true) "대전" else "비대전"
         values["applicationType"] = application.applicationType.displayName
 
-        // 특기사항: 국가유공자자녀 또는 특례입학대상
         val remarks = mutableListOf<String>()
         if (application.nationalMeritChild == true) {
             remarks.add("국가유공자자녀")
@@ -111,18 +111,10 @@ class PdfDataConverter(
         values["applicationRemark"] = if (remarks.isEmpty()) "해당없음" else remarks.joinToString(", ")
     }
 
-    /**
-     * 출석 및 봉사활동 정보를 설정합니다.
-     * 현재 관련 도메인이 없어서 더미값을 사용합니다.
-     *
-     * @param application 지원서 정보
-     * @param values 템플릿 데이터 맵
-     */
     private fun setAttendanceAndVolunteer(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // 실제 출석/봉사활동 데이터 사용
         values["absenceDayCount"] = application.absence ?: 0
         values["latenessCount"] = application.tardiness ?: 0
         values["earlyLeaveCount"] = application.earlyLeave ?: 0
@@ -152,7 +144,7 @@ class PdfDataConverter(
         values.putAll(emptyGraduationClassification())
 
         val currentYear = LocalDate.now().year
-        val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8 // 2월/8월 졸업
+        val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8
 
         when (application.educationalStatus) {
             EducationalStatus.GRADUATE -> {
@@ -198,7 +190,7 @@ class PdfDataConverter(
                 "isProspectiveGraduate" to isProspectiveGraduate,
                 "isDaejeon" to isDaejeon,
                 "isNotDaejeon" to !isDaejeon,
-                "isBasicLiving" to isSocial, // 사회통합전형인 경우 사회적배려 대상자로 추정
+                "isBasicLiving" to isSocial,
                 "isCommon" to isCommon,
                 "isMeister" to (application.applicationType == ApplicationType.MEISTER),
                 "isSocialMerit" to isSocial,
@@ -213,7 +205,6 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // 실제 가산점 데이터 사용
         values["hasCompetitionPrize"] = toCircleBallotbox(application.algorithmAward ?: false)
         values["hasCertificate"] = toCircleBallotbox(application.infoProcessingCert ?: false)
     }
@@ -247,14 +238,12 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        // 실제 성적 데이터 사용
         val subjects = listOf("korean", "social", "history", "math", "science", "english", "techAndHome")
 
         subjects.forEach { subjectPrefix ->
             with(values) {
                 put("applicationCase", "기술∙가정")
 
-                // 졸업자인 경우 3-2학기 성적 포함
                 if (application.educationalStatus == EducationalStatus.GRADUATE) {
                     put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
                 }
@@ -378,42 +367,44 @@ class PdfDataConverter(
         values["parentRelation"] = application.parentRelation ?: ""
     }
 
-    private fun setRecommendations(
+    private fun setSchoolInfo(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val isDaejeon = application.isDaejeon ?: false
-        val isMeister = application.applicationType == ApplicationType.MEISTER
-        val isSocialMerit = application.applicationType == ApplicationType.SOCIAL
+        val school =
+            application.schoolCode?.let {
+                querySchoolContract.querySchoolBySchoolCode(it)
+            }
 
-        values["isDaejeonAndMeister"] = markIfTrue(isDaejeon && isMeister)
-        values["isDaejeonAndSocialMerit"] = markIfTrue(isDaejeon && isSocialMerit)
-        values["isNotDaejeonAndMeister"] = markIfTrue(!isDaejeon && isMeister)
-        values["isNotDaejeonAndSocialMerit"] = markIfTrue(!isDaejeon && isSocialMerit)
-    }
-
-    private fun setBase64Image(
-        application: Application,
-        values: MutableMap<String, Any>,
-    ) {
-        val photoPath = application.photoPath
-        if (photoPath.isNullOrBlank()) {
-            values["base64Image"] = ""
-            return
-        }
-
-        try {
-            val imageUrl = URL(photoPath)
-            val imageBytes = imageUrl.readBytes()
-            values["base64Image"] = Base64.getEncoder().encodeToString(imageBytes)
-        } catch (e: Exception) {
-            // URL이 잘못되었거나, 네트워크 문제 등으로 이미지를 가져올 수 없는 경우 빈 문자열로 처리
-            values["base64Image"] = ""
+        if (school != null) {
+            values["schoolCode"] = school.code
+            values["schoolRegion"] = school.regionName ?: "미상"
+            values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
+            values["schoolName"] = school.name
+            values["schoolClass"] = application.studentId?.let {
+                if (it.length >= 2) it.substring(1, 2) else "3"
+            } ?: "3"
+        } else {
+            values.putAll(emptySchoolInfo())
         }
     }
 
-    private fun markIfTrue(isTrue: Boolean): String {
-        return if (isTrue) "◯" else ""
+    private fun toFormattedPhoneNumber(phoneNumber: String?): String {
+        if (phoneNumber.isNullOrBlank()) {
+            return ""
+        }
+        if (phoneNumber.length == 8) {
+            return phoneNumber.replace("(\\d{4})(\\d{4})".toRegex(), "$1-$2")
+        }
+        return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
+    }
+
+    private fun toBallotBox(isTrue: Boolean): String {
+        return if (isTrue) "☑" else "☐"
+    }
+
+    private fun toCircleBallotbox(isTrue: Boolean): String {
+        return if (isTrue) "O" else "X"
     }
 
     private fun emptySchoolInfo(): Map<String, Any> {
@@ -435,74 +426,5 @@ class PdfDataConverter(
             "prospectiveGraduateYear" to "20__",
             "prospectiveGraduateMonth" to "__",
         )
-    }
-
-    private fun setSchoolInfo(
-        application: Application,
-        values: MutableMap<String, Any>,
-    ) {
-        val school =
-            application.schoolCode?.let {
-                querySchoolContract.querySchoolBySchoolCode(it)
-            }
-
-        if (school != null) {
-            values["schoolCode"] = school.code
-            values["schoolRegion"] = school.regionName ?: "미상"
-            values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
-            values["schoolName"] = school.name
-            values["schoolClass"] = application.studentId?.let {
-                // studentId에서 학급 정보 추출 시도 (예: "30101" -> "1")
-                if (it.length >= 2) it.substring(1, 2) else "3"
-            } ?: "3"
-        } else {
-            values.putAll(emptySchoolInfo())
-        }
-    }
-
-    /**
-     * 전화번호를 하이픈 포함 형태로 포맷팅합니다.
-     *
-     * @param phoneNumber 포맷팅할 전화번호
-     * @return 하이픈으로 구분된 전화번호 문자열
-     */
-    private fun toFormattedPhoneNumber(phoneNumber: String?): String {
-        if (phoneNumber.isNullOrBlank()) {
-            return ""
-        }
-        if (phoneNumber.length == 8) {
-            return phoneNumber.replace("(\\d{4})(\\d{4})".toRegex(), "$1-$2")
-        }
-        return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
-    }
-
-    /**
-     * null 값을 빈 문자열로 변환합니다.
-     *
-     * @param input 변환할 문자열
-     * @return 입력값이 null이면 빈 문자열, 그렇지 않으면 원래 값
-     */
-    private fun setBlankIfNull(input: String?): String {
-        return input ?: ""
-    }
-
-    /**
-     * boolean 값을 체크박스 문자(☑/☐)로 변환합니다.
-     *
-     * @param isTrue 변환할 boolean 값
-     * @return true이면 "☑", false이면 "☐"
-     */
-    private fun toBallotBox(isTrue: Boolean): String {
-        return if (isTrue) "☑" else "☐"
-    }
-
-    /**
-     * boolean 값을 O/X 문자로 변환합니다.
-     *
-     * @param isTrue 변환할 boolean 값
-     * @return true이면 "O", false이면 "X"
-     */
-    private fun toCircleBallotbox(isTrue: Boolean): String {
-        return if (isTrue) "O" else "X"
     }
 }
