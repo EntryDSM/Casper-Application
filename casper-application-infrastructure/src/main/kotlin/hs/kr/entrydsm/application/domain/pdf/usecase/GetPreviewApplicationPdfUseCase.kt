@@ -59,7 +59,6 @@ class GetPreviewApplicationPdfUseCase(
             applicationType = parseApplicationType(request.applicationType),
             educationalStatus = parseEducationalStatus(request.educationalStatus),
             status = ApplicationStatus.WRITING,
-            submissionStatus = ApplicationSubmissionStatus.NOT_SUBMITTED,
             streetAddress = request.streetAddress,
             submittedAt = LocalDateTime.MIN,
             reviewedAt = null,

@@ -71,7 +71,6 @@ class ApplicationSubmissionUseCase(
                 applicationType = ApplicationType.valueOf(request.applicationType),
                 educationalStatus = EducationalStatus.valueOf(request.educationalStatus),
                 status = ApplicationStatus.SUBMITTED,
-                submissionStatus = ApplicationSubmissionStatus.SUBMITTED,
                 streetAddress = request.streetAddress,
                 submittedAt = now,
                 reviewedAt = null,

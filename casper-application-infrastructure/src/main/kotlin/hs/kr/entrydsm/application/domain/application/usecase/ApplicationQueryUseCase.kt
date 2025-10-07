@@ -270,7 +270,6 @@ class ApplicationQueryUseCase(
             applicationType = entity.applicationType,
             educationalStatus = entity.educationalStatus,
             status = entity.status,
-            submissionStatus = ApplicationSubmissionStatus.SUBMITTED,
             streetAddress = null,
             submittedAt = entity.submittedAt ?: entity.createdAt,
             reviewedAt = entity.reviewedAt,
