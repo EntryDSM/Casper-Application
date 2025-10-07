@@ -2,6 +2,8 @@ package hs.kr.entrydsm.application.global.document.admin
 
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.ApplicationStatisticsByRegionResponse
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CompetitionRateResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
 import io.swagger.v3.oas.annotations.Operation
@@ -88,4 +90,28 @@ interface AdminApiDocument {
     fun createEducationalStatus(
         @RequestBody request: CreateEducationalStatusRequest,
     ): ResponseEntity<CreateEducationalStatusResponse>
+
+    @Operation(summary = "경쟁률 조회", description = "전형별 경쟁률을 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "경쟁률 조회 성공",
+                content = [Content(schema = Schema(implementation = CompetitionRateResponse::class))],
+            ),
+        ],
+    )
+    fun getCompetitionRate(): ResponseEntity<CompetitionRateResponse>
+
+    @Operation(summary = "지역별 접수현황 조회", description = "대전/전국별 접수현황을 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "지역별 접수현황 조회 성공",
+                content = [Content(schema = Schema(implementation = ApplicationStatisticsByRegionResponse::class))],
+            ),
+        ],
+    )
+    fun getApplicationStatisticsByRegion(): ResponseEntity<ApplicationStatisticsByRegionResponse>
 }

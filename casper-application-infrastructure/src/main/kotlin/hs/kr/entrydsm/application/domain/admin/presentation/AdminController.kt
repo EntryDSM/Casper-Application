@@ -2,6 +2,8 @@ package hs.kr.entrydsm.application.domain.admin.presentation
 
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.ApplicationStatisticsByRegionResponse
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CompetitionRateResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
 import hs.kr.entrydsm.application.domain.admin.usecase.AdminUseCase
@@ -76,5 +78,17 @@ class AdminController(
                     ),
             ),
         )
+    }
+
+    @GetMapping("/statistics/competition-rate")
+    override fun getCompetitionRate(): ResponseEntity<CompetitionRateResponse> {
+        val response = adminUseCase.getCompetitionRate()
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/statistics/region")
+    override fun getApplicationStatisticsByRegion(): ResponseEntity<ApplicationStatisticsByRegionResponse> {
+        val response = adminUseCase.getApplicationStatisticsByRegion()
+        return ResponseEntity.ok(response)
     }
 }
