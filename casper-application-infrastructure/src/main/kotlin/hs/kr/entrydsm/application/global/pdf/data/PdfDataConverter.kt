@@ -236,10 +236,7 @@ class PdfDataConverter(
             with(values) {
                 put("applicationCase", "기술∙가정")
 
-                if (application.educationalStatus == EducationalStatus.GRADUATE) {
-                    put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
-                }
-
+                put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
                 put("${subjectPrefix}ThirdGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_1")))
                 put("${subjectPrefix}SecondGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_2")))
                 put("${subjectPrefix}SecondGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_1")))
