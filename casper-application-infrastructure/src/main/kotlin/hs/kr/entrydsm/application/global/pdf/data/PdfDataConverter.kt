@@ -23,13 +23,9 @@ class PdfDataConverter(
      * 지원서 정보를 PDF 템플릿용 데이터로 변환합니다.
      *
      * @param application 지원서 정보
-     * @param scoreDetails 계산된 점수 상세 정보
      * @return 템플릿에 사용할 PdfData 객체
      */
-    fun applicationToInfo(
-        application: Application,
-        scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
-    ): PdfData {
+    fun applicationToInfo(application: Application): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
         setEntranceYear(values)
@@ -39,7 +35,7 @@ class PdfDataConverter(
         setPhoneNumber(application, values)
         setGraduationClassification(application, values)
         setUserType(application, values)
-        setGradeScore(application, scoreDetails, values)
+        setGradeScore(application, values)
         setLocalDate(values)
         setIntroduction(application, values)
         setParentInfo(application, values)
@@ -241,16 +237,15 @@ class PdfDataConverter(
 
     private fun setGradeScore(
         application: Application,
-        scoreDetails: Map<String, Any>, // 실제 계산된 점수 데이터 사용
         values: MutableMap<String, Any>,
     ) {
         with(values) {
-            put("conversionScore", scoreDetails["교과성적"]?.toString() ?: "0.0")
-            put("attendanceScore", scoreDetails["출석점수"]?.toString() ?: "0.0")
-            put("volunteerScore", scoreDetails["봉사활동점수"]?.toString() ?: "0.0")
-            put("bonusScore", scoreDetails["가산점"]?.toString() ?: "0.0")
-            put("finalScore", scoreDetails["총점"]?.toString() ?: "0.0")
-            put("maxScore", scoreDetails["최대점수"]?.toString() ?: "0.0")
+            put("conversionScore", "0.0")
+            put("attendanceScore", "0.0")
+            put("volunteerScore", "0.0")
+            put("bonusScore", "0.0")
+            put("finalScore", application.totalScore?.toString() ?: "0.0")
+            put("maxScore", "300.0")
             put("scorePercentage", application.getScorePercentage().toString())
         }
     }
