@@ -10,7 +10,6 @@ import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.school.interfaces.QuerySchoolContract
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.net.URL
 import java.time.LocalDate
 import java.util.Base64
 
@@ -41,7 +40,7 @@ class PdfDataConverter(
         setAttendanceAndVolunteer(application, values)
         setExtraScore(application, values)
         setTeacherInfo(application, values)
-        setBase64Image(application, values) // ⭐️ 수정된 메서드가 호출됩니다.
+        setBase64Image(application, values)
 
         return PdfData(values)
     }
@@ -50,23 +49,22 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val photoPath = application.photoPath
-        if (photoPath.isNullOrBlank()) {
+        val objectKey = application.photoPath
+        if (objectKey.isNullOrBlank()) {
             values["base64Image"] = ""
             return
         }
 
         try {
-            val objectKey = URL(photoPath).path.substring(1)
-
-            val s3Object = amazonS3.getObject(GetObjectRequest(awsProperties.bucket, objectKey))
+            val getObjectRequest = GetObjectRequest(awsProperties.bucket, objectKey)
+            val s3Object = amazonS3.getObject(getObjectRequest)
             val imageBytes = s3Object.objectContent.readAllBytes()
 
             values["base64Image"] = Base64.getEncoder().encodeToString(imageBytes)
-            log.info("Successfully fetched and encoded image from S3: {}", objectKey)
+            log.info("S3에서 이미지를 성공적으로 가져와 인코딩했습니다: {}", objectKey)
 
         } catch (e: Exception) {
-            log.error("Failed to get image from S3. path: {}, error: {}", photoPath, e.message)
+            log.error("S3에서 이미지를 가져오는데 실패했습니다. Key: {}, 원인: {}", objectKey, e.message)
             values["base64Image"] = ""
         }
     }
@@ -166,7 +164,7 @@ class PdfDataConverter(
             else -> {
                 values["graduateYear"] = currentYear.toString()
                 values["graduateMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = application.educationalStatus ?: "중학교 졸업"
+                values["educationalStatus"] = application.educationalStatus?.toString() ?: "중학교 졸업"
             }
         }
     }
