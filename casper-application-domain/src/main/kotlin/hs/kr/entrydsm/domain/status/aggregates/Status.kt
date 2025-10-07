@@ -32,4 +32,10 @@ data class Status(
     val isSubmitted: Boolean
         get() = applicationStatus != ApplicationStatus.NOT_APPLIED && 
                 applicationStatus != ApplicationStatus.WRITING
+
+    val isPrintsArrived: Boolean
+        get() = applicationStatus != ApplicationStatus.NOT_APPLIED &&
+                applicationStatus != ApplicationStatus.WRITING &&
+                applicationStatus != ApplicationStatus.SUBMITTED &&
+                applicationStatus != ApplicationStatus.WAITING_DOCUMENTS
 }
