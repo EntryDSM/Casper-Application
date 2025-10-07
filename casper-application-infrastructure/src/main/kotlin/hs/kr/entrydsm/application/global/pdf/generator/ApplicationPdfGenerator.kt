@@ -31,13 +31,9 @@ class ApplicationPdfGenerator(
      * 지원서 PDF를 생성합니다.
      *
      * @param application 지원서 정보
-     * @param scoreDetails 계산된 점수 상세 정보 (deprecated - Application 객체에서 직접 계산)
      * @return 생성된 PDF 바이트 배열
      */
-    override fun generate(
-        application: Application,
-        scoreDetails: Map<String, Any>,
-    ): ByteArray {
+    override fun generate(application: Application): ByteArray {
         val data = pdfDataConverter.applicationToInfo(application)
         val templates = getTemplateFileNames(application)
 

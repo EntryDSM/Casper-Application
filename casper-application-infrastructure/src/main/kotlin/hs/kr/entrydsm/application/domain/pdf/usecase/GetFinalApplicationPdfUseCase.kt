@@ -32,20 +32,7 @@ class GetFinalApplicationPdfUseCase(
 
         validatePrintableApplication(application)
 
-        // Application 도메인의 점수 계산 기능을 활용
-        val updatedApplication = application.calculateAndUpdateScore()
-        val scoreDetails = buildScoreDetailsMap(updatedApplication)
-
-        return applicationPdfGeneratorContract.generate(updatedApplication, scoreDetails)
-    }
-
-    /**
-     * PDF 생성에 필요한 점수 상세 정보를 구성합니다.
-     */
-    private fun buildScoreDetailsMap(application: Application): Map<String, Any> {
-        val scoreDetails = application.getScoreDetails()
-
-        return scoreDetails.mapValues { it.value as Any }
+        return applicationPdfGeneratorContract.generate(application)
     }
 
     /**

@@ -25,8 +25,7 @@ class PdfTestController(
     @GetMapping("/test")
     fun testPdf(): ResponseEntity<ByteArray> {
         val dummyApp = createDummyApplication()
-        val scoreDetails = dummyApp.getScoreDetails()
-        val pdfBytes = applicationPdfGenerator.generate(dummyApp, scoreDetails)
+        val pdfBytes = applicationPdfGenerator.generate(dummyApp)
 
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)

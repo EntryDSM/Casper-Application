@@ -69,11 +69,8 @@ class ApplicationQueryController(
 
     @GetMapping("/applications/pdf")
     override fun generateApplicationPdf(): ResponseEntity<ByteArray> {
-        // Application 도메인 모델 조회 (현재 로그인한 유저의 원서)
         val application = applicationQueryUseCase.getCurrentUserApplication()
-
-        // Application으로 PDF 생성
-        val pdfBytes = applicationPdfGenerator.generate(application, emptyMap())
+        val pdfBytes = applicationPdfGenerator.generate(application)
 
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)

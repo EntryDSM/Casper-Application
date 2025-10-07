@@ -26,7 +26,7 @@ class GetPreviewApplicationPdfUseCase(
 
         val tempApplication = createTempApplication(userId, request)
 
-        return applicationPdfGeneratorContract.generate(tempApplication, emptyMap())
+        return applicationPdfGeneratorContract.generate(tempApplication)
     }
 
     /**
