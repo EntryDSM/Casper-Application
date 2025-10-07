@@ -82,14 +82,18 @@
             <td style="width: 23%" th:text="${userName}"></td>
             <th style="width: 11%">전화번호</th>
             <td style="width: 26%" th:text="${applicantTel}"></td>
-            <td rowspan="5" style="width: 18%; vertical-align: middle;">
+            <td rowspan="5" style="width: 18%; vertical-align: middle; padding: 5px 0;">
                 <img
-                        src="photo.jpg"
-                        style="width: 3cm; height: 4cm; max-width: 3cm; max-height: 4cm;"
-                        alt="사진(3cm×4cm)"
+                        th:if="${base64Image != null and !base64Image.isEmpty()}"
                         th:src="|data:image/*;base64,${base64Image}|"
+                        style="width: 3cm; height: 4cm;"
+                        alt="사진"
                 />
-                <div style="font-size: 9px; margin-top: 2px;">사진<br/>(3cm×4cm)</div>
+                <div th:unless="${base64Image != null and !base64Image.isEmpty()}"
+                     style="width: 3cm; height: 4cm; border: 1px dashed #ccc; margin: auto; display: flex; align-items: center; justify-content: center;">
+                    사진 없음
+                    <div style="font-size: 9px; margin-top: 2px;">사진<br/>(3cm×4cm)</div>
+                </div>
             </td>
         </tr>
         <tr>

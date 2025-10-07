@@ -255,7 +255,8 @@ class ApplicationQueryUseCase(
         }
 
         // 증명사진 조회
-        val photoPath = photoJpaRepository.findByUserId(entity.userId)?.photo
+        val photoKey = photoJpaRepository.findByUserId(entity.userId)?.photo
+        val photoPath = photoKey?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) }
 
         return Application(
             applicationId = entity.applicationId,
