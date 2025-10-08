@@ -75,8 +75,8 @@ class PrintAdmissionTicketGenerator {
             val status = statusMap[application.receiptCode]
             val school = application.schoolCode?.let { schoolMap[it] }
 
-            fillApplicationData(sourceSheet, 0, application, user, school, status, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
+            fillApplicationData(targetSheet, currentRowIndex, application, user, school, status, targetWorkbook)
             copyApplicationImage(application, targetSheet, currentRowIndex)
             currentRowIndex += 20
         }
@@ -189,12 +189,12 @@ class PrintAdmissionTicketGenerator {
         status: Status?,
         workbook: Workbook,
     ) {
-        setValue(sheet, "E4", status?.examCode ?: "미발급")
-        setValue(sheet, "E6", application.applicantName)
-        setValue(sheet, "E8", application.schoolName ?: school?.name ?: "")
-        setValue(sheet, "E10", if (application.isDaejeon == true) "대전" else "전국")
-        setValue(sheet, "E12", translateApplicationType(application.applicationType.name))
-        setValue(sheet, "E14", application.receiptCode.toString())
+        setValue(sheet, startRowIndex + 3, 4, status?.examCode ?: "미발급")
+        setValue(sheet, startRowIndex + 5, 4, application.applicantName)
+        setValue(sheet, startRowIndex + 7, 4, school?.name ?: "")
+        setValue(sheet, startRowIndex + 9, 4, if (application.isDaejeon == true) "대전" else "전국")
+        setValue(sheet, startRowIndex + 11, 4, translateApplicationType(application.applicationType.name))
+        setValue(sheet, startRowIndex + 13, 4, application.receiptCode.toString())
     }
 
     fun copyApplicationImage(
@@ -271,6 +271,17 @@ class PrintAdmissionTicketGenerator {
             val c = r.getCell(ref.col.toInt())
             c?.setCellValue(value)
         }
+    }
+
+    fun setValue(
+        sheet: Sheet,
+        rowIndex: Int,
+        columnIndex: Int,
+        value: String,
+    ) {
+        val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
+        val cell = row.getCell(columnIndex) ?: row.createCell(columnIndex)
+        cell.setCellValue(value)
     }
 
     fun setResponseHeaders(response: HttpServletResponse) {
