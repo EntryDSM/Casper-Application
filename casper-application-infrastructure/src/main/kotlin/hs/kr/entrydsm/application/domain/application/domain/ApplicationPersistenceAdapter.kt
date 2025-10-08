@@ -41,18 +41,16 @@ class ApplicationPersistenceAdapter(
      * @return 1차 전형 합격 Application 목록
      */
     override suspend fun queryAllFirstRoundPassedApplication(): List<Application> {
-        return runBlocking {
-            applicationJpaRepository.findAll()
-                .mapNotNull { applicationEntity ->
-                    // Status 서비스에서 1차 합격 여부 확인
-                    val status = statusContract.queryStatusByReceiptCode(applicationEntity.receiptCode)
-                    if (status?.isFirstRoundPass == true) {
-                        applicationMapper.toModel(applicationEntity)
-                    } else {
-                        null
-                    }
+        return applicationJpaRepository.findAll()
+            .mapNotNull { applicationEntity ->
+                // Status 서비스에서 1차 합격 여부 확인
+                val status = statusContract.queryStatusByReceiptCode(applicationEntity.receiptCode)
+                if (status?.isFirstRoundPass == true) {
+                    applicationMapper.toModel(applicationEntity)
+                } else {
+                    null
                 }
-        }
+            }
     }
 
     /**
