@@ -262,19 +262,6 @@ class PrintAdmissionTicketGenerator {
 
     fun setValue(
         sheet: Sheet,
-        position: String,
-        value: String,
-    ) {
-        val ref = CellReference(position)
-        val r = sheet.getRow(ref.row)
-        if (r != null) {
-            val c = r.getCell(ref.col.toInt())
-            c?.setCellValue(value)
-        }
-    }
-
-    fun setValue(
-        sheet: Sheet,
         rowIndex: Int,
         columnIndex: Int,
         value: String,
