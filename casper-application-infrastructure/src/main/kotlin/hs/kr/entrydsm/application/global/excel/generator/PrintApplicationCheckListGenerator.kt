@@ -17,14 +17,13 @@ import org.apache.poi.ss.util.RegionUtil
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Component
 import java.io.IOException
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Component
 class PrintApplicationCheckListGenerator {
-    private val workbook: Workbook = XSSFWorkbook()
-    private val sheet: Sheet = workbook.createSheet("application Check List")
-
+    
     fun printApplicationCheckList(
         applications: List<Application>,
         users: List<User>,
@@ -32,20 +31,29 @@ class PrintApplicationCheckListGenerator {
         statuses: List<Status>,
         httpServletResponse: HttpServletResponse,
     ) {
+        val workbook: Workbook = XSSFWorkbook()
+        val sheet: Sheet = workbook.createSheet("application Check List")
+        
         var outputStream: ServletOutputStream? = null
         var dh = 0
         try {
             val userMap = users.associateBy { it.id }
             val schoolMap = schools.associateBy { it.code }
             val statusMap = statuses.associateBy { it.receiptCode }
+            
+            // 모든 원서의 점수를 한 번에 미리 계산
+            val scoreDetailsMap = applications.associate { 
+                it.receiptCode to it.getScoreDetails() 
+            }
 
             applications.forEach { application ->
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
                 val school = application.schoolCode?.let { schoolMap[it] }
+                val scoreDetails = scoreDetailsMap[application.receiptCode]!!
 
-                formatSheet(dh)
-                insertDataIntoSheet(application, user, school, status, dh)
+                formatSheet(sheet, dh)
+                insertDataIntoSheet(sheet, application, user, school, status, scoreDetails, dh)
                 dh += 20
             }
 
@@ -69,13 +77,14 @@ class PrintApplicationCheckListGenerator {
         } finally {
             try {
                 outputStream?.close()
-            } catch (e: Exception) {
                 workbook.close()
+            } catch (e: Exception) {
+                // ignore
             }
         }
     }
 
-    private fun formatSheet(dh: Int) {
+    private fun formatSheet(sheet: Sheet, dh: Int) {
         sheet.apply {
             mergeRegions(dh)
             applyBorderStyles(dh)
@@ -127,7 +136,7 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(15 + dh, 15 + dh, 1, 7),
                 intArrayOf(16 + dh, 16 + dh, 1, 7),
             )
-        setBorderStyle(borderRegionsDashedBottom, BorderStyle.DASHED, Direction.BOTTOM)
+        setBorderStyle(this, borderRegionsDashedBottom, BorderStyle.DASHED, Direction.BOTTOM)
 
         val borderRegionsThin =
             arrayOf(
@@ -140,7 +149,7 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(10 + dh, 10 + dh, 1, 5),
                 intArrayOf(18 + dh, 18 + dh, 1, 5),
             )
-        setBorderStyle(borderRegionsThin, BorderStyle.THIN, Direction.ALL)
+        setBorderStyle(this, borderRegionsThin, BorderStyle.THIN, Direction.ALL)
 
         val borderRegionsThick =
             arrayOf(
@@ -151,7 +160,7 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(18 + dh, 18 + dh, 6, 7),
                 intArrayOf(19 + dh, 19 + dh, 6, 7),
             )
-        setBorderStyle(borderRegionsThick, BorderStyle.THICK, Direction.ALL)
+        setBorderStyle(this, borderRegionsThick, BorderStyle.THICK, Direction.ALL)
 
         val borderRegionsDashedRight =
             arrayOf(
@@ -173,14 +182,14 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(3 + dh, 5 + dh, 1, 1),
                 intArrayOf(19 + dh, 19 + dh, 6, 6),
             )
-        setBorderStyle(borderRegionsDashedRight, BorderStyle.DASHED, Direction.RIGHT)
+        setBorderStyle(this, borderRegionsDashedRight, BorderStyle.DASHED, Direction.RIGHT)
 
         val borderRegionsThinRight =
             arrayOf(
                 intArrayOf(11 + dh, 17 + dh, 5, 5),
                 intArrayOf(3 + dh, 5 + dh, 5, 5),
             )
-        setBorderStyle(borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
+        setBorderStyle(this, borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
     }
 
     private fun Sheet.setCellValues(dh: Int) {
@@ -218,11 +227,12 @@ class PrintApplicationCheckListGenerator {
                 Pair(18 + dh, 1) to "점수",
             )
         cellValues.forEach { (cell, value) ->
-            getCell(cell.first, cell.second).setCellValue(value)
+            getCell(this, cell.first, cell.second).setCellValue(value)
         }
     }
 
     private fun setBorderStyle(
+        sheet: Sheet,
         regions: Array<IntArray>,
         borderStyle: BorderStyle,
         direction: Direction,
@@ -244,75 +254,76 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    private fun getCell(rowNum: Int, cellNum: Int): Cell {
+    private fun getCell(sheet: Sheet, rowNum: Int, cellNum: Int): Cell {
         val row: Row = sheet.getRow(rowNum) ?: sheet.createRow(rowNum)
         return row.getCell(cellNum) ?: row.createCell(cellNum)
     }
 
-    private fun setRowHeight(rowIndex: Int, height: Int) {
+    private fun setRowHeight(sheet: Sheet, rowIndex: Int, height: Int) {
         val row: Row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
         row.heightInPoints = height.toFloat()
     }
 
     private fun insertDataIntoSheet(
+        sheet: Sheet,
         application: Application,
         user: User?,
         school: School?,
         status: Status?,
+        scoreDetails: Map<String, BigDecimal>,
         dh: Int,
     ) {
-        getCell(dh + 1, 2).setCellValue(application.receiptCode.toString())
-        getCell(dh + 1, 3).setCellValue(application.schoolName ?: school?.name ?: "")
-        getCell(dh + 1, 6).setCellValue(application.educationalStatus.name)
-        getCell(dh + 1, 7).setCellValue(application.graduationDate ?: "")
-        getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
-        getCell(dh + 3, 2).setCellValue(application.applicantName)
-        getCell(dh + 3, 6).setCellValue(application.studentId ?: "")
-        getCell(dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
-        getCell(dh + 4, 2).setCellValue(application.birthDate ?: "")
-        getCell(dh + 4, 6).setCellValue(formatPhoneNumber(application.applicantTel))
-        getCell(dh + 5, 1).setCellValue(getAdditionalType(application))
-        getCell(dh + 5, 2).setCellValue(application.applicantGender?.name ?: "")
-        getCell(dh + 5, 6).setCellValue(formatPhoneNumber(application.parentTel))
+        getCell(sheet, dh + 1, 2).setCellValue(application.receiptCode.toString())
+        getCell(sheet, dh + 1, 3).setCellValue(application.schoolName ?: school?.name ?: "")
+        getCell(sheet, dh + 1, 6).setCellValue(application.educationalStatus.name)
+        getCell(sheet, dh + 1, 7).setCellValue(application.graduationDate ?: "")
+        getCell(sheet, dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
+        getCell(sheet, dh + 3, 2).setCellValue(application.applicantName)
+        getCell(sheet, dh + 3, 6).setCellValue(application.studentId ?: "")
+        getCell(sheet, dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
+        getCell(sheet, dh + 4, 2).setCellValue(application.birthDate ?: "")
+        getCell(sheet, dh + 4, 6).setCellValue(formatPhoneNumber(application.applicantTel))
+        getCell(sheet, dh + 5, 1).setCellValue(getAdditionalType(application))
+        getCell(sheet, dh + 5, 2).setCellValue(application.applicantGender?.name ?: "")
+        getCell(sheet, dh + 5, 6).setCellValue(formatPhoneNumber(application.parentTel))
 
-        getCell(dh + 8, 1).setCellValue((application.absence ?: 0).toString())
-        getCell(dh + 8, 2).setCellValue((application.tardiness ?: 0).toString())
-        getCell(dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
-        getCell(dh + 8, 4).setCellValue((application.classExit ?: 0).toString())
+        getCell(sheet, dh + 8, 1).setCellValue((application.absence ?: 0).toString())
+        getCell(sheet, dh + 8, 2).setCellValue((application.tardiness ?: 0).toString())
+        getCell(sheet, dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
+        getCell(sheet, dh + 8, 4).setCellValue((application.classExit ?: 0).toString())
         
-        val scoreDetails = application.getScoreDetails()
-        getCell(dh + 8, 5).setCellValue(scoreDetails["출석점수"]?.toString() ?: "0")
-        getCell(dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
-        getCell(dh + 8, 7).setCellValue(scoreDetails["봉사점수"]?.toString() ?: "0")
-        getCell(dh + 10, 7).setCellValue(scoreDetails["교과성적"]?.toString() ?: "0")
+        getCell(sheet, dh + 8, 5).setCellValue(scoreDetails["출석점수"]?.toString() ?: "0")
+        getCell(sheet, dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
+        getCell(sheet, dh + 8, 7).setCellValue(scoreDetails["봉사점수"]?.toString() ?: "0")
+        getCell(sheet, dh + 10, 7).setCellValue(scoreDetails["교과성적"]?.toString() ?: "0")
 
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
         
         subjects.forEachIndexed { index, subject ->
             val rowIndex = dh + 11 + index
-            getCell(rowIndex, 1).setCellValue(subject)
-            getCell(rowIndex, 2).setCellValue(gradeData.semester3_2[index])
-            getCell(rowIndex, 3).setCellValue(gradeData.semester3_1[index])
-            getCell(rowIndex, 4).setCellValue(gradeData.semester2_2[index])
-            getCell(rowIndex, 5).setCellValue(gradeData.semester2_1[index])
+            getCell(sheet, rowIndex, 1).setCellValue(subject)
+            getCell(sheet, rowIndex, 2).setCellValue(gradeData.semester3_2[index])
+            getCell(sheet, rowIndex, 3).setCellValue(gradeData.semester3_1[index])
+            getCell(sheet, rowIndex, 4).setCellValue(gradeData.semester2_2[index])
+            getCell(sheet, rowIndex, 5).setCellValue(gradeData.semester2_1[index])
         }
 
-        getCell(dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
-        getCell(dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
-        getCell(dh + 13, 7).setCellValue(scoreDetails["가산점"]?.toString() ?: "0")
+        getCell(sheet, dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
+        getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
+        getCell(sheet, dh + 13, 7).setCellValue(scoreDetails["가산점"]?.toString() ?: "0")
 
-        getCell(dh + 18, 2).setCellValue(scoreDetails["3-2학기"]?.toString() ?: "0")
-        getCell(dh + 18, 3).setCellValue(scoreDetails["3-1학기"]?.toString() ?: "0")
-        getCell(dh + 18, 4).setCellValue(scoreDetails["2-2학기"]?.toString() ?: "0")
-        getCell(dh + 18, 5).setCellValue(scoreDetails["2-1학기"]?.toString() ?: "0")
-        getCell(dh + 18, 7).setCellValue(scoreDetails["환산점수"]?.toString() ?: "0")
-        getCell(dh + 19, 7).setCellValue(application.totalScore?.toString() ?: "0")
+        getCell(sheet, dh + 18, 2).setCellValue(scoreDetails["3-2학기"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 3).setCellValue(scoreDetails["3-1학기"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 4).setCellValue(scoreDetails["2-2학기"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 5).setCellValue(scoreDetails["2-1학기"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 7).setCellValue(scoreDetails["환산점수"]?.toString() ?: "0")
+        getCell(sheet, dh + 19, 7).setCellValue(application.totalScore?.toString() ?: "0")
 
-        setRowHeight(dh + 2, 10)
-        setRowHeight(dh + 6, 10)
-        setRowHeight(dh + 9, 10)
-        setRowHeight(dh + 0, 71)
+        setRowHeight(sheet, dh + 2, 10)
+        setRowHeight(sheet, dh + 6, 10)
+        setRowHeight(sheet, dh + 9, 10)
+        setRowHeight(sheet, dh + 0, 71)
     }
     
     private data class GradeData(
@@ -388,7 +399,6 @@ class PrintApplicationCheckListGenerator {
                     application.history_2_1?.toString() ?: "",
                     application.math_2_1?.toString() ?: "",
                     application.science_2_1?.toString() ?: "",
-                    application.tech_2_1?.toString() ?: "",
                     application.english_2_1?.toString() ?: ""
                 )
             )
