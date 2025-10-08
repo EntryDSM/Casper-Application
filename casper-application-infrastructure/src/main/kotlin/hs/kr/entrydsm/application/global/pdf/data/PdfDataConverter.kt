@@ -133,32 +133,39 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values.putAll(emptyGraduationClassification())
-
         val currentYear = LocalDate.now().year
-        val graduationMonth = if (LocalDate.now().monthValue <= 2) 2 else 8
+        val currentMonth = LocalDate.now().monthValue
+        val graduationMonth = if (currentMonth <= 2) 2 else 8
+        val graduationDay = if (currentMonth <= 2) 28 else 18
 
         when (application.educationalStatus) {
             EducationalStatus.GRADUATE -> {
                 values["graduateYear"] = currentYear.toString()
                 values["graduateMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 중학교 졸업"
+                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 중학교 졸업"
+                values["qualificationExamPassedYear"] = ""
+                values["qualificationExamPassedMonth"] = ""
+                values["prospectiveGraduateYear"] = ""
+                values["prospectiveGraduateMonth"] = ""
             }
             EducationalStatus.PROSPECTIVE_GRADUATE -> {
                 val graduateYear = currentYear + 1
                 values["prospectiveGraduateYear"] = graduateYear.toString()
                 values["prospectiveGraduateMonth"] = "2"
-                values["educationalStatus"] = "${graduateYear}년 2월 중학교 졸업예정"
+                values["educationalStatus"] = "${graduateYear}년 2월 28일 중학교 졸업예정"
+                values["graduateYear"] = ""
+                values["graduateMonth"] = ""
+                values["qualificationExamPassedYear"] = ""
+                values["qualificationExamPassedMonth"] = ""
             }
             EducationalStatus.QUALIFICATION_EXAM -> {
                 values["qualificationExamPassedYear"] = currentYear.toString()
                 values["qualificationExamPassedMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 검정고시 합격"
-            }
-            else -> {
-                values["graduateYear"] = currentYear.toString()
-                values["graduateMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = application.educationalStatus?.toString() ?: "중학교 졸업"
+                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 검정고시 합격"
+                values["graduateYear"] = ""
+                values["graduateMonth"] = ""
+                values["prospectiveGraduateYear"] = ""
+                values["prospectiveGraduateMonth"] = ""
             }
         }
     }
@@ -236,12 +243,38 @@ class PdfDataConverter(
             with(values) {
                 put("applicationCase", "기술∙가정")
 
-                put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
-                put("${subjectPrefix}ThirdGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_1")))
-                put("${subjectPrefix}SecondGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_2")))
-                put("${subjectPrefix}SecondGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_1")))
+                if (application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+                    // 검정고시는 3학년 1학기 칸에만 점수 표시
+                    put("${subjectPrefix}ThirdGradeSecondSemester", "-")
+                    put("${subjectPrefix}ThirdGradeFirstSemester", getGedScore(application, subjectPrefix))
+                    put("${subjectPrefix}SecondGradeSecondSemester", "-")
+                    put("${subjectPrefix}SecondGradeFirstSemester", "-")
+                } else {
+                    // 일반 학생은 성취도로 표시
+                    put("${subjectPrefix}ThirdGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_2")))
+                    put("${subjectPrefix}ThirdGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "3_1")))
+                    put("${subjectPrefix}SecondGradeSecondSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_2")))
+                    put("${subjectPrefix}SecondGradeFirstSemester", getGradeDisplay(getSubjectScore(application, subjectPrefix, "2_1")))
+                }
             }
         }
+    }
+
+    private fun getGedScore(
+        application: Application,
+        subject: String,
+    ): String {
+        val score = when (subject) {
+            "korean" -> application.gedKorean
+            "social" -> application.gedSocial
+            "history" -> application.gedHistory
+            "math" -> application.gedMath
+            "science" -> application.gedScience
+            "techAndHome" -> application.gedTech
+            "english" -> application.gedEnglish
+            else -> null
+        }
+        return score?.toString() ?: "-"
     }
 
     private fun getSubjectScore(
