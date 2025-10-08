@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.school.aggregate.School
 import hs.kr.entrydsm.domain.status.aggregates.Status
 import hs.kr.entrydsm.domain.user.aggregates.User
@@ -19,29 +20,11 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * 지원서 점검표 Excel 파일을 생성하는 Generator입니다.
- *
- * 각 지원자마다 20행씩 차지하는 복잡한 포맷의 점검표를 생성합니다.
- * 개인정보, 성적, 출석정보, 점수 등이 시각적으로 구조화된 형태로 배치되며,
- * 다양한 테두리 스타일과 셀 병합을 사용하여 가독성을 높입니다.
- */
 @Component
 class PrintApplicationCheckListGenerator {
     private val workbook: Workbook = XSSFWorkbook()
     private val sheet: Sheet = workbook.createSheet("application Check List")
 
-    /**
-     * 지원서 점검표 Excel 파일을 생성하고 HTTP Response로 전송합니다.
-     * 각 지원자당 20행의 구조화된 점검표를 생성합니다.
-     *
-     * @param applications 지원서 목록
-     * @param users 사용자 정보 목록
-     * @param schools 학교 정보 목록
-     * @param statuses 전형 상태 목록
-     * @param httpServletResponse HTTP 응답 객체
-     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
-     */
     fun printApplicationCheckList(
         applications: List<Application>,
         users: List<User>,
@@ -92,14 +75,6 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 지정된 행 오프셋에 대해 시트 포맷을 설정합니다.
-     *
-     * 셀 병합, 테두리 스타일, 셀 값을 설정하여
-     * 점검표의 기본 레이아웃을 생성합니다.
-     *
-     * @param dh 행 오프셋 (각 지원자마다 20행씩 차지)
-     */
     private fun formatSheet(dh: Int) {
         sheet.apply {
             mergeRegions(dh)
@@ -108,14 +83,6 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 지정된 행 오프셋에 대해 셀 병합을 수행합니다.
-     *
-     * 점검표의 각 섹션에서 필요한 셀들을 병합하여
-     * 시각적으로 구조화된 레이아웃을 만듭니다.
-     *
-     * @param rowOffset 행 오프셋
-     */
     private fun Sheet.mergeRegions(rowOffset: Int) {
         val mergedRegions =
             arrayOf(
@@ -134,12 +101,6 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 지정된 영역이 이미 병합되어 있는지 확인합니다.
-     *
-     * @param region 확인할 셀 영역
-     * @return 이미 병합되어 있으면 true, 그렇지 않으면 false
-     */
     private fun Sheet.isRegionMerged(region: CellRangeAddress): Boolean {
         return mergedRegions.any {
             it.firstRow == region.firstRow &&
@@ -149,14 +110,6 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 지정된 행 오프셋에 대해 테두리 스타일을 적용합니다.
-     *
-     * 점선, 실선, 굵은 선 등 다양한 테두리 스타일을
-     * 각 영역에 적절히 적용하여 시각적 구분을 제공합니다.
-     *
-     * @param dh 행 오프셋
-     */
     private fun Sheet.applyBorderStyles(dh: Int) {
         val borderRegionsDashedBottom =
             arrayOf(
@@ -230,14 +183,6 @@ class PrintApplicationCheckListGenerator {
         setBorderStyle(borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
     }
 
-    /**
-     * 지정된 행 오프셋에 대해 고정 텍스트 값들을 설정합니다.
-     *
-     * 헤더와 라벨 등 변하지 않는 텍스트들을
-     * 점검표의 지정된 위치에 설정합니다.
-     *
-     * @param dh 행 오프셋
-     */
     private fun Sheet.setCellValues(dh: Int) {
         val cellValues =
             mapOf(
@@ -277,13 +222,6 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 지정된 영역에 테두리 스타일을 설정합니다.
-     *
-     * @param regions 테두리를 설정할 영역들의 배열
-     * @param borderStyle 적용할 테두리 스타일
-     * @param direction 테두리를 적용할 방향
-     */
     private fun setBorderStyle(
         regions: Array<IntArray>,
         borderStyle: BorderStyle,
@@ -306,47 +244,16 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 지정된 행과 열 위치의 셀을 가져오거나 생성합니다.
-     *
-     * @param rowNum 행 번호
-     * @param cellNum 열 번호
-     * @return 해당 위치의 셀 객체
-     */
-    private fun getCell(
-        rowNum: Int,
-        cellNum: Int,
-    ): Cell {
+    private fun getCell(rowNum: Int, cellNum: Int): Cell {
         val row: Row = sheet.getRow(rowNum) ?: sheet.createRow(rowNum)
         return row.getCell(cellNum) ?: row.createCell(cellNum)
     }
 
-    /**
-     * 지정된 행의 높이를 설정합니다.
-     *
-     * @param rowIndex 행 인덱스
-     * @param height 설정할 높이 (포인트 단위)
-     */
-    private fun setRowHeight(
-        rowIndex: Int,
-        height: Int,
-    ) {
+    private fun setRowHeight(rowIndex: Int, height: Int) {
         val row: Row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
         row.heightInPoints = height.toFloat()
     }
 
-    /**
-     * 지원서 데이터를 시트의 해당 위치에 삽입합니다.
-     *
-     * 개인정보, 성적, 출석 정보 등을 점검표의 지정된 셀에 입력하며,
-     * 도메인에 없는 데이터는 더미값으로 대체합니다.
-     *
-     * @param application 지원서 정보
-     * @param user 사용자 정보 (nullable)
-     * @param school 학교 정보 (nullable)
-     * @param status 전형 상태 정보 (nullable)
-     * @param dh 행 오프셋
-     */
     private fun insertDataIntoSheet(
         application: Application,
         user: User?,
@@ -368,8 +275,6 @@ class PrintApplicationCheckListGenerator {
         getCell(dh + 5, 2).setCellValue(application.applicantGender?.name ?: "")
         getCell(dh + 5, 6).setCellValue(formatPhoneNumber(application.parentTel))
 
-        // 출석 정보
-        val unexcusedAbsence = application.unexcused ?: 0
         getCell(dh + 8, 1).setCellValue((application.absence ?: 0).toString())
         getCell(dh + 8, 2).setCellValue((application.tardiness ?: 0).toString())
         getCell(dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
@@ -381,7 +286,6 @@ class PrintApplicationCheckListGenerator {
         getCell(dh + 8, 7).setCellValue(scoreDetails["봉사점수"]?.toString() ?: "0")
         getCell(dh + 10, 7).setCellValue(scoreDetails["교과성적"]?.toString() ?: "0")
 
-        // 성적 정보
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
         
@@ -394,12 +298,10 @@ class PrintApplicationCheckListGenerator {
             getCell(rowIndex, 5).setCellValue(gradeData.semester2_1[index])
         }
 
-        // 대회/자격증 정보
         getCell(dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
         getCell(dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
         getCell(dh + 13, 7).setCellValue(scoreDetails["가산점"]?.toString() ?: "0")
 
-        // 학기별 점수
         getCell(dh + 18, 2).setCellValue(scoreDetails["3-2학기"]?.toString() ?: "0")
         getCell(dh + 18, 3).setCellValue(scoreDetails["3-1학기"]?.toString() ?: "0")
         getCell(dh + 18, 4).setCellValue(scoreDetails["2-2학기"]?.toString() ?: "0")
@@ -421,80 +323,76 @@ class PrintApplicationCheckListGenerator {
     )
     
     private fun getGradeData(application: Application): GradeData {
-        return when (application.educationalStatus.name) {
-            "GRADUATED" -> {
-                GradeData(
-                    semester3_2 = listOf(
-                        application.korean_3_2?.toString() ?: "",
-                        application.social_3_2?.toString() ?: "",
-                        application.history_3_2?.toString() ?: "",
-                        application.math_3_2?.toString() ?: "",
-                        application.science_3_2?.toString() ?: "",
-                        application.tech_3_2?.toString() ?: "",
-                        application.english_3_2?.toString() ?: ""
-                    ),
-                    semester3_1 = listOf(
-                        application.korean_3_1?.toString() ?: "",
-                        application.social_3_1?.toString() ?: "",
-                        application.history_3_1?.toString() ?: "",
-                        application.math_3_1?.toString() ?: "",
-                        application.science_3_1?.toString() ?: "",
-                        application.tech_3_1?.toString() ?: "",
-                        application.english_3_1?.toString() ?: ""
-                    ),
-                    semester2_2 = listOf(
-                        application.korean_2_2?.toString() ?: "",
-                        application.social_2_2?.toString() ?: "",
-                        application.history_2_2?.toString() ?: "",
-                        application.math_2_2?.toString() ?: "",
-                        application.science_2_2?.toString() ?: "",
-                        application.tech_2_2?.toString() ?: "",
-                        application.english_2_2?.toString() ?: ""
-                    ),
-                    semester2_1 = listOf(
-                        application.korean_2_1?.toString() ?: "",
-                        application.social_2_1?.toString() ?: "",
-                        application.history_2_1?.toString() ?: "",
-                        application.math_2_1?.toString() ?: "",
-                        application.science_2_1?.toString() ?: "",
-                        application.tech_2_1?.toString() ?: "",
-                        application.english_2_1?.toString() ?: ""
-                    )
+        return when (application.educationalStatus) {
+            EducationalStatus.GRADUATE -> GradeData(
+                semester3_2 = listOf(
+                    application.korean_3_2?.toString() ?: "",
+                    application.social_3_2?.toString() ?: "",
+                    application.history_3_2?.toString() ?: "",
+                    application.math_3_2?.toString() ?: "",
+                    application.science_3_2?.toString() ?: "",
+                    application.tech_3_2?.toString() ?: "",
+                    application.english_3_2?.toString() ?: ""
+                ),
+                semester3_1 = listOf(
+                    application.korean_3_1?.toString() ?: "",
+                    application.social_3_1?.toString() ?: "",
+                    application.history_3_1?.toString() ?: "",
+                    application.math_3_1?.toString() ?: "",
+                    application.science_3_1?.toString() ?: "",
+                    application.tech_3_1?.toString() ?: "",
+                    application.english_3_1?.toString() ?: ""
+                ),
+                semester2_2 = listOf(
+                    application.korean_2_2?.toString() ?: "",
+                    application.social_2_2?.toString() ?: "",
+                    application.history_2_2?.toString() ?: "",
+                    application.math_2_2?.toString() ?: "",
+                    application.science_2_2?.toString() ?: "",
+                    application.tech_2_2?.toString() ?: "",
+                    application.english_2_2?.toString() ?: ""
+                ),
+                semester2_1 = listOf(
+                    application.korean_2_1?.toString() ?: "",
+                    application.social_2_1?.toString() ?: "",
+                    application.history_2_1?.toString() ?: "",
+                    application.math_2_1?.toString() ?: "",
+                    application.science_2_1?.toString() ?: "",
+                    application.tech_2_1?.toString() ?: "",
+                    application.english_2_1?.toString() ?: ""
                 )
-            }
-            "WILL_GRADUATE" -> {
-                GradeData(
-                    semester3_2 = List(7) { "" },
-                    semester3_1 = listOf(
-                        application.korean_3_1?.toString() ?: "",
-                        application.social_3_1?.toString() ?: "",
-                        application.history_3_1?.toString() ?: "",
-                        application.math_3_1?.toString() ?: "",
-                        application.science_3_1?.toString() ?: "",
-                        application.tech_3_1?.toString() ?: "",
-                        application.english_3_1?.toString() ?: ""
-                    ),
-                    semester2_2 = listOf(
-                        application.korean_2_2?.toString() ?: "",
-                        application.social_2_2?.toString() ?: "",
-                        application.history_2_2?.toString() ?: "",
-                        application.math_2_2?.toString() ?: "",
-                        application.science_2_2?.toString() ?: "",
-                        application.tech_2_2?.toString() ?: "",
-                        application.english_2_2?.toString() ?: ""
-                    ),
-                    semester2_1 = listOf(
-                        application.korean_2_1?.toString() ?: "",
-                        application.social_2_1?.toString() ?: "",
-                        application.history_2_1?.toString() ?: "",
-                        application.math_2_1?.toString() ?: "",
-                        application.science_2_1?.toString() ?: "",
-                        application.tech_2_1?.toString() ?: "",
-                        application.english_2_1?.toString() ?: ""
-                    )
+            )
+            EducationalStatus.PROSPECTIVE_GRADUATE -> GradeData(
+                semester3_2 = List(7) { "" },
+                semester3_1 = listOf(
+                    application.korean_3_1?.toString() ?: "",
+                    application.social_3_1?.toString() ?: "",
+                    application.history_3_1?.toString() ?: "",
+                    application.math_3_1?.toString() ?: "",
+                    application.science_3_1?.toString() ?: "",
+                    application.tech_3_1?.toString() ?: "",
+                    application.english_3_1?.toString() ?: ""
+                ),
+                semester2_2 = listOf(
+                    application.korean_2_2?.toString() ?: "",
+                    application.social_2_2?.toString() ?: "",
+                    application.history_2_2?.toString() ?: "",
+                    application.math_2_2?.toString() ?: "",
+                    application.science_2_2?.toString() ?: "",
+                    application.tech_2_2?.toString() ?: "",
+                    application.english_2_2?.toString() ?: ""
+                ),
+                semester2_1 = listOf(
+                    application.korean_2_1?.toString() ?: "",
+                    application.social_2_1?.toString() ?: "",
+                    application.history_2_1?.toString() ?: "",
+                    application.math_2_1?.toString() ?: "",
+                    application.science_2_1?.toString() ?: "",
+                    application.tech_2_1?.toString() ?: "",
+                    application.english_2_1?.toString() ?: ""
                 )
-            }
-            "QUALIFICATION_EXAM" -> {
+            )
+            EducationalStatus.QUALIFICATION_EXAM -> {
                 val gedGrades = listOf(
                     application.gedKorean?.toString() ?: "",
                     application.gedSocial?.toString() ?: "",
@@ -511,14 +409,6 @@ class PrintApplicationCheckListGenerator {
                     semester2_1 = List(7) { "" }
                 )
             }
-            else -> {
-                GradeData(
-                    semester3_2 = List(7) { "" },
-                    semester3_1 = List(7) { "" },
-                    semester2_2 = List(7) { "" },
-                    semester2_1 = List(7) { "" }
-                )
-            }
         }
     }
     
@@ -529,12 +419,6 @@ class PrintApplicationCheckListGenerator {
         return if (types.isEmpty()) "해당없음" else types.joinToString(", ")
     }
 
-    /**
-     * 전형 타입명을 한글로 변환합니다.
-     *
-     * @param applicationType 영문 전형 타입 코드
-     * @return 한글 전형명
-     */
     private fun translateApplicationType(applicationType: String?): String {
         return when (applicationType) {
             "COMMON" -> "일반전형"
@@ -544,12 +428,6 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    /**
-     * 전화번호를 하이픈이 포함된 형태로 포맷팅합니다.
-     *
-     * @param phoneNumber 포맷팅할 전화번호
-     * @return 하이픈으로 구분된 전화번호 문자열
-     */
     private fun formatPhoneNumber(phoneNumber: String?): String {
         if (phoneNumber.isNullOrBlank()) return ""
         if (phoneNumber.length == 8) {
@@ -558,9 +436,6 @@ class PrintApplicationCheckListGenerator {
         return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
     }
 
-    /**
-     * 테두리 적용 방향을 정의하는 열거형입니다.
-     */
     enum class Direction {
         TOP,
         BOTTOM,

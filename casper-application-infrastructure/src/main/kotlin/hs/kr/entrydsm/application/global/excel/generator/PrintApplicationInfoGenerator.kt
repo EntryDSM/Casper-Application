@@ -111,8 +111,8 @@ class PrintApplicationInfoGenerator {
     }
 
     private fun getGradeColumns(application: Application): List<String> {
-        return when (application.educationalStatus.name) {
-            "GRADUATED" -> {
+        return when (application.educationalStatus) {
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.GRADUATE -> {
                 // 졸업생: 3-2, 3-1, 2-2, 2-1 순서
                 listOf(
                     application.korean_3_2?.toString() ?: "",
@@ -148,7 +148,7 @@ class PrintApplicationInfoGenerator {
                     application.english_2_1?.toString() ?: ""
                 )
             }
-            "WILL_GRADUATE" -> {
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.PROSPECTIVE_GRADUATE -> {
                 // 졸업예정자: 3-1, 2-2, 2-1 순서 (3-2는 아직 없음)
                 listOf(
                     "", "", "", "", "", "", "", // 3-2학기 빈칸
@@ -178,7 +178,7 @@ class PrintApplicationInfoGenerator {
                     application.english_2_1?.toString() ?: ""
                 )
             }
-            "QUALIFICATION_EXAM" -> {
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.QUALIFICATION_EXAM -> {
                 // 검정고시: GED 점수만 표시
                 listOf(
                     application.gedKorean?.toString() ?: "",
@@ -190,7 +190,6 @@ class PrintApplicationInfoGenerator {
                     application.gedEnglish?.toString() ?: ""
                 ) + List(21) { "" } // 나머지 빈칸
             }
-            else -> List(28) { "" }
         }
     }
 
