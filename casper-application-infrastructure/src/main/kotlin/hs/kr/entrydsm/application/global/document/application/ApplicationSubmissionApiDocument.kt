@@ -81,7 +81,5 @@ interface ApplicationSubmissionApiDocument {
     fun cancelApplication(
         @Parameter(description = "사용자 ID", required = true)
         @RequestHeader("Request-User-Id") userId: String,
-        @Parameter(description = "접수번호", required = true, example = "12345")
-        @PathVariable receiptCode: Long,
     ): ResponseEntity<CancelApplicationResponse>
 }

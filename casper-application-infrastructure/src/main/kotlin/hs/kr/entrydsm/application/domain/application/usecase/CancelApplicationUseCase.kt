@@ -15,10 +15,9 @@ class CancelApplicationUseCase(
 ) : CancelApplicationContract {
     override fun cancelApplication(
         userId: UUID,
-        receiptCode: Long,
     ) {
         val application =
-            applicationContract.getApplicationByReceiptCode(receiptCode)
+            applicationContract.getApplicationByUserId(userId)
                 ?: throw ApplicationException(ErrorCode.APPLICATION_NOT_FOUND)
 
         if (application.userId != userId) {
@@ -29,7 +28,7 @@ class CancelApplicationUseCase(
             throw ApplicationException(ErrorCode.APPLICATION_CANNOT_CANCEL)
         }
 
-        applicationContract.updateApplicationStatus(receiptCode, ApplicationStatus.WRITING)
+        applicationContract.updateApplicationStatus(application.receiptCode, ApplicationStatus.WRITING)
     }
 }
 

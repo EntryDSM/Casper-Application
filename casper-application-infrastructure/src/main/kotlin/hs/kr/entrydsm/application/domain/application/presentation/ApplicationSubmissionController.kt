@@ -154,7 +154,6 @@ class ApplicationSubmissionController(
     @DeleteMapping("/{receiptCode}")
     override fun cancelApplication(
         @RequestHeader("Request-User-Id") userId: String,
-        @PathVariable receiptCode: Long,
     ): ResponseEntity<CancelApplicationResponse> {
         val userUuid =
             try {
@@ -163,7 +162,7 @@ class ApplicationSubmissionController(
                 throw ApplicationValidationException("올바르지 않은 사용자 ID 형식입니다")
             }
 
-        cancelApplicationContract.cancelApplication(userUuid, receiptCode)
+        cancelApplicationContract.cancelApplication(userUuid)
 
         return ResponseEntity.ok(
             CancelApplicationResponse(
