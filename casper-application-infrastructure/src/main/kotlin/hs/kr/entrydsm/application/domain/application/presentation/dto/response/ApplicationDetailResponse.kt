@@ -22,7 +22,7 @@ data class ApplicationDetailResponse(
         val reviewedAt: LocalDateTime?,
         val createdAt: LocalDateTime,
         val updatedAt: LocalDateTime,
-        val photoUrl: String?,
+        val photoUrl: String,
         val studyPlan: String?,
         val selfIntroduce: String?,
         val isDaejeon: Boolean,

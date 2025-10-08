@@ -12,6 +12,8 @@ sealed class FileExceptions(
     // 404
     class PathNotFound(message: String = PATH_NOT_FOUND) : FileExceptions(404, message)
 
+    class FileNotFound(message: String = FILE_NOT_FOUND) : FileExceptions(404, message)
+
     // 500
     class IOInterrupted(message: String = IO_INTERRUPTED) : FileExceptions(500, message)
 
@@ -19,5 +21,6 @@ sealed class FileExceptions(
         private const val NOT_VALID_CONTENT = "파일의 내용이 올바르지 않습니다."
         private const val PATH_NOT_FOUND = "경로를 찾을 수 없습니다."
         private const val IO_INTERRUPTED = "파일 입출력 처리가 중단되었습니다."
+        private const val FILE_NOT_FOUND = "파일을 찾을 수 없습니다."
     }
 }

@@ -8,6 +8,7 @@ import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFou
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
+import hs.kr.entrydsm.application.domain.file.presentation.exception.FileExceptions
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
@@ -46,7 +47,8 @@ class ApplicationQueryUseCase(
             ?: throw StatusExceptions.StatusNotFoundException()
 
         val user = securityAdapter.getCurrentUserId()
-        val photoPath = photoJpaRepository.findByUserId(user)?.photo
+        val photoUrl = photoJpaRepository.findByUserId(user)?.photo
+            ?: throw FileExceptions.FileNotFound()
 
         return ApplicationDetailResponse(
             success = true,
@@ -67,7 +69,7 @@ class ApplicationQueryUseCase(
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
-                    photoUrl = photoPath?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) } ?: "",
+                    photoUrl = photoUrl.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) },
                     studyPlan = application.studyPlan,
                     selfIntroduce = application.selfIntroduce,
                     isDaejeon = application.isDaejeon,
