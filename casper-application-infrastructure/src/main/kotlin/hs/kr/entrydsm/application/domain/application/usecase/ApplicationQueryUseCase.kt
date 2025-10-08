@@ -63,7 +63,7 @@ class ApplicationQueryUseCase(
                     birthDate = application.birthDate,
                     applicationType = application.applicationType.name,
                     educationalStatus = application.educationalStatus.name,
-                    status = status.applicationStatus.name,
+                    status = application.status.name,
                     submittedAt = application.submittedAt,
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
