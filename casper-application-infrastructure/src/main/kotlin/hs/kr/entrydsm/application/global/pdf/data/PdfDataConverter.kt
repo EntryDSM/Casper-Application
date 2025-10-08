@@ -136,8 +136,9 @@ class PdfDataConverter(
         when (application.educationalStatus) {
             EducationalStatus.GRADUATE -> {
                 // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
-                if (application.graduationDate != null) {
-                    val parts = application.graduationDate.split("-")
+                val graduationDate = application.graduationDate
+                if (graduationDate != null && graduationDate.isNotBlank()) {
+                    val parts = graduationDate.split("-")
                     val year = parts[0]
                     val month = parts[1].toIntOrNull()?.toString() ?: "8"
                     val day = parts[2].toIntOrNull()?.toString() ?: "18"
@@ -162,8 +163,9 @@ class PdfDataConverter(
             }
             EducationalStatus.PROSPECTIVE_GRADUATE -> {
                 // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
-                if (application.graduationDate != null) {
-                    val parts = application.graduationDate.split("-")
+                val graduationDate = application.graduationDate
+                if (graduationDate != null && graduationDate.isNotBlank()) {
+                    val parts = graduationDate.split("-")
                     val year = parts[0]
                     val month = parts[1].toIntOrNull()?.toString() ?: "2"
                     val day = parts[2].toIntOrNull()?.toString() ?: "28"
@@ -186,8 +188,9 @@ class PdfDataConverter(
             }
             EducationalStatus.QUALIFICATION_EXAM -> {
                 // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
-                if (application.graduationDate != null) {
-                    val parts = application.graduationDate.split("-")
+                val graduationDate = application.graduationDate
+                if (graduationDate != null && graduationDate.isNotBlank()) {
+                    val parts = graduationDate.split("-")
                     val year = parts[0]
                     val month = parts[1].toIntOrNull()?.toString() ?: "8"
                     val day = parts[2].toIntOrNull()?.toString() ?: "18"
