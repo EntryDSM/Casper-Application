@@ -133,35 +133,78 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val currentYear = LocalDate.now().year
-        val currentMonth = LocalDate.now().monthValue
-        val graduationMonth = if (currentMonth <= 2) 2 else 8
-        val graduationDay = if (currentMonth <= 2) 28 else 18
-
         when (application.educationalStatus) {
             EducationalStatus.GRADUATE -> {
-                values["graduateYear"] = currentYear.toString()
-                values["graduateMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 중학교 졸업"
+                // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
+                if (application.graduationDate != null) {
+                    val parts = application.graduationDate.split("-")
+                    val year = parts[0]
+                    val month = parts[1].toIntOrNull()?.toString() ?: "8"
+                    val day = parts[2].toIntOrNull()?.toString() ?: "18"
+                    
+                    values["graduateYear"] = year
+                    values["graduateMonth"] = month
+                    values["educationalStatus"] = "${year}년 ${month}월 ${day}일 중학교 졸업"
+                } else {
+                    val currentYear = LocalDate.now().year
+                    val currentMonth = LocalDate.now().monthValue
+                    val graduationMonth = if (currentMonth <= 2) 2 else 8
+                    val graduationDay = if (currentMonth <= 2) 28 else 18
+                    
+                    values["graduateYear"] = currentYear.toString()
+                    values["graduateMonth"] = graduationMonth.toString()
+                    values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 중학교 졸업"
+                }
                 values["qualificationExamPassedYear"] = ""
                 values["qualificationExamPassedMonth"] = ""
                 values["prospectiveGraduateYear"] = ""
                 values["prospectiveGraduateMonth"] = ""
             }
             EducationalStatus.PROSPECTIVE_GRADUATE -> {
-                val graduateYear = currentYear + 1
-                values["prospectiveGraduateYear"] = graduateYear.toString()
-                values["prospectiveGraduateMonth"] = "2"
-                values["educationalStatus"] = "${graduateYear}년 2월 28일 중학교 졸업예정"
+                // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
+                if (application.graduationDate != null) {
+                    val parts = application.graduationDate.split("-")
+                    val year = parts[0]
+                    val month = parts[1].toIntOrNull()?.toString() ?: "2"
+                    val day = parts[2].toIntOrNull()?.toString() ?: "28"
+                    
+                    values["prospectiveGraduateYear"] = year
+                    values["prospectiveGraduateMonth"] = month
+                    values["educationalStatus"] = "${year}년 ${month}월 ${day}일 중학교 졸업예정"
+                } else {
+                    val currentYear = LocalDate.now().year
+                    val graduateYear = currentYear + 1
+                    
+                    values["prospectiveGraduateYear"] = graduateYear.toString()
+                    values["prospectiveGraduateMonth"] = "2"
+                    values["educationalStatus"] = "${graduateYear}년 2월 28일 중학교 졸업예정"
+                }
                 values["graduateYear"] = ""
                 values["graduateMonth"] = ""
                 values["qualificationExamPassedYear"] = ""
                 values["qualificationExamPassedMonth"] = ""
             }
             EducationalStatus.QUALIFICATION_EXAM -> {
-                values["qualificationExamPassedYear"] = currentYear.toString()
-                values["qualificationExamPassedMonth"] = graduationMonth.toString()
-                values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 검정고시 합격"
+                // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
+                if (application.graduationDate != null) {
+                    val parts = application.graduationDate.split("-")
+                    val year = parts[0]
+                    val month = parts[1].toIntOrNull()?.toString() ?: "8"
+                    val day = parts[2].toIntOrNull()?.toString() ?: "18"
+                    
+                    values["qualificationExamPassedYear"] = year
+                    values["qualificationExamPassedMonth"] = month
+                    values["educationalStatus"] = "${year}년 ${month}월 ${day}일 검정고시 합격"
+                } else {
+                    val currentYear = LocalDate.now().year
+                    val currentMonth = LocalDate.now().monthValue
+                    val graduationMonth = if (currentMonth <= 2) 2 else 8
+                    val graduationDay = if (currentMonth <= 2) 28 else 18
+                    
+                    values["qualificationExamPassedYear"] = currentYear.toString()
+                    values["qualificationExamPassedMonth"] = graduationMonth.toString()
+                    values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 검정고시 합격"
+                }
                 values["graduateYear"] = ""
                 values["graduateMonth"] = ""
                 values["prospectiveGraduateYear"] = ""
