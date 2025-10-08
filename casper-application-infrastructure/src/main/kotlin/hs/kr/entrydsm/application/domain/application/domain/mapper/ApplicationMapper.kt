@@ -102,7 +102,11 @@ class ApplicationMapper(
     fun toModel(entity: ApplicationJpaEntity): Application {
         // JSON에서 성적 데이터 파싱
         val scoresMap: Map<String, Any> = try {
-            objectMapper.readValue(entity.scoresData)
+            if (entity.scoresData.isNullOrBlank() || entity.scoresData == "null") {
+                emptyMap()
+            } else {
+                objectMapper.readValue(entity.scoresData)
+            }
         } catch (e: Exception) {
             emptyMap()
         }
