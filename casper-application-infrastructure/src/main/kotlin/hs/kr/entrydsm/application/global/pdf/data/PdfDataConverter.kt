@@ -187,27 +187,9 @@ class PdfDataConverter(
                 values["qualificationExamPassedMonth"] = ""
             }
             EducationalStatus.QUALIFICATION_EXAM -> {
-                // graduationDate가 있으면 사용, 없으면 현재 날짜 기준 계산
-                val graduationDate = application.graduationDate
-                if (graduationDate != null && graduationDate.isNotBlank()) {
-                    val parts = graduationDate.split("-")
-                    val year = parts[0]
-                    val month = parts[1].toIntOrNull()?.toString() ?: "8"
-                    val day = parts[2].toIntOrNull()?.toString() ?: "18"
-                    
-                    values["qualificationExamPassedYear"] = year
-                    values["qualificationExamPassedMonth"] = month
-                    values["educationalStatus"] = "${year}년 ${month}월 ${day}일 검정고시 합격"
-                } else {
-                    val currentYear = LocalDate.now().year
-                    val currentMonth = LocalDate.now().monthValue
-                    val graduationMonth = if (currentMonth <= 2) 2 else 8
-                    val graduationDay = if (currentMonth <= 2) 28 else 18
-                    
-                    values["qualificationExamPassedYear"] = currentYear.toString()
-                    values["qualificationExamPassedMonth"] = graduationMonth.toString()
-                    values["educationalStatus"] = "${currentYear}년 ${graduationMonth}월 ${graduationDay}일 검정고시 합격"
-                }
+                values["qualificationExamPassedYear"] = ""
+                values["qualificationExamPassedMonth"] = ""
+                values["educationalStatus"] = "검정고시 합격"
                 values["graduateYear"] = ""
                 values["graduateMonth"] = ""
                 values["prospectiveGraduateYear"] = ""
