@@ -261,7 +261,8 @@ class ApplicationQueryUseCase(
         }
 
         // 증명사진 조회
-        val photoKey = photoJpaRepository.findByUserId(entity.userId)?.photo
+        val userId = securityAdapter.getCurrentUserId()
+        val photoKey = photoJpaRepository.findByUserId(userId)?.photo
         val photoPath = photoKey?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) }
 
         return Application(

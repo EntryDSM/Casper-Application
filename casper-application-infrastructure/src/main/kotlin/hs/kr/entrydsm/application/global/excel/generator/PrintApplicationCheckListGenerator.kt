@@ -93,41 +93,6 @@ class PrintApplicationCheckListGenerator {
     }
 
     /**
-     * 더미 지원서 데이터를 생성합니다.
-     *
-     * 테스트나 샘플 데이터 생성을 위한 임시 메서드로,
-     * 실제 지원서 정보가 없을 때 사용됩니다.
-     *
-     * @param receiptCode 접수번호
-     * @param name 지원자 이름
-     * @param schoolName 학교명
-     * @return 더미 지원서 데이터 맵
-     */
-    private fun createDummyApplication(
-        receiptCode: Long,
-        name: String,
-        schoolName: String,
-    ): Map<String, Any> {
-        return mapOf(
-            "receiptCode" to receiptCode,
-            "applicationType" to "일반전형",
-            "applicantName" to name,
-            "birthDate" to "2005-03-15",
-            "applicantTel" to "010-1234-5678",
-            "parentTel" to "010-9876-5432",
-            "educationalStatus" to "졸업예정",
-            "applicationRemark" to "해당없음",
-            "isDaejeon" to "대전",
-            "sex" to "남",
-            "schoolName" to schoolName,
-            "graduateYear" to "2024",
-            "studentNumber" to "30315",
-            "phoneNumber" to "010-1234-5678",
-            "parentPhoneNumber" to "010-9876-5432",
-        )
-    }
-
-    /**
      * 지정된 행 오프셋에 대해 시트 포맷을 설정합니다.
      *
      * 셀 병합, 테두리 스타일, 셀 값을 설정하여
@@ -390,58 +355,178 @@ class PrintApplicationCheckListGenerator {
         dh: Int,
     ) {
         getCell(dh + 1, 2).setCellValue(application.receiptCode.toString())
-        getCell(dh + 1, 3).setCellValue(school?.name ?: "")
+        getCell(dh + 1, 3).setCellValue(application.schoolName ?: school?.name ?: "")
         getCell(dh + 1, 6).setCellValue(application.educationalStatus.name)
-        getCell(dh + 1, 7).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
+        getCell(dh + 1, 7).setCellValue(application.graduationDate ?: "")
         getCell(dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
         getCell(dh + 3, 2).setCellValue(application.applicantName)
-        getCell(dh + 3, 6).setCellValue("30315") // TODO: 학번 정보 도메인 없어서 더미값
+        getCell(dh + 3, 6).setCellValue(application.studentId ?: "")
         getCell(dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
         getCell(dh + 4, 2).setCellValue(application.birthDate ?: "")
         getCell(dh + 4, 6).setCellValue(formatPhoneNumber(application.applicantTel))
-        getCell(dh + 5, 1).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
-        getCell(dh + 5, 2).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
+        getCell(dh + 5, 1).setCellValue(getAdditionalType(application))
+        getCell(dh + 5, 2).setCellValue(application.applicantGender?.name ?: "")
         getCell(dh + 5, 6).setCellValue(formatPhoneNumber(application.parentTel))
 
-        // TODO: 출석 관련 도메인이 없어서 더미값 사용
-        getCell(dh + 8, 1).setCellValue("0")
-        getCell(dh + 8, 2).setCellValue("0")
-        getCell(dh + 8, 3).setCellValue("0")
-        getCell(dh + 8, 4).setCellValue("0")
-        getCell(dh + 8, 5).setCellValue("20.0")
-        getCell(dh + 8, 6).setCellValue("30.0")
-        getCell(dh + 8, 7).setCellValue("15.0")
-        getCell(dh + 10, 7).setCellValue("170.5")
+        // 출석 정보
+        val unexcusedAbsence = application.unexcused ?: 0
+        getCell(dh + 8, 1).setCellValue((application.absence ?: 0).toString())
+        getCell(dh + 8, 2).setCellValue((application.tardiness ?: 0).toString())
+        getCell(dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
+        getCell(dh + 8, 4).setCellValue((application.classExit ?: 0).toString())
+        
+        val scoreDetails = application.getScoreDetails()
+        getCell(dh + 8, 5).setCellValue(scoreDetails["출석점수"]?.toString() ?: "0")
+        getCell(dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
+        getCell(dh + 8, 7).setCellValue(scoreDetails["봉사점수"]?.toString() ?: "0")
+        getCell(dh + 10, 7).setCellValue(scoreDetails["교과성적"]?.toString() ?: "0")
 
-        // TODO: 성적 도메인이 없어서 더미값 사용
+        // 성적 정보
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
-        val dummyGrades = listOf("A", "B", "A", "B", "A", "B", "A")
+        val gradeData = getGradeData(application)
+        
         subjects.forEachIndexed { index, subject ->
             val rowIndex = dh + 11 + index
             getCell(rowIndex, 1).setCellValue(subject)
-            getCell(rowIndex, 2).setCellValue(dummyGrades[index])
-            getCell(rowIndex, 3).setCellValue(dummyGrades[index])
-            getCell(rowIndex, 4).setCellValue(dummyGrades[index])
-            getCell(rowIndex, 5).setCellValue(dummyGrades[index])
+            getCell(rowIndex, 2).setCellValue(gradeData.semester3_2[index])
+            getCell(rowIndex, 3).setCellValue(gradeData.semester3_1[index])
+            getCell(rowIndex, 4).setCellValue(gradeData.semester2_2[index])
+            getCell(rowIndex, 5).setCellValue(gradeData.semester2_1[index])
         }
 
-        // TODO: 대회/자격증 도메인이 없어서 더미값 사용
-        getCell(dh + 11, 7).setCellValue("O")
-        getCell(dh + 12, 7).setCellValue("X")
-        getCell(dh + 13, 7).setCellValue("5.0")
+        // 대회/자격증 정보
+        getCell(dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
+        getCell(dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
+        getCell(dh + 13, 7).setCellValue(scoreDetails["가산점"]?.toString() ?: "0")
 
-        // TODO: Score 도메인이 없어서 더미값 사용
-        getCell(dh + 18, 2).setCellValue("180.0")
-        getCell(dh + 18, 3).setCellValue("170.0")
-        getCell(dh + 18, 4).setCellValue("165.0")
-        getCell(dh + 18, 5).setCellValue("160.0")
-        getCell(dh + 18, 7).setCellValue("170.5")
-        getCell(dh + 19, 7).setCellValue("210.5")
+        // 학기별 점수
+        getCell(dh + 18, 2).setCellValue(scoreDetails["3-2학기"]?.toString() ?: "0")
+        getCell(dh + 18, 3).setCellValue(scoreDetails["3-1학기"]?.toString() ?: "0")
+        getCell(dh + 18, 4).setCellValue(scoreDetails["2-2학기"]?.toString() ?: "0")
+        getCell(dh + 18, 5).setCellValue(scoreDetails["2-1학기"]?.toString() ?: "0")
+        getCell(dh + 18, 7).setCellValue(scoreDetails["환산점수"]?.toString() ?: "0")
+        getCell(dh + 19, 7).setCellValue(application.totalScore?.toString() ?: "0")
 
         setRowHeight(dh + 2, 10)
         setRowHeight(dh + 6, 10)
         setRowHeight(dh + 9, 10)
         setRowHeight(dh + 0, 71)
+    }
+    
+    private data class GradeData(
+        val semester3_2: List<String>,
+        val semester3_1: List<String>,
+        val semester2_2: List<String>,
+        val semester2_1: List<String>
+    )
+    
+    private fun getGradeData(application: Application): GradeData {
+        return when (application.educationalStatus.name) {
+            "GRADUATED" -> {
+                GradeData(
+                    semester3_2 = listOf(
+                        application.korean_3_2?.toString() ?: "",
+                        application.social_3_2?.toString() ?: "",
+                        application.history_3_2?.toString() ?: "",
+                        application.math_3_2?.toString() ?: "",
+                        application.science_3_2?.toString() ?: "",
+                        application.tech_3_2?.toString() ?: "",
+                        application.english_3_2?.toString() ?: ""
+                    ),
+                    semester3_1 = listOf(
+                        application.korean_3_1?.toString() ?: "",
+                        application.social_3_1?.toString() ?: "",
+                        application.history_3_1?.toString() ?: "",
+                        application.math_3_1?.toString() ?: "",
+                        application.science_3_1?.toString() ?: "",
+                        application.tech_3_1?.toString() ?: "",
+                        application.english_3_1?.toString() ?: ""
+                    ),
+                    semester2_2 = listOf(
+                        application.korean_2_2?.toString() ?: "",
+                        application.social_2_2?.toString() ?: "",
+                        application.history_2_2?.toString() ?: "",
+                        application.math_2_2?.toString() ?: "",
+                        application.science_2_2?.toString() ?: "",
+                        application.tech_2_2?.toString() ?: "",
+                        application.english_2_2?.toString() ?: ""
+                    ),
+                    semester2_1 = listOf(
+                        application.korean_2_1?.toString() ?: "",
+                        application.social_2_1?.toString() ?: "",
+                        application.history_2_1?.toString() ?: "",
+                        application.math_2_1?.toString() ?: "",
+                        application.science_2_1?.toString() ?: "",
+                        application.tech_2_1?.toString() ?: "",
+                        application.english_2_1?.toString() ?: ""
+                    )
+                )
+            }
+            "WILL_GRADUATE" -> {
+                GradeData(
+                    semester3_2 = List(7) { "" },
+                    semester3_1 = listOf(
+                        application.korean_3_1?.toString() ?: "",
+                        application.social_3_1?.toString() ?: "",
+                        application.history_3_1?.toString() ?: "",
+                        application.math_3_1?.toString() ?: "",
+                        application.science_3_1?.toString() ?: "",
+                        application.tech_3_1?.toString() ?: "",
+                        application.english_3_1?.toString() ?: ""
+                    ),
+                    semester2_2 = listOf(
+                        application.korean_2_2?.toString() ?: "",
+                        application.social_2_2?.toString() ?: "",
+                        application.history_2_2?.toString() ?: "",
+                        application.math_2_2?.toString() ?: "",
+                        application.science_2_2?.toString() ?: "",
+                        application.tech_2_2?.toString() ?: "",
+                        application.english_2_2?.toString() ?: ""
+                    ),
+                    semester2_1 = listOf(
+                        application.korean_2_1?.toString() ?: "",
+                        application.social_2_1?.toString() ?: "",
+                        application.history_2_1?.toString() ?: "",
+                        application.math_2_1?.toString() ?: "",
+                        application.science_2_1?.toString() ?: "",
+                        application.tech_2_1?.toString() ?: "",
+                        application.english_2_1?.toString() ?: ""
+                    )
+                )
+            }
+            "QUALIFICATION_EXAM" -> {
+                val gedGrades = listOf(
+                    application.gedKorean?.toString() ?: "",
+                    application.gedSocial?.toString() ?: "",
+                    application.gedHistory?.toString() ?: "",
+                    application.gedMath?.toString() ?: "",
+                    application.gedScience?.toString() ?: "",
+                    application.gedTech?.toString() ?: "",
+                    application.gedEnglish?.toString() ?: ""
+                )
+                GradeData(
+                    semester3_2 = gedGrades,
+                    semester3_1 = List(7) { "" },
+                    semester2_2 = List(7) { "" },
+                    semester2_1 = List(7) { "" }
+                )
+            }
+            else -> {
+                GradeData(
+                    semester3_2 = List(7) { "" },
+                    semester3_1 = List(7) { "" },
+                    semester2_2 = List(7) { "" },
+                    semester2_1 = List(7) { "" }
+                )
+            }
+        }
+    }
+    
+    private fun getAdditionalType(application: Application): String {
+        val types = mutableListOf<String>()
+        if (application.nationalMeritChild == true) types.add("국가유공자")
+        if (application.specialAdmissionTarget == true) types.add("특례입학대상자")
+        return if (types.isEmpty()) "해당없음" else types.joinToString(", ")
     }
 
     /**

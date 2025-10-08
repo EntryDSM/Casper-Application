@@ -9,28 +9,12 @@ import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
 import java.io.IOException
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * 전형자료 Excel 파일을 생성하는 Generator입니다.
- *
- * 60개 컬럼으로 구성된 상세한 전형자료를 포함하여 관리자가
- * 지원자의 모든 정보를 종합적으로 확인할 수 있는 Excel 파일을 생성합니다.
- * 개인정보, 성적, 출석, 봉사활동, 가산점 등의 정보가 포함됩니다.
- */
 @Component
 class PrintApplicationInfoGenerator {
-    /**
-     * 전형자료 Excel 파일을 생성하고 HTTP Response로 전송합니다.
-     *
-     * @param httpServletResponse HTTP 응답 객체
-     * @param applications 지원서 목록
-     * @param users 사용자 정보 목록
-     * @param schools 학교 정보 목록
-     * @param statuses 전형 상태 목록
-     * @throws IllegalArgumentException Excel 파일 생성 중 오류 발생 시
-     */
     fun execute(
         httpServletResponse: HttpServletResponse,
         applications: List<Application>,
@@ -70,19 +54,6 @@ class PrintApplicationInfoGenerator {
         }
     }
 
-    /**
-     * Excel Row에 지원자의 상세 전형 정보를 삽입합니다.
-     *
-     * 60개 컬럼에 개인정보부터 학기별 성적, 출석 정보, 봉사활동,
-     * 가산점, 종합 점수까지 모든 정보를 기록합니다.
-     * 도메인에 없는 데이터는 더미값으로 대체됩니다.
-     *
-     * @param row Excel의 Row 객체
-     * @param application 지원서 정보
-     * @param user 사용자 정보 (nullable)
-     * @param school 학교 정보 (nullable)
-     * @param status 전형 상태 정보 (nullable)
-     */
     private fun insertCode(
         row: Row,
         application: Application,
@@ -93,45 +64,143 @@ class PrintApplicationInfoGenerator {
         row.createCell(0).setCellValue(application.receiptCode.toString())
         row.createCell(1).setCellValue(translateApplicationType(application.applicationType.name))
         row.createCell(2).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
-        row.createCell(3).setCellValue("해당없음") // TODO: 추가유형 도메인 없어서 더미값
+        row.createCell(3).setCellValue(getAdditionalType(application))
         row.createCell(4).setCellValue(application.applicantName)
         row.createCell(5).setCellValue(application.birthDate ?: "")
         row.createCell(6).setCellValue("${application.streetAddress ?: ""} ${application.detailAddress ?: ""}")
         row.createCell(7).setCellValue(application.applicantTel)
-        row.createCell(8).setCellValue("남") // TODO: User 도메인에서 성별 정보 필요
+        row.createCell(8).setCellValue(application.applicantGender?.name ?: "")
         row.createCell(9).setCellValue(application.educationalStatus.name)
-        row.createCell(10).setCellValue("2024") // TODO: 졸업년도 도메인 없어서 더미값
-        row.createCell(11).setCellValue(school?.name ?: "")
-        row.createCell(12).setCellValue("3") // TODO: 학급 정보 도메인 없어서 더미값
+        row.createCell(10).setCellValue(application.graduationDate ?: "")
+        row.createCell(11).setCellValue(application.schoolName ?: school?.name ?: "")
+        row.createCell(12).setCellValue(application.studentId ?: "")
         row.createCell(13).setCellValue(application.parentName ?: "")
         row.createCell(14).setCellValue(application.parentTel ?: "")
 
-        // TODO: 성적 도메인이 없어서 더미값 사용
-        val dummyGrades = listOf("A", "B", "A", "B", "A", "B", "A")
-        for (i in 15..42) {
-            row.createCell(i).setCellValue(dummyGrades[(i - 15) % dummyGrades.size])
+        // 성적 정보 (3-2, 3-1, 2-2, 2-1 순서로 각 7개 과목)
+        val gradeColumns = getGradeColumns(application)
+        gradeColumns.forEachIndexed { index, grade ->
+            row.createCell(15 + index).setCellValue(grade)
         }
 
-        // TODO: Score 도메인이 없어서 더미값 사용
-        val scores =
-            listOf(
-                "180.0", "170.0", "165.0", "170.5", "30.0", "15.0", "0", "0", "0", "0",
-                "20.0", "O", "X", "5.0", "210.5", "200.0", status?.examCode ?: "미발급",
-            )
-        for (i in scores.indices) {
-            row.createCell(43 + i).setCellValue(scores[i])
+        // 점수 정보
+        val scoreDetails = application.getScoreDetails()
+        val scores = listOf(
+            scoreDetails["3-2학기"]?.toString() ?: "0",
+            scoreDetails["3-1학기"]?.toString() ?: "0",
+            scoreDetails["2-2학기"]?.toString() ?: "0",
+            scoreDetails["2-1학기"]?.toString() ?: "0",
+            scoreDetails["출석점수"]?.toString() ?: "0",
+            scoreDetails["봉사점수"]?.toString() ?: "0",
+            application.absence?.toString() ?: "0",
+            application.tardiness?.toString() ?: "0",
+            application.earlyLeave?.toString() ?: "0",
+            application.classExit?.toString() ?: "0",
+            scoreDetails["교과성적"]?.toString() ?: "0",
+            if (application.algorithmAward == true) "O" else "X",
+            if (application.infoProcessingCert == true) "O" else "X",
+            scoreDetails["가산점"]?.toString() ?: "0",
+            scoreDetails["환산점수"]?.toString() ?: "0",
+            application.totalScore?.toString() ?: "0",
+            status?.examCode ?: "미발급"
+        )
+
+        scores.forEachIndexed { index, score ->
+            row.createCell(43 + index).setCellValue(score)
         }
     }
 
-    /**
-     * 전형 타입 코드를 한글명으로 변환합니다.
-     *
-     * 영문 코드를 사용자에게 친숙한 한글 전형명으로 변환하며,
-     * 알 수 없는 타입인 경우 기본값으로 "일반전형"을 반환합니다.
-     *
-     * @param applicationType 영문 전형 타입 코드
-     * @return 한글 전형명
-     */
+    private fun getGradeColumns(application: Application): List<String> {
+        return when (application.educationalStatus.name) {
+            "GRADUATED" -> {
+                // 졸업생: 3-2, 3-1, 2-2, 2-1 순서
+                listOf(
+                    application.korean_3_2?.toString() ?: "",
+                    application.social_3_2?.toString() ?: "",
+                    application.history_3_2?.toString() ?: "",
+                    application.math_3_2?.toString() ?: "",
+                    application.science_3_2?.toString() ?: "",
+                    application.tech_3_2?.toString() ?: "",
+                    application.english_3_2?.toString() ?: "",
+
+                    application.korean_3_1?.toString() ?: "",
+                    application.social_3_1?.toString() ?: "",
+                    application.history_3_1?.toString() ?: "",
+                    application.math_3_1?.toString() ?: "",
+                    application.science_3_1?.toString() ?: "",
+                    application.tech_3_1?.toString() ?: "",
+                    application.english_3_1?.toString() ?: "",
+
+                    application.korean_2_2?.toString() ?: "",
+                    application.social_2_2?.toString() ?: "",
+                    application.history_2_2?.toString() ?: "",
+                    application.math_2_2?.toString() ?: "",
+                    application.science_2_2?.toString() ?: "",
+                    application.tech_2_2?.toString() ?: "",
+                    application.english_2_2?.toString() ?: "",
+
+                    application.korean_2_1?.toString() ?: "",
+                    application.social_2_1?.toString() ?: "",
+                    application.history_2_1?.toString() ?: "",
+                    application.math_2_1?.toString() ?: "",
+                    application.science_2_1?.toString() ?: "",
+                    application.tech_2_1?.toString() ?: "",
+                    application.english_2_1?.toString() ?: ""
+                )
+            }
+            "WILL_GRADUATE" -> {
+                // 졸업예정자: 3-1, 2-2, 2-1 순서 (3-2는 아직 없음)
+                listOf(
+                    "", "", "", "", "", "", "", // 3-2학기 빈칸
+
+                    application.korean_3_1?.toString() ?: "",
+                    application.social_3_1?.toString() ?: "",
+                    application.history_3_1?.toString() ?: "",
+                    application.math_3_1?.toString() ?: "",
+                    application.science_3_1?.toString() ?: "",
+                    application.tech_3_1?.toString() ?: "",
+                    application.english_3_1?.toString() ?: "",
+
+                    application.korean_2_2?.toString() ?: "",
+                    application.social_2_2?.toString() ?: "",
+                    application.history_2_2?.toString() ?: "",
+                    application.math_2_2?.toString() ?: "",
+                    application.science_2_2?.toString() ?: "",
+                    application.tech_2_2?.toString() ?: "",
+                    application.english_2_2?.toString() ?: "",
+
+                    application.korean_2_1?.toString() ?: "",
+                    application.social_2_1?.toString() ?: "",
+                    application.history_2_1?.toString() ?: "",
+                    application.math_2_1?.toString() ?: "",
+                    application.science_2_1?.toString() ?: "",
+                    application.tech_2_1?.toString() ?: "",
+                    application.english_2_1?.toString() ?: ""
+                )
+            }
+            "QUALIFICATION_EXAM" -> {
+                // 검정고시: GED 점수만 표시
+                listOf(
+                    application.gedKorean?.toString() ?: "",
+                    application.gedSocial?.toString() ?: "",
+                    application.gedHistory?.toString() ?: "",
+                    application.gedMath?.toString() ?: "",
+                    application.gedScience?.toString() ?: "",
+                    application.gedTech?.toString() ?: "",
+                    application.gedEnglish?.toString() ?: ""
+                ) + List(21) { "" } // 나머지 빈칸
+            }
+            else -> List(28) { "" }
+        }
+    }
+
+    private fun getAdditionalType(application: Application): String {
+        val types = mutableListOf<String>()
+        if (application.nationalMeritChild == true) types.add("국가유공자")
+        if (application.specialAdmissionTarget == true) types.add("특례입학대상자")
+        return if (types.isEmpty()) "해당없음" else types.joinToString(", ")
+    }
+
     private fun translateApplicationType(applicationType: String?): String {
         return when (applicationType) {
             "COMMON" -> "일반전형"
