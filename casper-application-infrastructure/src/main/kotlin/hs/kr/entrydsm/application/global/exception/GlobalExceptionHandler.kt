@@ -109,19 +109,26 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(ApplicationException::class)
     fun handleApplicationException(ex: ApplicationException): ResponseEntity<ErrorResponse> {
-        log.error("ApplicationException: {}", ex.message, ex)
+        val httpStatus = when (ex.code) {
+            "APP001" -> HttpStatus.NOT_FOUND
+            "APP002" -> HttpStatus.FORBIDDEN
+            "APP003" -> HttpStatus.CONFLICT
+            else -> HttpStatus.INTERNAL_SERVER_ERROR
+        }
+
+        log.warn("ApplicationException: code={}, message={}", ex.code, ex.message)
         val errorResponse =
             ErrorResponse(
                 success = false,
                 error =
                     ErrorDetail(
-                        code = "APPLICATION_ERROR",
+                        code = ex.code,
                         message = ex.message ?: "원서 처리 중 오류가 발생했습니다",
-                        details = mapOf("exceptionType" to ex.javaClass.simpleName),
+                        details = null,
                     ),
                 timestamp = LocalDateTime.now().toString(),
             )
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse)
+        return ResponseEntity.status(httpStatus).body(errorResponse)
     }
 
     // ===== 일반 예외 처리 =====
