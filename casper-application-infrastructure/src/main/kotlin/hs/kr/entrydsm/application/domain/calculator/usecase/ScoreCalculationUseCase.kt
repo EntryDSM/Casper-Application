@@ -44,13 +44,6 @@ class ScoreCalculationUseCase(
         logger.info("가산점: ${result.bonusScore}")
         logger.info("총점: ${result.totalScore}")
 
-        val scorePercentage =
-            if (result.totalScore > 0) {
-                (result.totalScore / 300.0) * 100.0
-            } else {
-                0.0
-            }
-
         return CalculateScoreResponse(
             success = true,
             data =
@@ -60,7 +53,6 @@ class ScoreCalculationUseCase(
                     volunteerScore = String.format("%.2f", result.volunteerScore).toDouble(),
                     bonusScore = String.format("%.2f", result.bonusScore).toDouble(),
                     totalScore = String.format("%.2f", result.totalScore).toDouble(),
-                    scorePercentage = String.format("%.2f", scorePercentage).toDouble(),
                 ),
         )
     }

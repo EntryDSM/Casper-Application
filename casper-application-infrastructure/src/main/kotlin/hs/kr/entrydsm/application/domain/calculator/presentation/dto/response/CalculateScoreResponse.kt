@@ -13,7 +13,5 @@ data class CalculateScoreResponse(
         val volunteerScore: Double, // 봉사활동점수 (15점 만점)
         val bonusScore: Double, // 가산점 (일반 3점, 특별 9점)
         val totalScore: Double, // 총점 (300점 만점)
-        val maxScore: Double = 300.0, // 최대 점수
-        val scorePercentage: Double, // 득점률 (%)
     )
 }
