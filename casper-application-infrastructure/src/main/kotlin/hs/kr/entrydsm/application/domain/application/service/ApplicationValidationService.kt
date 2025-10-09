@@ -110,7 +110,7 @@ class ApplicationValidationService {
         validateAttendanceRange(request.tardiness, "지각")
         validateAttendanceRange(request.earlyLeave, "조퇴")
         validateAttendanceRange(request.classExit, "결과")
-        validateAttendanceRange(request.unexcused, "무단")
+        //validateAttendanceRange(request.unexcused, "무단")
 
         // 봉사활동 시간 검증
         if (request.volunteer != null && request.volunteer < 0) {

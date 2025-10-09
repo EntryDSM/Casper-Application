@@ -339,7 +339,7 @@ class ApplicationQueryUseCase(
             tardiness = scores["tardiness"] as? Int,
             earlyLeave = scores["earlyLeave"] as? Int,
             classExit = scores["classExit"] as? Int,
-            unexcused = scores["unexcused"] as? Int,
+            //unexcused = scores["unexcused"] as? Int,
             volunteer = scores["volunteer"] as? Int,
             algorithmAward = (scores["extraScore"] as? Int ?: 0) >= 3,
             infoProcessingCert = (scores["extraScore"] as? Int ?: 0) >= 2,

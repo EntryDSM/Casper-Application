@@ -111,7 +111,7 @@ data class Application(
     val tardiness: Int?,
     val earlyLeave: Int?,
     val classExit: Int?,
-    val unexcused: Int?,
+    //val unexcused: Int?,
     val volunteer: Int?,
     val algorithmAward: Boolean?,
     val infoProcessingCert: Boolean?,

@@ -149,7 +149,7 @@ class ApplicationSubmissionUseCase(
                 tardiness = request.tardiness,
                 earlyLeave = request.earlyLeave,
                 classExit = request.classExit,
-                unexcused = request.unexcused,
+                //unexcused = request.unexcused,
                 volunteer = request.volunteer,
                 algorithmAward = request.algorithmAward,
                 infoProcessingCert = request.infoProcessingCert,

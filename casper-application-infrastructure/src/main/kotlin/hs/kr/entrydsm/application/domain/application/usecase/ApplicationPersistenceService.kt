@@ -121,7 +121,7 @@ class ApplicationPersistenceService(
                 reviewedAt = null,
             )
 
-        applicationCreateEventContract.submitApplicationFinal(receiptCode)
+        //applicationCreateEventContract.submitApplicationFinal(receiptCode)
 
         val savedEntity = applicationRepository.save(entity)
         logger.info("원서 저장 완료: applicationId=${savedEntity.applicationId}, receiptCode=$receiptCode")

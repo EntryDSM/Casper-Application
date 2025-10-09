@@ -58,7 +58,7 @@ class ApplicationMapper(
         model.tardiness?.let { scoresMap["tardiness"] = it }
         model.earlyLeave?.let { scoresMap["earlyLeave"] = it }
         model.classExit?.let { scoresMap["classExit"] = it }
-        model.unexcused?.let { scoresMap["unexcused"] = it }
+        //model.unexcused?.let { scoresMap["unexcused"] = it }
         model.volunteer?.let { scoresMap["volunteer"] = it }
 
         model.algorithmAward?.let { scoresMap["algorithmAward"] = it }
@@ -184,7 +184,7 @@ class ApplicationMapper(
             tardiness = scoresMap["tardiness"] as? Int,
             earlyLeave = scoresMap["earlyLeave"] as? Int,
             classExit = scoresMap["classExit"] as? Int,
-            unexcused = scoresMap["unexcused"] as? Int,
+            //unexcused = scoresMap["unexcused"] as? Int,
             volunteer = scoresMap["volunteer"] as? Int,
             algorithmAward = scoresMap["algorithmAward"] as? Boolean,
             infoProcessingCert = scoresMap["infoProcessingCert"] as? Boolean,

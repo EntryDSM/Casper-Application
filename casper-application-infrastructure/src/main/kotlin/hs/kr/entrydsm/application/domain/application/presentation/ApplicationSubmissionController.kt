@@ -132,7 +132,7 @@ class ApplicationSubmissionController(
         request.tardiness?.let { scoresData["tardiness"] = it }
         request.earlyLeave?.let { scoresData["earlyLeave"] = it }
         request.classExit?.let { scoresData["classExit"] = it }
-        request.unexcused?.let { scoresData["unexcused"] = it }
+        //request.unexcused?.let { scoresData["unexcused"] = it }
 
         // 봉사활동
         request.volunteer?.let { scoresData["volunteer"] = it }

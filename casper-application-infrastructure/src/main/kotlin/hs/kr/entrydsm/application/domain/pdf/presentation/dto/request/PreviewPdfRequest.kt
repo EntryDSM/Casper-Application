@@ -84,7 +84,7 @@ data class PreviewPdfRequest(
     val tardiness: Int? = null,
     val earlyLeave: Int? = null,
     val classExit: Int? = null,
-    val unexcused: Int? = null,
+    //val unexcused: Int? = null,
     val volunteer: Int? = null,
     // 특별 활동
     val algorithmAward: Boolean? = null,

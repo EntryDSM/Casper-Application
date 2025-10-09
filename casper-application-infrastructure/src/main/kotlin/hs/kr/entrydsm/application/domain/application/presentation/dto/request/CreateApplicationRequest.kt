@@ -99,11 +99,11 @@ data class CreateApplicationRequest(
     val gedTech: Int?,
     val gedEnglish: Int?,
     // 출결 및 봉사활동
-    val absence: Int?,
-    val tardiness: Int?,
-    val earlyLeave: Int?,
-    val classExit: Int?,
-    val unexcused: Int?,
+    val absence: Int?,  // 결석 일수
+    val tardiness: Int?,  // 지각
+    val earlyLeave: Int?,  // 조퇴
+    val classExit: Int?,  // 결과
+    //val unexcused: Int?,
     val volunteer: Int?,
     // 특별 활동
     val algorithmAward: Boolean?,
