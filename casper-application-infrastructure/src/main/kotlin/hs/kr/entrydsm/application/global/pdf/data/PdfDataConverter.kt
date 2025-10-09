@@ -167,19 +167,18 @@ class PdfDataConverter(
                 if (graduationDate != null && graduationDate.isNotBlank()) {
                     val parts = graduationDate.split("-")
                     val year = parts[0]
-                    val month = parts[1].toIntOrNull()?.toString() ?: "2"
-                    val day = parts[2].toIntOrNull()?.toString() ?: "28"
+                    val month = parts.getOrNull(1)?.toIntOrNull()?.toString() ?: "2"
                     
                     values["prospectiveGraduateYear"] = year
                     values["prospectiveGraduateMonth"] = month
-                    values["educationalStatus"] = "${year}년 ${month}월 ${day}일 중학교 졸업예정"
+                    values["educationalStatus"] = "${year}년 ${month}월 중학교 졸업예정"
                 } else {
                     val currentYear = LocalDate.now().year
                     val graduateYear = currentYear + 1
                     
                     values["prospectiveGraduateYear"] = graduateYear.toString()
                     values["prospectiveGraduateMonth"] = "2"
-                    values["educationalStatus"] = "${graduateYear}년 2월 28일 중학교 졸업예정"
+                    values["educationalStatus"] = "${graduateYear}년 2월 중학교 졸업예정"
                 }
                 values["graduateYear"] = ""
                 values["graduateMonth"] = ""

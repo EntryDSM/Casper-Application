@@ -236,8 +236,8 @@
             <tr>
                 <td style="border: none; width: 70%; vertical-align: top;">
                     <div style="text-align: center; margin-bottom: 8px;">
-                        <div>지원자 : <span th:text="${userName}"></span> (서명 또는 인)</div>
-                        <div>보호자 : <span th:text="${parentName}"></span> (서명 또는 인)</div>
+                        <div>지원자 : <span th:text="${userName}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (서명 또는 인)</div>
+                        <div>보호자 : <span th:text="${parentName}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (서명 또는 인)</div>
                     </div>
                     <div style="font-weight: bold; margin-top: 10px;">대덕소프트웨어마이스터고등학교장 귀하</div>
                 </td>
@@ -246,13 +246,11 @@
                     <div style="margin-top: 8px;">위 학생은 국가유공자자녀임을 확인함.</div>
                     <div style="text-align: center; margin-top: 8px;">
                         <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${year}">2025</span>년
-                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${month}"></span>월
-                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${day}"></span>일
+                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${month}"> &nbsp;&nbsp;&nbsp;</span>월
+                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${day}"> &nbsp;&nbsp;&nbsp;</span>일
                     </div>
-                    <div style="margin-top: 8px; display: flex; align-items: center;">
-                        <span style="white-space: nowrap;">교사:</span>
-                        <span style="flex: 1; min-width: 80px; margin: 0 5px;" th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>
-                        <span style="white-space: nowrap;">(서명 또는 인)</span>
+                    <div style="margin-top: 8px;">
+                        교사: <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (서명 또는 인)
                     </div>
                 </td>
             </tr>
