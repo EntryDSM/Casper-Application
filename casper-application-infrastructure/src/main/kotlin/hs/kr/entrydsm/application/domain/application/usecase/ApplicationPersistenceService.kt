@@ -10,6 +10,7 @@ import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFou
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
 import hs.kr.entrydsm.application.domain.application.exception.InvalidApplicationTypeException
 import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationCreateEventContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
@@ -31,6 +32,7 @@ class ApplicationPersistenceService(
     private val applicationRepository: ApplicationJpaRepository,
     private val scoreCalculator: ScoreCalculator,
     private val objectMapper: ObjectMapper,
+    private val applicationCreateEventContract: ApplicationCreateEventContract
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -118,6 +120,8 @@ class ApplicationPersistenceService(
                 submittedAt = LocalDateTime.now(),
                 reviewedAt = null,
             )
+
+        applicationCreateEventContract.submitApplicationFinal(receiptCode)
 
         val savedEntity = applicationRepository.save(entity)
         logger.info("원서 저장 완료: applicationId=${savedEntity.applicationId}, receiptCode=$receiptCode")
