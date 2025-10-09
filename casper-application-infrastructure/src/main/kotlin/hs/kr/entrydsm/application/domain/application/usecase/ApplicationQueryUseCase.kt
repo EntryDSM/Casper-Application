@@ -43,8 +43,8 @@ class ApplicationQueryUseCase(
             applicationRepository.findById(uuid)
                 .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
-        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
-            ?: throw StatusExceptions.StatusNotFoundException()
+//        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+//            ?: throw StatusExceptions.StatusNotFoundException()
 
         val user = securityAdapter.getCurrentUserId()
         val photoPath = photoJpaRepository.findByUserId(user)?.photo
