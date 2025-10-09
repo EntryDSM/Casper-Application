@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.event.dto.CreateApplicationEvent
 import hs.kr.entrydsm.application.global.kafka.configuration.KafkaTopics
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationCreateEventContract
+import hs.kr.entrydsm.domain.application.interfaces.ApplicationDeleteEventContract
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -24,7 +25,8 @@ class ApplicationEventProducer(
     private val submitApplicationFinalTemplate: KafkaTemplate<String, Any>,
     private val createApplicationScoreRollbackTemplate: KafkaTemplate<String, Any>,
     private val updateEducationalStatusTemplate: KafkaTemplate<String, Any>,
-) : ApplicationCreateEventContract {
+    private val deleteStatusTemplate: KafkaTemplate<String, Any>
+) : ApplicationCreateEventContract, ApplicationDeleteEventContract {
     /**
      * 원서 생성 이벤트를 발행합니다.
      *
@@ -92,6 +94,13 @@ class ApplicationEventProducer(
         updateEducationalStatusTemplate.send(
             KafkaTopics.UPDATE_EDUCATIONAL_STATUS,
             mapper.writeValueAsString(updateEvent),
+        )
+    }
+
+    override fun deleteStatus(receiptCode: Long) {
+        deleteStatusTemplate.send(
+            KafkaTopics.DELETE_STATUS,
+            receiptCode
         )
     }
 }
