@@ -44,8 +44,10 @@ class ApplicationSubmissionUseCase(
         // validationService.validateCreateApplicationRequest(request)
 
         // 중복 원서 제출 방지
-        val existingApplications = applicationRepository.findAllByUserId(userId)
-        if (existingApplications.isNotEmpty()) {
+        val existingSubmittedApplication = applicationRepository.findAllByUserId(userId)
+            .firstOrNull { it.status == ApplicationStatus.SUBMITTED }
+        
+        if (existingSubmittedApplication != null) {
             throw IllegalStateException("이미 제출된 원서가 있습니다")
         }
 
