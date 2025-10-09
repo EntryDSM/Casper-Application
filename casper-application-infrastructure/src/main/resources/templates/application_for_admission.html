@@ -245,9 +245,12 @@
                     <div>보훈번호: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
                     <div style="margin-top: 8px;">위 학생은 국가유공자자녀임을 확인함.</div>
                     <div style="text-align: center; margin-top: 8px;">
-                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${year}">2025</span>년
-                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${month}"> &nbsp;&nbsp;&nbsp;</span>월
-                        <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${day}"> &nbsp;&nbsp;&nbsp;</span>일
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        년
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        월
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        일
                     </div>
                     <div style="margin-top: 8px;">
                         교사: <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (서명 또는 인)
