@@ -10,6 +10,8 @@ import hs.kr.entrydsm.domain.application.values.ApplicationSubmissionStatus
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.Gender
+import hs.kr.entrydsm.domain.file.`object`.PathList
+import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -28,6 +30,7 @@ class ApplicationSubmissionUseCase(
     private val applicationMapper: ApplicationMapper,
     private val validationService: ApplicationValidationService,
     private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository,
+    private val generateFileUrlPort: GenerateFileUrlPort
 ) {
     /**
      * 새로운 원서를 생성합니다.
@@ -52,7 +55,8 @@ class ApplicationSubmissionUseCase(
         }
 
         // 증명사진 조회
-        val photoPath = photoJpaRepository.findByUserId(userId)?.photo
+        val photoKey = photoJpaRepository.findByUserId(userId)?.photo
+        val photoUrl = photoKey?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) }
 
         // 임시 수험번호 (나중에 동적 생성으로 변경)
         val receiptCode = 1000L + System.currentTimeMillis() % 100000
@@ -79,7 +83,7 @@ class ApplicationSubmissionUseCase(
                 createdAt = now,
                 updatedAt = now,
                 isDaejeon = request.isDaejeon,
-                photoPath = photoPath,
+                photoPath = photoUrl,
                 parentRelation = request.parentRelation,
                 postalCode = request.postalCode,
                 detailAddress = request.detailAddress,

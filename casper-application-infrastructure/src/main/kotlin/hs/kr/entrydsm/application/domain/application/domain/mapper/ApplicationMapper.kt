@@ -14,6 +14,19 @@ class ApplicationMapper(
         // 개별 필드를 JSON으로 직렬화
         val scoresMap = mutableMapOf<String, Any?>()
 
+        // 추가 정보 필드들
+        model.streetAddress?.let { scoresMap["streetAddress"] = it }
+        model.applicantGender?.let { scoresMap["applicantGender"] = it.name }
+        model.guardianGender?.let { scoresMap["guardianGender"] = it.name }
+        model.schoolName?.let { scoresMap["schoolName"] = it }
+        model.studentId?.let { scoresMap["studentId"] = it }
+        model.schoolPhone?.let { scoresMap["schoolPhone"] = it }
+        model.teacherName?.let { scoresMap["teacherName"] = it }
+        model.nationalMeritChild?.let { scoresMap["nationalMeritChild"] = it }
+        model.specialAdmissionTarget?.let { scoresMap["specialAdmissionTarget"] = it }
+        model.graduationDate?.let { scoresMap["graduationDate"] = it }
+
+        // 성적 필드들
         model.korean_3_1?.let { scoresMap["korean_3_1"] = it }
         model.social_3_1?.let { scoresMap["social_3_1"] = it }
         model.history_3_1?.let { scoresMap["history_3_1"] = it }
@@ -58,7 +71,6 @@ class ApplicationMapper(
         model.tardiness?.let { scoresMap["tardiness"] = it }
         model.earlyLeave?.let { scoresMap["earlyLeave"] = it }
         model.classExit?.let { scoresMap["classExit"] = it }
-        //model.unexcused?.let { scoresMap["unexcused"] = it }
         model.volunteer?.let { scoresMap["volunteer"] = it }
 
         model.algorithmAward?.let { scoresMap["algorithmAward"] = it }
