@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.domain.application.calculator
 
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import kotlin.math.min
 
@@ -16,6 +17,8 @@ import kotlin.math.min
  */
 @Component
 class ScoreCalculator {
+    private val logger = LoggerFactory.getLogger(ScoreCalculator::class.java)
+
     /**
      * 전형별 점수 계산
      */
@@ -25,7 +28,12 @@ class ScoreCalculator {
         scores: Map<String, Any>,
     ): ScoreResult {
         return try {
+            logger.info("=== ScoreCalculator 입력 ===")
+            logger.info("전형: $applicationType, 학력: $educationalStatus")
+            logger.info("입력 scores 맵 크기: ${scores.size}, 내용: $scores")
+
             val scoreInput = ScoreInput.from(scores)
+            logger.info("파싱된 ScoreInput: $scoreInput")
 
             val subjectScore =
                 calculateSubjectScore(
@@ -198,6 +206,8 @@ class ScoreCalculator {
      * 학기별 7과목 평균 성적 계산 (5점 만점 기준)
      */
     private fun calculateSemesterScore(grades: SemesterGrades): Double {
+        logger.info("  calculateSemesterScore 입력: $grades")
+
         val gradeList =
             listOf(
                 grades.korean,
@@ -209,11 +219,16 @@ class ScoreCalculator {
                 grades.english,
             )
 
+        logger.info("  gradeList: $gradeList")
+
         // 0이 아닌 성적만 필터링 (0은 성적이 없는 것으로 간주)
         val validGrades = gradeList.filter { it > 0 }
 
+        logger.info("  validGrades (0 제외): $validGrades")
+
         // 유효한 성적이 없으면 0 반환
         if (validGrades.isEmpty()) {
+            logger.warn("  유효한 성적이 없습니다. 0.0 반환")
             return 0.0
         }
 
@@ -224,7 +239,10 @@ class ScoreCalculator {
             }
         }
 
-        return validGrades.average()
+        val average = validGrades.average()
+        logger.info("  평균 점수: $average")
+
+        return average
     }
 
     /**
@@ -318,17 +336,36 @@ class ScoreCalculator {
         val infoProcessingCert: Boolean? = null, // 정보처리기능사
     ) {
         companion object {
+            private val logger = LoggerFactory.getLogger(ScoreInput::class.java)
+
             fun from(scores: Map<String, Any>): ScoreInput {
+                logger.info("ScoreInput.from() 시작")
+                logger.info("입력 Map keys: ${scores.keys}")
+
+                val grade3_2 = extractSemesterGrades(scores, "3_2")
+                val grade3_1 = extractSemesterGrades(scores, "3_1")
+                val grade2_2 = extractSemesterGrades(scores, "2_2")
+                val grade2_1 = extractSemesterGrades(scores, "2_1")
+                val gedScores = extractGedScores(scores)
+                val attendance = extractAttendance(scores)
+                val volunteerHours = getIntOrNull(scores, "volunteer")
+                val algorithmAward = getBooleanOrNull(scores, "algorithmAward")
+                val infoProcessingCert = getBooleanOrNull(scores, "infoProcessingCert")
+
+                logger.info("추출된 학기 성적 - 3_2: $grade3_2, 3_1: $grade3_1, 2_2: $grade2_2, 2_1: $grade2_1")
+                logger.info("검정고시 성적: $gedScores")
+                logger.info("출결: $attendance, 봉사: $volunteerHours, 알고리즘: $algorithmAward, 정보처리: $infoProcessingCert")
+
                 return ScoreInput(
-                    grade3_2 = extractSemesterGrades(scores, "3_2"),
-                    grade3_1 = extractSemesterGrades(scores, "3_1"),
-                    grade2_2 = extractSemesterGrades(scores, "2_2"),
-                    grade2_1 = extractSemesterGrades(scores, "2_1"),
-                    gedScores = extractGedScores(scores),
-                    attendance = extractAttendance(scores),
-                    volunteerHours = getIntOrNull(scores, "volunteer"),
-                    algorithmAward = getBooleanOrNull(scores, "algorithmAward"),
-                    infoProcessingCert = getBooleanOrNull(scores, "infoProcessingCert"),
+                    grade3_2 = grade3_2,
+                    grade3_1 = grade3_1,
+                    grade2_2 = grade2_2,
+                    grade2_1 = grade2_1,
+                    gedScores = gedScores,
+                    attendance = attendance,
+                    volunteerHours = volunteerHours,
+                    algorithmAward = algorithmAward,
+                    infoProcessingCert = infoProcessingCert,
                 )
             }
 
@@ -336,6 +373,8 @@ class ScoreCalculator {
                 scores: Map<String, Any>,
                 semester: String,
             ): SemesterGrades? {
+                logger.info("  extractSemesterGrades for semester $semester")
+
                 val korean = getIntOrNull(scores, "korean_$semester") ?: 0
                 val social = getIntOrNull(scores, "social_$semester") ?: 0
                 val history = getIntOrNull(scores, "history_$semester") ?: 0
@@ -344,13 +383,18 @@ class ScoreCalculator {
                 val tech = getIntOrNull(scores, "tech_$semester") ?: 0
                 val english = getIntOrNull(scores, "english_$semester") ?: 0
 
+                logger.info("    추출된 값 - 국어: $korean, 사회: $social, 역사: $history, 수학: $math, 과학: $science, 기술: $tech, 영어: $english")
+
                 // 적어도 하나의 과목이라도 있으면 해당 학기 성적으로 인정
                 // 없는 과목은 0으로 처리되며, calculateSemesterScore에서 0은 제외됨
                 return if (korean > 0 || social > 0 || history > 0 ||
                     math > 0 || science > 0 || tech > 0 || english > 0
                 ) {
-                    SemesterGrades(korean, social, history, math, science, tech, english)
+                    val result = SemesterGrades(korean, social, history, math, science, tech, english)
+                    logger.info("    -> SemesterGrades 생성: $result")
+                    result
                 } else {
+                    logger.info("    -> 모든 성적이 0이므로 null 반환")
                     null
                 }
             }
