@@ -73,4 +73,6 @@ object KafkaTopics {
      * 상태 생성 실패 시 보상 트랜잭션을 위해 사용
      */
     const val CREATE_APPLICATION_STATUS_ROLLBACK = "create-application-status-rollback"
+
+    const val DELETE_STATUS = "delete-status"
 }

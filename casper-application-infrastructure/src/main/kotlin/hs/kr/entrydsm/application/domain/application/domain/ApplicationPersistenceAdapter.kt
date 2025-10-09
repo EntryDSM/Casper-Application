@@ -90,4 +90,8 @@ class ApplicationPersistenceAdapter(
             applicationJpaRepository.save(applicationEntity)
         }
     }
+
+    override fun delete(application: Application) {
+        applicationJpaRepository.delete(applicationMapper.toEntity(application))
+    }
 }

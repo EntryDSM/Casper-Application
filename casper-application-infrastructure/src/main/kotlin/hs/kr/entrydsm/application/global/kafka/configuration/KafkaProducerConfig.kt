@@ -180,6 +180,16 @@ class KafkaProducerConfig(
         return DefaultKafkaProducerFactory(producerConfig())
     }
 
+    @Bean
+    fun deleteStatusTemplate(): KafkaTemplate<String, Any> {
+        return KafkaTemplate(deleteStatusProducerFactory())
+    }
+
+    @Bean
+    fun deleteStatusProducerFactory(): DefaultKafkaProducerFactory<String, Any> {
+        return DefaultKafkaProducerFactory(producerConfig())
+    }
+
     /**
      * Kafka Producer의 기본 설정을 구성합니다.
      *
