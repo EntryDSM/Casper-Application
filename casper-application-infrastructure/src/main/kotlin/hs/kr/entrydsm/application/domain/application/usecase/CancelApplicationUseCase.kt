@@ -27,7 +27,7 @@ class CancelApplicationUseCase(
             throw ApplicationCannotCancelException()
         }
 
-        applicationDeleteEventContract.deleteStatus(application.receiptCode)
+        //applicationDeleteEventContract.deleteStatus(application.receiptCode)
         applicationContract.delete(application)
     }
 }

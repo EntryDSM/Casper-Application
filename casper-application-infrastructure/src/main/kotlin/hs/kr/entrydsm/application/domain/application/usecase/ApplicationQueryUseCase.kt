@@ -151,7 +151,8 @@ class ApplicationQueryUseCase(
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon,
                                 isSubmitted = true,
-                                isArrived = isArrivedDocuments(app),
+                                isArrived = false // 임시 하드 코딩
+//                                isArrived = isArrivedDocuments(app),
                             )
                         },
                     total = totalElements,
