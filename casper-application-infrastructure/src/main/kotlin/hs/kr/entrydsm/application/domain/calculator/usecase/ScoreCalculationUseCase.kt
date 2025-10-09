@@ -5,6 +5,7 @@ import hs.kr.entrydsm.application.domain.calculator.presentation.dto.request.Cal
 import hs.kr.entrydsm.application.domain.calculator.presentation.dto.response.CalculateScoreResponse
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -16,16 +17,32 @@ import org.springframework.stereotype.Service
 class ScoreCalculationUseCase(
     private val scoreCalculator: ScoreCalculator,
 ) {
+    private val logger = LoggerFactory.getLogger(ScoreCalculationUseCase::class.java)
+
     fun calculateScore(request: CalculateScoreRequest): CalculateScoreResponse {
         val applicationType = ApplicationType.fromString(request.applicationType)
         val educationalStatus = EducationalStatus.fromString(request.educationalStatus)
+
+        val scoresMap = request.scores.toMap()
+
+        logger.info("=== 성적 계산 요청 ===")
+        logger.info("전형 타입: $applicationType")
+        logger.info("학력 상태: $educationalStatus")
+        logger.info("입력 점수 맵: $scoresMap")
 
         val result =
             scoreCalculator.calculateScore(
                 applicationType = applicationType,
                 educationalStatus = educationalStatus,
-                scores = request.scores.toMap(),
+                scores = scoresMap,
             )
+
+        logger.info("=== 성적 계산 결과 ===")
+        logger.info("교과성적: ${result.subjectScore}")
+        logger.info("출석점수: ${result.attendanceScore}")
+        logger.info("봉사점수: ${result.volunteerScore}")
+        logger.info("가산점: ${result.bonusScore}")
+        logger.info("총점: ${result.totalScore}")
 
         val scorePercentage =
             if (result.totalScore > 0) {

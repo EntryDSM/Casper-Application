@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.domain.admin.presentation
 
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.ApplicationStatisticsByGenderResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.ApplicationStatisticsByRegionResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CompetitionRateResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
@@ -89,6 +90,12 @@ class AdminController(
     @GetMapping("/statistics/region")
     override fun getApplicationStatisticsByRegion(): ResponseEntity<ApplicationStatisticsByRegionResponse> {
         val response = adminUseCase.getApplicationStatisticsByRegion()
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/statistics/gender")
+    override fun getApplicationStatisticsByGender(): ResponseEntity<ApplicationStatisticsByGenderResponse> {
+        val response = adminUseCase.getApplicationStatisticsByGender()
         return ResponseEntity.ok(response)
     }
 }

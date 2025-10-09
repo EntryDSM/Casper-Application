@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.global.document.admin
 
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateApplicationTypeRequest
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.request.CreateEducationalStatusRequest
+import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.ApplicationStatisticsByGenderResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.ApplicationStatisticsByRegionResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CompetitionRateResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
@@ -114,4 +115,16 @@ interface AdminApiDocument {
         ],
     )
     fun getApplicationStatisticsByRegion(): ResponseEntity<ApplicationStatisticsByRegionResponse>
+
+    @Operation(summary = "성별별 접수현황 조회", description = "남/여별 접수현황을 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "성별별 접수현황 조회 성공",
+                content = [Content(schema = Schema(implementation = ApplicationStatisticsByGenderResponse::class))],
+            ),
+        ],
+    )
+    fun getApplicationStatisticsByGender(): ResponseEntity<ApplicationStatisticsByGenderResponse>
 }
