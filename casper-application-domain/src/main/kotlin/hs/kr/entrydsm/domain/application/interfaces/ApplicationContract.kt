@@ -9,4 +9,6 @@ interface ApplicationContract : QueryAllFirstRoundPassedApplicationContract {
     fun getApplicationByReceiptCode(receiptCode: Long): Application?
     
     fun updateApplicationStatus(receiptCode: Long, status: hs.kr.entrydsm.domain.status.values.ApplicationStatus)
+
+    fun delete(application: Application)
 }
