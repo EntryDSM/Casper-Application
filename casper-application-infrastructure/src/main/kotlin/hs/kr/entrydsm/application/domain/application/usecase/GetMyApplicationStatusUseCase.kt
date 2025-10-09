@@ -38,7 +38,8 @@ class GetMyApplicationStatusUseCase(
             isSubmitted = status.isSubmitted,
             isPrintedArrived = status.isPrintsArrived,
             selfIntroduce = application.selfIntroduce,
-            studyPlan = application.studyPlan
+            studyPlan = application.studyPlan,
+            applicationType = application.applicationType.name
         )
     }
 }

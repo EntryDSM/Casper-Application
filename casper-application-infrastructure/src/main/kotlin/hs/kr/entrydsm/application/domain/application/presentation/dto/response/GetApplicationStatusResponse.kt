@@ -7,5 +7,6 @@ data class GetApplicationStatusResponse(
     val isSubmitted: Boolean,
     val isPrintedArrived: Boolean,
     val selfIntroduce: String?,
-    val studyPlan: String?
+    val studyPlan: String?,
+    val applicationType: String
 )
