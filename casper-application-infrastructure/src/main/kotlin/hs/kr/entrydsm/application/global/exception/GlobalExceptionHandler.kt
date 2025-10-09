@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.global.exception
 
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationAlreadySubmittedException
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationCannotCancelException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
@@ -105,6 +106,23 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
                 timestamp = LocalDateTime.now().toString(),
             )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(ApplicationCannotCancelException::class)
+    fun handleApplicationCannotCancelException(ex: ApplicationCannotCancelException): ResponseEntity<ErrorResponse> {
+        log.warn("ApplicationCannotCancelException: {}", ex.message)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "APPLICATION_CANNOT_CANCEL",
+                        message = ex.message ?: "제출된 원서만 취소할 수 있습니다",
+                        details = null,
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse)
     }
 
     @ExceptionHandler(ApplicationException::class)

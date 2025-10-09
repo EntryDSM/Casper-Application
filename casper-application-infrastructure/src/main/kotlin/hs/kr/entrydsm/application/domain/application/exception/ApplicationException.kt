@@ -55,3 +55,11 @@ class InvalidApplicationTypeException(
     message: String,
     cause: Throwable? = null,
 ) : ApplicationException(message, cause)
+
+/**
+ * 원서 취소가 불가능할 때 발생하는 예외
+ */
+class ApplicationCannotCancelException(
+    message: String = "제출된 원서만 취소할 수 있습니다",
+    cause: Throwable? = null,
+) : ApplicationException(message, cause)
