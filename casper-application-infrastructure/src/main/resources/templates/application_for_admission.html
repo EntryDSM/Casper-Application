@@ -118,12 +118,12 @@
         </tr>
         <tr>
             <th style="width: 11%">보호자</th>
-            <th style="width: 11%">성명</th>
-            <td style="width: 11%" th:text="${parentName}"></td>
-            <th style="width: 11%">관계</th>
-            <td style="width: 19%" th:text="${parentRelation}"></td>
+            <th style="width: 9%">성명</th>
+            <td style="width: 10%" th:text="${parentName}"></td>
+            <th style="width: 9%">관계</th>
+            <td style="width: 10%" th:text="${parentRelation}"></td>
             <th style="width: 11%">휴대전화</th>
-            <td style="width: 26%" th:text="${parentTel}"></td>
+            <td style="width: 40%; padding: 4px 8px;" th:text="${parentTel}"></td>
         </tr>
         <tr>
             <th style="width: 11%">지역</th>
@@ -249,8 +249,10 @@
                         <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${month}"></span>월
                         <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${day}"></span>일
                     </div>
-                    <div style="margin-top: 8px;">
-                        교사: <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span> (서명 또는 인)
+                    <div style="margin-top: 8px; display: flex; align-items: center;">
+                        <span style="white-space: nowrap;">교사:</span>
+                        <span style="flex: 1; min-width: 80px; margin: 0 5px;" th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>
+                        <span style="white-space: nowrap;">(서명 또는 인)</span>
                     </div>
                 </td>
             </tr>
