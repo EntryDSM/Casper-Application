@@ -4,6 +4,8 @@ import hs.kr.entrydsm.application.domain.application.presentation.dto.request.Ap
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationSubmissionResponse
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import hs.kr.entrydsm.domain.status.exception.StatusExceptions
+import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,6 +21,7 @@ import java.util.UUID
 @Transactional
 class CompleteApplicationUseCase(
     private val applicationPersistenceService: ApplicationPersistenceService,
+    private val applicationQueryStatusContract: ApplicationQueryStatusContract
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -50,7 +53,6 @@ class CompleteApplicationUseCase(
             logger.info("receiptCode: ${savedApplication.receiptCode}")
             logger.info("applicantName: ${savedApplication.applicantName}")
             logger.info("applicationType: ${savedApplication.applicationType}")
-            logger.info("status: ${savedApplication.status}")
 
             // 응답 생성
             return buildSuccessResponse(savedApplication)
@@ -66,6 +68,9 @@ class CompleteApplicationUseCase(
     private fun buildSuccessResponse(
         application: hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity,
     ): ApplicationSubmissionResponse {
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
+
         return ApplicationSubmissionResponse(
             success = true,
             data =
@@ -77,7 +82,7 @@ class CompleteApplicationUseCase(
                             applicantName = application.applicantName,
                             applicationType = application.applicationType.name,
                             educationalStatus = application.educationalStatus.name,
-                            status = application.status.toString(),
+                            status = status.applicationStatus.name,
                             submittedAt = application.submittedAt,
                         ),
                     calculation =
