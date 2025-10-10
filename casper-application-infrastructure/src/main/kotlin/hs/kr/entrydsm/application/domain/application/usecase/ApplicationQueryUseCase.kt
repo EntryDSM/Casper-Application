@@ -49,9 +49,7 @@ class ApplicationQueryUseCase(
 //        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
 //            ?: throw StatusExceptions.StatusNotFoundException()
 
-        val user = securityAdapter.getCurrentUserId()
-        val photoPath = photoJpaRepository.findByUserId(user)?.photo
-            ?: throw FileExceptions.FileNotFound()
+        val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
 
         return ApplicationDetailResponse(
             success = true,
@@ -72,7 +70,7 @@ class ApplicationQueryUseCase(
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
                     updatedAt = application.updatedAt,
-                    photoUrl = generateFileUrlPort.generateFileUrl(photoPath, PathList.PHOTO),
+                    photoUrl = generateFileUrlPort.generateFileUrl(photoPath!!, PathList.PHOTO),
                     studyPlan = application.studyPlan,
                     selfIntroduce = application.selfIntroduce,
                     isDaejeon = application.isDaejeon,
