@@ -139,11 +139,12 @@ class ApplicationSubmissionController(
 
         // 검정고시 성적
         request.gedKorean?.let { scoresData["qualificationKorean"] = it }
-        request.gedMath?.let { scoresData["qualificationMath"] = it }
-        request.gedEnglish?.let { scoresData["qualificationEnglish"] = it }
-        request.gedScience?.let { scoresData["qualificationScience"] = it }
         request.gedSocial?.let { scoresData["qualificationSocial"] = it }
-        request.gedTech?.let { scoresData["qualificationOpt"] = it }
+        request.gedHistory?.let { scoresData["qualificationHistory"] = it }
+        request.gedMath?.let { scoresData["qualificationMath"] = it }
+        request.gedScience?.let { scoresData["qualificationScience"] = it }
+        request.gedEnglish?.let { scoresData["qualificationEnglish"] = it }
+        request.gedTech?.let { scoresData["qualificationTech"] = it }
 
         // 가산점
         var extraScore = 0
