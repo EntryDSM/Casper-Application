@@ -2,6 +2,8 @@ package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.file.`object`.PathList
+import hs.kr.entrydsm.domain.file.spi.GetObjectPort
 import hs.kr.entrydsm.domain.school.aggregate.School
 import hs.kr.entrydsm.domain.status.aggregates.Status
 import hs.kr.entrydsm.domain.user.aggregates.User
@@ -24,7 +26,8 @@ import java.time.format.DateTimeFormatter
 
 @Component
 class PrintAdmissionTicketGenerator(
-    private val photoJpaRepository: PhotoJpaRepository
+    private val photoJpaRepository: PhotoJpaRepository,
+    private val getObjectPort: GetObjectPort
 ) {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
@@ -204,16 +207,15 @@ class PrintAdmissionTicketGenerator(
         targetSheet: Sheet,
         targetRowIndex: Int,
     ) {
-        val photoUrl = photoJpaRepository.findByUserId(application.userId)?.photo
+        val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
         
-        if (photoUrl.isNullOrBlank()) {
+        if (photoPath.isNullOrBlank()) {
             copyDummyImage(targetSheet, targetRowIndex)
             return
         }
 
         try {
-            val imageUrl = java.net.URL(photoUrl)
-            val imageBytes = imageUrl.readBytes()
+            val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
             
             val workbook = targetSheet.workbook
             val pictureId = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG)
