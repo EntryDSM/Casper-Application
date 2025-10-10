@@ -7,6 +7,7 @@ import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 import hs.kr.entrydsm.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
+import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 
 @ReadOnlyUseCase
 class GetFinalApplicationPdfUseCase(
@@ -22,8 +23,8 @@ class GetFinalApplicationPdfUseCase(
         val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
             ?: throw StatusExceptions.StatusNotFoundException()
 
-        if (status.applicationStatus == hs.kr.entrydsm.domain.status.values.ApplicationStatus.WRITING ||
-            status.applicationStatus == hs.kr.entrydsm.domain.status.values.ApplicationStatus.NOT_APPLIED) {
+        if (status.applicationStatus.name == ApplicationStatus.WRITING.name ||
+            status.applicationStatus.name == ApplicationStatus.NOT_APPLIED.name) {
             throw IllegalStateException("제출되지 않은 원서입니다")
         }
 
