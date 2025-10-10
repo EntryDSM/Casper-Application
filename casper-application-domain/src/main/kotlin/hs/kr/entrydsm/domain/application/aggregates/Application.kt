@@ -22,7 +22,6 @@ data class Application(
     val birthDate: String?,
     val applicationType: ApplicationType,
     val educationalStatus: EducationalStatus,
-    val status: ApplicationStatus,
     val streetAddress: String?,
     val submittedAt: LocalDateTime,
     val reviewedAt: LocalDateTime?,

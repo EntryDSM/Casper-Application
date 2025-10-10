@@ -29,7 +29,6 @@ import java.util.UUID
     indexes = [
         Index(name = "idx_user_id", columnList = "user_id"),
         Index(name = "idx_receipt_code", columnList = "receipt_code"),
-        Index(name = "idx_status", columnList = "status"),
         Index(name = "idx_application_type", columnList = "application_type"),
         Index(name = "idx_submitted_at", columnList = "submitted_at"),
     ],
@@ -57,13 +56,8 @@ class ApplicationJpaEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "educational_status", nullable = false, length = 50)
     val educationalStatus: EducationalStatus,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    var status: ApplicationStatus,
     @Column(name = "is_daejeon", nullable = false)
     val isDaejeon: Boolean,
-    @Column(name = "is_arrived", nullable = false)
-    var isArrived: Boolean = false,
     // ===== 보호자 및 주소 정보 =====
     @Column(name = "parent_name", length = 100)
     val parentName: String?,
@@ -125,9 +119,7 @@ class ApplicationJpaEntity(
         birthDate = null,
         applicationType = ApplicationType.COMMON,
         educationalStatus = EducationalStatus.PROSPECTIVE_GRADUATE,
-        status = ApplicationStatus.SUBMITTED,
         isDaejeon = false,
-        isArrived = false,
         parentName = null,
         parentTel = null,
         parentRelation = null,

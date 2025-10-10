@@ -99,7 +99,6 @@ class ApplicationPersistenceService(
                 birthDate = extractStringValue(applicationData, "birthDate"),
                 applicationType = applicationType,
                 educationalStatus = educationalStatus,
-                status = ApplicationStatus.SUBMITTED,
                 isDaejeon = extractBooleanValue(applicationData, "isDaejeon") ?: false,
                 parentName = extractStringValue(applicationData, "parentName"),
                 parentTel = extractStringValue(applicationData, "parentTel"),

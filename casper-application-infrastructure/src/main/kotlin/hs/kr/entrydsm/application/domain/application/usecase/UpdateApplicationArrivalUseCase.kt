@@ -14,15 +14,16 @@ import java.util.UUID
 class UpdateApplicationArrivalUseCase(
     private val applicationRepository: ApplicationJpaRepository,
 ) {
-    fun updateArrivalStatus(
-        applicationId: UUID,
-        isArrived: Boolean,
-    ) {
-        val application =
-            applicationRepository.findById(applicationId)
-                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
-
-        application.isArrived = isArrived
-        applicationRepository.save(application)
-    }
+    // 이거 status에서 해줌
+//    fun updateArrivalStatus(
+//        applicationId: UUID,
+//        isArrived: Boolean,
+//    ) {
+//        val application =
+//            applicationRepository.findById(applicationId)
+//                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
+//
+//        application.isArrived = isArrived
+//        applicationRepository.save(application)
+//    }
 }
