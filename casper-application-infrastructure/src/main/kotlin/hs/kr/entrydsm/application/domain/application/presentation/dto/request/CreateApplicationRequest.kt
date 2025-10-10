@@ -16,7 +16,7 @@ data class CreateApplicationRequest(
     @field:Size(max = 50, message = "지원자 이름은 50자를 초과할 수 없습니다")
     val applicantName: String,
     @field:NotBlank(message = "지원자 전화번호는 필수입니다")
-    @field:Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다 (010-XXXX-XXXX)")
+    @field:Pattern(regexp = "^0\\d{1,2}-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678, 041-521-2451)")
     val applicantTel: String,
     @field:NotBlank(message = "전형 타입은 필수입니다")
     val applicationType: String,
