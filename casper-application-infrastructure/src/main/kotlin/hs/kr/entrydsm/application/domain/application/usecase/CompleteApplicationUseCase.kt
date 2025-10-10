@@ -44,7 +44,13 @@ class CompleteApplicationUseCase(
                     scoresData = request.scores,
                 )
 
-            logger.info("원서 제출 완료: applicationId=${savedApplication.applicationId}, receiptCode=${savedApplication.receiptCode}")
+            logger.info("=== 원서 제출 완료 ===")
+            logger.info("userId: $userId")
+            logger.info("applicationId: ${savedApplication.applicationId}")
+            logger.info("receiptCode: ${savedApplication.receiptCode}")
+            logger.info("applicantName: ${savedApplication.applicantName}")
+            logger.info("applicationType: ${savedApplication.applicationType}")
+            logger.info("status: ${savedApplication.status}")
 
             // 응답 생성
             return buildSuccessResponse(savedApplication)

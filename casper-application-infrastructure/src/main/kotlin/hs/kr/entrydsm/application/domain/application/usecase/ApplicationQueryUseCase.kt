@@ -18,6 +18,7 @@ import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
 import hs.kr.entrydsm.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -37,6 +38,8 @@ class ApplicationQueryUseCase(
     private val generateFileUrlPort: GenerateFileUrlPort,
     private val applicationQueryStatusContract: ApplicationQueryStatusContract,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     fun getApplicationById(applicationId: String): ApplicationDetailResponse {
         val uuid = UUID.fromString(applicationId)
         val application =
@@ -91,6 +94,10 @@ class ApplicationQueryUseCase(
         page: Int = 0,
         size: Int = 20,
     ): ApplicationListResponse {
+        logger.info("=== 지원자 목록 조회 ===")
+        logger.info("applicationType: $applicationType, educationalStatus: $educationalStatus, isDaejeon: $isDaejeon")
+        logger.info("page: $page, size: $size")
+
         val applications =
             when {
                 applicationType != null && educationalStatus != null && isDaejeon != null -> {
@@ -126,6 +133,9 @@ class ApplicationQueryUseCase(
             }
 
         val totalElements = applications.size
+        logger.info("조회된 전체 원서 수: $totalElements")
+        logger.info("원서 목록: ${applications.map { "receiptCode=${it.receiptCode}, name=${it.applicantName}, userId=${it.userId}" }}")
+
         val startIndex = page * size
         val endIndex = minOf(startIndex + size, totalElements)
         val pagedApplications =
@@ -134,6 +144,8 @@ class ApplicationQueryUseCase(
             } else {
                 emptyList()
             }
+
+        logger.info("페이징 후 원서 수: ${pagedApplications.size}")
 
         return ApplicationListResponse(
             success = true,
