@@ -75,22 +75,6 @@ class ApplicationPersistenceAdapter(
             .orElse(null)
     }
 
-    /**
-     * 원서 상태를 업데이트합니다.
-     *
-     * @param receiptCode 접수번호
-     * @param status 변경할 상태
-     */
-    override fun updateApplicationStatus(
-        receiptCode: Long,
-        status: hs.kr.entrydsm.domain.status.values.ApplicationStatus,
-    ) {
-        applicationJpaRepository.findByReceiptCode(receiptCode).ifPresent { applicationEntity ->
-            applicationEntity.status = status
-            applicationJpaRepository.save(applicationEntity)
-        }
-    }
-
     override fun delete(application: Application) {
         applicationJpaRepository.delete(applicationMapper.toEntity(application))
     }
