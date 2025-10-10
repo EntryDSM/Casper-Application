@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
+import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.school.aggregate.School
 import hs.kr.entrydsm.domain.status.aggregates.Status
@@ -12,7 +13,6 @@ import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.util.CellRangeAddress
-import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor
 import org.apache.poi.xssf.usermodel.XSSFDrawing
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -23,7 +23,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Component
-class PrintAdmissionTicketGenerator {
+class PrintAdmissionTicketGenerator(
+    private val photoJpaRepository: PhotoJpaRepository
+) {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
     }
@@ -202,7 +204,7 @@ class PrintAdmissionTicketGenerator {
         targetSheet: Sheet,
         targetRowIndex: Int,
     ) {
-        val photoUrl = application.photoPath
+        val photoUrl = photoJpaRepository.findByUserId(application.userId)?.photo
         
         if (photoUrl.isNullOrBlank()) {
             copyDummyImage(targetSheet, targetRowIndex)
