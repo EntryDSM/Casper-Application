@@ -27,7 +27,6 @@ import java.util.UUID
 class ApplicationQueryController(
     private val applicationQueryUseCase: ApplicationQueryUseCase,
     private val applicationPdfGenerator: ApplicationPdfGenerator,
-    private val updateApplicationArrivalUseCase: UpdateApplicationArrivalUseCase,
     private val getPreviewApplicationPdfUseCase: GetPreviewApplicationPdfUseCase,
 ) : ApplicationQueryApiDocument {
     @GetMapping("/applications/{applicationId}")
@@ -91,29 +90,30 @@ class ApplicationQueryController(
             .body(pdfBytes)
     }
 
-    @PatchMapping("/applications/{applicationId}/arrival")
-    override fun updateArrivalStatus(
-        @PathVariable applicationId: String,
-        @RequestParam isArrived: Boolean,
-    ): ResponseEntity<UpdateApplicationArrivalResponse> {
-        if (applicationId.isBlank()) {
-            throw ApplicationValidationException("원서 ID가 필요합니다")
-        }
-
-        val uuid =
-            try {
-                UUID.fromString(applicationId)
-            } catch (e: IllegalArgumentException) {
-                throw ApplicationValidationException("올바르지 않은 원서 ID 형식입니다")
-            }
-
-        updateApplicationArrivalUseCase.updateArrivalStatus(uuid, isArrived)
-
-        return ResponseEntity.ok(
-            UpdateApplicationArrivalResponse(
-                success = true,
-                message = "학교 도착 여부가 업데이트되었습니다.",
-            ),
-        )
-    }
+    // 이거 status에서 해줌
+//    @PatchMapping("/applications/{applicationId}/arrival")
+//    override fun updateArrivalStatus(
+//        @PathVariable applicationId: String,
+//        @RequestParam isArrived: Boolean,
+//    ): ResponseEntity<UpdateApplicationArrivalResponse> {
+//        if (applicationId.isBlank()) {
+//            throw ApplicationValidationException("원서 ID가 필요합니다")
+//        }
+//
+//        val uuid =
+//            try {
+//                UUID.fromString(applicationId)
+//            } catch (e: IllegalArgumentException) {
+//                throw ApplicationValidationException("올바르지 않은 원서 ID 형식입니다")
+//            }
+//
+//        updateApplicationArrivalUseCase.updateArrivalStatus(uuid, isArrived)
+//
+//        return ResponseEntity.ok(
+//            UpdateApplicationArrivalResponse(
+//                success = true,
+//                message = "학교 도착 여부가 업데이트되었습니다.",
+//            ),
+//        )
+//    }
 }
