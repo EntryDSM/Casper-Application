@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.global.pdf.data
 
+import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
@@ -13,7 +14,8 @@ import java.util.Base64
 
 @Component
 class PdfDataConverter(
-    private val querySchoolContract: QuerySchoolContract
+    private val querySchoolContract: QuerySchoolContract,
+    private val photoJpaRepository: PhotoJpaRepository
 ) {
 
     private val log by lazy { LoggerFactory.getLogger(this::class.java) }
@@ -45,7 +47,7 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        val photoUrl = application.photoPath
+        val photoUrl = photoJpaRepository.findByUserId(application.userId)?.photo
         if (photoUrl.isNullOrBlank()) {
             values["base64Image"] = ""
             return
