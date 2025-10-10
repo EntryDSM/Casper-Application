@@ -40,20 +40,14 @@ class PrintApplicationCheckListGenerator {
             val userMap = users.associateBy { it.id }
             val schoolMap = schools.associateBy { it.code }
             val statusMap = statuses.associateBy { it.receiptCode }
-            
-            // 모든 원서의 점수를 한 번에 미리 계산
-            val scoreDetailsMap = applications.associate { 
-                it.receiptCode to it.getScoreDetails() 
-            }
 
             applications.forEach { application ->
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
                 val school = application.schoolCode?.let { schoolMap[it] }
-                val scoreDetails = scoreDetailsMap[application.receiptCode]!!
 
                 formatSheet(sheet, dh)
-                insertDataIntoSheet(sheet, application, user, school, status, scoreDetails, dh)
+                insertDataIntoSheet(sheet, application, user, school, status, dh)
                 dh += 20
             }
 
@@ -270,7 +264,6 @@ class PrintApplicationCheckListGenerator {
         user: User?,
         school: School?,
         status: Status?,
-        scoreDetails: Map<String, BigDecimal>,
         dh: Int,
     ) {
         getCell(sheet, dh + 1, 2).setCellValue(application.receiptCode.toString())
@@ -292,10 +285,16 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
         getCell(sheet, dh + 8, 4).setCellValue((application.classExit ?: 0).toString())
         
-        getCell(sheet, dh + 8, 5).setCellValue(scoreDetails["출석점수"]?.toString() ?: "0")
+        val attendanceScore = calculateAttendanceScore(application)
+        getCell(sheet, dh + 8, 5).setCellValue(attendanceScore.toString())
+        
         getCell(sheet, dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
-        getCell(sheet, dh + 8, 7).setCellValue(scoreDetails["봉사점수"]?.toString() ?: "0")
-        getCell(sheet, dh + 10, 7).setCellValue(scoreDetails["교과성적"]?.toString() ?: "0")
+        
+        val volunteerScore = calculateVolunteerScore(application)
+        getCell(sheet, dh + 8, 7).setCellValue(volunteerScore.toString())
+        
+        val subjectScore = calculateSubjectScore(application)
+        getCell(sheet, dh + 10, 7).setCellValue(subjectScore.toString())
 
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
@@ -311,13 +310,17 @@ class PrintApplicationCheckListGenerator {
 
         getCell(sheet, dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
         getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
-        getCell(sheet, dh + 13, 7).setCellValue(scoreDetails["가산점"]?.toString() ?: "0")
+        
+        val bonusScore = calculateBonusScore(application)
+        getCell(sheet, dh + 13, 7).setCellValue(bonusScore.toString())
 
-        getCell(sheet, dh + 18, 2).setCellValue(scoreDetails["3-2학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 3).setCellValue(scoreDetails["3-1학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 4).setCellValue(scoreDetails["2-2학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 5).setCellValue(scoreDetails["2-1학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 7).setCellValue(scoreDetails["환산점수"]?.toString() ?: "0")
+        val semesterScores = calculateSemesterScores(application)
+        getCell(sheet, dh + 18, 2).setCellValue(semesterScores["3-2"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 3).setCellValue(semesterScores["3-1"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 4).setCellValue(semesterScores["2-2"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 5).setCellValue(semesterScores["2-1"]?.toString() ?: "0")
+        
+        getCell(sheet, dh + 18, 7).setCellValue(subjectScore.toString())
         getCell(sheet, dh + 19, 7).setCellValue(application.totalScore?.toString() ?: "0")
 
         setRowHeight(sheet, dh + 2, 10)
@@ -444,6 +447,190 @@ class PrintApplicationCheckListGenerator {
             return phoneNumber.replace("(\\d{4})(\\d{4})".toRegex(), "$1-$2")
         }
         return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
+    }
+    
+    private fun calculateAttendanceScore(application: Application): BigDecimal {
+        val absence = application.absence ?: 0
+        val tardiness = application.tardiness ?: 0
+        val earlyLeave = application.earlyLeave ?: 0
+        val classExit = application.classExit ?: 0
+        
+        val convertedAbsence = absence + (tardiness / 3.0) + (earlyLeave / 3.0) + (classExit / 3.0)
+        val score = 15.0 - convertedAbsence
+        
+        return BigDecimal.valueOf(score.coerceIn(0.0, 15.0))
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateVolunteerScore(application: Application): BigDecimal {
+        val volunteer = application.volunteer ?: 0
+        return BigDecimal.valueOf(volunteer.toDouble().coerceIn(0.0, 15.0))
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateBonusScore(application: Application): BigDecimal {
+        val algorithmScore = if (application.algorithmAward == true) 3.0 else 0.0
+        val certScore = if (application.infoProcessingCert == true) {
+            when (application.applicationType) {
+                hs.kr.entrydsm.domain.application.values.ApplicationType.COMMON -> 0.0
+                else -> 6.0
+            }
+        } else {
+            0.0
+        }
+        
+        return BigDecimal.valueOf(algorithmScore + certScore)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateSubjectScore(application: Application): BigDecimal {
+        val baseScore = when (application.educationalStatus) {
+            EducationalStatus.GRADUATE -> calculateGraduateSubjectScore(application)
+            EducationalStatus.PROSPECTIVE_GRADUATE -> calculateProspectiveSubjectScore(application)
+            EducationalStatus.QUALIFICATION_EXAM -> calculateGedSubjectScore(application)
+        }
+        
+        return when (application.applicationType) {
+            hs.kr.entrydsm.domain.application.values.ApplicationType.COMMON -> 
+                baseScore.multiply(BigDecimal("1.75"))
+            else -> baseScore
+        }
+    }
+    
+    private fun calculateGraduateSubjectScore(application: Application): BigDecimal {
+        val semester3_2Avg = calculateSemesterAverage(
+            application.korean_3_2, application.social_3_2, application.history_3_2,
+            application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
+        )
+        val semester3_1Avg = calculateSemesterAverage(
+            application.korean_3_1, application.social_3_1, application.history_3_1,
+            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+        )
+        val semester2_2Avg = calculateSemesterAverage(
+            application.korean_2_2, application.social_2_2, application.history_2_2,
+            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+        )
+        val semester2_1Avg = calculateSemesterAverage(
+            application.korean_2_1, application.social_2_1, application.history_2_1,
+            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+        )
+        
+        val semester3_2Score = BigDecimal.valueOf(4.0).multiply(semester3_2Avg)
+        val semester3_1Score = BigDecimal.valueOf(4.0).multiply(semester3_1Avg)
+        val semester2_2Score = BigDecimal.valueOf(4.0).multiply(semester2_2Avg)
+        val semester2_1Score = BigDecimal.valueOf(4.0).multiply(semester2_1Avg)
+        
+        return semester3_2Score.add(semester3_1Score).add(semester2_2Score).add(semester2_1Score)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateProspectiveSubjectScore(application: Application): BigDecimal {
+        val semester3_1Avg = calculateSemesterAverage(
+            application.korean_3_1, application.social_3_1, application.history_3_1,
+            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+        )
+        val semester2_2Avg = calculateSemesterAverage(
+            application.korean_2_2, application.social_2_2, application.history_2_2,
+            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+        )
+        val semester2_1Avg = calculateSemesterAverage(
+            application.korean_2_1, application.social_2_1, application.history_2_1,
+            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+        )
+        
+        val semester3_1Score = BigDecimal.valueOf(8.0).multiply(semester3_1Avg)
+        val semester2_2Score = BigDecimal.valueOf(4.0).multiply(semester2_2Avg)
+        val semester2_1Score = BigDecimal.valueOf(4.0).multiply(semester2_1Avg)
+        
+        return semester3_1Score.add(semester2_2Score).add(semester2_1Score)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateGedSubjectScore(application: Application): BigDecimal {
+        val average = calculateSemesterAverage(
+            application.gedKorean, application.gedSocial, application.gedHistory,
+            application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
+        )
+        
+        return BigDecimal.valueOf(16.0).multiply(average)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateSemesterAverage(
+        korean: Int?, social: Int?, history: Int?, 
+        math: Int?, science: Int?, tech: Int?, english: Int?
+    ): BigDecimal {
+        val scores = listOfNotNull(korean, social, history, math, science, tech, english)
+        if (scores.isEmpty()) return BigDecimal.ZERO
+        
+        val sum = scores.sum()
+        return BigDecimal.valueOf(sum.toDouble() / 7.0)
+            .setScale(4, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateSemesterScores(application: Application): Map<String, BigDecimal> {
+        return when (application.educationalStatus) {
+            EducationalStatus.GRADUATE -> {
+                val semester3_2Avg = calculateSemesterAverage(
+                    application.korean_3_2, application.social_3_2, application.history_3_2,
+                    application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
+                )
+                val semester3_1Avg = calculateSemesterAverage(
+                    application.korean_3_1, application.social_3_1, application.history_3_1,
+                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+                )
+                val semester2_2Avg = calculateSemesterAverage(
+                    application.korean_2_2, application.social_2_2, application.history_2_2,
+                    application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+                )
+                val semester2_1Avg = calculateSemesterAverage(
+                    application.korean_2_1, application.social_2_1, application.history_2_1,
+                    application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+                )
+                
+                mapOf(
+                    "3-2" to BigDecimal.valueOf(4.0).multiply(semester3_2Avg).setScale(2, java.math.RoundingMode.HALF_UP),
+                    "3-1" to BigDecimal.valueOf(4.0).multiply(semester3_1Avg).setScale(2, java.math.RoundingMode.HALF_UP),
+                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(2, java.math.RoundingMode.HALF_UP),
+                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                )
+            }
+            EducationalStatus.PROSPECTIVE_GRADUATE -> {
+                val semester3_1Avg = calculateSemesterAverage(
+                    application.korean_3_1, application.social_3_1, application.history_3_1,
+                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+                )
+                val semester2_2Avg = calculateSemesterAverage(
+                    application.korean_2_2, application.social_2_2, application.history_2_2,
+                    application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+                )
+                val semester2_1Avg = calculateSemesterAverage(
+                    application.korean_2_1, application.social_2_1, application.history_2_1,
+                    application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+                )
+                
+                mapOf(
+                    "3-2" to BigDecimal.ZERO,
+                    "3-1" to BigDecimal.valueOf(8.0).multiply(semester3_1Avg).setScale(2, java.math.RoundingMode.HALF_UP),
+                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(2, java.math.RoundingMode.HALF_UP),
+                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                )
+            }
+            EducationalStatus.QUALIFICATION_EXAM -> {
+                val average = calculateSemesterAverage(
+                    application.gedKorean, application.gedSocial, application.gedHistory,
+                    application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
+                )
+                val totalScore = BigDecimal.valueOf(16.0).multiply(average).setScale(2, java.math.RoundingMode.HALF_UP)
+                
+                mapOf(
+                    "3-2" to totalScore,
+                    "3-1" to BigDecimal.ZERO,
+                    "2-2" to BigDecimal.ZERO,
+                    "2-1" to BigDecimal.ZERO
+                )
+            }
+        }
     }
 
     enum class Direction {

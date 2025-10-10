@@ -84,23 +84,31 @@ class PrintApplicationInfoGenerator {
         }
 
         // 점수 정보
-        val scoreDetails = application.getScoreDetails()
+        val semester3_2Score = calculateSemesterScore(application, "3-2")
+        val semester3_1Score = calculateSemesterScore(application, "3-1")
+        val semester2_2Score = calculateSemesterScore(application, "2-2")
+        val semester2_1Score = calculateSemesterScore(application, "2-1")
+        val attendanceScore = calculateAttendanceScore(application)
+        val volunteerScore = calculateVolunteerScore(application)
+        val subjectScore = calculateSubjectScore(application)
+        val bonusScore = calculateBonusScore(application)
+        
         val scores = listOf(
-            scoreDetails["3-2학기"]?.toString() ?: "0",
-            scoreDetails["3-1학기"]?.toString() ?: "0",
-            scoreDetails["2-2학기"]?.toString() ?: "0",
-            scoreDetails["2-1학기"]?.toString() ?: "0",
-            scoreDetails["출석점수"]?.toString() ?: "0",
-            scoreDetails["봉사점수"]?.toString() ?: "0",
+            semester3_2Score.toString(),
+            semester3_1Score.toString(),
+            semester2_2Score.toString(),
+            semester2_1Score.toString(),
+            attendanceScore.toString(),
+            volunteerScore.toString(),
             application.absence?.toString() ?: "0",
             application.tardiness?.toString() ?: "0",
             application.earlyLeave?.toString() ?: "0",
             application.classExit?.toString() ?: "0",
-            scoreDetails["교과성적"]?.toString() ?: "0",
+            subjectScore.toString(),
             if (application.algorithmAward == true) "O" else "X",
             if (application.infoProcessingCert == true) "O" else "X",
-            scoreDetails["가산점"]?.toString() ?: "0",
-            scoreDetails["환산점수"]?.toString() ?: "0",
+            bonusScore.toString(),
+            subjectScore.toString(),
             application.totalScore?.toString() ?: "0",
             status?.examCode ?: "미발급"
         )
@@ -206,6 +214,205 @@ class PrintApplicationInfoGenerator {
             "MEISTER" -> "마이스터전형"
             "SOCIAL" -> "사회통합전형"
             else -> "일반전형"
+        }
+    }
+    
+    private fun calculateAttendanceScore(application: Application): BigDecimal {
+        val absence = application.absence ?: 0
+        val tardiness = application.tardiness ?: 0
+        val earlyLeave = application.earlyLeave ?: 0
+        val classExit = application.classExit ?: 0
+        
+        val convertedAbsence = absence + (tardiness / 3.0) + (earlyLeave / 3.0) + (classExit / 3.0)
+        val score = 15.0 - convertedAbsence
+        
+        return BigDecimal.valueOf(score.coerceIn(0.0, 15.0))
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateVolunteerScore(application: Application): BigDecimal {
+        val volunteer = application.volunteer ?: 0
+        return BigDecimal.valueOf(volunteer.toDouble().coerceIn(0.0, 15.0))
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateBonusScore(application: Application): BigDecimal {
+        val algorithmScore = if (application.algorithmAward == true) 3.0 else 0.0
+        val certScore = if (application.infoProcessingCert == true) {
+            when (application.applicationType) {
+                hs.kr.entrydsm.domain.application.values.ApplicationType.COMMON -> 0.0
+                else -> 6.0
+            }
+        } else {
+            0.0
+        }
+        
+        return BigDecimal.valueOf(algorithmScore + certScore)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateSubjectScore(application: Application): BigDecimal {
+        val baseScore = when (application.educationalStatus) {
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.GRADUATE -> 
+                calculateGraduateSubjectScore(application)
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.PROSPECTIVE_GRADUATE -> 
+                calculateProspectiveSubjectScore(application)
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.QUALIFICATION_EXAM -> 
+                calculateGedSubjectScore(application)
+        }
+        
+        return when (application.applicationType) {
+            hs.kr.entrydsm.domain.application.values.ApplicationType.COMMON -> 
+                baseScore.multiply(BigDecimal("1.75"))
+            else -> baseScore
+        }
+    }
+    
+    private fun calculateGraduateSubjectScore(application: Application): BigDecimal {
+        val semester3_2Avg = calculateSemesterAverage(
+            application.korean_3_2, application.social_3_2, application.history_3_2,
+            application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
+        )
+        val semester3_1Avg = calculateSemesterAverage(
+            application.korean_3_1, application.social_3_1, application.history_3_1,
+            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+        )
+        val semester2_2Avg = calculateSemesterAverage(
+            application.korean_2_2, application.social_2_2, application.history_2_2,
+            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+        )
+        val semester2_1Avg = calculateSemesterAverage(
+            application.korean_2_1, application.social_2_1, application.history_2_1,
+            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+        )
+        
+        val semester3_2Score = BigDecimal.valueOf(4.0).multiply(semester3_2Avg)
+        val semester3_1Score = BigDecimal.valueOf(4.0).multiply(semester3_1Avg)
+        val semester2_2Score = BigDecimal.valueOf(4.0).multiply(semester2_2Avg)
+        val semester2_1Score = BigDecimal.valueOf(4.0).multiply(semester2_1Avg)
+        
+        return semester3_2Score.add(semester3_1Score).add(semester2_2Score).add(semester2_1Score)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateProspectiveSubjectScore(application: Application): BigDecimal {
+        val semester3_1Avg = calculateSemesterAverage(
+            application.korean_3_1, application.social_3_1, application.history_3_1,
+            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+        )
+        val semester2_2Avg = calculateSemesterAverage(
+            application.korean_2_2, application.social_2_2, application.history_2_2,
+            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+        )
+        val semester2_1Avg = calculateSemesterAverage(
+            application.korean_2_1, application.social_2_1, application.history_2_1,
+            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+        )
+        
+        val semester3_1Score = BigDecimal.valueOf(8.0).multiply(semester3_1Avg)
+        val semester2_2Score = BigDecimal.valueOf(4.0).multiply(semester2_2Avg)
+        val semester2_1Score = BigDecimal.valueOf(4.0).multiply(semester2_1Avg)
+        
+        return semester3_1Score.add(semester2_2Score).add(semester2_1Score)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateGedSubjectScore(application: Application): BigDecimal {
+        val average = calculateSemesterAverage(
+            application.gedKorean, application.gedSocial, application.gedHistory,
+            application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
+        )
+        
+        return BigDecimal.valueOf(16.0).multiply(average)
+            .setScale(2, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateSemesterAverage(
+        korean: Int?, social: Int?, history: Int?, 
+        math: Int?, science: Int?, tech: Int?, english: Int?
+    ): BigDecimal {
+        val scores = listOfNotNull(korean, social, history, math, science, tech, english)
+        if (scores.isEmpty()) return BigDecimal.ZERO
+        
+        val sum = scores.sum()
+        return BigDecimal.valueOf(sum.toDouble() / 7.0)
+            .setScale(4, java.math.RoundingMode.HALF_UP)
+    }
+    
+    private fun calculateSemesterScore(application: Application, semester: String): BigDecimal {
+        return when (application.educationalStatus) {
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.GRADUATE -> {
+                when (semester) {
+                    "3-2" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_3_2, application.social_3_2, application.history_3_2,
+                            application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
+                        )
+                        BigDecimal.valueOf(4.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    "3-1" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_3_1, application.social_3_1, application.history_3_1,
+                            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+                        )
+                        BigDecimal.valueOf(4.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    "2-2" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_2_2, application.social_2_2, application.history_2_2,
+                            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+                        )
+                        BigDecimal.valueOf(4.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    "2-1" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_2_1, application.social_2_1, application.history_2_1,
+                            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+                        )
+                        BigDecimal.valueOf(4.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    else -> BigDecimal.ZERO
+                }
+            }
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.PROSPECTIVE_GRADUATE -> {
+                when (semester) {
+                    "3-2" -> BigDecimal.ZERO
+                    "3-1" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_3_1, application.social_3_1, application.history_3_1,
+                            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+                        )
+                        BigDecimal.valueOf(8.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    "2-2" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_2_2, application.social_2_2, application.history_2_2,
+                            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+                        )
+                        BigDecimal.valueOf(4.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    "2-1" -> {
+                        val avg = calculateSemesterAverage(
+                            application.korean_2_1, application.social_2_1, application.history_2_1,
+                            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+                        )
+                        BigDecimal.valueOf(4.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    else -> BigDecimal.ZERO
+                }
+            }
+            hs.kr.entrydsm.domain.application.values.EducationalStatus.QUALIFICATION_EXAM -> {
+                when (semester) {
+                    "3-2" -> {
+                        val avg = calculateSemesterAverage(
+                            application.gedKorean, application.gedSocial, application.gedHistory,
+                            application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
+                        )
+                        BigDecimal.valueOf(16.0).multiply(avg).setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                    else -> BigDecimal.ZERO
+                }
+            }
         }
     }
 }
