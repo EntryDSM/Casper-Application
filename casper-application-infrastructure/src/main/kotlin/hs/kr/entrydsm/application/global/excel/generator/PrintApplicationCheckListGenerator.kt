@@ -41,13 +41,19 @@ class PrintApplicationCheckListGenerator {
             val schoolMap = schools.associateBy { it.code }
             val statusMap = statuses.associateBy { it.receiptCode }
 
+            // 모든 원서의 점수를 한 번에 미리 계산
+            val scoreDetailsMap = applications.associate {
+                it.receiptCode to it.getScoreDetails()
+            }
+
             applications.forEach { application ->
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
                 val school = application.schoolCode?.let { schoolMap[it] }
+                val scoreDetails = scoreDetailsMap[application.receiptCode]!!
 
                 formatSheet(sheet, dh)
-                insertDataIntoSheet(sheet, application, user, school, status, dh)
+                insertDataIntoSheet(sheet, application, user, school, status, scoreDetails, dh)
                 dh += 20
             }
 
