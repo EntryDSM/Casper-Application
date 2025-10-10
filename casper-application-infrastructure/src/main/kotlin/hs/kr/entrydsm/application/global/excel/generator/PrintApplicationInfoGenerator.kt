@@ -83,24 +83,24 @@ class PrintApplicationInfoGenerator {
             row.createCell(15 + index).setCellValue(grade)
         }
 
-        // 점수 정보
-        val scoreDetails = application.getScoreDetails()
+        // 점수 정보 - Application의 계산 메서드 사용
+        val semesterScores = application.calculateSemesterScores()
         val scores = listOf(
-            scoreDetails["3-2학기"]?.toString() ?: "0",
-            scoreDetails["3-1학기"]?.toString() ?: "0",
-            scoreDetails["2-2학기"]?.toString() ?: "0",
-            scoreDetails["2-1학기"]?.toString() ?: "0",
-            scoreDetails["출석점수"]?.toString() ?: "0",
-            scoreDetails["봉사점수"]?.toString() ?: "0",
+            semesterScores["3-2"]?.toString() ?: "0",
+            semesterScores["3-1"]?.toString() ?: "0",
+            semesterScores["2-2"]?.toString() ?: "0",
+            semesterScores["2-1"]?.toString() ?: "0",
+            application.calculateAttendanceScore().toString(),
+            application.calculateVolunteerScore().toString(),
             application.absence?.toString() ?: "0",
             application.tardiness?.toString() ?: "0",
             application.earlyLeave?.toString() ?: "0",
             application.classExit?.toString() ?: "0",
-            scoreDetails["교과성적"]?.toString() ?: "0",
+            application.calculateSubjectScore().toString(),
             if (application.algorithmAward == true) "O" else "X",
             if (application.infoProcessingCert == true) "O" else "X",
-            scoreDetails["가산점"]?.toString() ?: "0",
-            scoreDetails["환산점수"]?.toString() ?: "0",
+            application.calculateBonusScore().toString(),
+            application.calculateSubjectScore().toString(), // 환산점수 = 교과성적
             application.totalScore?.toString() ?: "0",
             status?.examCode ?: "미발급"
         )

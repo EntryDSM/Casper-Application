@@ -186,4 +186,12 @@ data class Application(
             current.divide(max, 4, java.math.RoundingMode.HALF_UP).multiply(BigDecimal("100")).toDouble()
         } else 0.0
     }
+    
+    /**
+     * 학기별 점수를 계산합니다.
+     */
+    fun calculateSemesterScores(): Map<String, BigDecimal> {
+        val scoreService = hs.kr.entrydsm.domain.application.services.ScoreCalculationService()
+        return scoreService.calculateSemesterScores(this)
+    }
 }

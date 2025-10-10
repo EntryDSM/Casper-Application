@@ -256,4 +256,87 @@ class ScoreCalculationService {
             "최대점수" to getMaxScore(application.applicationType)
         )
     }
+    
+    /**
+     * 학기별 점수 계산
+     */
+    fun calculateSemesterScores(application: Application): Map<String, BigDecimal> {
+        return when (application.educationalStatus) {
+            EducationalStatus.GRADUATE -> {
+                val semester3_2Avg = calculateSemesterAverage(
+                    application.korean_3_2, application.social_3_2, application.history_3_2,
+                    application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
+                )
+                val semester3_1Avg = calculateSemesterAverage(
+                    application.korean_3_1, application.social_3_1, application.history_3_1,
+                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+                )
+                val semester2_2Avg = calculateSemesterAverage(
+                    application.korean_2_2, application.social_2_2, application.history_2_2,
+                    application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+                )
+                val semester2_1Avg = calculateSemesterAverage(
+                    application.korean_2_1, application.social_2_1, application.history_2_1,
+                    application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+                )
+                
+                mapOf(
+                    "3-2" to BigDecimal.valueOf(4.0).multiply(semester3_2Avg).setScale(2, RoundingMode.HALF_UP),
+                    "3-1" to BigDecimal.valueOf(4.0).multiply(semester3_1Avg).setScale(2, RoundingMode.HALF_UP),
+                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(2, RoundingMode.HALF_UP),
+                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(2, RoundingMode.HALF_UP)
+                )
+            }
+            EducationalStatus.PROSPECTIVE_GRADUATE -> {
+                val semester3_1Avg = calculateSemesterAverage(
+                    application.korean_3_1, application.social_3_1, application.history_3_1,
+                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+                )
+                val semester2_2Avg = calculateSemesterAverage(
+                    application.korean_2_2, application.social_2_2, application.history_2_2,
+                    application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
+                )
+                val semester2_1Avg = calculateSemesterAverage(
+                    application.korean_2_1, application.social_2_1, application.history_2_1,
+                    application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
+                )
+                
+                mapOf(
+                    "3-2" to BigDecimal.ZERO,
+                    "3-1" to BigDecimal.valueOf(8.0).multiply(semester3_1Avg).setScale(2, RoundingMode.HALF_UP),
+                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(2, RoundingMode.HALF_UP),
+                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(2, RoundingMode.HALF_UP)
+                )
+            }
+            EducationalStatus.QUALIFICATION_EXAM -> {
+                val average = calculateSemesterAverage(
+                    application.gedKorean, application.gedSocial, application.gedHistory,
+                    application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
+                )
+                val totalScore = BigDecimal.valueOf(16.0).multiply(average).setScale(2, RoundingMode.HALF_UP)
+                
+                mapOf(
+                    "3-2" to totalScore,
+                    "3-1" to BigDecimal.ZERO,
+                    "2-2" to BigDecimal.ZERO,
+                    "2-1" to BigDecimal.ZERO
+                )
+            }
+        }
+    }
+    
+    /**
+     * 학기 평균 계산
+     */
+    private fun calculateSemesterAverage(
+        korean: Int?, social: Int?, history: Int?,
+        math: Int?, science: Int?, tech: Int?, english: Int?
+    ): BigDecimal {
+        val scores = listOfNotNull(korean, social, history, math, science, tech, english)
+        if (scores.isEmpty()) return BigDecimal.ZERO
+        
+        val sum = scores.sum()
+        return BigDecimal.valueOf(sum.toDouble() / 7.0)
+            .setScale(4, RoundingMode.HALF_UP)
+    }
 }

@@ -41,19 +41,13 @@ class PrintApplicationCheckListGenerator {
             val schoolMap = schools.associateBy { it.code }
             val statusMap = statuses.associateBy { it.receiptCode }
 
-            // 모든 원서의 점수를 한 번에 미리 계산
-            val scoreDetailsMap = applications.associate {
-                it.receiptCode to it.getScoreDetails()
-            }
-
             applications.forEach { application ->
                 val user = userMap[application.userId]
                 val status = statusMap[application.receiptCode]
                 val school = application.schoolCode?.let { schoolMap[it] }
-                val scoreDetails = scoreDetailsMap[application.receiptCode]!!
 
                 formatSheet(sheet, dh)
-                insertDataIntoSheet(sheet, application, user, school, status, scoreDetails, dh)
+                insertDataIntoSheet(sheet, application, user, school, status, dh)
                 dh += 20
             }
 
@@ -270,7 +264,6 @@ class PrintApplicationCheckListGenerator {
         user: User?,
         school: School?,
         status: Status?,
-        scoreDetails: Map<String, BigDecimal>,
         dh: Int,
     ) {
         getCell(sheet, dh + 1, 2).setCellValue(application.receiptCode.toString())
@@ -292,10 +285,11 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
         getCell(sheet, dh + 8, 4).setCellValue((application.classExit ?: 0).toString())
         
-        getCell(sheet, dh + 8, 5).setCellValue(scoreDetails["출석점수"]?.toString() ?: "0")
+        // Application의 계산 메서드 사용
+        getCell(sheet, dh + 8, 5).setCellValue(application.calculateAttendanceScore().toString())
         getCell(sheet, dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
-        getCell(sheet, dh + 8, 7).setCellValue(scoreDetails["봉사점수"]?.toString() ?: "0")
-        getCell(sheet, dh + 10, 7).setCellValue(scoreDetails["교과성적"]?.toString() ?: "0")
+        getCell(sheet, dh + 8, 7).setCellValue(application.calculateVolunteerScore().toString())
+        getCell(sheet, dh + 10, 7).setCellValue(application.calculateSubjectScore().toString())
 
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
@@ -311,13 +305,15 @@ class PrintApplicationCheckListGenerator {
 
         getCell(sheet, dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
         getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
-        getCell(sheet, dh + 13, 7).setCellValue(scoreDetails["가산점"]?.toString() ?: "0")
+        getCell(sheet, dh + 13, 7).setCellValue(application.calculateBonusScore().toString())
 
-        getCell(sheet, dh + 18, 2).setCellValue(scoreDetails["3-2학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 3).setCellValue(scoreDetails["3-1학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 4).setCellValue(scoreDetails["2-2학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 5).setCellValue(scoreDetails["2-1학기"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 7).setCellValue(scoreDetails["환산점수"]?.toString() ?: "0")
+        // Application의 학기별 점수 계산 메서드 사용
+        val semesterScores = application.calculateSemesterScores()
+        getCell(sheet, dh + 18, 2).setCellValue(semesterScores["3-2"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 3).setCellValue(semesterScores["3-1"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 4).setCellValue(semesterScores["2-2"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 5).setCellValue(semesterScores["2-1"]?.toString() ?: "0")
+        getCell(sheet, dh + 18, 7).setCellValue(application.calculateSubjectScore().toString())
         getCell(sheet, dh + 19, 7).setCellValue(application.totalScore?.toString() ?: "0")
 
         setRowHeight(sheet, dh + 2, 10)
