@@ -151,18 +151,18 @@ class ApplicationQueryUseCase(
             data =
                 ApplicationListResponse.ApplicationListData(
                     applications =
-                        pagedApplications.map { app ->
+                        pagedApplications.map { application ->
                             ApplicationListResponse.ApplicationSummary(
-                                applicationId = app.applicationId.toString(),
-                                receiptCode = app.receiptCode,
-                                applicantName = app.applicantName,
-                                applicationType = app.applicationType.name,
-                                educationalStatus = app.educationalStatus.name,
-                                status = getApplicationStatus(app),
-                                submittedAt = app.submittedAt,
-                                isDaejeon = app.isDaejeon,
-                                isSubmitted = true,
-                                isArrived = isArrivedDocuments(app),
+                                applicationId = application.applicationId.toString(),
+                                receiptCode = application.receiptCode,
+                                applicantName = application.applicantName,
+                                applicationType = application.applicationType.name,
+                                educationalStatus = application.educationalStatus.name,
+                                status = getApplicationStatus(application),
+                                submittedAt = application.submittedAt,
+                                isDaejeon = application.isDaejeon,
+                                isSubmitted = isSubmittedApplication(application),
+                                isArrived = isArrivedDocuments(application),
                             )
                         },
                     total = totalElements,
@@ -343,5 +343,16 @@ class ApplicationQueryUseCase(
             ?: throw StatusExceptions.StatusNotFoundException()
 
         return status.applicationStatus.name
+    }
+
+    private fun isSubmittedApplication(application: ApplicationJpaEntity): Boolean {
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
+
+        return when(status.applicationStatus) {
+            ApplicationStatus.NOT_APPLIED -> false
+            ApplicationStatus.WRITING -> false
+            else -> true
+        }
     }
 }
