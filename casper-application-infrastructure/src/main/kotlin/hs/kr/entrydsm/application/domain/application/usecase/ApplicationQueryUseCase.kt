@@ -46,8 +46,8 @@ class ApplicationQueryUseCase(
             applicationRepository.findById(uuid)
                 .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
 
-//        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
-//            ?: throw StatusExceptions.StatusNotFoundException()
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
 
         val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
 
@@ -65,7 +65,7 @@ class ApplicationQueryUseCase(
                     birthDate = application.birthDate,
                     applicationType = application.applicationType.name,
                     educationalStatus = application.educationalStatus.name,
-                    status = application.status.name,
+                    status = status.applicationStatus.name,
                     submittedAt = application.submittedAt,
                     reviewedAt = application.reviewedAt,
                     createdAt = application.createdAt,
@@ -158,49 +158,17 @@ class ApplicationQueryUseCase(
                                 applicantName = app.applicantName,
                                 applicationType = app.applicationType.name,
                                 educationalStatus = app.educationalStatus.name,
-                                status = app.status.toString(),
+                                status = getApplicationStatus(app),
                                 submittedAt = app.submittedAt,
                                 isDaejeon = app.isDaejeon,
                                 isSubmitted = true,
-                                isArrived = false // 임시 하드 코딩
-//                                isArrived = isArrivedDocuments(app),
+                                isArrived = isArrivedDocuments(app),
                             )
                         },
                     total = totalElements,
                     page = page,
                     size = size,
                     totalPages = (totalElements + size - 1) / size,
-                ),
-        )
-    }
-
-    fun getUserApplications(userId: String): ApplicationListResponse {
-        val uuid = UUID.fromString(userId)
-        val applications = applicationRepository.findAllByUserId(uuid)
-
-        return ApplicationListResponse(
-            success = true,
-            data =
-                ApplicationListResponse.ApplicationListData(
-                    applications =
-                        applications.map { app ->
-                            ApplicationListResponse.ApplicationSummary(
-                                applicationId = app.applicationId.toString(),
-                                receiptCode = app.receiptCode,
-                                applicantName = app.applicantName,
-                                applicationType = app.applicationType.name,
-                                educationalStatus = app.educationalStatus.name,
-                                status = app.status.toString(),
-                                submittedAt = app.submittedAt,
-                                isDaejeon = app.isDaejeon,
-                                isSubmitted = true,
-                                isArrived = app.isArrived,
-                            )
-                        },
-                    total = applications.size,
-                    page = 0,
-                    size = applications.size,
-                    totalPages = 1,
                 ),
         )
     }
@@ -289,7 +257,6 @@ class ApplicationQueryUseCase(
             birthDate = entity.birthDate,
             applicationType = entity.applicationType,
             educationalStatus = entity.educationalStatus,
-            status = entity.status,
             streetAddress = scores["streetAddress"] as? String,
             submittedAt = entity.submittedAt ?: entity.createdAt,
             reviewedAt = entity.reviewedAt,
@@ -369,5 +336,12 @@ class ApplicationQueryUseCase(
             ApplicationStatus.RESULT_ANNOUNCED -> true
             else -> false
         }
+    }
+
+    private fun getApplicationStatus(application: ApplicationJpaEntity): String {
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
+
+        return status.applicationStatus.name
     }
 }
