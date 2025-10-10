@@ -116,7 +116,7 @@ class StatusGrpcClient(
                 // Fallback: 기본 상태 반환
                 InternalStatusResponse(
                     id = 0L,
-                    applicationStatus = ApplicationStatus.SUBMITTED,
+                    applicationStatus = ApplicationStatus.NOT_APPLIED,
                     examCode = null,
                     isFirstRoundPass = false,
                     isSecondRoundPass = false,
