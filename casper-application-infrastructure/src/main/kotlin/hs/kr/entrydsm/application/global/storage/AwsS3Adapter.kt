@@ -7,8 +7,10 @@ import com.amazonaws.services.s3.model.CannedAccessControlList
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
+import com.amazonaws.util.IOUtils
 import hs.kr.entrydsm.application.domain.file.presentation.exception.FileExceptions
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
+import hs.kr.entrydsm.domain.file.spi.GetObjectPort
 import hs.kr.entrydsm.domain.file.spi.UploadFilePort
 import org.springframework.stereotype.Component
 import java.io.File
@@ -20,7 +22,8 @@ import java.util.UUID
 class AwsS3Adapter(
     private val amazonS3Client: AmazonS3Client,
     private val awsProperties: AwsProperties,
-) : UploadFilePort, GenerateFileUrlPort {
+) : UploadFilePort, GenerateFileUrlPort, GetObjectPort {
+
     companion object {
         const val EXP_TIME = 1000 * 60 * 2
     }
@@ -59,6 +62,15 @@ class AwsS3Adapter(
             )
         } catch (e: IOException) {
             throw FileExceptions.IOInterrupted()
+        }
+    }
+
+    override fun getObject(fileName: String, path: String): ByteArray {
+        try {
+            val `object` = amazonS3Client.getObject(awsProperties.bucket, path + fileName)
+            return IOUtils.toByteArray(`object`.objectContent)
+        } catch (e: Exception) {
+            throw FileExceptions.PathNotFound()
         }
     }
 
