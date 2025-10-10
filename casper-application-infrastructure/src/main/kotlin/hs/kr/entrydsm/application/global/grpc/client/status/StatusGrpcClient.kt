@@ -36,7 +36,7 @@ class StatusGrpcClient(
      * gRPC 통신을 위한 채널
      * status-service로 자동 주입됨
      */
-    @GrpcClient("status-service")
+    @GrpcClient("status-grpc")
     lateinit var channel: Channel
 
     /**

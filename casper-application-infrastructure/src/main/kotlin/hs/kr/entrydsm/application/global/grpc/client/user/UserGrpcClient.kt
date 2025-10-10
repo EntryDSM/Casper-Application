@@ -35,7 +35,7 @@ class UserGrpcClient(
      * gRPC 통신을 위한 채널
      * user-service로 자동 주입됨
      */
-    @GrpcClient("user-service")
+    @GrpcClient("user-grpc")
     lateinit var channel: Channel
 
     /**

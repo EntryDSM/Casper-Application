@@ -26,7 +26,7 @@ class ScheduleGrpcClient(
     @Qualifier("scheduleGrpcRetry") private val retry: Retry,
     @Qualifier("scheduleGrpcCircuitBreaker") private val circuitBreaker: CircuitBreaker,
 ) {
-    @GrpcClient("schedule-service")
+    @GrpcClient("schedule-grpc")
     lateinit var channel: Channel
 
     /**
