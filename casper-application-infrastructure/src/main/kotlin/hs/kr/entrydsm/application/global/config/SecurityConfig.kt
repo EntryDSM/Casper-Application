@@ -62,6 +62,7 @@ class SecurityConfig(
                     .requestMatchers("/photo").hasRole(UserRole.USER.name)
                     .requestMatchers("/pass/**").hasRole(UserRole.USER.name)
                     .requestMatchers("/application/**").hasRole(UserRole.USER.name)
+                    .requestMatchers("/schools/**").hasRole(UserRole.USER.name)
                     .anyRequest().authenticated()
             }
             .with(filterConfig) { }
