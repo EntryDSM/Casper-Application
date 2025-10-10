@@ -8,13 +8,13 @@ import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFou
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
-import hs.kr.entrydsm.application.domain.file.presentation.exception.FileExceptions
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.file.`object`.PathList
 import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
+import hs.kr.entrydsm.domain.status.aggregates.Status
 import hs.kr.entrydsm.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
@@ -163,11 +163,11 @@ class ApplicationQueryUseCase(
                                 applicantName = application.applicantName,
                                 applicationType = application.applicationType.name,
                                 educationalStatus = application.educationalStatus.name,
-                                status = status?.applicationStatus?.name ?: "UNKNOWN",
+                                //status = status?.applicationStatus?.name ?: "UNKNOWN",
                                 submittedAt = application.submittedAt,
                                 isDaejeon = application.isDaejeon,
-                                isSubmitted = isSubmittedStatus(status),
-                                isArrived = isArrivedStatus(status),
+                                //isSubmitted = isSubmittedStatus(status),
+                                isArrived = isArrivedStatus(status!!),
                             )
                         },
                     total = applicationPage.totalElements.toInt(),
@@ -346,7 +346,7 @@ class ApplicationQueryUseCase(
     /**
      * 상태 기반 제출 여부 판단 (N+1 방지용)
      */
-    private fun isSubmittedStatus(status: hs.kr.entrydsm.domain.status.aggregates.Status?): Boolean {
+    private fun isSubmittedStatus(status: Status?): Boolean {
         if (status == null) return false
         return when(status.applicationStatus) {
             ApplicationStatus.NOT_APPLIED -> false
@@ -358,8 +358,7 @@ class ApplicationQueryUseCase(
     /**
      * 상태 기반 서류 도착 여부 판단 (N+1 방지용)
      */
-    private fun isArrivedStatus(status: hs.kr.entrydsm.domain.status.aggregates.Status?): Boolean {
-        if (status == null) return false
+    private fun isArrivedStatus(status: Status): Boolean {
         return when(status.applicationStatus) {
             ApplicationStatus.DOCUMENTS_RECEIVED -> true
             ApplicationStatus.SCREENING_IN_PROGRESS -> true
