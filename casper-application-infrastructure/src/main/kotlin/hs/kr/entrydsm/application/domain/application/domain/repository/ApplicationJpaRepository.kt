@@ -72,11 +72,6 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
     ): List<ApplicationJpaEntity>
 
     /**
-     * 상태별 원서 목록 조회
-     */
-    fun findAllByStatus(status: ApplicationStatus): List<ApplicationJpaEntity>
-
-    /**
      * 수험번호로 원서 조회
      */
     fun findByReceiptCode(receiptCode: Long): Optional<ApplicationJpaEntity>
