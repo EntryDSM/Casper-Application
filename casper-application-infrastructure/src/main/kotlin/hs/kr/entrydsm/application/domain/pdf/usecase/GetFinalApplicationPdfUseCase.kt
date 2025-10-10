@@ -2,7 +2,6 @@ package hs.kr.entrydsm.application.domain.pdf.usecase
 
 import hs.kr.entrydsm.application.global.annotation.usecase.ReadOnlyUseCase
 import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationPdfGeneratorContract
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
@@ -10,15 +9,13 @@ import hs.kr.entrydsm.domain.security.interfaces.SecurityContract
 @ReadOnlyUseCase
 class GetFinalApplicationPdfUseCase(
     private val securityContract: SecurityContract,
-    private val applicationContract: ApplicationContract,
+    private val applicationQueryUseCase: hs.kr.entrydsm.application.domain.application.usecase.ApplicationQueryUseCase,
     private val applicationPdfGeneratorContract: ApplicationPdfGeneratorContract,
 ) {
     fun execute(): ByteArray {
         val userId = securityContract.getCurrentUserId()
 
-        val application =
-            applicationContract.getApplicationByUserId(userId)
-                ?: throw IllegalStateException("원서 정보를 찾을 수 없습니다")
+        val application = applicationQueryUseCase.getCurrentUserApplication()
 
         if (application.status == hs.kr.entrydsm.domain.status.values.ApplicationStatus.WRITING ||
             application.status == hs.kr.entrydsm.domain.status.values.ApplicationStatus.NOT_APPLIED) {
