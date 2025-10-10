@@ -32,7 +32,8 @@ class ApplicationPersistenceService(
     private val applicationRepository: ApplicationJpaRepository,
     private val scoreCalculator: ScoreCalculator,
     private val objectMapper: ObjectMapper,
-    private val applicationCreateEventContract: ApplicationCreateEventContract
+    private val applicationCreateEventContract: ApplicationCreateEventContract,
+    private val validationService: hs.kr.entrydsm.application.domain.application.service.ApplicationValidationService
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -64,6 +65,9 @@ class ApplicationPersistenceService(
         // 3. Enum 변환
         val applicationType = parseApplicationType(applicationData["applicationType"])
         val educationalStatus = parseEducationalStatus(applicationData["educationalStatus"])
+
+        // 3-1. 성적 데이터 상세 검증 (PDF 생성 시와 동일한 검증)
+        validationService.validateScoresData(educationalStatus, applicationData, scoresData)
 
         // 4. 점수 계산
         val startTime = System.currentTimeMillis()
