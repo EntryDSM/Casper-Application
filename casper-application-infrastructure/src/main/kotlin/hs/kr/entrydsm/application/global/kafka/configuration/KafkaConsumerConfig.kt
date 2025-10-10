@@ -8,7 +8,6 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-import org.springframework.kafka.support.serializer.JsonDeserializer
 
 /**
  * Kafka Consumer 설정을 담당하는 Configuration 클래스입니다.
@@ -59,9 +58,7 @@ class KafkaConsumerConfig(
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
             ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to 5000,
             ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS to StringDeserializer::class.java,
-            ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS to JsonDeserializer::class.java,
-            JsonDeserializer.TRUSTED_PACKAGES to "*",
-            JsonDeserializer.USE_TYPE_INFO_HEADERS to false,
+            ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS to StringDeserializer::class.java,
         )
     }
 }
