@@ -4,6 +4,8 @@ import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJp
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -31,20 +33,41 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
         educationalStatus: EducationalStatus,
     ): List<ApplicationJpaEntity>
 
+    fun findByApplicationTypeAndEducationalStatus(
+        applicationType: ApplicationType,
+        educationalStatus: EducationalStatus,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
+
     /**
      * 전형 유형으로 원서 목록 조회
      */
     fun findByApplicationType(applicationType: ApplicationType): List<ApplicationJpaEntity>
+
+    fun findByApplicationType(
+        applicationType: ApplicationType,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
 
     /**
      * 교육 상태로 원서 목록 조회
      */
     fun findByEducationalStatus(educationalStatus: EducationalStatus): List<ApplicationJpaEntity>
 
+    fun findByEducationalStatus(
+        educationalStatus: EducationalStatus,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
+
     /**
      * 대전/전국 구분으로 원서 목록 조회
      */
     fun findByIsDaejeon(isDaejeon: Boolean): List<ApplicationJpaEntity>
+
+    fun findByIsDaejeon(
+        isDaejeon: Boolean,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
 
     /**
      * 전형 유형 + 대전/전국으로 원서 목록 조회
@@ -54,6 +77,12 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
         isDaejeon: Boolean,
     ): List<ApplicationJpaEntity>
 
+    fun findByApplicationTypeAndIsDaejeon(
+        applicationType: ApplicationType,
+        isDaejeon: Boolean,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
+
     /**
      * 교육 상태 + 대전/전국으로 원서 목록 조회
      */
@@ -61,6 +90,12 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
         educationalStatus: EducationalStatus,
         isDaejeon: Boolean,
     ): List<ApplicationJpaEntity>
+
+    fun findByEducationalStatusAndIsDaejeon(
+        educationalStatus: EducationalStatus,
+        isDaejeon: Boolean,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
 
     /**
      * 전형 유형 + 교육 상태 + 대전/전국으로 원서 목록 조회
@@ -70,6 +105,13 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
         educationalStatus: EducationalStatus,
         isDaejeon: Boolean,
     ): List<ApplicationJpaEntity>
+
+    fun findByApplicationTypeAndEducationalStatusAndIsDaejeon(
+        applicationType: ApplicationType,
+        educationalStatus: EducationalStatus,
+        isDaejeon: Boolean,
+        pageable: Pageable,
+    ): Page<ApplicationJpaEntity>
 
     /**
      * 수험번호로 원서 조회

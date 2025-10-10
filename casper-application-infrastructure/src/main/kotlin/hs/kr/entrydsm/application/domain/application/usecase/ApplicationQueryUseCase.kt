@@ -19,6 +19,8 @@ import hs.kr.entrydsm.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -93,82 +95,85 @@ class ApplicationQueryUseCase(
         page: Int = 0,
         size: Int = 20,
     ): ApplicationListResponse {
-        logger.info("=== 지원자 목록 조회 ===")
+        logger.info("=== 지원자 목록 조회 (Pageable) ===")
         logger.info("applicationType: $applicationType, educationalStatus: $educationalStatus, isDaejeon: $isDaejeon")
         logger.info("page: $page, size: $size")
 
-        val applications =
+        // Pageable 생성 (최신 제출일 기준 내림차순)
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"))
+
+        val applicationPage =
             when {
                 applicationType != null && educationalStatus != null && isDaejeon != null -> {
                     val typeEnum = ApplicationType.fromString(applicationType)
                     val statusEnum = EducationalStatus.fromString(educationalStatus)
-                    applicationRepository.findByApplicationTypeAndEducationalStatusAndIsDaejeon(typeEnum, statusEnum, isDaejeon)
+                    applicationRepository.findByApplicationTypeAndEducationalStatusAndIsDaejeon(typeEnum, statusEnum, isDaejeon, pageable)
                 }
                 applicationType != null && educationalStatus != null -> {
                     val typeEnum = ApplicationType.fromString(applicationType)
                     val statusEnum = EducationalStatus.fromString(educationalStatus)
-                    applicationRepository.findByApplicationTypeAndEducationalStatus(typeEnum, statusEnum)
+                    applicationRepository.findByApplicationTypeAndEducationalStatus(typeEnum, statusEnum, pageable)
                 }
                 applicationType != null && isDaejeon != null -> {
                     val typeEnum = ApplicationType.fromString(applicationType)
-                    applicationRepository.findByApplicationTypeAndIsDaejeon(typeEnum, isDaejeon)
+                    applicationRepository.findByApplicationTypeAndIsDaejeon(typeEnum, isDaejeon, pageable)
                 }
                 educationalStatus != null && isDaejeon != null -> {
                     val statusEnum = EducationalStatus.fromString(educationalStatus)
-                    applicationRepository.findByEducationalStatusAndIsDaejeon(statusEnum, isDaejeon)
+                    applicationRepository.findByEducationalStatusAndIsDaejeon(statusEnum, isDaejeon, pageable)
                 }
                 applicationType != null -> {
                     val typeEnum = ApplicationType.fromString(applicationType)
-                    applicationRepository.findByApplicationType(typeEnum)
+                    applicationRepository.findByApplicationType(typeEnum, pageable)
                 }
                 educationalStatus != null -> {
                     val statusEnum = EducationalStatus.fromString(educationalStatus)
-                    applicationRepository.findByEducationalStatus(statusEnum)
+                    applicationRepository.findByEducationalStatus(statusEnum, pageable)
                 }
                 isDaejeon != null -> {
-                    applicationRepository.findByIsDaejeon(isDaejeon)
+                    applicationRepository.findByIsDaejeon(isDaejeon, pageable)
                 }
-                else -> applicationRepository.findAll()
+                else -> applicationRepository.findAll(pageable)
             }
 
-        val totalElements = applications.size
-        logger.info("조회된 전체 원서 수: $totalElements")
-        logger.info("원서 목록: ${applications.map { "receiptCode=${it.receiptCode}, name=${it.applicantName}, userId=${it.userId}" }}")
+        logger.info("조회된 페이지 원서 수: ${applicationPage.numberOfElements}, 전체: ${applicationPage.totalElements}")
 
-        val startIndex = page * size
-        val endIndex = minOf(startIndex + size, totalElements)
-        val pagedApplications =
-            if (startIndex < totalElements) {
-                applications.subList(startIndex, endIndex)
-            } else {
-                emptyList()
-            }
+        // N+1 방지: 배치로 모든 상태 조회
+        val receiptCodes = applicationPage.content.map { it.receiptCode }
+        val statusMap = try {
+            applicationQueryStatusContract.queryStatusesByReceiptCodes(receiptCodes)
+                .associateBy { it.receiptCode }
+        } catch (e: Exception) {
+            logger.warn("상태 배치 조회 실패, 빈 맵 사용: ${e.message}")
+            emptyMap()
+        }
 
-        logger.info("페이징 후 원서 수: ${pagedApplications.size}")
+        logger.info("배치 조회한 상태 개수: ${statusMap.size}")
 
         return ApplicationListResponse(
             success = true,
             data =
                 ApplicationListResponse.ApplicationListData(
                     applications =
-                        pagedApplications.map { application ->
+                        applicationPage.content.map { application ->
+                            val status = statusMap[application.receiptCode]
                             ApplicationListResponse.ApplicationSummary(
                                 applicationId = application.applicationId.toString(),
                                 receiptCode = application.receiptCode,
                                 applicantName = application.applicantName,
                                 applicationType = application.applicationType.name,
                                 educationalStatus = application.educationalStatus.name,
-                                status = getApplicationStatus(application),
+                                status = status?.applicationStatus?.name ?: "UNKNOWN",
                                 submittedAt = application.submittedAt,
                                 isDaejeon = application.isDaejeon,
-                                isSubmitted = isSubmittedApplication(application),
-                                isArrived = isArrivedDocuments(application),
+                                isSubmitted = isSubmittedStatus(status),
+                                isArrived = isArrivedStatus(status),
                             )
                         },
-                    total = totalElements,
-                    page = page,
-                    size = size,
-                    totalPages = (totalElements + size - 1) / size,
+                    total = applicationPage.totalElements.toInt(),
+                    page = applicationPage.number,
+                    size = applicationPage.size,
+                    totalPages = applicationPage.totalPages,
                 ),
         )
     }
@@ -337,6 +342,33 @@ class ApplicationQueryUseCase(
             else -> false
         }
     }
+
+    /**
+     * 상태 기반 제출 여부 판단 (N+1 방지용)
+     */
+    private fun isSubmittedStatus(status: hs.kr.entrydsm.domain.status.aggregates.Status?): Boolean {
+        if (status == null) return false
+        return when(status.applicationStatus) {
+            ApplicationStatus.NOT_APPLIED -> false
+            ApplicationStatus.WRITING -> false
+            else -> true
+        }
+    }
+
+    /**
+     * 상태 기반 서류 도착 여부 판단 (N+1 방지용)
+     */
+    private fun isArrivedStatus(status: hs.kr.entrydsm.domain.status.aggregates.Status?): Boolean {
+        if (status == null) return false
+        return when(status.applicationStatus) {
+            ApplicationStatus.DOCUMENTS_RECEIVED -> true
+            ApplicationStatus.SCREENING_IN_PROGRESS -> true
+            ApplicationStatus.RESULT_ANNOUNCED -> true
+            else -> false
+        }
+    }
+
+    // === 아래는 단건 조회용 메서드 (getApplicationById 등에서 사용) ===
 
     private fun getApplicationStatus(application: ApplicationJpaEntity): String {
         val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
