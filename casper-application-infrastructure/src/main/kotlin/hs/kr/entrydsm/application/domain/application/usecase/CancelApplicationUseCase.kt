@@ -6,6 +6,8 @@ import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationDeleteEventContract
 import hs.kr.entrydsm.domain.application.interfaces.CancelApplicationContract
+import hs.kr.entrydsm.domain.status.exception.StatusExceptions
+import hs.kr.entrydsm.domain.status.interfaces.ApplicationQueryStatusContract
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -14,7 +16,8 @@ import java.util.UUID
 @Transactional
 class CancelApplicationUseCase(
     private val applicationContract: ApplicationContract,
-    private val applicationDeleteEventContract: ApplicationDeleteEventContract
+    private val applicationDeleteEventContract: ApplicationDeleteEventContract,
+    private val applicationQueryStatusContract: ApplicationQueryStatusContract
 ) : CancelApplicationContract {
     override fun cancelApplication(
         userId: UUID,
@@ -23,11 +26,14 @@ class CancelApplicationUseCase(
             applicationContract.getApplicationByUserId(userId)
                 ?: throw ApplicationNotFoundException()
 
-        if (application.status != ApplicationStatus.SUBMITTED) {
+        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: StatusExceptions.StatusNotFoundException()
+
+        if (status == ApplicationStatus.NOT_APPLIED || status == ApplicationStatus.WRITING) {
             throw ApplicationCannotCancelException()
         }
 
-        //applicationDeleteEventContract.deleteStatus(application.receiptCode)
+        applicationDeleteEventContract.deleteStatus(application.receiptCode)
         applicationContract.delete(application)
     }
 }
