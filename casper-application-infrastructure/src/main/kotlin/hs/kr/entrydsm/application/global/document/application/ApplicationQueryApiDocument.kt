@@ -139,33 +139,4 @@ interface ApplicationQueryApiDocument {
         @RequestBody request: PreviewPdfRequest,
     ): ResponseEntity<ByteArray>
 
-    @Operation(
-        summary = "원서 학교 도착 여부 업데이트",
-        description = "특정 원서의 학교 도착 여부를 업데이트합니다. 관리자용 API입니다.",
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "학교 도착 여부 업데이트 성공",
-                content = [Content(schema = Schema(implementation = UpdateApplicationArrivalResponse::class))],
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청 데이터",
-                content = [Content(schema = Schema(implementation = UpdateApplicationArrivalResponse::class))],
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "서버 내부 오류",
-                content = [Content(schema = Schema(implementation = UpdateApplicationArrivalResponse::class))],
-            ),
-        ],
-    )
-    fun updateArrivalStatus(
-        @Parameter(description = "원서 ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
-        @PathVariable applicationId: String,
-        @Parameter(description = "학교 도착 여부", required = true, example = "true")
-        @RequestParam isArrived: Boolean,
-    ): ResponseEntity<UpdateApplicationArrivalResponse>
 }
