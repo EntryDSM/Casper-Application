@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import org.springframework.kafka.support.serializer.JsonDeserializer
 
 /**
@@ -44,6 +45,7 @@ class KafkaConsumerConfig(
      *
      * Confluent Cloud 연결을 위한 SASL 보안 설정과 역직렬화 설정을 포함하며,
      * read_committed 격리 레벨로 트랜잭션 안정성을 보장합니다.
+     * ErrorHandlingDeserializer를 사용하여 역직렬화 오류를 안전하게 처리합니다.
      *
      * @return Consumer 설정 맵
      */
@@ -51,12 +53,15 @@ class KafkaConsumerConfig(
         return mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperty.serverAddress,
             ConsumerConfig.ISOLATION_LEVEL_CONFIG to "read_committed",
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
             ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to 5000,
+            ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS to StringDeserializer::class.java,
+            ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS to JsonDeserializer::class.java,
             JsonDeserializer.TRUSTED_PACKAGES to "*",
+            JsonDeserializer.USE_TYPE_INFO_HEADERS to false,
         )
     }
 }
