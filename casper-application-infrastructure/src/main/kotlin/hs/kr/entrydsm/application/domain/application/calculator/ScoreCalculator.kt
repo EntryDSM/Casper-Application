@@ -42,11 +42,29 @@ class ScoreCalculator {
                     scoreInput,
                 )
 
-            val attendanceScore = calculateAttendanceScore(scoreInput)
-            val volunteerScore = calculateVolunteerScore(scoreInput)
+            // 검정고시는 출결/봉사 점수 없음
+            val attendanceScore =
+                if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+                    logger.info("검정고시 - 출석점수 0점")
+                    0.0
+                } else {
+                    calculateAttendanceScore(scoreInput)
+                }
+
+            val volunteerScore =
+                if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+                    logger.info("검정고시 - 봉사점수 0점")
+                    0.0
+                } else {
+                    calculateVolunteerScore(scoreInput)
+                }
+
             val bonusScore = calculateBonusScore(applicationType, scoreInput)
 
             val totalScore = subjectScore + attendanceScore + volunteerScore + bonusScore
+
+            logger.info("=== 최종 점수 ===")
+            logger.info("교과: $subjectScore, 출결: $attendanceScore, 봉사: $volunteerScore, 가산점: $bonusScore, 총점: $totalScore")
 
             ScoreResult(
                 subjectScore = subjectScore,
@@ -68,17 +86,21 @@ class ScoreCalculator {
         educationalStatus: EducationalStatus,
         scoreInput: ScoreInput,
     ): Double {
+        // 검정고시는 전형별 배수가 다르므로 내부에서 직접 처리
+        if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+            return calculateQualificationExamSubjectScore(applicationType, scoreInput)
+        }
+
         val baseScore =
             when (educationalStatus) {
                 EducationalStatus.PROSPECTIVE_GRADUATE ->
                     calculateProspectiveGraduateSubjectScore(scoreInput)
                 EducationalStatus.GRADUATE ->
                     calculateGraduateSubjectScore(scoreInput)
-                EducationalStatus.QUALIFICATION_EXAM ->
-                    calculateQualificationExamSubjectScore(scoreInput)
+                else -> 0.0 // 이미 위에서 검정고시는 처리됨
             }
 
-        // 전형별 배수 적용 (일반전형 1.75, 특별전형 1.0)
+        // 전형별 배수 적용 (일반전형 1.75, 특별전형 1.0) - 고교생만
         return baseScore * applicationType.baseScoreMultiplier
     }
 
@@ -185,21 +207,67 @@ class ScoreCalculator {
 
     /**
      * 검정고시 교과성적 계산
-     * 7개 과목 평균 → 80점 만점으로 환산
-     * (국어, 사회, 역사, 수학, 과학, 영어, 기술)
+     *
+     * 계산 방법:
+     * 1. 100점 점수를 1-5점 환산점으로 변환
+     *    - 100~98점: 5점
+     *    - 98~94점: 4점
+     *    - 94~90점: 3점
+     *    - 90~86점: 2점
+     *    - 86점 미만: 1점
+     * 2. 환산점 평균 계산 (T ÷ N)
+     * 3. 전형별 배수 적용
+     *    - 일반전형: 평균 × 34 (최대 170점)
+     *    - 특별전형: 평균 × 22 (최대 110점)
      */
-    private fun calculateQualificationExamSubjectScore(scoreInput: ScoreInput): Double {
+    private fun calculateQualificationExamSubjectScore(
+        applicationType: ApplicationType,
+        scoreInput: ScoreInput
+    ): Double {
         val gedScores =
             scoreInput.gedScores
                 ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
 
-        val average =
-            gedScores.values
-                .map { it.toDouble() }
-                .average()
+        logger.info("=== 검정고시 점수 계산 ===")
+        logger.info("원점수: $gedScores")
 
-        // 100점 만점 → 80점 만점으로 환산
-        return (average / 100.0) * 80.0
+        // 1. 100점 점수를 1-5점 환산점으로 변환
+        val convertedScores = gedScores.mapValues { (subject, score) ->
+            val converted = convertGedScoreToPoint(score)
+            logger.info("$subject: ${score}점 -> ${converted}점")
+            converted
+        }
+
+        // 2. 환산점 평균 계산
+        val totalPoints = convertedScores.values.sum()
+        val subjectCount = convertedScores.size
+        val average = totalPoints.toDouble() / subjectCount
+
+        logger.info("환산점 합계: $totalPoints, 과목수: $subjectCount, 평균: $average")
+
+        // 3. 전형별 배수 적용
+        val multiplier = when (applicationType) {
+            ApplicationType.COMMON -> 34.0  // 일반전형
+            else -> 22.0  // 특별전형 (MEISTER, SOCIAL)
+        }
+        val finalScore = average * multiplier
+
+        logger.info("전형: ${applicationType.name}, 배수: $multiplier, 최종점수: $finalScore")
+
+        return finalScore
+    }
+
+    /**
+     * 검정고시 100점 점수를 1-5점 환산점으로 변환
+     */
+    private fun convertGedScoreToPoint(score: Int): Int {
+        return when {
+            score >= 98 -> 5
+            score >= 94 -> 4
+            score >= 90 -> 3
+            score >= 86 -> 2
+            else -> 1
+        }
     }
 
     /**
