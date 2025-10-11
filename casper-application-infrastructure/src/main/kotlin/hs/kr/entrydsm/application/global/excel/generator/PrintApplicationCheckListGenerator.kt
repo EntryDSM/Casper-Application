@@ -395,6 +395,7 @@ class PrintApplicationCheckListGenerator {
                     application.history_2_1?.toString() ?: "",
                     application.math_2_1?.toString() ?: "",
                     application.science_2_1?.toString() ?: "",
+                    application.tech_2_1?.toString() ?: "",
                     application.english_2_1?.toString() ?: ""
                 )
             )
