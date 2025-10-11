@@ -34,8 +34,7 @@ data class Status(
                 applicationStatus != ApplicationStatus.WRITING
 
     val isPrintsArrived: Boolean
-        get() = applicationStatus != ApplicationStatus.NOT_APPLIED &&
-                applicationStatus != ApplicationStatus.WRITING &&
-                applicationStatus != ApplicationStatus.SUBMITTED &&
-                applicationStatus != ApplicationStatus.WAITING_DOCUMENTS
+        get() = applicationStatus == ApplicationStatus.DOCUMENTS_RECEIVED ||
+                applicationStatus == ApplicationStatus.SCREENING_IN_PROGRESS ||
+                applicationStatus == ApplicationStatus.RESULT_ANNOUNCED
 }
