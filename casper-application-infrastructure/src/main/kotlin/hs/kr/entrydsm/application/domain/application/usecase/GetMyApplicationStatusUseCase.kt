@@ -22,8 +22,8 @@ class GetMyApplicationStatusUseCase(
         val application = applicationContract.getApplicationByUserId(userId)
             ?: throw ApplicationNotFoundException()
 
-//        val status = statusContract.queryStatusByReceiptCode(application.receiptCode)
-//            ?: throw StatusExceptions.StatusNotFoundException()
+        val status = statusContract.queryStatusByReceiptCode(application.receiptCode)
+            ?: throw StatusExceptions.StatusNotFoundException()
 
         val user = userContract.queryUserByUserId(userId)
 
@@ -35,8 +35,8 @@ class GetMyApplicationStatusUseCase(
             receiptCode = application.receiptCode,
             phoneNumber = phoneNumber,
             name = name,
-            isSubmitted = true,  // 임시 하드 코딩
-            isPrintedArrived = false,  // 임시 하드 코딩
+            isSubmitted = status.isSubmitted,
+            isPrintedArrived = status.isPrintsArrived,
             selfIntroduce = application.selfIntroduce,
             studyPlan = application.studyPlan,
             applicationType = application.applicationType.name
