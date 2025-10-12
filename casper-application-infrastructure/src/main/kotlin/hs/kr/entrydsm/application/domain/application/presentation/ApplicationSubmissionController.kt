@@ -90,6 +90,7 @@ class ApplicationSubmissionController(
         request.parentRelation?.let { applicationData["parentRelation"] = it }
         request.postalCode?.let { applicationData["postalCode"] = it }
         request.schoolCode?.let { applicationData["schoolCode"] = it }
+        request.applicantGender?.let { applicationData["applicantGender"] = it }
 
         // 성적 정보 - 3학년 1학기
         request.korean_3_1?.let { scoresData["korean_3_1"] = it }
