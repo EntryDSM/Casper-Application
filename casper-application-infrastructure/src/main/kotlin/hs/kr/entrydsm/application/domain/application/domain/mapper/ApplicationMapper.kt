@@ -86,6 +86,7 @@ class ApplicationMapper(
             applicantTel = model.applicantTel,
             birthDate = model.birthDate,
             applicationType = model.applicationType,
+            applicantGender = model.applicantGender,
             educationalStatus = model.educationalStatus,
             isDaejeon = model.isDaejeon ?: false,
             parentName = model.parentName,
