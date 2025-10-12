@@ -62,6 +62,7 @@ class ApplicationQueryUseCase(
                     receiptCode = application.receiptCode,
                     applicantName = application.applicantName,
                     applicantTel = application.applicantTel,
+                    applicantGender = application.applicantGender,
                     parentName = application.parentName,
                     parentTel = application.parentTel,
                     birthDate = application.birthDate,

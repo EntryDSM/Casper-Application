@@ -2,7 +2,7 @@ package hs.kr.entrydsm.application.domain.application.domain.entity
 
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
-import hs.kr.entrydsm.domain.status.values.ApplicationStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -47,6 +47,8 @@ class ApplicationJpaEntity(
     val applicantName: String,
     @Column(name = "applicant_tel", nullable = false, length = 20)
     val applicantTel: String,
+    @Column(name = "applicant_gender")
+    val applicantGender: Gender?,
     @Column(name = "birth_date", length = 10)
     val birthDate: String?,
     // ===== 원서 전형 정보 =====
@@ -116,6 +118,7 @@ class ApplicationJpaEntity(
         receiptCode = 0L,
         applicantName = "",
         applicantTel = "",
+        applicantGender = null,
         birthDate = null,
         applicationType = ApplicationType.COMMON,
         educationalStatus = EducationalStatus.PROSPECTIVE_GRADUATE,
