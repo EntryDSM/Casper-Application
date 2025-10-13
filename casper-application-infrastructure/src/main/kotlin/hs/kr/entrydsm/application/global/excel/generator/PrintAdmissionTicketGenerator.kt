@@ -194,6 +194,9 @@ class PrintAdmissionTicketGenerator(
         status: Status?,
         workbook: Workbook,
     ) {
+        // 학년도 하드코딩
+        setValue(sheet, startRowIndex + 1, 4, "2026학년도")
+        
         setValue(sheet, startRowIndex + 3, 4, status?.examCode ?: "미발급")
         setValue(sheet, startRowIndex + 5, 4, application.applicantName)
         setValue(sheet, startRowIndex + 7, 4, school?.name ?: "")
