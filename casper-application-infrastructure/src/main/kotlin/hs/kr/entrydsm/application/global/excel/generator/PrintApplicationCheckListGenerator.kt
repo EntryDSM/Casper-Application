@@ -400,6 +400,7 @@ class PrintApplicationCheckListGenerator {
                 )
             )
             EducationalStatus.QUALIFICATION_EXAM -> {
+                // 검정고시: 3-1학기에만 GED 점수 표시
                 val gedGrades = listOf(
                     application.gedKorean?.toString() ?: "",
                     application.gedSocial?.toString() ?: "",
@@ -410,8 +411,8 @@ class PrintApplicationCheckListGenerator {
                     application.gedEnglish?.toString() ?: ""
                 )
                 GradeData(
-                    semester3_2 = gedGrades,
-                    semester3_1 = List(7) { "" },
+                    semester3_2 = List(7) { "" },
+                    semester3_1 = gedGrades,
                     semester2_2 = List(7) { "" },
                     semester2_1 = List(7) { "" }
                 )

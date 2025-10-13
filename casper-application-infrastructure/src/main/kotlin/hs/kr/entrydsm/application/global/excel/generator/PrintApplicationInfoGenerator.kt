@@ -179,7 +179,8 @@ class PrintApplicationInfoGenerator {
                 )
             }
             hs.kr.entrydsm.domain.application.values.EducationalStatus.QUALIFICATION_EXAM -> {
-                // 검정고시: GED 점수만 표시
+                // 검정고시: 3-1학기에만 GED 점수 표시
+                List(7) { "" } + // 3-2학기 빈칸
                 listOf(
                     application.gedKorean?.toString() ?: "",
                     application.gedSocial?.toString() ?: "",
@@ -188,7 +189,8 @@ class PrintApplicationInfoGenerator {
                     application.gedScience?.toString() ?: "",
                     application.gedTech?.toString() ?: "",
                     application.gedEnglish?.toString() ?: ""
-                ) + List(21) { "" } // 나머지 빈칸
+                ) + 
+                List(14) { "" } // 2-2, 2-1학기 빈칸
             }
         }
     }
