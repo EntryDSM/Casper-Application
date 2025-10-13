@@ -13,6 +13,7 @@ import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationE
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationCreateEventContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -65,6 +66,7 @@ class ApplicationPersistenceService(
         // 3. Enum 변환
         val applicationType = parseApplicationType(applicationData["applicationType"])
         val educationalStatus = parseEducationalStatus(applicationData["educationalStatus"])
+        val applicantGender = parseApplicantGender(applicationData["applicantGender"])
 
         // 3-1. 성적 데이터 상세 검증 (PDF 생성 시와 동일한 검증)
         validationService.validateScoresData(educationalStatus, applicationData, scoresData)
@@ -100,6 +102,7 @@ class ApplicationPersistenceService(
                 receiptCode = receiptCode,
                 applicantName = extractStringValue(applicationData, "applicantName") ?: throw ApplicationValidationException("지원자 이름은 필수입니다"),
                 applicantTel = extractStringValue(applicationData, "applicantTel") ?: throw ApplicationValidationException("지원자 연락처는 필수입니다"),
+                applicantGender = applicantGender,
                 birthDate = extractStringValue(applicationData, "birthDate"),
                 applicationType = applicationType,
                 educationalStatus = educationalStatus,
@@ -108,9 +111,12 @@ class ApplicationPersistenceService(
                 parentTel = extractStringValue(applicationData, "parentTel"),
                 parentRelation = extractStringValue(applicationData, "parentRelation"),
                 postalCode = extractStringValue(applicationData, "postalCode"),
+                streetAddress = extractStringValue(applicationData, "streetAddress"),
                 detailAddress = extractStringValue(applicationData, "detailAddress"),
                 studyPlan = extractStringValue(applicationData, "studyPlan"),
                 selfIntroduce = extractStringValue(applicationData, "selfIntroduce"),
+                nationalMeritChild = extractBooleanValue(applicationData, "nationalMeritChild") ?: false,
+                specialAdmissionTarget = extractBooleanValue(applicationData, "specialAdmissionTarget") ?: false,
                 schoolCode = extractStringValue(applicationData, "schoolCode"),
                 scoresData = scoresJson,
                 totalScore = scoreResult.totalScore?.toBigDecimal(),
@@ -209,6 +215,21 @@ class ApplicationPersistenceService(
             when (value) {
                 is String -> EducationalStatus.fromString(value)
                 is EducationalStatus -> value
+                else -> throw InvalidApplicationTypeException("유효하지 않은 교육 상태: $value")
+            }
+        } catch (e: IllegalArgumentException) {
+            throw InvalidApplicationTypeException("유효하지 않은 교육 상태: $value", e)
+        }
+    }
+
+    /**
+     * 지원자 성별 문자열을 Enum으로 변환합니다.
+     */
+    private fun parseApplicantGender(value: Any?): Gender? {
+        return try {
+            when (value) {
+                is String -> Gender.fromString(value)
+                is Gender -> value
                 else -> throw InvalidApplicationTypeException("유효하지 않은 교육 상태: $value")
             }
         } catch (e: IllegalArgumentException) {

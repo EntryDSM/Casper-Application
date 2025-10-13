@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.response
 
+import hs.kr.entrydsm.domain.application.values.Gender
 import java.time.LocalDateTime
 
 data class ApplicationDetailResponse(
@@ -28,6 +29,10 @@ data class ApplicationDetailResponse(
         val isDaejeon: Boolean,
         // 점수 정보
         val scores: ScoreInfo?,
+        val applicantGender: Gender?,
+        val streetAddress: String?,
+        val nationalMeritChild: Boolean?,
+        val specialAdmissionTarget: Boolean?,
     )
 
     data class ScoreInfo(

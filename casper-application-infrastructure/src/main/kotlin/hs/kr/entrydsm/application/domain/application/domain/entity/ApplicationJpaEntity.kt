@@ -2,7 +2,7 @@ package hs.kr.entrydsm.application.domain.application.domain.entity
 
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
-import hs.kr.entrydsm.domain.status.values.ApplicationStatus
+import hs.kr.entrydsm.domain.application.values.Gender
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -47,6 +47,8 @@ class ApplicationJpaEntity(
     val applicantName: String,
     @Column(name = "applicant_tel", nullable = false, length = 20)
     val applicantTel: String,
+    @Column(name = "applicant_gender")
+    val applicantGender: Gender?,
     @Column(name = "birth_date", length = 10)
     val birthDate: String?,
     // ===== 원서 전형 정보 =====
@@ -67,6 +69,8 @@ class ApplicationJpaEntity(
     val parentRelation: String?,
     @Column(name = "postal_code", length = 10)
     val postalCode: String?,
+    @Column(name = "street_address")
+    val streetAddress: String?,
     @Column(name = "detail_address", length = 500)
     val detailAddress: String?,
     // ===== 자기소개 및 학업계획 =====
@@ -74,6 +78,10 @@ class ApplicationJpaEntity(
     val studyPlan: String?,
     @Column(name = "self_introduce", columnDefinition = "TEXT")
     val selfIntroduce: String?,
+    @Column(name = "national_merit_child")
+    val nationalMeritChild: Boolean?,
+    @Column(name = "special_admission_target")
+    val specialAdmissionTarget: Boolean?,
     @Column(name = "school_code", length = 20)
     val schoolCode: String?,
     // ===== 성적 데이터 (JSON) =====
@@ -116,6 +124,7 @@ class ApplicationJpaEntity(
         receiptCode = 0L,
         applicantName = "",
         applicantTel = "",
+        applicantGender = null,
         birthDate = null,
         applicationType = ApplicationType.COMMON,
         educationalStatus = EducationalStatus.PROSPECTIVE_GRADUATE,
@@ -124,9 +133,12 @@ class ApplicationJpaEntity(
         parentTel = null,
         parentRelation = null,
         postalCode = null,
+        streetAddress = null,
         detailAddress = null,
         studyPlan = null,
         selfIntroduce = null,
+        nationalMeritChild = null,
+        specialAdmissionTarget = null,
         schoolCode = null,
         scoresData = "{}",
         totalScore = null,
