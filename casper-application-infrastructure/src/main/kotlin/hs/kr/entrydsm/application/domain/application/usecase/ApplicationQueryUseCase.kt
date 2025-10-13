@@ -225,17 +225,10 @@ class ApplicationQueryUseCase(
      */
     fun getCurrentUserApplication(): Application {
         val userId = securityAdapter.getCurrentUserId()
-        val applications = applicationRepository.findAllByUserId(userId)
-
-        if (applications.isEmpty()) {
-            throw ApplicationNotFoundException("원서를 찾을 수 없습니다")
-        }
-
-        // 가장 최근 원서 반환
-        val entity = applications.maxByOrNull { it.createdAt }
+        val application = applicationRepository.findByUserId(userId)
             ?: throw ApplicationNotFoundException("원서를 찾을 수 없습니다")
 
-        return entityToModel(entity)
+        return entityToModel(application)
     }
 
     private fun entityToModel(entity: ApplicationJpaEntity): Application {
@@ -316,13 +309,13 @@ class ApplicationQueryUseCase(
             science_3_2 = scores["science_3_2"] as? Int,
             tech_3_2 = scores["tech_3_2"] as? Int,
             english_3_2 = scores["english_3_2"] as? Int,
-            gedKorean = scores["qualificationKorean"] as? Int,
-            gedSocial = scores["qualificationSocial"] as? Int,
-            gedHistory = scores["qualificationHistory"] as? Int,
-            gedMath = scores["qualificationMath"] as? Int,
-            gedScience = scores["qualificationScience"] as? Int,
-            gedTech = scores["qualificationOpt"] as? Int,
-            gedEnglish = scores["qualificationEnglish"] as? Int,
+            gedKorean = scores["gedKorean"] as? Int,
+            gedSocial = scores["gedSocial"] as? Int,
+            gedHistory = scores["gedHistory"] as? Int,
+            gedMath = scores["gedMath"] as? Int,
+            gedScience = scores["gedScience"] as? Int,
+            gedTech = scores["gedTech"] as? Int,
+            gedEnglish = scores["gedEnglish"] as? Int,
             absence = scores["absence"] as? Int,
             tardiness = scores["tardiness"] as? Int,
             earlyLeave = scores["earlyLeave"] as? Int,

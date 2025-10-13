@@ -141,4 +141,6 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
     fun findLatestByUserId(
         @Param("userId") userId: UUID,
     ): Optional<ApplicationJpaEntity>
+
+    fun findByUserId(userId: UUID): ApplicationJpaEntity?
 }
