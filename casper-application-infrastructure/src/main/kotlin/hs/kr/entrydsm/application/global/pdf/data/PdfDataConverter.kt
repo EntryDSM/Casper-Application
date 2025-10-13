@@ -461,9 +461,9 @@ class PdfDataConverter(
         return mapOf(
             "schoolCode" to "",
             "schoolRegion" to "",
-            "schoolClass" to "0",
+            "schoolClass" to "",
             "schoolTel" to "",
-            "schoolName" to ""
+            "schoolName" to "",
         )
     }
 
