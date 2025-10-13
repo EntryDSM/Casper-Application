@@ -73,6 +73,9 @@ class PrintAdmissionTicketGenerator(
         val userMap = users.associateBy { it.id }
         val schoolMap = schools.associateBy { it.code }
         val statusMap = statuses.associateBy { it.receiptCode }
+        
+        // 이미지 캐시 - 모든 이미지를 한 번에 미리 로드
+        val imageCache = preloadImages(applications)
 
         var currentRowIndex = 0
         applications.forEach { application ->
@@ -82,12 +85,60 @@ class PrintAdmissionTicketGenerator(
 
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
             fillApplicationData(targetSheet, currentRowIndex, application, user, school, status, targetWorkbook)
-            copyApplicationImage(application, targetSheet, currentRowIndex)
+            copyApplicationImageFromCache(application, targetSheet, currentRowIndex, imageCache, targetWorkbook)
             currentRowIndex += 20
         }
 
         sourceWorkbook.close()
         return targetWorkbook
+    }
+
+    private fun preloadImages(applications: List<Application>) : Map<String, ByteArray> {
+        val imageCache = mutableMapOf<String, ByteArray>()
+
+        applications.forEach { application ->
+            val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
+            if (!photoPath.isNullOrBlank()) {
+                try {
+                    val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
+                    imageCache[photoPath] = imageBytes
+                } catch (e: Exception) {
+                    //이미지 로드 실패 시 캐시 추가 x
+                }
+
+            }
+        }
+        return imageCache
+    }
+    
+    private fun copyApplicationImageFromCache(
+        application: Application,
+        targetSheet: Sheet,
+        targetRowIndex: Int,
+        imageCache: Map<String, ByteArray>,
+        workbook: Workbook
+    ) {
+        val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
+        
+        if (photoPath.isNullOrBlank() || !imageCache.containsKey(photoPath)) {
+            copyDummyImage(targetSheet, targetRowIndex)
+            return
+        }
+
+        try {
+            val imageBytes = imageCache[photoPath]!!
+            val pictureId = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG)
+            val anchor = XSSFClientAnchor()
+
+            anchor.setCol1(0)
+            anchor.row1 = targetRowIndex + 3
+            anchor.setCol2(2)
+            anchor.row2 = targetRowIndex + 15
+
+            drawing.createPicture(anchor, pictureId)
+        } catch (e: Exception) {
+            copyDummyImage(targetSheet, targetRowIndex)
+        }
     }
 
     fun loadSourceWorkbook(): Workbook {
