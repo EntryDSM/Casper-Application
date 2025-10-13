@@ -30,6 +30,9 @@ data class ApplicationDetailResponse(
         // 점수 정보
         val scores: ScoreInfo?,
         val applicantGender: Gender?,
+        val streetAddress: String?,
+        val nationalMeritChild: Boolean?,
+        val specialAdmissionTarget: Boolean?,
     )
 
     data class ScoreInfo(
