@@ -145,7 +145,9 @@ class GetFinalApplicationPdfUseCase(
             )
 
         gedFields.forEach { (fieldName, value) ->
-            if (value == null || value < 0 || value > 100) {
+            if (value == null) {
+                throw IllegalStateException("검정고시 성적이 null입니다.")
+            } else if(value < 0 || value > 100) {
                 throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-100점)")
             }
         }
