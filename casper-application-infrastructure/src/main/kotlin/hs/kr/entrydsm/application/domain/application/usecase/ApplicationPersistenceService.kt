@@ -34,7 +34,8 @@ class ApplicationPersistenceService(
     private val scoreCalculator: ScoreCalculator,
     private val objectMapper: ObjectMapper,
     private val applicationCreateEventContract: ApplicationCreateEventContract,
-    private val validationService: hs.kr.entrydsm.application.domain.application.service.ApplicationValidationService
+    private val validationService: hs.kr.entrydsm.application.domain.application.service.ApplicationValidationService,
+    private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -58,6 +59,12 @@ class ApplicationPersistenceService(
         // 1. 중복 제출 검증
         if (applicationRepository.existsByUserId(userId)) {
             throw ApplicationAlreadySubmittedException("사용자 ID $userId 는 이미 원서를 제출했습니다")
+        }
+
+        // 증명사진 업로드 검증
+        val photo = photoJpaRepository.findByUserId(userId)
+        if (photo == null || photo.photo.isNullOrBlank()) {
+            throw ApplicationValidationException("증명사진을 업로드해야 원서를 제출할 수 있습니다")
         }
 
         // 2. 필수 필드 검증
