@@ -77,6 +77,9 @@ class ApplicationQueryUseCase(
                     studyPlan = application.studyPlan,
                     selfIntroduce = application.selfIntroduce,
                     isDaejeon = application.isDaejeon,
+                    streetAddress = application.streetAddress,
+                    nationalMeritChild = application.nationalMeritChild,
+                    specialAdmissionTarget = application.specialAdmissionTarget,
                     scores =
                         ApplicationDetailResponse.ScoreInfo(
                             totalScore = application.totalScore?.toDouble(),
