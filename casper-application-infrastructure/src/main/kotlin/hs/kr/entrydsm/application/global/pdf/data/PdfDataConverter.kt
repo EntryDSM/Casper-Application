@@ -463,7 +463,7 @@ class PdfDataConverter(
             "schoolRegion" to "",
             "schoolClass" to "0",
             "schoolTel" to "",
-            "schoolName" to "",
+            "schoolName" to ""
         )
     }
 
