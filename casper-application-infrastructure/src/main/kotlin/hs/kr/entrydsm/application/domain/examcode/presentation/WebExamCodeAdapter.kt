@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.domain.examcode.presentation
 
 import hs.kr.entrydsm.application.global.document.examcode.ExamCodeApiDocument
 import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
+import kotlinx.coroutines.runBlocking
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -22,5 +23,7 @@ class WebExamCodeAdapter(
      * 수험번호를 일괄적으로 부여합니다.
      */
     @PostMapping
-    override suspend fun grantExamCodes() = grantExamCodesContract.execute()
+    override fun grantExamCodes() = runBlocking {
+        grantExamCodesContract.execute()
+    }
 }

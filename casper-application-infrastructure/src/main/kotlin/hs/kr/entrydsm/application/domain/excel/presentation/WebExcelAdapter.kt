@@ -6,6 +6,7 @@ import hs.kr.entrydsm.application.domain.excel.usecase.PrintApplicationCheckList
 import hs.kr.entrydsm.application.domain.excel.usecase.PrintApplicationInfoUseCase
 import hs.kr.entrydsm.application.global.document.excel.ExcelApiDocument
 import jakarta.servlet.http.HttpServletResponse
+import kotlinx.coroutines.runBlocking
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -24,7 +25,7 @@ class WebExcelAdapter(
     }
 
     @GetMapping("/applicant-codes")
-    override suspend fun printApplicantCodes(response: HttpServletResponse) {
+    override fun printApplicantCodes(response: HttpServletResponse) = runBlocking {
         printApplicantCodesUseCase.execute(response)
     }
 
