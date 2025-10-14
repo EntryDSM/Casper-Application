@@ -471,7 +471,7 @@ class ScoreCalculator {
                 val gedScores = mutableMapOf<String, Int>()
 
                 listOf("Korean", "Social", "History", "Math", "Science", "English", "Tech").forEach { subject ->
-                    val key = "qualification$subject"
+                    val key = "ged$subject"
                     getIntOrNull(scores, key)?.let { gedScores[subject] = it }
                 }
 
