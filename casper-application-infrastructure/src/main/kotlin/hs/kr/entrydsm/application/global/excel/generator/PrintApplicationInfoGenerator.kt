@@ -70,7 +70,7 @@ class PrintApplicationInfoGenerator {
         row.createCell(6).setCellValue("${application.streetAddress ?: ""} ${application.detailAddress ?: ""}")
         row.createCell(7).setCellValue(application.applicantTel)
         row.createCell(8).setCellValue(application.applicantGender?.name ?: "")
-        row.createCell(9).setCellValue(application.educationalStatus.name)
+        row.createCell(9).setCellValue(application.educationalStatus.displayName)
         row.createCell(10).setCellValue(application.graduationDate ?: "")
         row.createCell(11).setCellValue(application.schoolName ?: school?.name ?: "")
         row.createCell(12).setCellValue(application.studentId ?: "")

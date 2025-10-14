@@ -268,7 +268,7 @@ class PrintApplicationCheckListGenerator {
     ) {
         getCell(sheet, dh + 1, 2).setCellValue(application.receiptCode.toString())
         getCell(sheet, dh + 1, 3).setCellValue(application.schoolName ?: school?.name ?: "")
-        getCell(sheet, dh + 1, 6).setCellValue(application.educationalStatus.name)
+        getCell(sheet, dh + 1, 6).setCellValue(application.educationalStatus.displayName)
         getCell(sheet, dh + 1, 7).setCellValue(application.graduationDate ?: "")
         getCell(sheet, dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
         getCell(sheet, dh + 3, 2).setCellValue(application.applicantName)
