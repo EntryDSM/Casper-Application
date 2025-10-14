@@ -34,5 +34,5 @@ interface ExamCodeApiDocument {
         ),
     )
     @SecurityRequirement(name = "bearerAuth")
-    suspend fun grantExamCodes()
+    fun grantExamCodes()
 }

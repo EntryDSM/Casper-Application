@@ -35,7 +35,7 @@ interface ExcelApiDocument {
             ApiResponse(responseCode = "500", description = "Excel 파일 생성 중 오류 발생"),
         ],
     )
-    suspend fun printApplicantCodes(response: HttpServletResponse)
+    fun printApplicantCodes(response: HttpServletResponse)
 
     @Operation(
         summary = "전형자료 출력",
