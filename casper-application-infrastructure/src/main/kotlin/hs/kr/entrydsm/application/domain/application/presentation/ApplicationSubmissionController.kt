@@ -141,13 +141,13 @@ class ApplicationSubmissionController(
         request.volunteer?.let { scoresData["volunteer"] = it }
 
         // 검정고시 성적
-        request.gedKorean?.let { scoresData["qualificationKorean"] = it }
-        request.gedSocial?.let { scoresData["qualificationSocial"] = it }
-        request.gedHistory?.let { scoresData["qualificationHistory"] = it }
-        request.gedMath?.let { scoresData["qualificationMath"] = it }
-        request.gedScience?.let { scoresData["qualificationScience"] = it }
-        request.gedEnglish?.let { scoresData["qualificationEnglish"] = it }
-        request.gedTech?.let { scoresData["qualificationTech"] = it }
+        request.gedKorean?.let { scoresData["gedKorean"] = it }
+        request.gedSocial?.let { scoresData["gedSocial"] = it }
+        request.gedHistory?.let { scoresData["gedHistory"] = it }
+        request.gedMath?.let { scoresData["gedMath"] = it }
+        request.gedScience?.let { scoresData["gedScience"] = it }
+        request.gedEnglish?.let { scoresData["gedEnglish"] = it }
+        request.gedTech?.let { scoresData["gedTech"] = it }
 
         // 가산점
         var extraScore = 0
