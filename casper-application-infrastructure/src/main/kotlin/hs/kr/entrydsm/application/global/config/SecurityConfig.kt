@@ -63,7 +63,7 @@ class SecurityConfig(
                     .requestMatchers("/pass/**").hasRole(UserRole.USER.name)
                     .requestMatchers("/application/**").hasRole(UserRole.USER.name)
                     .requestMatchers("/schools/**").permitAll()
-                    .requestMatchers("/exam-code").hasRole(UserRole.ADMIN.name)
+                    .requestMatchers("/api/v1/exam-code").hasRole(UserRole.ADMIN.name)
                     .anyRequest().authenticated()
             }
             .with(filterConfig) { }
