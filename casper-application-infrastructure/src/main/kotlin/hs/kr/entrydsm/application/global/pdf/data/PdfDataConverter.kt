@@ -405,8 +405,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["teacherName"] = application.teacherName ?: "-"
-        values["teacherTel"] = toFormattedPhoneNumber(application.schoolPhone ?: "-")
+        values["teacherName"] = application.teacherName ?: ""
+        values["teacherTel"] = toFormattedPhoneNumber(application.schoolPhone ?: "")
     }
 
     private fun setParentInfo(
@@ -459,11 +459,11 @@ class PdfDataConverter(
 
     private fun emptySchoolInfo(): Map<String, Any> {
         return mapOf(
-            "schoolCode" to "-",
-            "schoolRegion" to "-",
-            "schoolClass" to "-",
-            "schoolTel" to "-",
-            "schoolName" to "-",
+            "schoolCode" to "",
+            "schoolRegion" to "",
+            "schoolClass" to "",
+            "schoolTel" to "",
+            "schoolName" to "",
         )
     }
 
