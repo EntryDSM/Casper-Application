@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
  * @since 2025.08.26
  */
 @RestController
-@RequestMapping("/api/v1/exam-code")
+@RequestMapping("/exam-code")
 class WebExamCodeAdapter(
     private val grantExamCodesContract: GrantExamCodesContract,
 ) : ExamCodeApiDocument {
