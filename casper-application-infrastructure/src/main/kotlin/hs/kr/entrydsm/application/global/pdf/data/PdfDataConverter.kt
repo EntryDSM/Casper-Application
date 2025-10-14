@@ -405,8 +405,13 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["teacherName"] = application.teacherName ?: ""
-        values["teacherTel"] = toFormattedPhoneNumber(application.schoolPhone ?: "")
+        if (application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+            values["teacherName"] = ""
+            values["teacherTel"] = ""
+        } else {
+            values["teacherName"] = application.teacherName ?: ""
+            values["teacherTel"] = toFormattedPhoneNumber(application.schoolPhone ?: "")
+        }
     }
 
     private fun setParentInfo(
@@ -421,6 +426,15 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
+        if (application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+            values["schoolCode"] = ""
+            values["schoolRegion"] = ""
+            values["schoolTel"] = ""
+            values["schoolName"] = "해당 없음"
+            values["schoolClass"] = ""
+            return
+        }
+
         val school =
             application.schoolCode?.let {
                 querySchoolContract.querySchoolBySchoolCode(it)
