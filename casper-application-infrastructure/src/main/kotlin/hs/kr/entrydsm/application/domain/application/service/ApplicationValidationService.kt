@@ -110,13 +110,13 @@ class ApplicationValidationService {
      */
     private fun validateGedScores(scoresData: Map<String, Any>) {
         val gedFields = listOf(
-            "검정고시 국어" to "qualificationKorean",
-            "검정고시 사회" to "qualificationSocial",
-            "검정고시 역사" to "qualificationHistory",
-            "검정고시 수학" to "qualificationMath",
-            "검정고시 과학" to "qualificationScience",
-            "검정고시 기술·가정" to "qualificationTech",
-            "검정고시 영어" to "qualificationEnglish",
+            "검정고시 국어" to "gedKorean",
+            "검정고시 사회" to "gedSocial",
+            "검정고시 역사" to "gedHistory",
+            "검정고시 수학" to "gedMath",
+            "검정고시 과학" to "gedScience",
+            "검정고시 기술·가정" to "gedTech",
+            "검정고시 영어" to "gedEnglish",
         )
 
         gedFields.forEach { (fieldName, key) ->
