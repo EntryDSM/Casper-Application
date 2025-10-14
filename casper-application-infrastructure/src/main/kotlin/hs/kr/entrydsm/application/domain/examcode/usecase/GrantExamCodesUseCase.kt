@@ -4,6 +4,7 @@ import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
 import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
+import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
@@ -47,10 +48,9 @@ class GrantExamCodesUseCase(
         val allFirstRoundPassedApplication = applicationContract.queryAllFirstRoundPassedApplication()
         val examCodeInfos = collectDistanceInfo(allFirstRoundPassedApplication)
 
-        val generalExamInfos = examCodeInfos.filter { it.applicationType == "COMMON" }
-        val specialExamInfos =
-            examCodeInfos.filter {
-                it.applicationType == "SOCIAL" || it.applicationType == "MEISTER"
+        val generalExamInfos = examCodeInfos.filter { it.applicationType == ApplicationType.COMMON.name }
+        val specialExamInfos = examCodeInfos.filter {
+                it.applicationType == ApplicationType.SOCIAL.name || it.applicationType == ApplicationType.MEISTER.name
             }
 
         assignExamCodes(generalExamInfos, GENERAL_EXAM_CODE_PREFIX)
@@ -102,7 +102,6 @@ class GrantExamCodesUseCase(
         applicationType: String,
     ) {
         val sortedByDistance = examCodeInfos.sortedByDescending { it.distance }
-
         val distanceGroups = createDistanceGroups(sortedByDistance, applicationType)
 
         distanceGroups.forEach { group ->
@@ -123,11 +122,13 @@ class GrantExamCodesUseCase(
     ): List<DistanceGroup> {
         val groups = mutableListOf<DistanceGroup>()
         val uniqueDistances = sortedInfos.map { it.distance }.distinct()
+
         uniqueDistances.forEachIndexed { index, distance ->
             val distanceCode = String.format("%03d", index + 1)
             val applicationsInGroup = sortedInfos.filter { it.distance == distance }.toMutableList()
             groups.add(DistanceGroup(applicationType, distanceCode, applicationsInGroup))
         }
+
         return groups
     }
 
