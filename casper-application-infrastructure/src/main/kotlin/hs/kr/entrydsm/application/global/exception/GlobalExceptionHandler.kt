@@ -9,6 +9,7 @@ import hs.kr.entrydsm.application.domain.application.exception.InvalidApplicatio
 import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
 import hs.kr.entrydsm.application.global.error.ErrorDetail
 import hs.kr.entrydsm.application.global.error.ErrorResponse
+import hs.kr.entrydsm.global.exception.WebException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +23,23 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // ===== Application 관련 예외 처리 =====
+
+    @ExceptionHandler(WebException::class)
+    fun handleWebException(ex: WebException): ResponseEntity<ErrorResponse> {
+        log.warn("WebException: {}", ex.message)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "INVALID_EXTENSION",
+                        message = ex.message,
+                        details = null,
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
 
     @ExceptionHandler(ApplicationNotFoundException::class)
     fun handleApplicationNotFoundException(ex: ApplicationNotFoundException): ResponseEntity<ErrorResponse> {
