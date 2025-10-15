@@ -111,8 +111,19 @@ class ScoreCalculationService {
 
     /**
      * 검정고시 교과 성적 계산
-     * - 일반전형: (평균 - 50) / 50 * 140 (최대 140점)
-     * - 특별전형: (평균 - 50) / 50 * 80 (최대 80점)
+     * 
+     * 환산점 기준:
+     * - 100~98점: 5점
+     * - 98~94점: 4점
+     * - 94~90점: 3점
+     * - 90~86점: 2점
+     * - 86점 미만: 1점
+     *
+     * 계산 방법:
+     * - 일반전형: (T/N) × 34 (최대 170점)
+     * - 특별전형: (T/N) × 22 (최대 110점)
+     *   * T: 취득한 과목별 환산점의 총합
+     *   * N: 취득한 과목수
      */
     private fun calculateGedSubjectScore(application: Application): BigDecimal {
         val scores = listOfNotNull(
@@ -127,19 +138,39 @@ class ScoreCalculationService {
         
         if (scores.isEmpty()) return BigDecimal.ZERO
         
-        val average = scores.sum().toDouble() / scores.size
+        // 1. 각 과목을 환산점으로 변환
+        val convertedScores = scores.map { convertGedScoreToPoint(it) }
         
+        // 2. 환산점 합계 및 평균 계산
+        val totalPoints = convertedScores.sum()
+        val subjectCount = convertedScores.size
+        val averagePoints = totalPoints.toDouble() / subjectCount
+        
+        // 3. 전형별 배수 적용
         return when (application.applicationType) {
             ApplicationType.COMMON -> {
-                // 일반전형: (평균 - 50) / 50 * 140
-                BigDecimal.valueOf(((average - 50.0) / 50.0) * 140.0)
+                // 일반전형: (T/N) × 34
+                BigDecimal.valueOf(averagePoints * 34.0)
                     .setScale(2, RoundingMode.HALF_UP)
             }
             ApplicationType.MEISTER, ApplicationType.SOCIAL -> {
-                // 특별전형: (평균 - 50) / 50 * 80
-                BigDecimal.valueOf(((average - 50.0) / 50.0) * 80.0)
+                // 특별전형: (T/N) × 22
+                BigDecimal.valueOf(averagePoints * 22.0)
                     .setScale(2, RoundingMode.HALF_UP)
             }
+        }
+    }
+
+    /**
+     * 검정고시 100점 점수를 환산점(1-5)으로 변환
+     */
+    private fun convertGedScoreToPoint(score: Int): Int {
+        return when {
+            score >= 98 -> 5
+            score >= 94 -> 4
+            score >= 90 -> 3
+            score >= 86 -> 2
+            else -> 1
         }
     }
 
@@ -148,9 +179,9 @@ class ScoreCalculationService {
      * 환산 결석 = 결석 + (지각+조퇴+결과)/3
      */
     fun calculateAttendanceScore(application: Application): BigDecimal {
-        // 검정고시는 출석점수 만점
+        // 검정고시는 출석점수 없음
         if (application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-            return BigDecimal("15.0")
+            return BigDecimal.ZERO
         }
         
         val absence = application.absence ?: 0
@@ -186,38 +217,14 @@ class ScoreCalculationService {
      * 봉사활동 점수 계산 (15점 만점)
      */
     fun calculateVolunteerScore(application: Application): BigDecimal {
-        // 검정고시는 별도 계산
+        // 검정고시는 봉사점수 없음
         if (application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-            return calculateGedVolunteerScore(application)
+            return BigDecimal.ZERO
         }
         
         // 일반 학생: 15시간 이상 15점, 그 이하는 시간 = 점수
         val volunteer = application.volunteer ?: 0
         return BigDecimal.valueOf(min(volunteer.toDouble(), 15.0))
-            .setScale(2, RoundingMode.HALF_UP)
-    }
-
-    /**
-     * 검정고시 봉사활동 점수 계산
-     * - 모든 전형: (평균 - 40) / 60 * 15 (최대 15점)
-     */
-    private fun calculateGedVolunteerScore(application: Application): BigDecimal {
-        val scores = listOfNotNull(
-            application.gedKorean,
-            application.gedSocial,
-            application.gedHistory,
-            application.gedMath,
-            application.gedScience,
-            application.gedTech,
-            application.gedEnglish
-        )
-        
-        if (scores.isEmpty()) return BigDecimal.ZERO
-        
-        val average = scores.sum().toDouble() / scores.size
-        val volunteerScore = ((average - 40.0) / 60.0) * 15.0
-        
-        return BigDecimal.valueOf(volunteerScore.coerceIn(0.0, 15.0))
             .setScale(2, RoundingMode.HALF_UP)
     }
 
