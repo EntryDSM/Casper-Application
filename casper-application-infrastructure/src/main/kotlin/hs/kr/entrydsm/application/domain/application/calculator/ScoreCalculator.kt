@@ -43,18 +43,19 @@ class ScoreCalculator {
                     scoreInput,
                 )
 
-            // 검정고시는 출석점수 만점(15점) 부여, 고교생은 계산
+            // 검정고시는 출석/봉사 점수 없음 (교과만 반영)
             val attendanceScore =
                 if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-                    logger.info("검정고시 - 출석점수 만점 15점 부여")
-                    15.0
+                    logger.info("검정고시 - 출석점수 없음 (0점)")
+                    0.0
                 } else {
                     calculateAttendanceScore(scoreInput)
                 }
 
             val volunteerScore =
                 if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-                    calculateQualificationExamVolunteerScore(applicationType, scoreInput)
+                    logger.info("검정고시 - 봉사점수 없음 (0점)")
+                    0.0
                 } else {
                     calculateVolunteerScore(scoreInput)
                 }
@@ -208,9 +209,18 @@ class ScoreCalculator {
     /**
      * 검정고시 교과성적 계산
      *
+     * 환산점 기준:
+     * - 100~98점: 5점
+     * - 98~94점: 4점
+     * - 94~90점: 3점
+     * - 90~86점: 2점
+     * - 86점 미만: 1점
+     *
      * 계산 방법:
-     * - 일반전형: (평균 점수 - 50) / 50 * 140 (최대 140점)
-     * - 특별전형: (평균 점수 - 50) / 50 * 80 (최대 80점)
+     * - 일반전형: (T/N) × 34 (최대 170점)
+     * - 특별전형: (T/N) × 22 (최대 110점)
+     *   * T: 취득한 과목별 환산점의 총합
+     *   * N: 취득한 과목수
      */
     private fun calculateQualificationExamSubjectScore(
         applicationType: ApplicationType,
@@ -220,60 +230,39 @@ class ScoreCalculator {
             scoreInput.gedScores
                 ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
 
-        logger.info("=== 검정고시 교과 점수 계산 ===")
+        logger.info("=== 검정고시 교과 점수 계산 (환산점 방식) ===")
         logger.info("원점수: $gedScores")
 
-        // 원점수 평균 계산
-        val totalScore = gedScores.values.sum()
-        val subjectCount = gedScores.size
-        val average = totalScore.toDouble() / subjectCount
+        // 1. 각 과목을 환산점으로 변환
+        val convertedScores = gedScores.mapValues { (subject, score) ->
+            val converted = convertGedScoreToPoint(score)
+            logger.info("  $subject: ${score}점 -> 환산점 ${converted}점")
+            converted
+        }
 
-        logger.info("원점수 합계: $totalScore, 과목수: $subjectCount, 평균: $average")
+        // 2. 환산점 합계 및 평균 계산
+        val totalPoints = convertedScores.values.sum()
+        val subjectCount = convertedScores.size
+        val averagePoints = totalPoints.toDouble() / subjectCount
 
+        logger.info("환산점 합계(T): $totalPoints, 과목수(N): $subjectCount, 평균: $averagePoints")
+
+        // 3. 전형별 배수 적용
         return if (applicationType == ApplicationType.COMMON) {
-            // 일반전형 교과: (평균 - 50) / 50 * 140
-            val finalScore = ((average - 50.0) / 50.0) * 140.0
+            // 일반전형: (T/N) × 34
+            val finalScore = averagePoints * 34.0
 
-            logger.info("전형: COMMON, 수식: (평균 - 50) / 50 * 140, 교과점수: $finalScore")
+            logger.info("전형: COMMON, 수식: ($totalPoints/$subjectCount) × 34, 교과점수: $finalScore")
 
             finalScore
         } else {
-            // 특별전형 교과: (평균 - 50) / 50 * 80
-            val finalScore = ((average - 50.0) / 50.0) * 80.0
+            // 특별전형: (T/N) × 22
+            val finalScore = averagePoints * 22.0
 
-            logger.info("전형: SPECIAL, 수식: (평균 - 50) / 50 * 80, 교과점수: $finalScore")
+            logger.info("전형: SPECIAL, 수식: ($totalPoints/$subjectCount) × 22, 교과점수: $finalScore")
 
             finalScore
         }
-    }
-
-    /**
-     * 검정고시 봉사활동 점수 계산
-     *
-     * 계산 방법:
-     * - 일반전형: (평균 점수 - 40) / 60 * 15 (최대 15점)
-     * - 특별전형: (평균 점수 - 40) / 60 * 15 (최대 15점)
-     */
-    private fun calculateQualificationExamVolunteerScore(
-        applicationType: ApplicationType,
-        scoreInput: ScoreInput
-    ): Double {
-        val gedScores =
-            scoreInput.gedScores
-                ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
-
-        logger.info("=== 검정고시 봉사 점수 계산 ===")
-
-        val totalScore = gedScores.values.sum()
-        val subjectCount = gedScores.size
-        val average = totalScore.toDouble() / subjectCount
-
-        // 모든 전형 동일: (평균 - 40) / 60 * 15
-        val volunteerScore = ((average - 40.0) / 60.0) * 15.0
-
-        logger.info("전형: ${applicationType.name}, 평균: $average, 수식: (평균 - 40) / 60 * 15, 봉사점수: $volunteerScore")
-
-        return volunteerScore
     }
 
     /**
