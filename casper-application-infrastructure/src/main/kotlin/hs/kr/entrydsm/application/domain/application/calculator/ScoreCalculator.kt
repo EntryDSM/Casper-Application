@@ -42,11 +42,11 @@ class ScoreCalculator {
                     scoreInput,
                 )
 
-            // 검정고시는 출결 점수 없음, 봉사는 별도 계산
+            // 검정고시는 출석점수 만점(15점) 부여, 고교생은 계산
             val attendanceScore =
                 if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-                    logger.info("검정고시 - 출석점수 0점")
-                    0.0
+                    logger.info("검정고시 - 출석점수 만점 15점 부여")
+                    15.0
                 } else {
                     calculateAttendanceScore(scoreInput)
                 }
@@ -251,17 +251,12 @@ class ScoreCalculator {
      *
      * 계산 방법:
      * - 일반전형: (평균 점수 - 40) / 60 * 15 (최대 15점)
-     * - 특별전형: 0점 (봉사점수 없음)
+     * - 특별전형: (평균 점수 - 40) / 60 * 15 (최대 15점)
      */
     private fun calculateQualificationExamVolunteerScore(
         applicationType: ApplicationType,
         scoreInput: ScoreInput
     ): Double {
-        if (applicationType != ApplicationType.COMMON) {
-            logger.info("검정고시 특별전형 - 봉사점수 0점")
-            return 0.0
-        }
-
         val gedScores =
             scoreInput.gedScores
                 ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
@@ -272,10 +267,10 @@ class ScoreCalculator {
         val subjectCount = gedScores.size
         val average = totalScore.toDouble() / subjectCount
 
-        // 일반전형 봉사: (평균 - 40) / 60 * 15
+        // 모든 전형 동일: (평균 - 40) / 60 * 15
         val volunteerScore = ((average - 40.0) / 60.0) * 15.0
 
-        logger.info("평균: $average, 수식: (평균 - 40) / 60 * 15, 봉사점수: $volunteerScore")
+        logger.info("전형: ${applicationType.name}, 평균: $average, 수식: (평균 - 40) / 60 * 15, 봉사점수: $volunteerScore")
 
         return volunteerScore
     }
