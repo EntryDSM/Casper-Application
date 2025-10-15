@@ -493,9 +493,14 @@ class ScoreCalculator {
             private fun extractGedScores(scores: Map<String, Any>): Map<String, Int>? {
                 val gedScores = mutableMapOf<String, Int>()
 
+                // qualification* 키와 ged* 키 모두 지원
                 listOf("Korean", "Social", "History", "Math", "Science", "English", "Tech").forEach { subject ->
-                    val key = "ged$subject"
-                    getIntOrNull(scores, key)?.let { gedScores[subject] = it }
+                    val qualificationKey = "qualification$subject"
+                    val gedKey = "ged$subject"
+
+                    // qualification* 키 먼저 확인, 없으면 ged* 키 확인
+                    val score = getIntOrNull(scores, qualificationKey) ?: getIntOrNull(scores, gedKey)
+                    score?.let { gedScores[subject] = it }
                 }
 
                 return if (gedScores.isEmpty()) null else gedScores
