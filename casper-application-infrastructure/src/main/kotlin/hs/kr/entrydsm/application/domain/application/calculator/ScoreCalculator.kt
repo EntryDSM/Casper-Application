@@ -42,7 +42,7 @@ class ScoreCalculator {
                     scoreInput,
                 )
 
-            // 검정고시는 출결/봉사 점수 없음
+            // 검정고시는 출결 점수 없음, 봉사는 별도 계산
             val attendanceScore =
                 if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
                     logger.info("검정고시 - 출석점수 0점")
@@ -53,8 +53,7 @@ class ScoreCalculator {
 
             val volunteerScore =
                 if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-                    logger.info("검정고시 - 봉사점수 0점")
-                    0.0
+                    calculateQualificationExamVolunteerScore(applicationType, scoreInput)
                 } else {
                     calculateVolunteerScore(scoreInput)
                 }
@@ -209,16 +208,8 @@ class ScoreCalculator {
      * 검정고시 교과성적 계산
      *
      * 계산 방법:
-     * 1. 100점 점수를 1-5점 환산점으로 변환
-     *    - 100~98점: 5점
-     *    - 98~94점: 4점
-     *    - 94~90점: 3점
-     *    - 90~86점: 2점
-     *    - 86점 미만: 1점
-     * 2. 환산점 평균 계산 (T ÷ N)
-     * 3. 전형별 배수 적용
-     *    - 일반전형: 평균 × 34 (최대 170점)
-     *    - 특별전형: 평균 × 22 (최대 110점)
+     * - 일반전형: (평균 점수 - 50) / 50 * 140 (최대 140점)
+     * - 특별전형: (평균 점수 - 50) / 50 * 80 (최대 80점)
      */
     private fun calculateQualificationExamSubjectScore(
         applicationType: ApplicationType,
@@ -228,33 +219,65 @@ class ScoreCalculator {
             scoreInput.gedScores
                 ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
 
-        logger.info("=== 검정고시 점수 계산 ===")
+        logger.info("=== 검정고시 교과 점수 계산 ===")
         logger.info("원점수: $gedScores")
 
-        // 1. 100점 점수를 1-5점 환산점으로 변환
-        val convertedScores = gedScores.mapValues { (subject, score) ->
-            val converted = convertGedScoreToPoint(score)
-            logger.info("$subject: ${score}점 -> ${converted}점")
-            converted
+        // 원점수 평균 계산
+        val totalScore = gedScores.values.sum()
+        val subjectCount = gedScores.size
+        val average = totalScore.toDouble() / subjectCount
+
+        logger.info("원점수 합계: $totalScore, 과목수: $subjectCount, 평균: $average")
+
+        return if (applicationType == ApplicationType.COMMON) {
+            // 일반전형 교과: (평균 - 50) / 50 * 140
+            val finalScore = ((average - 50.0) / 50.0) * 140.0
+
+            logger.info("전형: COMMON, 수식: (평균 - 50) / 50 * 140, 교과점수: $finalScore")
+
+            finalScore
+        } else {
+            // 특별전형 교과: (평균 - 50) / 50 * 80
+            val finalScore = ((average - 50.0) / 50.0) * 80.0
+
+            logger.info("전형: SPECIAL, 수식: (평균 - 50) / 50 * 80, 교과점수: $finalScore")
+
+            finalScore
+        }
+    }
+
+    /**
+     * 검정고시 봉사활동 점수 계산
+     *
+     * 계산 방법:
+     * - 일반전형: (평균 점수 - 40) / 60 * 15 (최대 15점)
+     * - 특별전형: 0점 (봉사점수 없음)
+     */
+    private fun calculateQualificationExamVolunteerScore(
+        applicationType: ApplicationType,
+        scoreInput: ScoreInput
+    ): Double {
+        if (applicationType != ApplicationType.COMMON) {
+            logger.info("검정고시 특별전형 - 봉사점수 0점")
+            return 0.0
         }
 
-        // 2. 환산점 평균 계산
-        val totalPoints = convertedScores.values.sum()
-        val subjectCount = convertedScores.size
-        val average = totalPoints.toDouble() / subjectCount
+        val gedScores =
+            scoreInput.gedScores
+                ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
 
-        logger.info("환산점 합계: $totalPoints, 과목수: $subjectCount, 평균: $average")
+        logger.info("=== 검정고시 봉사 점수 계산 ===")
 
-        // 3. 전형별 배수 적용
-        val multiplier = when (applicationType) {
-            ApplicationType.COMMON -> 34.0  // 일반전형
-            else -> 22.0  // 특별전형 (MEISTER, SOCIAL)
-        }
-        val finalScore = average * multiplier
+        val totalScore = gedScores.values.sum()
+        val subjectCount = gedScores.size
+        val average = totalScore.toDouble() / subjectCount
 
-        logger.info("전형: ${applicationType.name}, 배수: $multiplier, 최종점수: $finalScore")
+        // 일반전형 봉사: (평균 - 40) / 60 * 15
+        val volunteerScore = ((average - 40.0) / 60.0) * 15.0
 
-        return finalScore
+        logger.info("평균: $average, 수식: (평균 - 40) / 60 * 15, 봉사점수: $volunteerScore")
+
+        return volunteerScore
     }
 
     /**
