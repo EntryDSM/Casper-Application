@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.calculator
 
+import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import org.slf4j.LoggerFactory
@@ -569,11 +570,3 @@ class ScoreCalculator {
         val classExit: Int = 0, // 결과
     )
 }
-
-/**
- * 점수 계산 예외
- */
-class ScoreCalculationException(
-    message: String,
-    cause: Throwable? = null,
-) : RuntimeException(message, cause)
