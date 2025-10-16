@@ -115,19 +115,19 @@
         <div style="text-align: center; margin: 30px 0;">
             <span th:text="${year}">2025</span>년
             <span style="margin: 0 4px;" th:text="${month}"></span>월
-            <span style="margin-left: 20px;" th:text="${day}"></span>일
+            <span style="margin-left: 4px;" th:text="${day}"></span>일
         </div>
 
-        <table style="border: none; width: 50%; margin-left: auto; font-size: 11px; margin-bottom: 30px;">
+        <table style="border: none; border-collapse: collapse; font-size: 11px; margin-bottom: 30px;">
             <tr>
-                <td style="border: none; text-align: right;">지원자 성명:</td>
-                <td style="border: none; text-align: center;" th:text="${userName}"></td>
-                <td style="border: none; text-align: left;">(서명 또는 인)</td>
+                <td style="border: none; text-align: right; padding-right: 5px;">지원자 성명:</td>
+                <td style="border: none; text-align: center; width: 100px;" th:text="${userName}"></td>
+                <td style="border: none; text-align: left; padding-left: 5px;">(서명 또는 인)</td>
             </tr>
             <tr>
-                <td style="border: none; text-align: right;">보호자 성명:</td>
-                <td style="border: none; text-align: center;" th:text="${parentName}"></td>
-                <td style="border: none; text-align: left;">(서명 또는 인)</td>
+                <td style="border: none; text-align: right; padding-right: 5px;">보호자 성명:</td>
+                <td style="border: none; text-align: center; width: 100px;" th:text="${parentName}"></td>
+                <td style="border: none; text-align: left; padding-left: 5px;">(서명 또는 인)</td>
             </tr>
         </table>
 
