@@ -6,58 +6,35 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box; /* 너비와 높이 계산을 용이하게 하기 위해 추가 */
         }
         body {
             font-family: KoPubWorld_Dotum_Light;
-            padding: 15px;
+            padding: 15px; /* body 패딩 줄임 */
         }
-        .header-title {
-            text-align: center;
-            font-size: 15px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-
-        /* Div로 만든 테이블 스타일 */
-        .div-table {
-            display: flex;
-            flex-direction: column; /* 행을 수직으로 쌓음 */
+        table {
+            border-collapse: collapse;
             width: 100%;
             border: 1px solid black;
         }
-        .div-row {
-            display: flex; /* 셀을 수평으로 나열 */
-            border-bottom: 1px solid black;
-        }
-        .div-table > .div-row:last-child {
-            border-bottom: none; /* 마지막 행의 하단 테두리 제거 */
-        }
-        .div-cell, .div-header {
-            border-right: 1px solid black;
-            font-size: 10px;
+        td {
+            border: 1px solid black;
+            font-size: 10px; /* 폰트 크기 미세 조정 */
             text-align: center;
-            padding: 6px;
+            padding: 6px; /* 패딩 미세 조정 */
         }
-        .div-row > .div-cell:last-child,
-        .div-row > .div-header:last-child {
-            border-right: none; /* 마지막 셀의 오른쪽 테두리 제거 */
-        }
-        .div-header {
+        th {
+            border: 1px solid black;
             background-color: #f2f2f2;
+            font-size: 10px; /* 폰트 크기 미세 조정 */
             font-weight: 600;
+            text-align: center;
+            padding: 6px; /* 패딩 미세 조정 */
         }
-
-        /* rowspan 효과를 위한 스타일 */
-        .flex-column-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-        .flex-center {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .header-title {
+            text-align: center;
+            font-size: 15px; /* 폰트 크기 미세 조정 */
+            font-weight: bold;
+            margin-bottom: 12px; /* 여백 줄임 */
         }
     </style>
 </head>
@@ -69,56 +46,46 @@
     입학 동의서
 </div>
 
-<div class="div-table" style="margin-top: 15px;">
-    <div class="div-row">
-        <div class="div-header" style="width: 30%; text-align: left; padding-left: 12px;">2026학년도 신입생 입학전형</div>
-        <div class="div-header" style="width: 15%;">수험번호</div>
-        <div class="div-cell" style="width: 55%;"></div>
-    </div>
+<table style="margin-top: 15px;">
+    <tr>
+        <th colspan="2" style="width: 30%; text-align: left; padding-left: 12px;">2026학년도 신입생 입학전형</th>
+        <th style="width: 15%;">수험번호</th>
+        <td style="width: 55%;"></td>
+    </tr>
+    <tr>
+        <th rowspan="3" style="width: 10%;">지원자</th>
+        <th style="width: 15%;">성 명</th>
+        <td style="width: 30%;" th:text="${userName}"></td>
+        <th style="width: 15%;">성 별</th>
+        <td style="width: 30%;">□남&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;□여</td>
+    </tr>
+    <tr>
+        <th>전화번호</th>
+        <td th:text="${applicantTel}"></td>
+        <th>생년월일</th>
+        <td>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span th:text="${birthYear}"></span>&nbsp;년&nbsp;&nbsp;&nbsp;
+            <span th:text="${birthMonth}"></span>&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;&nbsp;
+            <span th:text="${birthDay}"></span>일
+        </td>
+    </tr>
+    <tr>
+        <th>주 소</th>
+        <td colspan="3" th:text="${address} + ' ' + ${detailAddress}"></td>
+    </tr>
+    <tr>
+        <th rowspan="2" style="width: 10%;">보호자</th>
+        <th style="width: 15%;">성 명</th>
+        <td style="width: 30%;" th:text="${parentName}"></td>
+        <th style="width: 15%;">지원자와의 관계</th>
+        <td style="width: 30%;">지원자의 (<span th:text="${parentRelation}"></span>)</td>
+    </tr>
+    <tr>
+        <th>전화번호</th>
+        <td colspan="3" th:text="${parentTel}"></td>
+    </tr>
+</table>
 
-    <div class="div-row">
-        <div class="div-header flex-center" style="width: 10%;">지원자</div>
-        <div class="flex-column-container" style="width: 90%;">
-            <div class="div-row">
-                <div class="div-header" style="width: 16.66%;">성 명</div> <div class="div-cell" style="width: 33.33%;" th:text="${userName}"></div> <div class="div-header" style="width: 13.33%;">성 별</div> <div class="div-cell flex-center" style="width: 36.68%; gap: 12px;">
-                <div>□ 남</div>
-                <div>□ 여</div>
-            </div>
-            </div>
-            <div class="div-row">
-                <div class="div-header" style="width: 16.66%;">전화번호</div>
-                <div class="div-cell" style="width: 33.33%;" th:text="${applicantTel}"></div>
-                <div class="div-header" style="width: 13.33%;">생년월일</div>
-                <div class="div-cell" style="width: 36.68%;">
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <span th:text="${birthYear}"></span>&nbsp;년&nbsp;&nbsp;&nbsp;
-                    <span th:text="${birthMonth}"></span>&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span th:text="${birthDay}"></span>일
-                </div>
-            </div>
-            <div class="div-row" style="border-bottom: none;">
-                <div class="div-header" style="width: 16.66%;">주 소</div>
-                <div class="div-cell" style="width: 83.34%;" th:text="${address} + ' ' + ${detailAddress}"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="div-row">
-        <div class="div-header flex-center" style="width: 10%;">보호자</div>
-        <div class="flex-column-container" style="width: 90%;">
-            <div class="div-row">
-                <div class="div-header" style="width: 16.66%;">성 명</div>
-                <div class="div-cell" style="width: 33.33%;" th:text="${parentName}"></div>
-                <div class="div-header" style="width: 16.66%;">지원자와의 관계</div>
-                <div class="div-cell" style="width: 33.35%;">지원자의 (<span th:text="${parentRelation}"></span>)</div>
-            </div>
-            <div class="div-row" style="border-bottom: none;">
-                <div class="div-header" style="width: 16.66%;">전화번호</div>
-                <div class="div-cell" style="width: 83.34%;" th:text="${parentTel}"></div>
-            </div>
-        </div>
-    </div>
-</div>
 <div style="border: 1px solid black; margin-top: 15px; padding: 15px; ">
     <div style="margin-bottom: 20px; text-indent: 15px; line-height: 1.8; font-size: 10px;">
         <p>
@@ -130,45 +97,44 @@
 
     <div style="margin-top: 25px;">
         <p style="font-weight: 600; margin-bottom: 8px; font-size: 10px;">□ 개인정보 수집·이용 동의</p>
+        <table style="margin-bottom: 15px;">
+            <tr>
+                <th>항 목</th>
+                <th>수집목적</th>
+                <th>보유기간</th>
+            </tr>
+            <tr>
+                <td>학생(성명, 성별, 생년월일, 주소, 연락처)<br/>학부모(성명, 연락처)</td>
+                <td>입학동의</td>
+                <td><b>1년</b></td>
+            </tr>
+        </table>
 
-        <div class="div-table" style="margin-bottom: 15px;">
-            <div class="div-row">
-                <div class="div-header" style="flex: 1;">항 목</div>
-                <div class="div-header" style="flex: 1;">수집목적</div>
-                <div class="div-header" style="flex: 1;">보유기간</div>
-            </div>
-            <div class="div-row">
-                <div class="div-cell" style="flex: 1;">학생(성명, 성별, 생년월일, 주소, 연락처)<br/>학부모(성명, 연락처)</div>
-                <div class="div-cell" style="flex: 1;">입학동의</div>
-                <div class="div-cell" style="flex: 1;"><b>1년</b></div>
-            </div>
-        </div>
-
-        <div class="div-table" style="margin-bottom: 15px;">
-            <div class="div-row">
-                <div class="div-header" style="width: 60%;">개인정보 수집·이용 동의</div>
-                <div class="div-cell" style="width: 40%;">□예&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;□아니요</div>
-            </div>
-        </div>
+        <table style="margin-bottom: 15px;">
+            <tr>
+                <th style="width: 60%;">개인정보 수집·이용 동의</th>
+                <td style="width: 40%;">□예&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;□아니요</td>
+            </tr>
+        </table>
 
         <div style="text-align: center; margin: 20px 0; font-size: 10px;">
             <span th:text="${year}">2025</span>년
-            <span style="margin-left: 15px;" th:text="${month}"></span>월
+            <span style="margin: 0 15px;" th:text="${month}"></span>월
             <span style="margin-left: 15px;" th:text="${day}"></span>일
         </div>
 
-        <div style="width: 50%; margin-left: auto; font-size: 10px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; justify-content: space-between;">
-                <div style="text-align: right; flex-basis: 40%;">지원자 성명 :</div>
-                <div style="text-align: center; flex-basis: 30%;" th:text="${userName}"></div>
-                <div style="text-align: left; flex-basis: 30%;">(서명 또는 인)</div>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-                <div style="text-align: right; flex-basis: 40%;">보호자 성명 :</div>
-                <div style="text-align: center; flex-basis: 30%;" th:text="${parentName}"></div>
-                <div style="text-align: left; flex-basis: 30%;">(서명 또는 인)</div>
-            </div>
-        </div>
+        <table style="border: none; width: 50%; margin-left: auto; font-size: 10px; margin-bottom: 20px;">
+            <tr>
+                <td style="border: none; text-align: right;">지원자 성명 :</td>
+                <td style="border: none; text-align: center;" th:text="${userName}"></td>
+                <td style="border: none; text-align: left;">(서명 또는 인)</td>
+            </tr>
+            <tr>
+                <td style="border: none; text-align: right;">보호자 성명 :</td>
+                <td style="border: none; text-align: center;" th:text="${parentName}"></td>
+                <td style="border: none; text-align: left;">(서명 또는 인)</td>
+            </tr>
+        </table>
 
         <div style="font-weight: bold; font-size: 12px; margin-bottom: 15px;">
             대덕소프트웨어마이스터고등학교장 귀하
