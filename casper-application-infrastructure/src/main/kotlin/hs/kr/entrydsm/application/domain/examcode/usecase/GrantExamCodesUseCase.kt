@@ -74,8 +74,9 @@ class GrantExamCodesUseCase(
                 locationClient.getLocationInfo(
                     streetAddress = address,
                     kakaoAuthorization =  "KakaoAK ${kakaoProperties.restKey}"
-                )
-                    ?: throw ExamCodeException.failedGeocodeConversion(address)
+                ).documents[0].address.let {
+                    Pair(it.y.toDouble(), it.x.toDouble())
+                }
 
             val baseLat = baseLocationContract.baseLat
             val baseLon = baseLocationContract.baseLon
