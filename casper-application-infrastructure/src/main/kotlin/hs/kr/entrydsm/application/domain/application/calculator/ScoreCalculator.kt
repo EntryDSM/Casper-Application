@@ -119,9 +119,8 @@ class ScoreCalculator {
      * - 3학년 + 직전전학기만: J_A = (J₃ + J_B) × 1/3
      */
     private fun calculateProspectiveGraduateSubjectScore(scoreInput: ScoreInput): Double {
-        val grade31 =
-            scoreInput.grade3_1
-                ?: throw ScoreCalculationException("졸업예정자는 3학년 1학기 성적이 필수입니다")
+        val grade31 = scoreInput.grade3_1
+
 
         // S₃₁ / N₃₁ 계산
         val avg31 = calculateSemesterScore(grade31)
@@ -190,12 +189,12 @@ class ScoreCalculator {
     private fun calculateGraduateSubjectScore(scoreInput: ScoreInput): Double {
         val grade32 =
             scoreInput.grade3_2
-                ?: throw ScoreCalculationException("졸업자는 3학년 2학기 성적이 필수입니다")
+
         val avg32 = calculateSemesterScore(grade32)
 
         val grade31 =
             scoreInput.grade3_1
-                ?: throw ScoreCalculationException("졸업자는 3학년 1학기 성적이 필수입니다")
+
         val avg31 = calculateSemesterScore(grade31)
 
         // J₃ = 4 × (S₃₂ / N₃₂) + 4 × (S₃₁ / N₃₁)
@@ -321,18 +320,18 @@ class ScoreCalculator {
     /**
      * 학기별 7과목 평균 성적 계산 (5점 만점 기준)
      */
-    private fun calculateSemesterScore(grades: SemesterGrades): Double {
+    private fun calculateSemesterScore(grades: SemesterGrades?): Double {
         logger.info("  calculateSemesterScore 입력: $grades")
 
         val gradeList =
             listOf(
-                grades.korean,
-                grades.social,
-                grades.history,
-                grades.math,
-                grades.science,
-                grades.tech,
-                grades.english,
+                grades?.korean ?: 0,
+                grades?.social ?: 0,
+                grades?.history ?: 0,
+                grades?.math ?: 0,
+                grades?.science ?: 0,
+                grades?.tech ?: 0,
+                grades?.english ?: 0,
             )
 
         logger.info("  gradeList: $gradeList")

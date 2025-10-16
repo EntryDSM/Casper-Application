@@ -71,11 +71,10 @@ class ApplicationValidationService {
 
         requiredFields.forEach { (fieldName, key) ->
             val value = scoresData[key] as? Int
-            if (value == null) {
-                throw IllegalStateException("$fieldName 성적이 입력되지 않았습니다 (실제값: null)")
-            }
-            if (value < 0 || value > 5) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점, 실제값: $value)")
+            if (value != null) {
+                if (value < 0 || value > 5) {
+                    throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점, 실제값: $value)")
+                }
             }
         }
     }
@@ -99,8 +98,10 @@ class ApplicationValidationService {
 
         additionalFields.forEach { (fieldName, key) ->
             val value = scoresData[key] as? Int
-            if (value == null || value < 0 || value > 5) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점)")
+            if (value != null) {
+                if (value < 0 || value > 5) {
+                    throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점)")
+                }
             }
         }
     }
