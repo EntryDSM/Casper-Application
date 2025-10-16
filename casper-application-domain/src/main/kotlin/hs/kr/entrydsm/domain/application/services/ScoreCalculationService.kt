@@ -38,11 +38,17 @@ class ScoreCalculationService {
     }
 
     /**
-     * 졸업자 교과 성적 계산 (최근 4개 학기)
-     * - 3학년 2학기: 25% (20점)
-     * - 3학년 1학기: 25% (20점)
-     * - 2학년 2학기: 25% (20점)
-     * - 2학년 1학기: 25% (20점)
+     * 졸업자 교과 성적 계산 (80점 만점)
+     *
+     * 공식: J = J₃ + J_A + J_B
+     * - J₃ (3학년): 4 × (S₃₂ / N₃₂) + 4 × (S₃₁ / N₃₁) [50%, 40점]
+     * - J_A (직전학기, 2-2학기): 4 × (S_A / N_A) [25%, 20점]
+     * - J_B (직전전학기, 2-1학기): 4 × (S_B / N_B) [25%, 20점]
+     *
+     * 성적 부족 시 환산:
+     * - 3학년만 있는 경우: J_A = J_B = J₃ / 2
+     * - 3학년 + 직전학기만: J_B = (J₃ + J_A) × 1/3
+     * - 3학년 + 직전전학기만: J_A = (J₃ + J_B) × 1/3
      */
     private fun calculateGraduatedSubjectScore(application: Application): BigDecimal {
         val semester3_2Avg = calculateSemesterAverage(
@@ -53,6 +59,10 @@ class ScoreCalculationService {
             application.korean_3_1, application.social_3_1, application.history_3_1,
             application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
         )
+        
+        // J₃ = 4 × (S₃₂ / N₃₂) + 4 × (S₃₁ / N₃₁)
+        val j3 = semester3_2Avg.multiply(BigDecimal("4.0")).add(semester3_1Avg.multiply(BigDecimal("4.0")))
+        
         val semester2_2Avg = calculateSemesterAverage(
             application.korean_2_2, application.social_2_2, application.history_2_2,
             application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
@@ -62,31 +72,62 @@ class ScoreCalculationService {
             application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
         )
         
-        val semester3_2Score = BigDecimal.valueOf(4.0).multiply(semester3_2Avg)
-        val semester3_1Score = BigDecimal.valueOf(4.0).multiply(semester3_1Avg)
-        val semester2_2Score = BigDecimal.valueOf(4.0).multiply(semester2_2Avg)
-        val semester2_1Score = BigDecimal.valueOf(4.0).multiply(semester2_1Avg)
-        
-        val baseScore = semester3_2Score.add(semester3_1Score).add(semester2_2Score).add(semester2_1Score)
+        val baseScore = when {
+            // 모든 학기 성적이 있는 경우: J = J₃ + J_A + J_B
+            semester2_2Avg > BigDecimal.ZERO && semester2_1Avg > BigDecimal.ZERO -> {
+                val jA = semester2_2Avg.multiply(BigDecimal("4.0"))
+                val jB = semester2_1Avg.multiply(BigDecimal("4.0"))
+                j3.add(jA).add(jB)
+            }
+            // 3학년 + 2-2만 있는 경우: J_B = (J₃ + J_A) × 1/3
+            semester2_2Avg > BigDecimal.ZERO && semester2_1Avg == BigDecimal.ZERO -> {
+                val jA = semester2_2Avg.multiply(BigDecimal("4.0"))
+                val jB = j3.add(jA).multiply(BigDecimal("0.333333"))
+                j3.add(jA).add(jB)
+            }
+            // 3학년 + 2-1만 있는 경우: J_A = (J₃ + J_B) × 1/3
+            semester2_2Avg == BigDecimal.ZERO && semester2_1Avg > BigDecimal.ZERO -> {
+                val jB = semester2_1Avg.multiply(BigDecimal("4.0"))
+                val jA = j3.add(jB).multiply(BigDecimal("0.333333"))
+                j3.add(jA).add(jB)
+            }
+            // 3학년만 있는 경우: J_A = J_B = J₃ / 2
+            else -> {
+                val jA = j3.divide(BigDecimal("2.0"), 4, RoundingMode.HALF_UP)
+                val jB = j3.divide(BigDecimal("2.0"), 4, RoundingMode.HALF_UP)
+                j3.add(jA).add(jB)
+            }
+        }
         
         // 전형별 배수 적용
         return when (application.applicationType) {
-            ApplicationType.COMMON -> baseScore.multiply(BigDecimal("1.75")) // 140점 만점
-            ApplicationType.MEISTER, ApplicationType.SOCIAL -> baseScore // 80점 만점
+            ApplicationType.COMMON -> baseScore.multiply(BigDecimal("1.75")).setScale(2, RoundingMode.HALF_UP)
+            ApplicationType.MEISTER, ApplicationType.SOCIAL -> baseScore.setScale(2, RoundingMode.HALF_UP)
         }
     }
 
     /**
-     * 졸업예정자 교과 성적 계산 (최근 3개 학기)
-     * - 3학년 1학기: 50% (40점)
-     * - 2학년 2학기: 25% (20점)
-     * - 2학년 1학기: 25% (20점)
+     * 졸업예정자 교과 성적 계산 (80점 만점)
+     *
+     * 공식: J = J₃ + J_A + J_B
+     * - J₃ (3학년 1학기): 8 × (S₃₁ / N₃₁) [50%, 40점]
+     * - J_A (직전학기, 2-2학기): 4 × (S_A / N_A) [25%, 20점]
+     * - J_B (직전전학기, 2-1학기): 4 × (S_B / N_B) [25%, 20점]
+     *
+     * 성적 부족 시 환산:
+     * - 3학년만 있는 경우: J_A = J_B = J₃ / 2
+     * - 3학년 + 직전학기만: J_B = (J₃ + J_A) × 1/3
+     * - 3학년 + 직전전학기만: J_A = (J₃ + J_B) × 1/3
      */
     private fun calculateProspectiveGraduatedSubjectScore(application: Application): BigDecimal {
         val semester3_1Avg = calculateSemesterAverage(
             application.korean_3_1, application.social_3_1, application.history_3_1,
             application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
         )
+        
+        // J₃ = 8 × (S₃₁ / N₃₁)
+        val j3 = semester3_1Avg.multiply(BigDecimal("8.0"))
+        
         val semester2_2Avg = calculateSemesterAverage(
             application.korean_2_2, application.social_2_2, application.history_2_2,
             application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
@@ -96,16 +137,37 @@ class ScoreCalculationService {
             application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
         )
         
-        val semester3_1Score = BigDecimal.valueOf(8.0).multiply(semester3_1Avg)
-        val semester2_2Score = BigDecimal.valueOf(4.0).multiply(semester2_2Avg)
-        val semester2_1Score = BigDecimal.valueOf(4.0).multiply(semester2_1Avg)
-        
-        val baseScore = semester3_1Score.add(semester2_2Score).add(semester2_1Score)
+        val baseScore = when {
+            // 모든 학기 성적이 있는 경우: J = J₃ + J_A + J_B
+            semester2_2Avg > BigDecimal.ZERO && semester2_1Avg > BigDecimal.ZERO -> {
+                val jA = semester2_2Avg.multiply(BigDecimal("4.0"))
+                val jB = semester2_1Avg.multiply(BigDecimal("4.0"))
+                j3.add(jA).add(jB)
+            }
+            // 3학년 + 2-2만 있는 경우: J_B = (J₃ + J_A) × 1/3
+            semester2_2Avg > BigDecimal.ZERO && semester2_1Avg == BigDecimal.ZERO -> {
+                val jA = semester2_2Avg.multiply(BigDecimal("4.0"))
+                val jB = j3.add(jA).multiply(BigDecimal("0.333333"))
+                j3.add(jA).add(jB)
+            }
+            // 3학년 + 2-1만 있는 경우: J_A = (J₃ + J_B) × 1/3
+            semester2_2Avg == BigDecimal.ZERO && semester2_1Avg > BigDecimal.ZERO -> {
+                val jB = semester2_1Avg.multiply(BigDecimal("4.0"))
+                val jA = j3.add(jB).multiply(BigDecimal("0.333333"))
+                j3.add(jA).add(jB)
+            }
+            // 3학년만 있는 경우: J_A = J_B = J₃ / 2
+            else -> {
+                val jA = j3.divide(BigDecimal("2.0"), 4, RoundingMode.HALF_UP)
+                val jB = j3.divide(BigDecimal("2.0"), 4, RoundingMode.HALF_UP)
+                j3.add(jA).add(jB)
+            }
+        }
         
         // 전형별 배수 적용
         return when (application.applicationType) {
-            ApplicationType.COMMON -> baseScore.multiply(BigDecimal("1.75")) // 140점 만점
-            ApplicationType.MEISTER, ApplicationType.SOCIAL -> baseScore // 80점 만점
+            ApplicationType.COMMON -> baseScore.multiply(BigDecimal("1.75")).setScale(2, RoundingMode.HALF_UP)
+            ApplicationType.MEISTER, ApplicationType.SOCIAL -> baseScore.setScale(2, RoundingMode.HALF_UP)
         }
     }
 
@@ -176,7 +238,14 @@ class ScoreCalculationService {
 
     /**
      * 출석 점수 계산 (15점 만점)
-     * 환산 결석 = 결석 + (지각+조퇴+결과)/3
+     *
+     * 환산결석(소수이하 버림) = 결석일수 + (지각횟수 + 조퇴횟수 + 결과횟수) / 3
+     *
+     * 환산표:
+     * - 0일: 15점, 1일: 14점, 2일: 13점, 3일: 12점
+     * - 4일: 11점, 5일: 10점, 6일: 9점, 7일: 8점
+     * - 8일: 7점, 9일: 6점, 10일: 5점, 11일: 4점
+     * - 12일: 3점, 13일: 2점, 14일: 1점, 15일 이상: 0점
      */
     fun calculateAttendanceScore(application: Application): BigDecimal {
         // 검정고시는 출석점수 없음
@@ -189,24 +258,26 @@ class ScoreCalculationService {
         val earlyLeave = application.earlyLeave ?: 0
         val classExit = application.classExit ?: 0
         
-        val convertedAbsence = absence + (tardiness + earlyLeave + classExit) / 3.0
+        // 환산결석 = 결석 + (지각 + 조퇴 + 결과) / 3 (소수점 이하 버림)
+        val convertedAbsence = (absence + (tardiness + earlyLeave + classExit) / 3.0).toInt()
         
-        val score = when {
-            convertedAbsence >= 15 -> 0.0
-            convertedAbsence >= 13 -> 2.0
-            convertedAbsence >= 12 -> 3.0
-            convertedAbsence >= 11 -> 4.0
-            convertedAbsence >= 10 -> 5.0
-            convertedAbsence >= 9 -> 6.0
-            convertedAbsence >= 8 -> 7.0
-            convertedAbsence >= 7 -> 8.0
-            convertedAbsence >= 6 -> 9.0
-            convertedAbsence >= 5 -> 10.0
-            convertedAbsence >= 4 -> 11.0
-            convertedAbsence >= 3 -> 12.0
-            convertedAbsence >= 2 -> 13.0
-            convertedAbsence >= 1 -> 14.0
-            else -> 15.0
+        val score = when (convertedAbsence) {
+            0 -> 15.0
+            1 -> 14.0
+            2 -> 13.0
+            3 -> 12.0
+            4 -> 11.0
+            5 -> 10.0
+            6 -> 9.0
+            7 -> 8.0
+            8 -> 7.0
+            9 -> 6.0
+            10 -> 5.0
+            11 -> 4.0
+            12 -> 3.0
+            13 -> 2.0
+            14 -> 1.0
+            else -> 0.0 // 15일 이상
         }
         
         return BigDecimal.valueOf(score)
@@ -215,6 +286,10 @@ class ScoreCalculationService {
 
     /**
      * 봉사활동 점수 계산 (15점 만점)
+     *
+     * 환산표:
+     * - 15시간 이상: 15점
+     * - 14시간 ~ 0시간: (총 봉사시간)점
      */
     fun calculateVolunteerScore(application: Application): BigDecimal {
         // 검정고시는 봉사점수 없음
