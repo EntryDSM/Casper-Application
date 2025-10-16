@@ -71,7 +71,10 @@ class GrantExamCodesUseCase(
         return applications.map { application ->
             val address = application.streetAddress as String
             val coordinate =
-                locationClient.getLocationInfo(address, kakaoProperties.restKey)
+                locationClient.getLocationInfo(
+                    streetAddress = address,
+                    kakaoAuthorization =  "KakaoAK ${kakaoProperties.restKey}"
+                )
                     ?: throw ExamCodeException.failedGeocodeConversion(address)
 
             val baseLat = baseLocationContract.baseLat
