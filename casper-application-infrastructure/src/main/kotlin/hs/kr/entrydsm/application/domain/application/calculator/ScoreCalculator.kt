@@ -106,62 +106,86 @@ class ScoreCalculator {
     }
 
     /**
-     * 졸업예정자 교과성적 계산
-     * - 3학년 1학기: 50% (40점)
-     * - 2학년 2학기: 25% (20점)
-     * - 2학년 1학기: 25% (20점)
+     * 졸업예정자 교과성적 계산 (80점 만점)
+     *
+     * 공식: J = J₃ + J_A + J_B
+     * - J₃ (3학년 1학기): 8 × (S₃₁ / N₃₁) [50%, 40점]
+     * - J_A (직전학기, 2-2학기): 4 × (S_A / N_A) [25%, 20점]
+     * - J_B (직전전학기, 2-1학기): 4 × (S_B / N_B) [25%, 20점]
      *
      * 성적 부족 시 환산:
-     * - 3학년만: 3학년 평균으로 환산
-     * - 3학년 + 직전학기: 평균으로 환산
-     * - 3학년 + 직전전학기: 평균으로 환산
+     * - 3학년만 있는 경우: J_A = J_B = J₃ / 2
+     * - 3학년 + 직전학기만: J_B = (J₃ + J_A) × 1/3
+     * - 3학년 + 직전전학기만: J_A = (J₃ + J_B) × 1/3
      */
     private fun calculateProspectiveGraduateSubjectScore(scoreInput: ScoreInput): Double {
         val grade31 =
             scoreInput.grade3_1
                 ?: throw ScoreCalculationException("졸업예정자는 3학년 1학기 성적이 필수입니다")
+
+        // S₃₁ / N₃₁ 계산
         val avg31 = calculateSemesterScore(grade31)
+
+        // J₃ = 8 × (S₃₁ / N₃₁)
+        val j3 = avg31 * 8.0
+
+        logger.info("졸업예정자 계산 - J₃: $j3 (평균: $avg31)")
 
         val grade22 = scoreInput.grade2_2
         val grade21 = scoreInput.grade2_1
 
         return when {
-            // 모든 학기 성적이 있는 경우
+            // 모든 학기 성적이 있는 경우: J = J₃ + J_A + J_B
             grade22 != null && grade21 != null -> {
                 val avg22 = calculateSemesterScore(grade22)
                 val avg21 = calculateSemesterScore(grade21)
-                avg31 * 8.0 + avg22 * 4.0 + avg21 * 4.0
+                val jA = avg22 * 4.0
+                val jB = avg21 * 4.0
+                val total = j3 + jA + jB
+                logger.info("모든 학기 - J_A: $jA, J_B: $jB, 총점: $total")
+                total
             }
-            // 3학년 + 2-2만 있는 경우: (3-1 + 2-2)/2로 2-1 대체
+            // 3학년 + 2-2만 있는 경우: J_B = (J₃ + J_A) × 1/3
             grade22 != null && grade21 == null -> {
                 val avg22 = calculateSemesterScore(grade22)
-                val avg21 = (avg31 + avg22) / 2.0
-                avg31 * 8.0 + avg22 * 4.0 + avg21 * 4.0
+                val jA = avg22 * 4.0
+                val jB = (j3 + jA) * (1.0 / 3.0)
+                val total = j3 + jA + jB
+                logger.info("3학년+2-2학기 - J_A: $jA, J_B(환산): $jB, 총점: $total")
+                total
             }
-            // 3학년 + 2-1만 있는 경우: (3-1 + 2-1)/2로 2-2 대체
+            // 3학년 + 2-1만 있는 경우: J_A = (J₃ + J_B) × 1/3
             grade22 == null && grade21 != null -> {
                 val avg21 = calculateSemesterScore(grade21)
-                val avg22 = (avg31 + avg21) / 2.0
-                avg31 * 8.0 + avg22 * 4.0 + avg21 * 4.0
+                val jB = avg21 * 4.0
+                val jA = (j3 + jB) * (1.0 / 3.0)
+                val total = j3 + jA + jB
+                logger.info("3학년+2-1학기 - J_A(환산): $jA, J_B: $jB, 총점: $total")
+                total
             }
-            // 3학년만 있는 경우: 3학년 평균으로 모든 학기 환산
+            // 3학년만 있는 경우: J_A = J_B = J₃ / 2
             else -> {
-                avg31 * 8.0 + avg31 * 4.0 + avg31 * 4.0
+                val jA = j3 / 2.0
+                val jB = j3 / 2.0
+                val total = j3 + jA + jB
+                logger.info("3학년만 - J_A(환산): $jA, J_B(환산): $jB, 총점: $total")
+                total
             }
         }
     }
 
     /**
-     * 졸업자 교과성적 계산
-     * - 3학년 2학기: 25% (20점)
-     * - 3학년 1학기: 25% (20점)
-     * - 2학년 2학기: 25% (20점)
-     * - 2학년 1학기: 25% (20점)
+     * 졸업자 교과성적 계산 (80점 만점)
+     *
+     * 공식: J = J₃ + J_A + J_B
+     * - J₃ (3학년): 4 × (S₃₂ / N₃₂) + 4 × (S₃₁ / N₃₁) [50%, 40점]
+     * - J_A (직전학기, 2-2학기): 4 × (S_A / N_A) [25%, 20점]
+     * - J_B (직전전학기, 2-1학기): 4 × (S_B / N_B) [25%, 20점]
      *
      * 성적 부족 시 환산:
-     * - 3학년만: 3학년 평균으로 환산
-     * - 3학년 + 직전학기: 평균으로 환산
-     * - 3학년 + 직전전학기: 평균으로 환산
+     * - 3학년만 있는 경우: J_A = J_B = J₃ / 2
+     * - 3학년 + 직전학기만: J_B = (J₃ + J_A) × 1/3
+     * - 3학년 + 직전전학기만: J_A = (J₃ + J_B) × 1/3
      */
     private fun calculateGraduateSubjectScore(scoreInput: ScoreInput): Double {
         val grade32 =
@@ -174,34 +198,50 @@ class ScoreCalculator {
                 ?: throw ScoreCalculationException("졸업자는 3학년 1학기 성적이 필수입니다")
         val avg31 = calculateSemesterScore(grade31)
 
+        // J₃ = 4 × (S₃₂ / N₃₂) + 4 × (S₃₁ / N₃₁)
+        val j3 = avg32 * 4.0 + avg31 * 4.0
+
+        logger.info("졸업자 계산 - J₃: $j3 (3-2 평균: $avg32, 3-1 평균: $avg31)")
+
         val grade22 = scoreInput.grade2_2
         val grade21 = scoreInput.grade2_1
 
-        // 3학년 평균
-        val avg3 = (avg32 + avg31) / 2.0
-
         return when {
-            // 모든 학기 성적이 있는 경우
+            // 모든 학기 성적이 있는 경우: J = J₃ + J_A + J_B
             grade22 != null && grade21 != null -> {
                 val avg22 = calculateSemesterScore(grade22)
                 val avg21 = calculateSemesterScore(grade21)
-                avg32 * 4.0 + avg31 * 4.0 + avg22 * 4.0 + avg21 * 4.0
+                val jA = avg22 * 4.0
+                val jB = avg21 * 4.0
+                val total = j3 + jA + jB
+                logger.info("모든 학기 - J_A: $jA, J_B: $jB, 총점: $total")
+                total
             }
-            // 3학년 + 2-2만 있는 경우: (3학년 평균 + 2-2)/2로 2-1 대체
+            // 3학년 + 2-2만 있는 경우: J_B = (J₃ + J_A) × 1/3
             grade22 != null && grade21 == null -> {
                 val avg22 = calculateSemesterScore(grade22)
-                val avg21 = (avg3 + avg22) / 2.0
-                avg32 * 4.0 + avg31 * 4.0 + avg22 * 4.0 + avg21 * 4.0
+                val jA = avg22 * 4.0
+                val jB = (j3 + jA) * (1.0 / 3.0)
+                val total = j3 + jA + jB
+                logger.info("3학년+2-2학기 - J_A: $jA, J_B(환산): $jB, 총점: $total")
+                total
             }
-            // 3학년 + 2-1만 있는 경우: (3학년 평균 + 2-1)/2로 2-2 대체
+            // 3학년 + 2-1만 있는 경우: J_A = (J₃ + J_B) × 1/3
             grade22 == null && grade21 != null -> {
                 val avg21 = calculateSemesterScore(grade21)
-                val avg22 = (avg3 + avg21) / 2.0
-                avg32 * 4.0 + avg31 * 4.0 + avg22 * 4.0 + avg21 * 4.0
+                val jB = avg21 * 4.0
+                val jA = (j3 + jB) * (1.0 / 3.0)
+                val total = j3 + jA + jB
+                logger.info("3학년+2-1학기 - J_A(환산): $jA, J_B: $jB, 총점: $total")
+                total
             }
-            // 3학년만 있는 경우: 3학년 평균으로 모든 학기 환산
+            // 3학년만 있는 경우: J_A = J_B = J₃ / 2
             else -> {
-                avg32 * 4.0 + avg31 * 4.0 + avg3 * 4.0 + avg3 * 4.0
+                val jA = j3 / 2.0
+                val jB = j3 / 2.0
+                val total = j3 + jA + jB
+                logger.info("3학년만 - J_A(환산): $jA, J_B(환산): $jB, 총점: $total")
+                total
             }
         }
     }
@@ -323,41 +363,63 @@ class ScoreCalculator {
 
     /**
      * 출석점수 계산 (15점 만점)
-     * 환산 결석 = 결석 + (지각+조퇴+결과)/3
+     *
+     * 환산결석(소수이하 버림) = 결석일수 + (지각횟수 + 조퇴횟수 + 결과횟수) / 3
+     *
+     * 환산표:
+     * - 0일: 15점, 1일: 14점, 2일: 13점, 3일: 12점
+     * - 4일: 11점, 5일: 10점, 6일: 9점, 7일: 8점
+     * - 8일: 7점, 9일: 6점, 10일: 5점, 11일: 4점
+     * - 12일: 3점, 13일: 2점, 14일: 1점, 15일 이상: 0점
      */
     private fun calculateAttendanceScore(scoreInput: ScoreInput): Double {
         val attendance = scoreInput.attendance ?: AttendanceInfo()
 
-        val convertedAbsence =
+        // 환산결석 = 결석 + (지각 + 조퇴 + 결과) / 3 (소수점 버림)
+        val convertedAbsence = (
             attendance.absence +
                 (attendance.tardiness + attendance.earlyLeave + attendance.classExit) / 3.0
+        ).toInt() // 소수점 이하 버림
 
-        return when {
-            convertedAbsence >= 15 -> 0.0
-            convertedAbsence >= 13 -> 2.0
-            convertedAbsence >= 12 -> 3.0
-            convertedAbsence >= 11 -> 4.0
-            convertedAbsence >= 10 -> 5.0
-            convertedAbsence >= 9 -> 6.0
-            convertedAbsence >= 8 -> 7.0
-            convertedAbsence >= 7 -> 8.0
-            convertedAbsence >= 6 -> 9.0
-            convertedAbsence >= 5 -> 10.0
-            convertedAbsence >= 4 -> 11.0
-            convertedAbsence >= 3 -> 12.0
-            convertedAbsence >= 2 -> 13.0
-            convertedAbsence >= 1 -> 14.0
-            else -> 15.0
+        logger.info("출석 계산 - 결석: ${attendance.absence}, 지각: ${attendance.tardiness}, " +
+            "조퇴: ${attendance.earlyLeave}, 결과: ${attendance.classExit}, 환산결석: $convertedAbsence")
+
+        return when (convertedAbsence) {
+            0 -> 15.0
+            1 -> 14.0
+            2 -> 13.0
+            3 -> 12.0
+            4 -> 11.0
+            5 -> 10.0
+            6 -> 9.0
+            7 -> 8.0
+            8 -> 7.0
+            9 -> 6.0
+            10 -> 5.0
+            11 -> 4.0
+            12 -> 3.0
+            13 -> 2.0
+            14 -> 1.0
+            else -> 0.0 // 15일 이상
         }
     }
 
     /**
      * 봉사활동점수 계산 (15점 만점)
-     * 15시간 이상: 15점, 14시간 이하: 시간 = 점수
+     *
+     * 환산표:
+     * - 15시간 이상: 15점
+     * - 14시간 ~ 0시간: (총 봉사시간)점
+     *
+     * 예: 10시간 → 10점, 15시간 → 15점, 20시간 → 15점
      */
     private fun calculateVolunteerScore(scoreInput: ScoreInput): Double {
         val volunteer = scoreInput.volunteerHours ?: 0
-        return min(volunteer.toDouble(), 15.0)
+        val score = min(volunteer.toDouble(), 15.0)
+
+        logger.info("봉사 계산 - 총 시간: ${volunteer}시간, 점수: $score")
+
+        return score
     }
 
     /**
