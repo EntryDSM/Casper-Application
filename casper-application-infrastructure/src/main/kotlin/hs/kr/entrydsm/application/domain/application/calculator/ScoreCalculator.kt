@@ -266,22 +266,20 @@ class ScoreCalculator {
         applicationType: ApplicationType,
         scoreInput: ScoreInput
     ): Double {
-        val gedScores =
-            scoreInput.gedScores
-                ?: throw ScoreCalculationException("검정고시 출신자는 검정고시 성적이 필수입니다")
+        val gedScores = scoreInput.gedScores
 
         logger.info("=== 검정고시 교과 점수 계산 (환산점 방식) ===")
         logger.info("원점수: $gedScores")
 
         // 1. 각 과목을 환산점으로 변환
-        val convertedScores = gedScores.mapValues { (subject, score) ->
+        val convertedScores = gedScores?.mapValues { (subject, score) ->
             val converted = convertGedScoreToPoint(score)
             logger.info("  $subject: ${score}점 -> 환산점 ${converted}점")
             converted
         }
 
         // 2. 환산점 합계 및 평균 계산
-        val totalPoints = convertedScores.values.sum()
+        val totalPoints = convertedScores?.values?.sum()!!
         val subjectCount = convertedScores.size
         val averagePoints = totalPoints.toDouble() / subjectCount
 
@@ -308,14 +306,16 @@ class ScoreCalculator {
     /**
      * 검정고시 100점 점수를 1-5점 환산점으로 변환
      */
-    private fun convertGedScoreToPoint(score: Int): Int {
-        return when {
-            score >= 98 -> 5
-            score >= 94 -> 4
-            score >= 90 -> 3
-            score >= 86 -> 2
-            else -> 1
-        }
+    private fun convertGedScoreToPoint(score: Int?): Int {
+        return score?.let {
+            when {
+                it >= 98 -> 5
+                it >= 94 -> 4
+                it >= 90 -> 3
+                it >= 86 -> 2
+                else -> 1
+            }
+        } ?: 1
     }
 
     /**

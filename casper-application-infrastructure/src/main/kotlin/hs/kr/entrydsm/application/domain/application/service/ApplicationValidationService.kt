@@ -121,8 +121,10 @@ class ApplicationValidationService {
 
         gedFields.forEach { (fieldName, key) ->
             val value = scoresData[key] as? Int
-            if (value == null || value < 0 || value > 100) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-100점)")
+            if (value != null) {
+                if (value < 0 || value > 100) {
+                    throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-100점)")
+                }
             }
         }
     }
