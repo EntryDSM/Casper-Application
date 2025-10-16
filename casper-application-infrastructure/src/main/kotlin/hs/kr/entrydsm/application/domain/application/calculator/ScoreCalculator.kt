@@ -270,15 +270,20 @@ class ScoreCalculator {
         logger.info("=== 검정고시 교과 점수 계산 (환산점 방식) ===")
         logger.info("원점수: $gedScores")
 
+        // 검정고시 성적이 없으면 에러
+        if (gedScores == null || gedScores.isEmpty()) {
+            throw ScoreCalculationException("검정고시 성적이 최소 1과목 이상 입력되어야 합니다")
+        }
+
         // 1. 각 과목을 환산점으로 변환
-        val convertedScores = gedScores?.mapValues { (subject, score) ->
+        val convertedScores = gedScores.mapValues { (subject, score) ->
             val converted = convertGedScoreToPoint(score)
             logger.info("  $subject: ${score}점 -> 환산점 ${converted}점")
             converted
         }
 
         // 2. 환산점 합계 및 평균 계산
-        val totalPoints = convertedScores?.values?.sum()!!
+        val totalPoints = convertedScores.values.sum()
         val subjectCount = convertedScores.size
         val averagePoints = totalPoints.toDouble() / subjectCount
 
