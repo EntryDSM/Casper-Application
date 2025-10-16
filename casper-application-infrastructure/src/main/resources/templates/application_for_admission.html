@@ -223,45 +223,41 @@
         </tr>
     </table>
 
-    <div style="margin-top: 15px; border: 1px solid black; display: flex;">
-
-        <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; width: 50%; padding: 20px">
-            <div style="font-size: 11px; margin-bottom: 10px;">
-                본인은 귀 고등학교에 입학하고자 소정의 서류를 갖추어 지원합니다.
-            </div>
-            <div style="text-align: center; font-size: 10px; margin-bottom: 8px;">
-                <span th:text="${year}">2025</span>년
-                <span style="margin: 0 4px;" th:text="${month}"></span>월
-                <span style="margin-left: 15px;" th:text="${day}"></span>일
-            </div>
-            <table style=" width: 100%; font-size: 10px; ">
-                <tr>
-                    <td style="border: none; width: 70%; vertical-align: top;">
-                        <div style="text-align: center; margin-bottom: 8px;">
-                            <div>지원자 : <span th:text="${userName}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (서명 또는 인)</div>
-                            <div>보호자 : <span th:text="${parentName}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (서명 또는 인)</div>
-                        </div>
-                        <div style="font-weight: bold; margin-top: 10px;">대덕소프트웨어마이스터고등학교장 귀하</div>
-                    </td>
-                </tr>
-            </table>
+    <div style="margin-top: 15px; padding: 10px; border: 1px solid black;">
+        <div style="font-size: 11px; margin-bottom: 10px;">
+            본인은 귀 고등학교에 입학하고자 소정의 서류를 갖추어 지원합니다.
         </div>
-        <table style="width: 50%; padding: 20px; border-left: 1px solid #000000">
-            <td style="border: none; width: 30%; vertical-align: top; padding-left: 8px;">
-                <div>보훈번호: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
-                <div style="margin-top: 8px;">위 학생은 국가유공자자녀임을 확인함.</div>
-                <div style="text-align: center; margin-top: 8px;">
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    년
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    월
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    일
-                </div>
-                <div style="margin-top: 8px;">
-                    교사: <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (서명 또는 인)
-                </div>
-            </td>
+        <div style="text-align: center; font-size: 10px; margin-bottom: 8px;">
+            <span th:text="${year}">2025</span>년
+            <span style="margin: 0 15px;" th:text="${month}"></span>월
+            <span style="margin-left: 15px;" th:text="${day}"></span>일
+        </div>
+        <table style="border: none; width: 100%; font-size: 10px;">
+            <tr>
+                <td style="border: none; width: 70%; vertical-align: top;">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <div>지원자 : <span th:text="${userName}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (서명 또는 인)</div>
+                        <div>보호자 : <span th:text="${parentName}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (서명 또는 인)</div>
+                    </div>
+                    <div style="font-weight: bold; margin-top: 10px;">대덕소프트웨어마이스터고등학교장 귀하</div>
+                </td>
+                <td style="border: none; width: 30%; vertical-align: top; padding-left: 8px;">
+                    <div>보훈번호: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+                    <div style="margin-top: 8px;">위 학생은 국가유공자자녀임을 확인함.</div>
+                    <div style="text-align: center; margin-top: 8px;">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        년
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        월
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        일
+                    </div>
+                    <div style="margin-top: 8px;">
+                        교사: <span th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (서명 또는 인)
+                    </div>
+                </td>
+            </tr>
+
         </table>
     </div>
 
