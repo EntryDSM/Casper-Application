@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.examcode.usecase
 
+import hs.kr.entrydsm.application.domain.examcode.KakaoProperties
 import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
-import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
 import hs.kr.entrydsm.application.global.feign.client.LocationClient
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
@@ -12,7 +12,7 @@ import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
 import hs.kr.entrydsm.domain.examcode.values.DistanceGroup
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
 import hs.kr.entrydsm.domain.status.interfaces.SaveExamCodeContract
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
 
 /**
  * 1차 전형에 합격한 학생들에게 수험번호를 부여하는 유스케이스입니다.
@@ -23,17 +23,15 @@ import org.springframework.beans.factory.annotation.Value
  * @property distanceUtil 두 지점 사이의 거리를 구합니다.
  * @property baseLocationContract 기준이 되는 장소의 위경도를 가져옵니다.
  */
-@UseCase
+@Service
 class GrantExamCodesUseCase(
     private val applicationContract: ApplicationContract,
     private val saveExamCodeContract: SaveExamCodeContract,
     private val baseLocationContract: BaseLocationContract,
     private val distanceUtil: DistanceUtil,
-    private val locationClient: LocationClient
+    private val locationClient: LocationClient,
+    private val kakaoProperties: KakaoProperties
 ) : GrantExamCodesContract {
-
-    @Value("\${kakao.authorization}")
-    private lateinit var kakaoAuthorization: String
 
     companion object {
         /** 일반전형 수험번호 접두사 */
@@ -73,7 +71,7 @@ class GrantExamCodesUseCase(
         return applications.map { application ->
             val address = application.streetAddress as String
             val coordinate =
-                locationClient.getLocationInfo(address, kakaoAuthorization)
+                locationClient.getLocationInfo(address, kakaoProperties.restKey)
                     ?: throw ExamCodeException.failedGeocodeConversion(address)
 
             val baseLat = baseLocationContract.baseLat
