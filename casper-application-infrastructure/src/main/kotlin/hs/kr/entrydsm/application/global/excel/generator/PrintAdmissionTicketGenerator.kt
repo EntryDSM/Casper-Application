@@ -9,6 +9,12 @@ import hs.kr.entrydsm.domain.school.aggregate.School
 import hs.kr.entrydsm.domain.status.aggregates.Status
 import hs.kr.entrydsm.domain.user.aggregates.User
 import jakarta.servlet.http.HttpServletResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.CellType
@@ -25,6 +31,7 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class PrintAdmissionTicketGenerator(
@@ -99,22 +106,31 @@ class PrintAdmissionTicketGenerator(
         return targetWorkbook
     }
 
-    private fun preloadImages(applications: List<Application>, photoMap: Map<UUID, PhotoJpaEntity>) : Map<String, ByteArray> {
-        val imageCache = mutableMapOf<String, ByteArray>()
+    private fun preloadImages(
+        applications: List<Application>,
+        photoMap: Map<UUID, PhotoJpaEntity>
+    ): Map<String, ByteArray> = runBlocking {
+        val imageCache = ConcurrentHashMap<String, ByteArray>()
 
-        applications.forEach { application ->
-            val photoPath = photoMap[application.userId]?.photo
-            if (!photoPath.isNullOrBlank()) {
-                try {
-                    val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
-                    imageCache[photoPath] = imageBytes
-                } catch (e: Exception) {
-                    //이미지 로드 실패 시 캐시 추가 x
+        applications.map { application ->
+            async(Dispatchers.IO) {
+                val photoPath = photoMap[application.userId]?.photo
+                if (!photoPath.isNullOrBlank()) {
+                    try {
+                        withTimeout(5000) {
+                            val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
+                            imageCache[photoPath] = imageBytes
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        // 타임아웃 시 무시
+                    } catch (e: Exception) {
+                        // 이미지 로드 실패 시 무시
+                    }
                 }
-
             }
-        }
-        return imageCache
+        }.awaitAll()
+
+        imageCache
     }
     
     private fun copyApplicationImageFromCache(
