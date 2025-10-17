@@ -63,3 +63,8 @@ class ApplicationCannotCancelException(
     message: String = "제출된 원서만 취소할 수 있습니다",
     cause: Throwable? = null,
 ) : ApplicationException(message, cause)
+
+class ApplicationPeriodException(
+    message: String = "원서 제출 기간이 아닙니다.",
+    cause: Throwable? = null,
+) : ApplicationException(message, cause)
