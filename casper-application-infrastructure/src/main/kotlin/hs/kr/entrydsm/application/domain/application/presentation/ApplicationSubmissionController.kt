@@ -9,11 +9,11 @@ import hs.kr.entrydsm.application.domain.application.usecase.CompleteApplication
 import hs.kr.entrydsm.application.global.document.application.ApplicationSubmissionApiDocument
 import hs.kr.entrydsm.domain.application.interfaces.CancelApplicationContract
 import jakarta.validation.Valid
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -33,7 +33,7 @@ class ApplicationSubmissionController(
     override fun createApplication(
         @RequestHeader("Request-User-Id") userId: String,
         @Valid @RequestBody request: CreateApplicationRequest,
-    ): ResponseEntity<CreateApplicationResponse> {
+    ): ResponseEntity<CreateApplicationResponse> = runBlocking {
         val userUuid =
             try {
                 UUID.fromString(userId)
@@ -65,7 +65,7 @@ class ApplicationSubmissionController(
                 message = "원서가 성공적으로 제출되었습니다.",
             )
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response)
+        ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
     private fun convertToSubmissionRequest(request: CreateApplicationRequest): ApplicationSubmissionRequest {
