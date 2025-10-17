@@ -31,24 +31,42 @@ class ScoreCalculator {
         scores: Map<String, Any>
     ): ScoreResult {
         try {
+            logger.info("===== 점수 계산 시작 =====")
+            logger.info("전형: $applicationType, 학력: $educationalStatus")
+            logger.info("입력 데이터: $scores")
+
             val input = ScoreInput.from(scores)
-            logger.info("점수 계산 시작 - 전형: $applicationType, 학력: $educationalStatus")
+            logger.info("매핑된 ScoreInput: $input")
 
             val subjectScore = calculateSubjectScore(applicationType, educationalStatus, input)
-            val attendanceScore = if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) 0.0
-            else calculateAttendanceScore(input)
-            val volunteerScore = if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) 0.0
-            else calculateVolunteerScore(input)
+            logger.info("교과점수 계산 완료: $subjectScore")
+
+            val attendanceScore = if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+                logger.info("검정고시 - 출결점수 0점 처리")
+                0.0
+            } else {
+                calculateAttendanceScore(input)
+            }
+
+            val volunteerScore = if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+                logger.info("검정고시 - 봉사점수 0점 처리")
+                0.0
+            } else {
+                calculateVolunteerScore(input)
+            }
+
             val bonusScore = calculateBonusScore(applicationType, input)
 
             val total = subjectScore + attendanceScore + volunteerScore + bonusScore
 
             return ScoreResult(subjectScore, attendanceScore, volunteerScore, bonusScore, total).also {
-                logger.info("계산 완료 - 교과: $subjectScore, 출결: $attendanceScore, 봉사: $volunteerScore, 가산점: $bonusScore, 총점: $total")
+                logger.info("===== 계산 완료 - 교과: $subjectScore, 출결: $attendanceScore, 봉사: $volunteerScore, 가산점: $bonusScore, 총점: $total =====")
             }
         } catch (e: ScoreCalculationException) {
+            logger.error("점수 계산 실패: ${e.message}", e)
             throw e
         } catch (e: Exception) {
+            logger.error("점수 계산 오류: ${e.message}", e)
             throw ScoreCalculationException("점수 계산 오류: ${e.message}", e)
         }
     }
@@ -70,57 +88,126 @@ class ScoreCalculator {
         input: ScoreInput,
         isGraduate: Boolean
     ): Double {
+        logger.info("[교과점수] 계산 시작 - 전형: $type, 졸업자: $isGraduate")
+
         // 필수 검증
         requireNotNull(input.grade3_1) { "3학년 1학기 성적이 필수입니다" }
         if (isGraduate) requireNotNull(input.grade3_2) { "졸업자는 3학년 2학기 성적이 필수입니다" }
 
         val j3 = if (isGraduate) {
-            calculateSemesterScore(input.grade3_2) * 4 + calculateSemesterScore(input.grade3_1) * 4
+            val avg32 = calculateSemesterScore(input.grade3_2)
+            val avg31 = calculateSemesterScore(input.grade3_1)
+            logger.info("[교과점수] 3학년 2학기 평균: $avg32, 3학년 1학기 평균: $avg31")
+            avg32 * 4 + avg31 * 4
         } else {
-            calculateSemesterScore(input.grade3_1) * 8
+            val avg31 = calculateSemesterScore(input.grade3_1)
+            logger.info("[교과점수] 3학년 1학기 평균: $avg31")
+            avg31 * 8
         }
+        logger.info("[교과점수] 3학년 점수(j3): $j3")
 
-        val jA = input.grade2_2?.let { calculateSemesterScore(it) * 4 } ?: 0.0
-        val jB = input.grade2_1?.let { calculateSemesterScore(it) * 4 } ?: 0.0
+        val jA = input.grade2_2?.let {
+            val avg = calculateSemesterScore(it)
+            logger.info("[교과점수] 2학년 2학기 평균: $avg")
+            avg * 4
+        } ?: 0.0
+
+        val jB = input.grade2_1?.let {
+            val avg = calculateSemesterScore(it)
+            logger.info("[교과점수] 2학년 1학기 평균: $avg")
+            avg * 4
+        } ?: 0.0
+
+        logger.info("[교과점수] 2학년 2학기 점수(jA): $jA, 2학년 1학기 점수(jB): $jB")
 
         val total = when {
-            input.grade2_2 != null && input.grade2_1 != null -> j3 + jA + jB
-            input.grade2_2 != null -> j3 + jA + (j3 + jA) / 3
-            input.grade2_1 != null -> j3 + jB + (j3 + jB) / 3
-            else -> j3 * 2.0
+            input.grade2_2 != null && input.grade2_1 != null -> {
+                logger.info("[교과점수] 2학년 전체 있음: j3 + jA + jB")
+                j3 + jA + jB
+            }
+            input.grade2_2 != null -> {
+                logger.info("[교과점수] 2학년 2학기만 있음: j3 + jA + (j3 + jA) / 3")
+                j3 + jA + (j3 + jA) / 3
+            }
+            input.grade2_1 != null -> {
+                logger.info("[교과점수] 2학년 1학기만 있음: j3 + jB + (j3 + jB) / 3")
+                j3 + jB + (j3 + jB) / 3
+            }
+            else -> {
+                logger.info("[교과점수] 2학년 없음: j3 * 2")
+                j3 * 2.0
+            }
         }
+        logger.info("[교과점수] 합계: $total")
 
         val multiplier = type.baseScoreMultiplier
-        return total * multiplier
+        val result = total * multiplier
+        logger.info("[교과점수] 배율(${multiplier}) 적용 최종: $result")
+
+        return result
     }
 
     private fun calculateGedSubjectScore(type: ApplicationType, input: ScoreInput): Double {
+        logger.info("[검정고시 교과점수] 계산 시작 - 전형: $type")
+
         val scores = requireNotNull(input.gedScores) { "검정고시 성적이 필수입니다" }
         require(scores.isNotEmpty()) { "검정고시 성적이 비어있습니다" }
+        logger.info("[검정고시 교과점수] 원점수: $scores")
 
         val converted = scores.values.map { score ->
             GED_CONVERT_TABLE.first { score >= it.first }.second
         }
+        logger.info("[검정고시 교과점수] 등급 변환: $converted")
 
         val avg = converted.average()
         val factor = if (type == ApplicationType.COMMON) 34.0 else 22.0
-        return avg * factor
+        val result = avg * factor
+        logger.info("[검정고시 교과점수] 평균: $avg, 배율: $factor, 최종: $result")
+
+        return result
     }
 
     private fun calculateAttendanceScore(input: ScoreInput): Double {
+        logger.info("[출결점수] 계산 시작")
         val att = input.attendance ?: AttendanceInfo()
+        logger.info("[출결점수] 출결정보: 결석=${att.absence}, 지각=${att.tardiness}, 조퇴=${att.earlyLeave}, 결과=${att.classExit}")
+
         val absence = (att.absence + (att.tardiness + att.earlyLeave + att.classExit) / 3.0).toInt()
+        logger.info("[출결점수] 환산 결석일수: $absence")
+
         val idx = absence.coerceAtMost(14)
-        return ATTENDANCE_SCORE_TABLE.getOrElse(idx) { 0.0 }
+        val score = ATTENDANCE_SCORE_TABLE.getOrElse(idx) { 0.0 }
+        logger.info("[출결점수] 테이블 인덱스: $idx, 출결점수: $score")
+
+        return score
     }
 
-    private fun calculateVolunteerScore(input: ScoreInput): Double =
-        min((input.volunteerHours ?: 0).toDouble(), 15.0)
+    private fun calculateVolunteerScore(input: ScoreInput): Double {
+        logger.info("[봉사점수] 계산 시작")
+        val hours = input.volunteerHours
+        logger.info("[봉사점수] 입력된 봉사시간: $hours")
+
+        val score = min((hours ?: 0).toDouble(), 15.0)
+        logger.info("[봉사점수] 최종 봉사점수: $score (최대 15점)")
+
+        return score
+    }
 
     private fun calculateBonusScore(type: ApplicationType, input: ScoreInput): Double {
+        logger.info("[가산점] 계산 시작 - 전형: $type")
+        logger.info("[가산점] 알고리즘대회: ${input.algorithmAward}, 정보처리기능사: ${input.infoProcessingCert}")
+
         var bonus = 0.0
-        if (input.algorithmAward == true) bonus += 3.0
-        if (type != ApplicationType.COMMON && input.infoProcessingCert == true) bonus += 6.0
+        if (input.algorithmAward == true) {
+            logger.info("[가산점] 알고리즘대회 입상: +3점")
+            bonus += 3.0
+        }
+        if (type != ApplicationType.COMMON && input.infoProcessingCert == true) {
+            logger.info("[가산점] 정보처리기능사 (특별전형): +6점")
+            bonus += 6.0
+        }
+        logger.info("[가산점] 총 가산점: $bonus")
+
         return bonus
     }
 
@@ -131,7 +218,10 @@ class ScoreCalculator {
         ).filter { it in 1..5 }
 
         require(scores.isNotEmpty()) { "유효한 성적이 없습니다" }
-        return scores.average()
+        val avg = scores.average()
+        logger.debug("[학기평균] 성적: $scores, 평균: $avg")
+
+        return avg
     }
 
     data class ScoreResult(
