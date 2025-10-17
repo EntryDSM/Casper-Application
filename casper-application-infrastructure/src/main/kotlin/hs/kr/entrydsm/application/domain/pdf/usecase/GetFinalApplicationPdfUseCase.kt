@@ -165,13 +165,15 @@ class GetFinalApplicationPdfUseCase(
             )
 
         attendanceFields.forEach { (fieldName, value) ->
-            if (value == null || value < 0) {
+            // null은 허용 (PDF에서 0으로 표시됨)
+            if (value != null && value < 0) {
                 throw IllegalStateException("$fieldName 이 올바르게 입력되지 않았습니다 (0 이상)")
             }
         }
 
         val volunteer = application.volunteer
-        if (volunteer == null || volunteer < 0) {
+        // null은 허용 (PDF에서 0으로 표시됨)
+        if (volunteer != null && volunteer < 0) {
             throw IllegalStateException("봉사활동 시간이 올바르게 입력되지 않았습니다 (0 이상)")
         }
     }
