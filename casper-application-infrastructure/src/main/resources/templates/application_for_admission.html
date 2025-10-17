@@ -75,8 +75,8 @@
                     style="border-collapse: collapse; margin-top: -1px; width: 100%"
             >
                 <tr>
-                    <th rowspan="5" style="width: 11.65%">지원자</th>
-                    <th style="width: 11.6%; height: 29px">성명</th>
+                    <th rowspan="5" style="width: 11%">지원자</th>
+                    <th style="width: 11%; height: 29px">성명</th>
                     <td style="width: 23%" th:text="${userName}"></td>
                     <th style="width: 11.6%">전화번호</th>
                     <td style="width: 23%" th:text="${applicantTel}"></td>
@@ -365,14 +365,14 @@
                     margin-bottom: 26px;
                   "
                         >
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                             년
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;
                             월
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;
                             일
                         </p>
-                        <span style="font-size: medium">교사:</span>
+                        <span style="font-size: medium">교사:&nbsp;&nbsp;&nbsp;</span>
                         <span style="font-size: medium; margin-left: 15px" th:if="${veteransNumber != null and #strings.isEmpty(veteransNumber) == false}" th:text="${teacherName}"></span>
                         <span style="margin-left: 15px; font-size: small"
                         >(서명 또는 인)</span
