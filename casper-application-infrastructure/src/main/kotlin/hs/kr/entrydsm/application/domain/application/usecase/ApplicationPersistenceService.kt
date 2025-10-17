@@ -39,7 +39,8 @@ class ApplicationPersistenceService(
     private val objectMapper: ObjectMapper,
     private val validationService: hs.kr.entrydsm.application.domain.application.service.ApplicationValidationService,
     private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository,
-    private val schedulePersistenceAdapterApplication: SchedulePersistenceAdapterApplication
+    private val schedulePersistenceAdapterApplication: SchedulePersistenceAdapterApplication,
+    private val applicationCreateEventContract: ApplicationCreateEventContract
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -153,7 +154,7 @@ class ApplicationPersistenceService(
                 reviewedAt = null,
             )
 
-        //applicationCreateEventContract.publishCreateApplication(receiptCode, userId)
+        applicationCreateEventContract.publishCreateApplication(receiptCode, userId)
 
         val savedEntity = applicationRepository.save(entity)
         logger.info("원서 저장 완료: applicationId=${savedEntity.applicationId}, receiptCode=$receiptCode")
