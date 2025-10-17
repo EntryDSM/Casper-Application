@@ -152,7 +152,7 @@ class ApplicationMapper(
             schoolCode = entity.schoolCode,
             nationalMeritChild = entity.nationalMeritChild,
             specialAdmissionTarget = entity.specialAdmissionTarget,
-            graduationDate = scoresMap["graduationData"] as? String,
+            graduationDate = scoresMap["graduationDate"] as? String,
             applicantGender = entity.applicantGender,
             guardianGender = scoresMap["guardianGender"]?.let {
                 Gender.valueOf(it.toString())
