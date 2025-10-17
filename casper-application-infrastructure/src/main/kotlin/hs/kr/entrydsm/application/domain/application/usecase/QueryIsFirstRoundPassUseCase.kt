@@ -26,7 +26,7 @@ class QueryIsFirstRoundPassUseCase(
             ?: throw ApplicationNotFoundException()
 
         val firstAnnounce = applicationQueryScheduleContract.queryByScheduleType(ScheduleType.FIRST_ANNOUNCEMENT)
-            ?: throw ScheduleExceptions.ScoreNotFoundException()
+            ?: throw ScheduleExceptions.ScheduleNotFoundException()
 
         if (LocalDateTime.now().isBefore(firstAnnounce.date))
             throw ScheduleExceptions.AdmissionUnavailableException()
