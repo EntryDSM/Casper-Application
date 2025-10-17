@@ -3,30 +3,50 @@
 <head>
     <meta charset="utf-8" />
     <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
         * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: KoPubWorld_Dotum_Light;
+            font-size: 8px;
         }
         td {
             border: 1px solid rgba(0,0,0,0.6);
             text-align: center;
-            font-size: small;
+            font-size: 8px;
             font-family: KoPubWorld_Dotum_Light;
+            padding: 1px;
+            line-height: 1.1;
         }
         th {
             background-color: #f2f2f2;
             text-align: center;
             border: 1px solid rgba(0,0,0,0.6);
             font-family: KoPubWorld_Dotum_Light;
+            font-size: 8px;
+            padding: 1px;
+            line-height: 1.1;
+        }
+        table {
+            page-break-inside: avoid;
+        }
+        tr {
+            page-break-inside: avoid;
         }
     </style>
 </head>
 <body>
 <div style="text-align: center">
-    <div style="font-size: large">
+    <div style="font-size: 12px; margin-bottom: 3px;">
         <b>&lt;서식 1&gt; (인터넷접수 후 출력)</b>
     </div>
-    <div style="font-size: large; margin-top: 8px;">
+    <div style="font-size: 12px; margin-bottom: 5px;">
         <b
                 th:text="${entranceYear} + '학년도 대덕소프트웨어마이스터고등학교 입학원서'"
         >
@@ -60,22 +80,22 @@
                     <td style="width: 23%" th:text="${userName}"></td>
                     <th style="width: 11.6%">전화번호</th>
                     <td style="width: 23%" th:text="${applicantTel}"></td>
-                    <td rowspan="5" style="width: 29%; position: relative">
+                    <td rowspan="5" style="width: 29%; position: relative; padding: 2px;">
                         <img
                                 th:if="${base64Image != null and !base64Image.isEmpty()}"
                                 th:src="|data:image/*;base64,${base64Image}|"
                                 style="
-                    width: 3.1cm;
-                    height: 4.13cm;
-                    max-width: 3.1cm;
-                    max-height: 4.13cm;
+                    width: 2.5cm;
+                    height: 3.3cm;
+                    max-width: 2.5cm;
+                    max-height: 3.3cm;
                   "
                                 alt="사진"
                         />
                         <div th:unless="${base64Image != null and !base64Image.isEmpty()}"
-                             style="width: 3.1cm; height: 4.13cm; border: 1px dashed #ccc; margin: auto; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                            <div>사진 없음</div>
-                            <div style="font-size: 9px; margin-top: 2px;">(3cm×4cm)</div>
+                             style="width: 2.5cm; height: 3.3cm; border: 1px dashed #ccc; margin: auto; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <div style="font-size: 7px;">사진 없음</div>
+                            <div style="font-size: 6px; margin-top: 1px;">(3cm×4cm)</div>
                         </div>
                     </td>
                 </tr>
@@ -152,14 +172,14 @@
                     </th>
                 </tr>
                 <tr>
-                    <th style="width: 11%; height: 29px">교과</th>
-                    <th style="width: 15.25%; height: 29px">3학년 2학기</th>
-                    <th style="width: 15.25%; height: 29px">3학년 1학기</th>
-                    <th style="width: 15.25%; height: 29px">직전학기</th>
-                    <th style="width: 15.25%; height: 29px">직전전학기</th>
+                    <th style="width: 11%; height: 20px">교과</th>
+                    <th style="width: 15.25%; height: 20px">3학년 2학기</th>
+                    <th style="width: 15.25%; height: 20px">3학년 1학기</th>
+                    <th style="width: 15.25%; height: 20px">직전학기</th>
+                    <th style="width: 15.25%; height: 20px">직전전학기</th>
                     <th style="width: 16%">결석</th>
-                    <td style="text-align: right; padding-right: 10px">
-                        <span style="margin-right: 5px" th:text="${absenceDayCount}"></span>일
+                    <td style="text-align: right; padding-right: 5px">
+                        <span style="margin-right: 3px" th:text="${absenceDayCount}"></span>일
                     </td>
                 </tr>
                 <tr>
