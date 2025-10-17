@@ -32,7 +32,7 @@ class CompleteApplicationUseCase(
      * @param request 원서 제출 요청
      * @return 원서 제출 응답
      */
-    fun execute(
+    suspend fun execute(
         userId: UUID,
         request: ApplicationSubmissionRequest,
     ): ApplicationSubmissionResponse {
