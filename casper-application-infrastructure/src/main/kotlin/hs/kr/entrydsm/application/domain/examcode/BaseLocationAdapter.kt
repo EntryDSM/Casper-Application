@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.application.domain.examcode
 
-import hs.kr.entrydsm.application.global.web.KakaoProperties
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import org.springframework.stereotype.Component
 

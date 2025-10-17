@@ -95,9 +95,10 @@ class GetFinalApplicationPdfUseCase(
             )
 
         requiredFields.forEach { (fieldName, value) ->
-            // null은 허용 (PDF에서 '-'로 표시됨)
-            if (value != null && (value < 0 || value > 5)) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점, 실제값: $value)")
+            value?.let {
+                if (it !in 0..5) {
+                    throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점)")
+                }
             }
         }
     }
@@ -121,9 +122,10 @@ class GetFinalApplicationPdfUseCase(
             )
 
         additionalFields.forEach { (fieldName, value) ->
-            // null은 허용 (PDF에서 '-'로 표시됨)
-            if (value != null && (value < 0 || value > 5)) {
-                throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점, 실제값: $value)")
+            value?.let {
+                if (it !in 0..5) {
+                    throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-5점)")
+                }
             }
         }
     }
@@ -144,9 +146,7 @@ class GetFinalApplicationPdfUseCase(
             )
 
         gedFields.forEach { (fieldName, value) ->
-            if (value == null) {
-                throw IllegalStateException("검정고시 성적이 null입니다.")
-            } else if(value < 0 || value > 100) {
+            if (value != null && (value < 0 || value > 100)) {
                 throw IllegalStateException("$fieldName 성적이 올바르게 입력되지 않았습니다 (0-100점)")
             }
         }

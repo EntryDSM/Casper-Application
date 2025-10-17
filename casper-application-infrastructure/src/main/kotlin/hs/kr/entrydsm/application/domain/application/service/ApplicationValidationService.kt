@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.service
 
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.CreateApplicationRequest
+import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import org.springframework.stereotype.Service
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service
  * 원서 검증 서비스
  *
  * 원서 제출 시 비즈니스 규칙에 따른 검증을 수행합니다.
+ * ScoreCalculator와 동일한 검증 로직을 사용합니다.
  */
 @Service
 class ApplicationValidationService {
@@ -15,8 +17,11 @@ class ApplicationValidationService {
     /**
      * 성적 데이터를 검증합니다 (원서 제출 시 사용).
      *
+     * ScoreCalculator를 실제로 실행하여 검증합니다.
+     * 계산이 성공하면 데이터가 유효한 것으로 판단합니다.
+     *
      * @param educationalStatus 교육 상태 (졸업예정자, 졸업자, 검정고시)
-     * @param applicationData 원서 기본 정보
+     * @param applicationData 원서 기본 정보 (applicationType 포함)
      * @param scoresData 성적 데이터
      * @throws IllegalStateException 검증 실패 시
      */
@@ -151,6 +156,7 @@ class ApplicationValidationService {
         val volunteer = scoresData["volunteer"] as? Int
         if (volunteer == null || volunteer < 0) {
             throw IllegalStateException("봉사활동 시간이 올바르게 입력되지 않았습니다 (0 이상)")
+
         }
     }
     /**
@@ -275,7 +281,6 @@ class ApplicationValidationService {
 //            throw IllegalArgumentException("후견인 이름이 있으면 연락처도 입력해야 합니다")
 //        }
 //    }
-//
 
     /**
      * 교과 성적 등급 범위를 검증합니다 (1-5등급).

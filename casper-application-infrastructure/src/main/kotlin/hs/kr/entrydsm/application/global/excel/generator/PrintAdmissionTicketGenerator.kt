@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
+import hs.kr.entrydsm.application.domain.application.domain.entity.PhotoJpaEntity
 import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.file.`object`.PathList
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Component
 class PrintAdmissionTicketGenerator(
@@ -73,9 +75,13 @@ class PrintAdmissionTicketGenerator(
         val userMap = users.associateBy { it.id }
         val schoolMap = schools.associateBy { it.code }
         val statusMap = statuses.associateBy { it.receiptCode }
+
+        val userIds = applications.map { it.userId }
+        val photoMap = photoJpaRepository.findAllByUserIdIn(userIds)
+            .associateBy { it.userId }
         
         // 이미지 캐시 - 모든 이미지를 한 번에 미리 로드
-        val imageCache = preloadImages(applications)
+        val imageCache = preloadImages(applications, photoMap)
 
         var currentRowIndex = 0
         applications.forEach { application ->
@@ -85,7 +91,7 @@ class PrintAdmissionTicketGenerator(
 
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
             fillApplicationData(targetSheet, currentRowIndex, application, user, school, status, targetWorkbook)
-            copyApplicationImageFromCache(application, targetSheet, currentRowIndex, imageCache, targetWorkbook)
+            copyApplicationImageFromCache(application, targetSheet, currentRowIndex, imageCache, targetWorkbook, photoMap)
             currentRowIndex += 20
         }
 
@@ -93,11 +99,11 @@ class PrintAdmissionTicketGenerator(
         return targetWorkbook
     }
 
-    private fun preloadImages(applications: List<Application>) : Map<String, ByteArray> {
+    private fun preloadImages(applications: List<Application>, photoMap: Map<UUID, PhotoJpaEntity>) : Map<String, ByteArray> {
         val imageCache = mutableMapOf<String, ByteArray>()
 
         applications.forEach { application ->
-            val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
+            val photoPath = photoMap[application.userId]?.photo
             if (!photoPath.isNullOrBlank()) {
                 try {
                     val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
@@ -116,9 +122,10 @@ class PrintAdmissionTicketGenerator(
         targetSheet: Sheet,
         targetRowIndex: Int,
         imageCache: Map<String, ByteArray>,
-        workbook: Workbook
+        workbook: Workbook,
+        photoMap: Map<UUID, PhotoJpaEntity>
     ) {
-        val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
+        val photoPath = photoMap[application.userId]?.photo
         
         if (photoPath.isNullOrBlank() || !imageCache.containsKey(photoPath)) {
             copyDummyImage(targetSheet, targetRowIndex)

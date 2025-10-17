@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.global.web
+package hs.kr.entrydsm.application.domain.examcode
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface PhotoJpaRepository : JpaRepository<PhotoJpaEntity, UUID> {
     fun findByUserId(userId: UUID): PhotoJpaEntity?
+    fun findAllByUserIdIn(userIds: List<UUID>): List<PhotoJpaEntity>
 }

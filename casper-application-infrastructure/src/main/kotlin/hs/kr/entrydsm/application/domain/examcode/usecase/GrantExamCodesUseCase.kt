@@ -1,37 +1,38 @@
 package hs.kr.entrydsm.application.domain.examcode.usecase
 
+import hs.kr.entrydsm.application.domain.examcode.KakaoProperties
 import hs.kr.entrydsm.application.domain.examcode.util.DistanceUtil
-import hs.kr.entrydsm.application.global.annotation.usecase.UseCase
+import hs.kr.entrydsm.application.global.feign.client.LocationClient
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.examcode.exceptions.ExamCodeException
 import hs.kr.entrydsm.domain.examcode.interfaces.BaseLocationContract
 import hs.kr.entrydsm.domain.examcode.interfaces.GrantExamCodesContract
-import hs.kr.entrydsm.domain.examcode.interfaces.KakaoGeocodeContract
 import hs.kr.entrydsm.domain.examcode.values.DistanceGroup
 import hs.kr.entrydsm.domain.examcode.values.ExamCodeInfo
 import hs.kr.entrydsm.domain.status.interfaces.SaveExamCodeContract
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import org.springframework.stereotype.Service
 
 /**
  * 1차 전형에 합격한 학생들에게 수험번호를 부여하는 유스케이스입니다.
  *
  * @property applicationContract ApplicationAggregate를 가져옵니다.
  * @property saveExamCodeContract StatusAggregate를 업데이트합니다.
- * @property kakaoGeocodeContract 카카오 맵 API와 상호작용합니다.
+ * @property LocationClient 카카오 맵 API와 상호작용합니다.
  * @property distanceUtil 두 지점 사이의 거리를 구합니다.
  * @property baseLocationContract 기준이 되는 장소의 위경도를 가져옵니다.
  */
-@UseCase
+@Service
 class GrantExamCodesUseCase(
     private val applicationContract: ApplicationContract,
     private val saveExamCodeContract: SaveExamCodeContract,
-    private val kakaoGeocodeContract: KakaoGeocodeContract,
     private val baseLocationContract: BaseLocationContract,
     private val distanceUtil: DistanceUtil,
+    private val locationClient: LocationClient,
+    private val kakaoProperties: KakaoProperties
 ) : GrantExamCodesContract {
+
     companion object {
         /** 일반전형 수험번호 접두사 */
         private const val GENERAL_EXAM_CODE_PREFIX = "01"
@@ -66,30 +67,31 @@ class GrantExamCodesUseCase(
      * @return 학생들의 접수 코드, 전형 유형, 학교까지의 거리를 담은 리스트
      * @throws ExamCodeException.failedGeocodeConversion 주소 변환에 실패했을 경우
      */
-    private suspend fun collectDistanceInfo(applications: List<Application>): List<ExamCodeInfo> =
-        coroutineScope {
-            applications.map { application ->
-                async {
-                    val address = application.streetAddress as String
-                    val coordinate =
-                        kakaoGeocodeContract.geocode(address)
-                            ?: throw ExamCodeException.failedGeocodeConversion(address)
-
-                    val baseLat = baseLocationContract.baseLat
-                    val baseLon = baseLocationContract.baseLon
-
-                    val userLat = coordinate.first
-                    val userLon = coordinate.second
-
-                    val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
-                    ExamCodeInfo(
-                        receiptCode = application.receiptCode,
-                        applicationType = application.applicationType.name, // 전형 유형
-                        distance = distance,
-                    )
+    private fun collectDistanceInfo(applications: List<Application>): List<ExamCodeInfo> {
+        return applications.map { application ->
+            val address = application.streetAddress as String
+            val coordinate =
+                locationClient.getLocationInfo(
+                    streetAddress = address,
+                    kakaoAuthorization =  "KakaoAK ${kakaoProperties.restKey}"
+                ).documents[0].address.let {
+                    Pair(it.y.toDouble(), it.x.toDouble())
                 }
-            }.map { it.await() }
+
+            val baseLat = baseLocationContract.baseLat
+            val baseLon = baseLocationContract.baseLon
+
+            val userLat = coordinate.first
+            val userLon = coordinate.second
+
+            val distance = distanceUtil.haversine(baseLat, baseLon, userLat, userLon)
+            ExamCodeInfo(
+                receiptCode = application.receiptCode,
+                applicationType = application.applicationType.name, // 전형 유형
+                distance = distance
+            )
         }
+    }
 
     /**
      * 학생들을 학교까지의 거리를 기준으로 그룹화하고, 그룹 내에서 수험번호를 부여합니다.
