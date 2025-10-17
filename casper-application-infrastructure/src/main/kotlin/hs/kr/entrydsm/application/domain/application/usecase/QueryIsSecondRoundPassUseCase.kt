@@ -25,7 +25,7 @@ class QueryIsSecondRoundPassUseCase (
             ?: throw ApplicationNotFoundException()
 
         val secondAnnounce = applicationQueryScheduleContract.queryByScheduleType(ScheduleType.SECOND_ANNOUNCEMENT)
-            ?: throw ScheduleExceptions.ScoreNotFoundException()
+            ?: throw ScheduleExceptions.ScheduleNotFoundException()
 
         if (LocalDateTime.now().isBefore(secondAnnounce.date))
             throw ScheduleExceptions.AdmissionUnavailableException()
