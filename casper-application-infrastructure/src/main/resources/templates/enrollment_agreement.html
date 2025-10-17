@@ -9,7 +9,7 @@
         }
         body {
             font-family: KoPubWorld_Dotum_Light;
-            padding: 15px; /* body 패딩 줄임 */
+            padding: 15px;
         }
         table {
             border-collapse: collapse;
@@ -18,23 +18,23 @@
         }
         td {
             border: 1px solid black;
-            font-size: 10px; /* 폰트 크기 미세 조정 */
+            font-size: 10px;
             text-align: center;
-            padding: 6px; /* 패딩 미세 조정 */
+            padding: 6px;
         }
         th {
             border: 1px solid black;
             background-color: #f2f2f2;
-            font-size: 10px; /* 폰트 크기 미세 조정 */
+            font-size: 10px;
             font-weight: 600;
             text-align: center;
-            padding: 6px; /* 패딩 미세 조정 */
+            padding: 6px;
         }
         .header-title {
             text-align: center;
-            font-size: 15px; /* 폰트 크기 미세 조정 */
+            font-size: 15px;
             font-weight: bold;
-            margin-bottom: 12px; /* 여백 줄임 */
+            margin-bottom: 12px;
         }
     </style>
 </head>
@@ -48,26 +48,22 @@
 
 <table style="margin-top: 15px;">
     <tr>
-        <th colspan="2" style="width: 30%; text-align: left; padding-left: 12px;">2026학년도 신입생 입학전형</th>
-        <th style="width: 15%;">수험번호</th>
-        <td style="width: 55%;"></td>
+        <th colspan="2" style="width: 50%; text-align: left; padding-left: 12px;">2026학년도 신입생 입학전형</th>
+        <th style="width: 20%;">수험번호</th>
+        <td style="width: 30%;"></td>
     </tr>
     <tr>
         <th rowspan="3" style="width: 10%;">지원자</th>
         <th style="width: 15%;">성 명</th>
-        <td style="width: 30%;" th:text="${userName}"></td>
-        <th style="width: 15%;">성 별</th>
+        <td style="width: 25%;" th:text="${userName}"></td>
+        <th style="width: 20%;">성 별</th>
         <td style="width: 30%;">□남&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;□여</td>
     </tr>
     <tr>
         <th>전화번호</th>
         <td th:text="${applicantTel}"></td>
         <th>생년월일</th>
-        <td>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span th:text="${birthYear}"></span>년&nbsp;&nbsp;&nbsp;
-            <span th:text="${birthMonth}"></span>월&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <span th:text="${birthDay}"></span>일
-        </td>
+        <td><span th:text="${birthYear}"></span>년&nbsp;&nbsp;&nbsp;<span th:text="${birthMonth}"></span>월&nbsp;&nbsp;&nbsp;<span th:text="${birthDay}"></span>일</td>
     </tr>
     <tr>
         <th>주 소</th>
@@ -76,8 +72,8 @@
     <tr>
         <th rowspan="2" style="width: 10%;">보호자</th>
         <th style="width: 15%;">성 명</th>
-        <td style="width: 30%;" th:text="${parentName}"></td>
-        <th style="width: 15%;">지원자와의 관계</th>
+        <td style="width: 25%;" th:text="${parentName}"></td>
+        <th style="width: 20%;">지원자와의 관계</th>
         <td style="width: 30%;">지원자의 (<span th:text="${parentRelation}"></span>)</td>
     </tr>
     <tr>
@@ -86,7 +82,7 @@
     </tr>
 </table>
 
-<div style="border: 1px solid black; margin-top: 15px; padding: 15px; ">
+<div style="border: 1px solid black; margin-top: 15px; padding: 15px;">
     <div style="margin-bottom: 20px; text-indent: 15px; line-height: 1.8; font-size: 10px;">
         <p>
             위 지원자는 2026학년도 대덕소프트웨어마이스터고등학교 신입생 입학전형에 합격하여,
