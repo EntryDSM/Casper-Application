@@ -4,6 +4,7 @@ import hs.kr.entrydsm.application.domain.application.exception.ApplicationAlread
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationCannotCancelException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationPeriodException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
 import hs.kr.entrydsm.application.domain.application.exception.InvalidApplicationTypeException
 import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
@@ -272,5 +273,22 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
                 timestamp = LocalDateTime.now().toString(),
             )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse)
+    }
+
+    @ExceptionHandler(ApplicationPeriodException::class)
+    fun handleApplicationException(ex: ApplicationPeriodException): ResponseEntity<ErrorResponse> {
+        log.error("ApplicationPeriodException: {}", ex.message, ex)
+        val errorResponse =
+            ErrorResponse(
+                success = false,
+                error =
+                    ErrorDetail(
+                        code = "APPLICATION_PERIOD_ERROR",
+                        message = ex.message ?: "원서 제출 기간이 아닙니다.",
+                        details = mapOf("exceptionType" to ex.javaClass.simpleName),
+                    ),
+                timestamp = LocalDateTime.now().toString(),
+            )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
     }
 }

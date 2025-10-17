@@ -7,13 +7,17 @@ import hs.kr.entrydsm.application.domain.application.domain.repository.Applicati
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationAlreadySubmittedException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationDataConversionException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationPeriodException
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationValidationException
 import hs.kr.entrydsm.application.domain.application.exception.InvalidApplicationTypeException
 import hs.kr.entrydsm.application.domain.application.exception.ScoreCalculationException
+import hs.kr.entrydsm.application.domain.schedule.domain.SchedulePersistenceAdapterApplication
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationCreateEventContract
 import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.application.values.Gender
+import hs.kr.entrydsm.domain.schedule.exception.ScheduleExceptions
+import hs.kr.entrydsm.domain.schedule.values.ScheduleType
 import hs.kr.entrydsm.domain.status.values.ApplicationStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -33,9 +37,9 @@ class ApplicationPersistenceService(
     private val applicationRepository: ApplicationJpaRepository,
     private val scoreCalculator: ScoreCalculator,
     private val objectMapper: ObjectMapper,
-    private val applicationCreateEventContract: ApplicationCreateEventContract,
     private val validationService: hs.kr.entrydsm.application.domain.application.service.ApplicationValidationService,
-    private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
+    private val photoJpaRepository: hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository,
+    private val schedulePersistenceAdapterApplication: SchedulePersistenceAdapterApplication
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -51,11 +55,23 @@ class ApplicationPersistenceService(
      * @throws InvalidApplicationTypeException 유효하지 않은 전형 유형인 경우
      * @throws ScoreCalculationException 점수 계산 실패 시
      */
-    fun createApplication(
+    suspend fun createApplication(
         userId: UUID,
         applicationData: Map<String, Any>,
         scoresData: Map<String, Any>,
     ): ApplicationJpaEntity {
+
+        val startDate = schedulePersistenceAdapterApplication.queryByScheduleType(ScheduleType.START_DATE)
+            ?: throw ScheduleExceptions.ScheduleNotFoundException()
+        val endDate = schedulePersistenceAdapterApplication.queryByScheduleType(ScheduleType.END_DATE)
+            ?: throw ScheduleExceptions.ScheduleNotFoundException()
+
+        val now = LocalDateTime.now()
+
+        if (now.isBefore(startDate.date) || now.isAfter(endDate.date)) {
+            throw ApplicationPeriodException()
+        }
+
         // 1. 중복 제출 검증
         if (applicationRepository.existsByUserId(userId)) {
             throw ApplicationAlreadySubmittedException("사용자 ID $userId 는 이미 원서를 제출했습니다")
@@ -137,7 +153,7 @@ class ApplicationPersistenceService(
                 reviewedAt = null,
             )
 
-        applicationCreateEventContract.publishCreateApplication(receiptCode, userId)
+        //applicationCreateEventContract.publishCreateApplication(receiptCode, userId)
 
         val savedEntity = applicationRepository.save(entity)
         logger.info("원서 저장 완료: applicationId=${savedEntity.applicationId}, receiptCode=$receiptCode")
