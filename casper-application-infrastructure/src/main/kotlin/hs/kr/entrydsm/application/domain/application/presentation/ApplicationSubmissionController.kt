@@ -156,6 +156,9 @@ class ApplicationSubmissionController(
         request.gedTech?.let { scoresData["gedTech"] = it }
 
         // 가산점
+        request.algorithmAward?.let { scoresData["algorithmAward"] = it }
+        request.infoProcessingCert?.let { scoresData["infoProcessingCert"] = it }
+        
         var extraScore = 0
         if (request.algorithmAward == true) extraScore += 3
         if (request.infoProcessingCert == true) extraScore += 2
