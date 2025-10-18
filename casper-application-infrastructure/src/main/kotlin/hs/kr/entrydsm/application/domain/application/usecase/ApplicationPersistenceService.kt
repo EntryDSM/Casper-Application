@@ -106,10 +106,18 @@ class ApplicationPersistenceService(
             }
         val calculationTimeMs = System.currentTimeMillis() - startTime
 
-        // 5. 성적 데이터 JSON 변환
+        // 5. 성적 데이터 JSON 변환 (applicationData의 필드도 포함)
+        val combinedScoresData = scoresData.toMutableMap<String, Any?>()
+        applicationData["schoolName"]?.let { combinedScoresData["schoolName"] = it }
+        applicationData["studentId"]?.let { combinedScoresData["studentId"] = it }
+        applicationData["graduationDate"]?.let { combinedScoresData["graduationDate"] = it }
+        applicationData["guardianGender"]?.let { combinedScoresData["guardianGender"] = it }
+        applicationData["schoolPhone"]?.let { combinedScoresData["schoolPhone"] = it }
+        applicationData["teacherName"]?.let { combinedScoresData["teacherName"] = it }
+
         val scoresJson =
             try {
-                objectMapper.writeValueAsString(scoresData)
+                objectMapper.writeValueAsString(combinedScoresData)
             } catch (e: Exception) {
                 logger.error("성적 데이터 JSON 변환 실패: userId=$userId", e)
                 throw ApplicationDataConversionException("성적 데이터 변환 중 오류가 발생했습니다", e)
