@@ -143,4 +143,9 @@ interface ApplicationJpaRepository : JpaRepository<ApplicationJpaEntity, UUID> {
     ): Optional<ApplicationJpaEntity>
 
     fun findByUserId(userId: UUID): ApplicationJpaEntity?
+
+    /**
+     * 모든 원서를 접수번호 순으로 조회
+     */
+    fun findAllByOrderByReceiptCodeAsc(): List<ApplicationJpaEntity>
 }

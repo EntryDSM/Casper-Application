@@ -34,14 +34,14 @@ class ApplicationPersistenceAdapter(
     }
 
     /**
-     * 1차 전형 합격 Application을 모두 조회합니다.
+     * 1차 전형 합격 Application을 접수번호 순으로 조회합니다.
      *
      * Status 서비스를 통해 1차 합격 여부를 확인하여 해당하는 Application만 반환합니다.
      *
-     * @return 1차 전형 합격 Application 목록
+     * @return 접수번호 순으로 정렬된 1차 전형 합격 Application 목록
      */
     override suspend fun queryAllFirstRoundPassedApplication(): List<Application> {
-        return applicationJpaRepository.findAll()
+        return applicationJpaRepository.findAllByOrderByReceiptCodeAsc()
             .mapNotNull { applicationEntity ->
                 // Status 서비스에서 1차 합격 여부 확인
                 val status = statusContract.queryStatusByReceiptCode(applicationEntity.receiptCode)
@@ -54,12 +54,12 @@ class ApplicationPersistenceAdapter(
     }
 
     /**
-     * 제출된 모든 원서를 조회합니다.
+     * 제출된 모든 원서를 접수번호 순으로 조회합니다.
      *
-     * @return 제출된 모든 원서 목록
+     * @return 접수번호 순으로 정렬된 모든 원서 목록
      */
     fun querySubmittedApplications(): List<Application> {
-        return applicationJpaRepository.findAll()
+        return applicationJpaRepository.findAllByOrderByReceiptCodeAsc()
             .map { applicationMapper.toModel(it) }
     }
 
