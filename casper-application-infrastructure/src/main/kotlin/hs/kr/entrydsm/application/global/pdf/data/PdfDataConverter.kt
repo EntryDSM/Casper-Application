@@ -432,8 +432,8 @@ class PdfDataConverter(
             values["schoolTel"] = toFormattedPhoneNumber(school.tel ?: "")
             values["schoolName"] = school.name
             values["schoolClass"] = application.studentId?.let {
-                if (it.length >= 2) it.substring(1, 2) else "3"
-            } ?: "3"
+                if (it.length >= 3) it.substring(1, 3).toIntOrNull()?.toString() ?: "1" else "1"
+            } ?: "1"
         } else {
             values.putAll(emptySchoolInfo())
         }
