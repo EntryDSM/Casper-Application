@@ -170,7 +170,7 @@ class AdminUseCase(
         val byGender =
             listOf(
                 ApplicationStatisticsByGenderResponse.GenderInfo(
-                    gender = "MALE",C
+                    gender = "MALE",
                     genderName = "남",
                     count = maleCount,
                     percentage =
