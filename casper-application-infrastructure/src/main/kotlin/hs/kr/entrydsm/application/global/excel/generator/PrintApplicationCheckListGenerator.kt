@@ -473,15 +473,15 @@ class PrintApplicationCheckListGenerator {
     }
     
     /**
-     * 숫자 성적을 문자 등급으로 변환 (1=A, 2=B, 3=C, 4=D, 5=E)
+     * 숫자 성적을 문자 등급으로 변환 (5=A, 4=B, 3=C, 2=D, 1=E)
      */
     private fun convertGradeToLetter(grade: Int?): String {
         return when (grade) {
-            1 -> "A"
-            2 -> "B"
+            5 -> "A"
+            4 -> "B"
             3 -> "C"
-            4 -> "D"
-            5 -> "E"
+            2 -> "D"
+            1 -> "E"
             else -> ""
         }
     }
