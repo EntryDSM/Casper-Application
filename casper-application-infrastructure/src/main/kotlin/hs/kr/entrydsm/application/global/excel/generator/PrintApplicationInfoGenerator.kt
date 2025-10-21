@@ -195,13 +195,14 @@ class PrintApplicationInfoGenerator {
         // 16. 보호자 전화번호
         row.createCell(colIndex++).setCellValue(application.parentTel ?: "")
 
-        row.createCell(colIndex++).setCellValue(application.korean_3_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.social_3_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.history_3_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.math_3_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.science_3_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.tech_3_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.english_3_2?.toString() ?: "")
+        // 17-23. 국어~영어 3학년 2학기
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.korean_3_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.social_3_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.history_3_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.math_3_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.science_3_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.tech_3_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.english_3_2))
 
         // 24-30. 국어~영어 3학년 1학기
         row.createCell(colIndex++).setCellValue(getGradeOrGed(application, "korean", "3_1"))
@@ -213,22 +214,22 @@ class PrintApplicationInfoGenerator {
         row.createCell(colIndex++).setCellValue(getGradeOrGed(application, "english", "3_1"))
 
         // 31-37. 국어~영어 직전 학기 (2-2)
-        row.createCell(colIndex++).setCellValue(application.korean_2_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.social_2_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.history_2_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.math_2_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.science_2_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.tech_2_2?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.english_2_2?.toString() ?: "")
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.korean_2_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.social_2_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.history_2_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.math_2_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.science_2_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.tech_2_2))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.english_2_2))
 
         // 38-44. 국어~영어 직전전 학기 (2-1)
-        row.createCell(colIndex++).setCellValue(application.korean_2_1?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.social_2_1?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.history_2_1?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.math_2_1?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.science_2_1?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.tech_2_1?.toString() ?: "")
-        row.createCell(colIndex++).setCellValue(application.english_2_1?.toString() ?: "")
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.korean_2_1))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.social_2_1))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.history_2_1))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.math_2_1))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.science_2_1))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.tech_2_1))
+        row.createCell(colIndex++).setCellValue(convertGradeToLetter(application.english_2_1))
 
         // 45-47. 학기별 성적 총합
         val semesterScores = application.calculateSemesterScores()
@@ -283,7 +284,19 @@ class PrintApplicationInfoGenerator {
         row.createCell(colIndex++).setCellValue(getGedAverage(application))
     }
 
+    private fun convertGradeToLetter(grade: Int?): String {
+        return when (grade) {
+            1 -> "A"
+            2 -> "B"
+            3 -> "C"
+            4 -> "D"
+            5 -> "E"
+            else -> ""
+        }
+    }
+
     private fun getGradeOrGed(application: Application, subject: String, semester: String): String {
+        // 검정고시는 100점 만점 그대로 표시
         if (application.educationalStatus == EducationalStatus.QUALIFICATION_EXAM && semester == "3_1") {
             return when (subject) {
                 "korean" -> application.gedKorean?.toString() ?: ""
@@ -297,14 +310,15 @@ class PrintApplicationInfoGenerator {
             }
         }
 
+        // 일반 학생은 A/B/C/D/E로 변환
         return when (subject) {
-            "korean" -> application.korean_3_1?.toString() ?: ""
-            "social" -> application.social_3_1?.toString() ?: ""
-            "history" -> application.history_3_1?.toString() ?: ""
-            "math" -> application.math_3_1?.toString() ?: ""
-            "science" -> application.science_3_1?.toString() ?: ""
-            "tech" -> application.tech_3_1?.toString() ?: ""
-            "english" -> application.english_3_1?.toString() ?: ""
+            "korean" -> convertGradeToLetter(application.korean_3_1)
+            "social" -> convertGradeToLetter(application.social_3_1)
+            "history" -> convertGradeToLetter(application.history_3_1)
+            "math" -> convertGradeToLetter(application.math_3_1)
+            "science" -> convertGradeToLetter(application.science_3_1)
+            "tech" -> convertGradeToLetter(application.tech_3_1)
+            "english" -> convertGradeToLetter(application.english_3_1)
             else -> ""
         }
     }
