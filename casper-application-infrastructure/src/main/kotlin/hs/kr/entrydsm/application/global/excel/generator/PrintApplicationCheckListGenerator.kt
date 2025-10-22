@@ -342,7 +342,7 @@ class PrintApplicationCheckListGenerator {
 
         // 환산점수 (18행 7열) - 전형별 배수 적용
         val convertedScore = application.calculateSubjectScore()
-        getCell(sheet, dh + 18, 7).setCellValue(convertedScore.toString())
+        getCell(sheet, dh + 18, 7).setCellValue(String.format("%.3f", convertedScore))
 
         // 총점 (환산점수 + 출석점수 + 봉사점수 + 가산점)
         val totalScore = convertedScore
