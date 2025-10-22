@@ -231,8 +231,8 @@ class PdfDataConverter(
         application: Application,
         values: MutableMap<String, Any>,
     ) {
-        values["hasCompetitionPrize"] = toCircleBallotbox(application.algorithmAward ?: false)
-        values["hasCertificate"] = toCircleBallotbox(application.infoProcessingCert ?: false)
+        values["hasCompetitionPrize"] = toCircleBallotbox(application.infoProcessingCert ?: false)
+        values["hasCertificate"] = toCircleBallotbox(application.algorithmAward ?: false)
     }
 
     private fun setGradeScore(
