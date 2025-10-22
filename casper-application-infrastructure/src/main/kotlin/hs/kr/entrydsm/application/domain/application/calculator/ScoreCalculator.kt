@@ -6,6 +6,7 @@ import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import kotlin.math.min
+import kotlin.math.round
 
 /**
  * 입학전형 점수 계산기
@@ -38,8 +39,9 @@ class ScoreCalculator {
             val input = ScoreInput.from(scores)
             logger.info("매핑된 ScoreInput: $input")
 
-            val subjectScore = calculateSubjectScore(applicationType, educationalStatus, input)
-            logger.info("교과점수 계산 완료: $subjectScore")
+            val subjectScoreRaw = calculateSubjectScore(applicationType, educationalStatus, input)
+            val subjectScore = round(subjectScoreRaw * 1000) / 1000.0
+            logger.info("교과점수 계산 완료(반올림 적용): $subjectScore")
 
             val attendanceScore = if (educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
                 logger.info("검정고시 - 출결점수 0점 처리")
@@ -90,7 +92,6 @@ class ScoreCalculator {
     ): Double {
         logger.info("[교과점수] 계산 시작 - 전형: $type, 졸업자: $isGraduate")
 
-        // 필수 검증
         requireNotNull(input.grade3_1) { "3학년 1학기 성적이 필수입니다" }
         if (isGraduate) requireNotNull(input.grade3_2) { "졸업자는 3학년 2학기 성적이 필수입니다" }
 
