@@ -296,13 +296,10 @@ class PrintApplicationCheckListGenerator {
         val grade3Score = calculateGrade3Score(application)
         val grade2_2Score = calculateGrade2_2Score(application)
         val grade2_1Score = calculateGrade2_1Score(application)
-        
-        // 교과성적 헤더 옆에 합산 점수 표시
-        getCell(sheet, dh + 10, 7).setCellValue(rawSubjectScore.toString())
 
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
-        
+
         subjects.forEachIndexed { index, subject ->
             val rowIndex = dh + 11 + index
             getCell(sheet, rowIndex, 1).setCellValue(subject)
@@ -315,27 +312,50 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
         getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
         getCell(sheet, dh + 13, 7).setCellValue(application.calculateBonusScore().toString())
-        
-        getCell(sheet, dh + 18, 2).setCellValue(grade3Score.toString())
-        getCell(sheet, dh + 18, 3).setCellValue(grade2_2Score.toString())
-        getCell(sheet, dh + 18, 4).setCellValue(grade2_1Score.toString())
-        getCell(sheet, dh + 18, 5).setCellValue(rawSubjectScore.toString())
-        
-        // 환산점수
-        // - 특별전형: 교과성적 그대로 (80점 만점)
-        // - 일반전형: 교과성적 × 140 ÷ 80 (140점 만점)
-        val convertedScore = when (application.applicationType) {
-            ApplicationType.COMMON -> rawSubjectScore.toDouble() * 140.0 / 80.0
-            else -> rawSubjectScore.toDouble()
+
+        // 점수 행 (18행) - 헤더와 매핑 수정
+        // 2열: 3_2학기 점수 (졸업자만, 졸업예정자는 빈칸)
+        // 3열: 3_1학기 점수
+        // 4열: 직전(2_2학기) 점수
+        // 5열: 직전전(2_1학기) 점수
+        // 7열: 교과성적 (전체 합산)
+
+        if (application.educationalStatus == EducationalStatus.GRADUATE) {
+            // 졸업자: 3_2학기 성적 있음
+            val grade3_2Only = listOfNotNull(
+                application.korean_3_2, application.social_3_2, application.history_3_2,
+                application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
+            ).sum()
+            getCell(sheet, dh + 18, 2).setCellValue(grade3_2Only.toString())
+        } else {
+            // 졸업예정자: 3_2학기 빈칸
+            getCell(sheet, dh + 18, 2).setCellValue("")
         }
-        getCell(sheet, dh + 18, 7).setCellValue(String.format("%.2f", convertedScore))
-        
+
+        val grade3_1Only = listOfNotNull(
+            application.korean_3_1, application.social_3_1, application.history_3_1,
+            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
+        ).sum()
+
+        getCell(sheet, dh + 18, 3).setCellValue(grade3_1Only.toString())
+        getCell(sheet, dh + 18, 4).setCellValue(grade2_2Score.toString())
+        getCell(sheet, dh + 18, 5).setCellValue(grade2_1Score.toString())
+
+        // 10행 7열: 교과성적 (헤더 옆)
+        getCell(sheet, dh + 10, 7).setCellValue(rawSubjectScore.toString())
+
+        // 환산점수 (ScoreCalculationService와 동일한 계산)
+        // - 일반전형: 평균 계산 후 가중치 적용, 최대 140점
+        // - 특별전형: 평균 계산 후 가중치 적용, 최대 80점
+        val convertedScore = application.calculateSubjectScore()
+        getCell(sheet, dh + 18, 7).setCellValue(convertedScore.toString())
+
         // 총점 (환산점수 + 출석점수 + 봉사점수 + 가산점)
-        val totalScore = convertedScore + 
-            application.calculateAttendanceScore().toDouble() + 
-            application.calculateVolunteerScore().toDouble() + 
-            application.calculateBonusScore().toDouble()
-        getCell(sheet, dh + 19, 7).setCellValue(String.format("%.2f", totalScore))
+        val totalScore = convertedScore
+            .add(application.calculateAttendanceScore())
+            .add(application.calculateVolunteerScore())
+            .add(application.calculateBonusScore())
+        getCell(sheet, dh + 19, 7).setCellValue(totalScore.toString())
 
         setRowHeight(sheet, dh + 2, 10)
         setRowHeight(sheet, dh + 6, 10)
