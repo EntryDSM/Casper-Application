@@ -291,12 +291,9 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
         getCell(sheet, dh + 8, 7).setCellValue(application.calculateVolunteerScore().toString())
         
-        // 교과성적 계산 (1-5점 합산) - 먼저 계산
-        val rawSubjectScore = calculateRawSubjectScore(application)
-        val grade3Score = calculateGrade3Score(application)
-        val grade2_2Score = calculateGrade2_2Score(application)
-        val grade2_1Score = calculateGrade2_1Score(application)
-
+        // application-info와 동일한 학기별 점수 계산 (가중치 적용)
+        val semesterScores = application.calculateSemesterScores()
+        
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
 
@@ -313,40 +310,37 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
         getCell(sheet, dh + 13, 7).setCellValue(application.calculateBonusScore().toString())
 
-        // 점수 행 (18행) - 헤더와 매핑 수정
-        // 2열: 3_2학기 점수 (졸업자만, 졸업예정자는 빈칸)
-        // 3열: 3_1학기 점수
-        // 4열: 직전(2_2학기) 점수
-        // 5열: 직전전(2_1학기) 점수
-        // 7열: 교과성적 (전체 합산)
+        // 점수 행 (18행) - application-info와 동일하게 가중치 적용된 점수
+        // 2열: 3_2학기 점수 (가중치 적용)
+        // 3열: 3_1학기 점수 (가중치 적용)
+        // 4열: 2_2학기 점수 (가중치 적용)
+        // 5열: 2_1학기 점수 (가중치 적용)
+        // 7열: 교과성적 (위 점수들의 합)
 
+        val semester3_2Score = semesterScores["3-2"] ?: BigDecimal.ZERO
+        val semester3_1Score = semesterScores["3-1"] ?: BigDecimal.ZERO
+        val semester2_2Score = semesterScores["2-2"] ?: BigDecimal.ZERO
+        val semester2_1Score = semesterScores["2-1"] ?: BigDecimal.ZERO
+
+        // 졸업자는 3-2 점수 표시, 졸업예정자/검정고시는 빈칸
         if (application.educationalStatus == EducationalStatus.GRADUATE) {
-            // 졸업자: 3_2학기 성적 있음
-            val grade3_2Only = listOfNotNull(
-                application.korean_3_2, application.social_3_2, application.history_3_2,
-                application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2
-            ).sum()
-            getCell(sheet, dh + 18, 2).setCellValue(grade3_2Only.toString())
+            getCell(sheet, dh + 18, 2).setCellValue(semester3_2Score.toString())
         } else {
-            // 졸업예정자: 3_2학기 빈칸
             getCell(sheet, dh + 18, 2).setCellValue("")
         }
 
-        val grade3_1Only = listOfNotNull(
-            application.korean_3_1, application.social_3_1, application.history_3_1,
-            application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
-        ).sum()
+        getCell(sheet, dh + 18, 3).setCellValue(semester3_1Score.toString())
+        getCell(sheet, dh + 18, 4).setCellValue(semester2_2Score.toString())
+        getCell(sheet, dh + 18, 5).setCellValue(semester2_1Score.toString())
 
-        getCell(sheet, dh + 18, 3).setCellValue(grade3_1Only.toString())
-        getCell(sheet, dh + 18, 4).setCellValue(grade2_2Score.toString())
-        getCell(sheet, dh + 18, 5).setCellValue(grade2_1Score.toString())
+        // 교과성적 = 각 학기 점수의 합 (10행 7열)
+        val subjectScoreSum = semester3_2Score
+            .add(semester3_1Score)
+            .add(semester2_2Score)
+            .add(semester2_1Score)
+        getCell(sheet, dh + 10, 7).setCellValue(subjectScoreSum.toString())
 
-        // 10행 7열: 교과성적 (헤더 옆)
-        getCell(sheet, dh + 10, 7).setCellValue(rawSubjectScore.toString())
-
-        // 환산점수 (ScoreCalculationService와 동일한 계산)
-        // - 일반전형: 평균 계산 후 가중치 적용, 최대 140점
-        // - 특별전형: 평균 계산 후 가중치 적용, 최대 80점
+        // 환산점수 (18행 7열) - 전형별 배수 적용
         val convertedScore = application.calculateSubjectScore()
         getCell(sheet, dh + 18, 7).setCellValue(convertedScore.toString())
 
@@ -504,84 +498,5 @@ class PrintApplicationCheckListGenerator {
             1 -> "E"
             else -> ""
         }
-    }
-    
-    /**
-     * 모든 과목 점수 합산 (교과성적)
-     */
-    private fun calculateRawSubjectScore(application: Application): Int {
-        val scores = mutableListOf<Int>()
-        
-        when (application.educationalStatus) {
-            EducationalStatus.GRADUATE -> {
-                listOfNotNull(
-                    application.korean_3_2, application.social_3_2, application.history_3_2,
-                    application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2,
-                    application.korean_3_1, application.social_3_1, application.history_3_1,
-                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1,
-                    application.korean_2_2, application.social_2_2, application.history_2_2,
-                    application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2,
-                    application.korean_2_1, application.social_2_1, application.history_2_1,
-                    application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
-                ).forEach { scores.add(it) }
-            }
-            EducationalStatus.PROSPECTIVE_GRADUATE -> {
-                listOfNotNull(
-                    application.korean_3_1, application.social_3_1, application.history_3_1,
-                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1,
-                    application.korean_2_2, application.social_2_2, application.history_2_2,
-                    application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2,
-                    application.korean_2_1, application.social_2_1, application.history_2_1,
-                    application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
-                ).forEach { scores.add(it) }
-            }
-            EducationalStatus.QUALIFICATION_EXAM -> {
-                listOfNotNull(
-                    application.gedKorean, application.gedSocial, application.gedHistory,
-                    application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
-                ).forEach { scores.add(it) }
-            }
-        }
-        
-        return scores.sum()
-    }
-
-    private fun calculateGrade3Score(application: Application): Int {
-        return when (application.educationalStatus) {
-            EducationalStatus.GRADUATE -> {
-                listOfNotNull(
-                    application.korean_3_2, application.social_3_2, application.history_3_2,
-                    application.math_3_2, application.science_3_2, application.tech_3_2, application.english_3_2,
-                    application.korean_3_1, application.social_3_1, application.history_3_1,
-                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
-                ).sum()
-            }
-            EducationalStatus.PROSPECTIVE_GRADUATE -> {
-                listOfNotNull(
-                    application.korean_3_1, application.social_3_1, application.history_3_1,
-                    application.math_3_1, application.science_3_1, application.tech_3_1, application.english_3_1
-                ).sum()
-            }
-            EducationalStatus.QUALIFICATION_EXAM -> {
-                listOfNotNull(
-                    application.gedKorean, application.gedSocial, application.gedHistory,
-                    application.gedMath, application.gedScience, application.gedTech, application.gedEnglish
-                ).sum()
-            }
-        }
-    }
-
-    private fun calculateGrade2_2Score(application: Application): Int {
-        return listOfNotNull(
-            application.korean_2_2, application.social_2_2, application.history_2_2,
-            application.math_2_2, application.science_2_2, application.tech_2_2, application.english_2_2
-        ).sum()
-    }
-
-    private fun calculateGrade2_1Score(application: Application): Int {
-        return listOfNotNull(
-            application.korean_2_1, application.social_2_1, application.history_2_1,
-            application.math_2_1, application.science_2_1, application.tech_2_1, application.english_2_1
-        ).sum()
     }
 }

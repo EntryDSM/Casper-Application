@@ -16,6 +16,7 @@ class ScoreCalculationService {
 
     /**
      * 전형별 총점을 계산합니다.
+     * 소수점 4자리에서 반올림하여 소수점 3자리까지 표시
      */
     fun calculateTotalScore(application: Application): BigDecimal {
         val subjectScore = calculateSubjectScore(application)
@@ -24,6 +25,7 @@ class ScoreCalculationService {
         val bonusScore = calculateBonusScore(application)
 
         return subjectScore.add(attendanceScore).add(volunteerScore).add(bonusScore)
+            .setScale(3, RoundingMode.HALF_UP)
     }
 
     /**
