@@ -349,7 +349,7 @@ class PrintApplicationCheckListGenerator {
             .add(application.calculateAttendanceScore())
             .add(application.calculateVolunteerScore())
             .add(application.calculateBonusScore())
-        getCell(sheet, dh + 19, 7).setCellValue(totalScore.toString())
+        getCell(sheet, dh + 19, 7).setCellValue(String.format("%.3f", totalScore))
 
         setRowHeight(sheet, dh + 2, 10)
         setRowHeight(sheet, dh + 6, 10)
