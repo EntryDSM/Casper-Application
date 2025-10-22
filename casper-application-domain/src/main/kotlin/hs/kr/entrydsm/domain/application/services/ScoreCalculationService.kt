@@ -145,22 +145,23 @@ class ScoreCalculationService {
         // 1. 각 과목을 환산점으로 변환
         val convertedScores = scores.map { convertGedScoreToPoint(it) }
         
-        // 2. 환산점 합계 및 평균 계산
+
         val totalPoints = convertedScores.sum()
         val subjectCount = convertedScores.size
-        val averagePoints = totalPoints.toDouble() / subjectCount
+        val averagePoints = BigDecimal.valueOf(totalPoints.toDouble() / subjectCount)
+            .setScale(3, RoundingMode.HALF_UP)
         
         // 3. 전형별 배수 적용
         return when (application.applicationType) {
             ApplicationType.COMMON -> {
                 // 일반전형: (T/N) × 34
-                BigDecimal.valueOf(averagePoints * 34.0)
-                    .setScale(2, RoundingMode.HALF_UP)
+                averagePoints.multiply(BigDecimal.valueOf(34.0))
+                    .setScale(3, RoundingMode.HALF_UP)
             }
             ApplicationType.MEISTER, ApplicationType.SOCIAL -> {
                 // 특별전형: (T/N) × 22
-                BigDecimal.valueOf(averagePoints * 22.0)
-                    .setScale(2, RoundingMode.HALF_UP)
+                averagePoints.multiply(BigDecimal.valueOf(22.0))
+                    .setScale(3, RoundingMode.HALF_UP)
             }
         }
     }
