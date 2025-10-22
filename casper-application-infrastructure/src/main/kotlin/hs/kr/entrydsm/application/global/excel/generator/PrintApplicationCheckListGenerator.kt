@@ -324,21 +324,21 @@ class PrintApplicationCheckListGenerator {
 
         // 졸업자는 3-2 점수 표시, 졸업예정자/검정고시는 빈칸
         if (application.educationalStatus == EducationalStatus.GRADUATE) {
-            getCell(sheet, dh + 18, 2).setCellValue(semester3_2Score.toString())
+            getCell(sheet, dh + 18, 2).setCellValue(String.format("%.3f", semester3_2Score))
         } else {
             getCell(sheet, dh + 18, 2).setCellValue("")
         }
 
-        getCell(sheet, dh + 18, 3).setCellValue(semester3_1Score.toString())
-        getCell(sheet, dh + 18, 4).setCellValue(semester2_2Score.toString())
-        getCell(sheet, dh + 18, 5).setCellValue(semester2_1Score.toString())
+        getCell(sheet, dh + 18, 3).setCellValue(String.format("%.3f", semester3_1Score))
+        getCell(sheet, dh + 18, 4).setCellValue(String.format("%.3f", semester2_2Score))
+        getCell(sheet, dh + 18, 5).setCellValue(String.format("%.3f", semester2_1Score))
 
         // 교과성적 = 각 학기 점수의 합 (10행 7열)
         val subjectScoreSum = semester3_2Score
             .add(semester3_1Score)
             .add(semester2_2Score)
             .add(semester2_1Score)
-        getCell(sheet, dh + 10, 7).setCellValue(subjectScoreSum.toString())
+        getCell(sheet, dh + 10, 7).setCellValue(String.format("%.3f", subjectScoreSum))
 
         // 환산점수 (18행 7열) - 전형별 배수 적용
         val convertedScore = application.calculateSubjectScore()

@@ -310,10 +310,10 @@ class ScoreCalculationService {
                 )
                 
                 mapOf(
-                    "3-2" to BigDecimal.valueOf(4.0).multiply(semester3_2Avg).setScale(2, RoundingMode.HALF_UP),
-                    "3-1" to BigDecimal.valueOf(4.0).multiply(semester3_1Avg).setScale(2, RoundingMode.HALF_UP),
-                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(2, RoundingMode.HALF_UP),
-                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(2, RoundingMode.HALF_UP)
+                    "3-2" to BigDecimal.valueOf(4.0).multiply(semester3_2Avg).setScale(3, RoundingMode.HALF_UP),
+                    "3-1" to BigDecimal.valueOf(4.0).multiply(semester3_1Avg).setScale(3, RoundingMode.HALF_UP),
+                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(3, RoundingMode.HALF_UP),
+                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(3, RoundingMode.HALF_UP)
                 )
             }
             EducationalStatus.PROSPECTIVE_GRADUATE -> {
@@ -332,9 +332,9 @@ class ScoreCalculationService {
                 
                 mapOf(
                     "3-2" to BigDecimal.ZERO,
-                    "3-1" to BigDecimal.valueOf(8.0).multiply(semester3_1Avg).setScale(2, RoundingMode.HALF_UP),
-                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(2, RoundingMode.HALF_UP),
-                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(2, RoundingMode.HALF_UP)
+                    "3-1" to BigDecimal.valueOf(8.0).multiply(semester3_1Avg).setScale(3, RoundingMode.HALF_UP),
+                    "2-2" to BigDecimal.valueOf(4.0).multiply(semester2_2Avg).setScale(3, RoundingMode.HALF_UP),
+                    "2-1" to BigDecimal.valueOf(4.0).multiply(semester2_1Avg).setScale(3, RoundingMode.HALF_UP)
                 )
             }
             EducationalStatus.QUALIFICATION_EXAM -> {
