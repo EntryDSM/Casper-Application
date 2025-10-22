@@ -322,8 +322,16 @@ class ApplicationQueryUseCase(
             classExit = scores["classExit"] as? Int,
             //unexcused = scores["unexcused"] as? Int,
             volunteer = scores["volunteer"] as? Int,
-            algorithmAward = (scores["extraScore"] as? Int ?: 0) >= 3,
-            infoProcessingCert = (scores["extraScore"] as? Int ?: 0) >= 2,
+            algorithmAward = when (val value = scores["algorithmAward"]) {
+                is Boolean -> value
+                is String -> value.toBoolean()
+                else -> null
+            },
+            infoProcessingCert = when (val value = scores["infoProcessingCert"]) {
+                is Boolean -> value
+                is String -> value.toBoolean()
+                else -> null
+            },
             totalScore = entity.totalScore,
         )
     }

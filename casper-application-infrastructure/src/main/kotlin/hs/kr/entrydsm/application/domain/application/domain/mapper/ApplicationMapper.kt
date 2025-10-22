@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import hs.kr.entrydsm.application.domain.application.domain.entity.ApplicationJpaEntity
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.values.Gender
 import org.springframework.stereotype.Component
 
 @Component
@@ -151,13 +152,15 @@ class ApplicationMapper(
             schoolCode = entity.schoolCode,
             nationalMeritChild = entity.nationalMeritChild,
             specialAdmissionTarget = entity.specialAdmissionTarget,
-            graduationDate = null,
+            graduationDate = scoresMap["graduationDate"]?.toString(),
             applicantGender = entity.applicantGender,
-            guardianGender = null,
-            schoolName = null,
-            studentId = null,
-            schoolPhone = null,
-            teacherName = null,
+            guardianGender = scoresMap["guardianGender"]?.let {
+                Gender.valueOf(it.toString())
+            },
+            schoolName = scoresMap["schoolName"]?.toString(),
+            studentId = scoresMap["studentId"]?.toString(),
+            schoolPhone = scoresMap["schoolPhone"]?.toString(),
+            teacherName = scoresMap["teacherName"]?.toString(),
             korean_3_1 = scoresMap["korean_3_1"] as? Int,
             social_3_1 = scoresMap["social_3_1"] as? Int,
             history_3_1 = scoresMap["history_3_1"] as? Int,

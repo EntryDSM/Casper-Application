@@ -93,6 +93,12 @@ class ApplicationSubmissionController(
         request.applicantGender?.let { applicationData["applicantGender"] = it }
         request.nationalMeritChild?.let { applicationData["nationalMeritChild"] = it }
         request.specialAdmissionTarget?.let { applicationData["specialAdmissionTarget"] = it }
+        request.schoolName?.let { applicationData["schoolName"] = it }
+        request.studentId?.let { applicationData["studentId"] = it }
+        request.graduationDate?.let { applicationData["graduationDate"] = it }
+        request.guardianGender?.let { applicationData["guardianGender"] = it }
+        request.schoolPhone?.let { applicationData["schoolPhone"] = it }
+        request.teacherName?.let { applicationData["teacherName"] = it }
 
         // 성적 정보 - 3학년 1학기
         request.korean_3_1?.let { scoresData["korean_3_1"] = it }
@@ -150,6 +156,9 @@ class ApplicationSubmissionController(
         request.gedTech?.let { scoresData["gedTech"] = it }
 
         // 가산점
+        request.algorithmAward?.let { scoresData["algorithmAward"] = it }
+        request.infoProcessingCert?.let { scoresData["infoProcessingCert"] = it }
+        
         var extraScore = 0
         if (request.algorithmAward == true) extraScore += 3
         if (request.infoProcessingCert == true) extraScore += 2

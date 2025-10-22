@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.domain.application.aggregates.Application
+import hs.kr.entrydsm.domain.application.values.ApplicationType
 import hs.kr.entrydsm.domain.application.values.EducationalStatus
 import hs.kr.entrydsm.domain.school.aggregate.School
 import hs.kr.entrydsm.domain.status.aggregates.Status
@@ -289,11 +290,13 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 8, 5).setCellValue(application.calculateAttendanceScore().toString())
         getCell(sheet, dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
         getCell(sheet, dh + 8, 7).setCellValue(application.calculateVolunteerScore().toString())
-        getCell(sheet, dh + 10, 7).setCellValue(application.calculateSubjectScore().toString())
-
+        
+        // application-info와 동일한 학기별 점수 계산 (가중치 적용)
+        val semesterScores = application.calculateSemesterScores()
+        
         val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
         val gradeData = getGradeData(application)
-        
+
         subjects.forEachIndexed { index, subject ->
             val rowIndex = dh + 11 + index
             getCell(sheet, rowIndex, 1).setCellValue(subject)
@@ -307,14 +310,46 @@ class PrintApplicationCheckListGenerator {
         getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
         getCell(sheet, dh + 13, 7).setCellValue(application.calculateBonusScore().toString())
 
-        // Application의 학기별 점수 계산 메서드 사용
-        val semesterScores = application.calculateSemesterScores()
-        getCell(sheet, dh + 18, 2).setCellValue(semesterScores["3-2"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 3).setCellValue(semesterScores["3-1"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 4).setCellValue(semesterScores["2-2"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 5).setCellValue(semesterScores["2-1"]?.toString() ?: "0")
-        getCell(sheet, dh + 18, 7).setCellValue(application.calculateSubjectScore().toString())
-        getCell(sheet, dh + 19, 7).setCellValue(application.totalScore?.toString() ?: "0")
+        // 점수 행 (18행) - application-info와 동일하게 가중치 적용된 점수
+        // 2열: 3_2학기 점수 (가중치 적용)
+        // 3열: 3_1학기 점수 (가중치 적용)
+        // 4열: 2_2학기 점수 (가중치 적용)
+        // 5열: 2_1학기 점수 (가중치 적용)
+        // 7열: 교과성적 (위 점수들의 합)
+
+        val semester3_2Score = semesterScores["3-2"] ?: BigDecimal.ZERO
+        val semester3_1Score = semesterScores["3-1"] ?: BigDecimal.ZERO
+        val semester2_2Score = semesterScores["2-2"] ?: BigDecimal.ZERO
+        val semester2_1Score = semesterScores["2-1"] ?: BigDecimal.ZERO
+
+        // 졸업자는 3-2 점수 표시, 졸업예정자/검정고시는 빈칸
+        if (application.educationalStatus == EducationalStatus.GRADUATE) {
+            getCell(sheet, dh + 18, 2).setCellValue(semester3_2Score.toString())
+        } else {
+            getCell(sheet, dh + 18, 2).setCellValue("")
+        }
+
+        getCell(sheet, dh + 18, 3).setCellValue(semester3_1Score.toString())
+        getCell(sheet, dh + 18, 4).setCellValue(semester2_2Score.toString())
+        getCell(sheet, dh + 18, 5).setCellValue(semester2_1Score.toString())
+
+        // 교과성적 = 각 학기 점수의 합 (10행 7열)
+        val subjectScoreSum = semester3_2Score
+            .add(semester3_1Score)
+            .add(semester2_2Score)
+            .add(semester2_1Score)
+        getCell(sheet, dh + 10, 7).setCellValue(subjectScoreSum.toString())
+
+        // 환산점수 (18행 7열) - 전형별 배수 적용
+        val convertedScore = application.calculateSubjectScore()
+        getCell(sheet, dh + 18, 7).setCellValue(convertedScore.toString())
+
+        // 총점 (환산점수 + 출석점수 + 봉사점수 + 가산점)
+        val totalScore = convertedScore
+            .add(application.calculateAttendanceScore())
+            .add(application.calculateVolunteerScore())
+            .add(application.calculateBonusScore())
+        getCell(sheet, dh + 19, 7).setCellValue(totalScore.toString())
 
         setRowHeight(sheet, dh + 2, 10)
         setRowHeight(sheet, dh + 6, 10)
@@ -333,74 +368,73 @@ class PrintApplicationCheckListGenerator {
         return when (application.educationalStatus) {
             EducationalStatus.GRADUATE -> GradeData(
                 semester3_2 = listOf(
-                    application.korean_3_2?.toString() ?: "",
-                    application.social_3_2?.toString() ?: "",
-                    application.history_3_2?.toString() ?: "",
-                    application.math_3_2?.toString() ?: "",
-                    application.science_3_2?.toString() ?: "",
-                    application.tech_3_2?.toString() ?: "",
-                    application.english_3_2?.toString() ?: ""
+                    convertGradeToLetter(application.korean_3_2),
+                    convertGradeToLetter(application.social_3_2),
+                    convertGradeToLetter(application.history_3_2),
+                    convertGradeToLetter(application.math_3_2),
+                    convertGradeToLetter(application.science_3_2),
+                    convertGradeToLetter(application.tech_3_2),
+                    convertGradeToLetter(application.english_3_2)
                 ),
                 semester3_1 = listOf(
-                    application.korean_3_1?.toString() ?: "",
-                    application.social_3_1?.toString() ?: "",
-                    application.history_3_1?.toString() ?: "",
-                    application.math_3_1?.toString() ?: "",
-                    application.science_3_1?.toString() ?: "",
-                    application.tech_3_1?.toString() ?: "",
-                    application.english_3_1?.toString() ?: ""
+                    convertGradeToLetter(application.korean_3_1),
+                    convertGradeToLetter(application.social_3_1),
+                    convertGradeToLetter(application.history_3_1),
+                    convertGradeToLetter(application.math_3_1),
+                    convertGradeToLetter(application.science_3_1),
+                    convertGradeToLetter(application.tech_3_1),
+                    convertGradeToLetter(application.english_3_1)
                 ),
                 semester2_2 = listOf(
-                    application.korean_2_2?.toString() ?: "",
-                    application.social_2_2?.toString() ?: "",
-                    application.history_2_2?.toString() ?: "",
-                    application.math_2_2?.toString() ?: "",
-                    application.science_2_2?.toString() ?: "",
-                    application.tech_2_2?.toString() ?: "",
-                    application.english_2_2?.toString() ?: ""
+                    convertGradeToLetter(application.korean_2_2),
+                    convertGradeToLetter(application.social_2_2),
+                    convertGradeToLetter(application.history_2_2),
+                    convertGradeToLetter(application.math_2_2),
+                    convertGradeToLetter(application.science_2_2),
+                    convertGradeToLetter(application.tech_2_2),
+                    convertGradeToLetter(application.english_2_2)
                 ),
                 semester2_1 = listOf(
-                    application.korean_2_1?.toString() ?: "",
-                    application.social_2_1?.toString() ?: "",
-                    application.history_2_1?.toString() ?: "",
-                    application.math_2_1?.toString() ?: "",
-                    application.science_2_1?.toString() ?: "",
-                    application.tech_2_1?.toString() ?: "",
-                    application.english_2_1?.toString() ?: ""
+                    convertGradeToLetter(application.korean_2_1),
+                    convertGradeToLetter(application.social_2_1),
+                    convertGradeToLetter(application.history_2_1),
+                    convertGradeToLetter(application.math_2_1),
+                    convertGradeToLetter(application.science_2_1),
+                    convertGradeToLetter(application.tech_2_1),
+                    convertGradeToLetter(application.english_2_1)
                 )
             )
             EducationalStatus.PROSPECTIVE_GRADUATE -> GradeData(
                 semester3_2 = List(7) { "" },
                 semester3_1 = listOf(
-                    application.korean_3_1?.toString() ?: "",
-                    application.social_3_1?.toString() ?: "",
-                    application.history_3_1?.toString() ?: "",
-                    application.math_3_1?.toString() ?: "",
-                    application.science_3_1?.toString() ?: "",
-                    application.tech_3_1?.toString() ?: "",
-                    application.english_3_1?.toString() ?: ""
+                    convertGradeToLetter(application.korean_3_1),
+                    convertGradeToLetter(application.social_3_1),
+                    convertGradeToLetter(application.history_3_1),
+                    convertGradeToLetter(application.math_3_1),
+                    convertGradeToLetter(application.science_3_1),
+                    convertGradeToLetter(application.tech_3_1),
+                    convertGradeToLetter(application.english_3_1)
                 ),
                 semester2_2 = listOf(
-                    application.korean_2_2?.toString() ?: "",
-                    application.social_2_2?.toString() ?: "",
-                    application.history_2_2?.toString() ?: "",
-                    application.math_2_2?.toString() ?: "",
-                    application.science_2_2?.toString() ?: "",
-                    application.tech_2_2?.toString() ?: "",
-                    application.english_2_2?.toString() ?: ""
+                    convertGradeToLetter(application.korean_2_2),
+                    convertGradeToLetter(application.social_2_2),
+                    convertGradeToLetter(application.history_2_2),
+                    convertGradeToLetter(application.math_2_2),
+                    convertGradeToLetter(application.science_2_2),
+                    convertGradeToLetter(application.tech_2_2),
+                    convertGradeToLetter(application.english_2_2)
                 ),
                 semester2_1 = listOf(
-                    application.korean_2_1?.toString() ?: "",
-                    application.social_2_1?.toString() ?: "",
-                    application.history_2_1?.toString() ?: "",
-                    application.math_2_1?.toString() ?: "",
-                    application.science_2_1?.toString() ?: "",
-                    application.tech_2_1?.toString() ?: "",
-                    application.english_2_1?.toString() ?: ""
+                    convertGradeToLetter(application.korean_2_1),
+                    convertGradeToLetter(application.social_2_1),
+                    convertGradeToLetter(application.history_2_1),
+                    convertGradeToLetter(application.math_2_1),
+                    convertGradeToLetter(application.science_2_1),
+                    convertGradeToLetter(application.tech_2_1),
+                    convertGradeToLetter(application.english_2_1)
                 )
             )
             EducationalStatus.QUALIFICATION_EXAM -> {
-                // 검정고시: 3-1학기에만 GED 점수 표시
                 val gedGrades = listOf(
                     application.gedKorean?.toString() ?: "",
                     application.gedSocial?.toString() ?: "",
@@ -450,5 +484,19 @@ class PrintApplicationCheckListGenerator {
         LEFT,
         RIGHT,
         ALL,
+    }
+    
+    /**
+     * 숫자 성적을 문자 등급으로 변환 (5=A, 4=B, 3=C, 2=D, 1=E)
+     */
+    private fun convertGradeToLetter(grade: Int?): String {
+        return when (grade) {
+            5 -> "A"
+            4 -> "B"
+            3 -> "C"
+            2 -> "D"
+            1 -> "E"
+            else -> ""
+        }
     }
 }
