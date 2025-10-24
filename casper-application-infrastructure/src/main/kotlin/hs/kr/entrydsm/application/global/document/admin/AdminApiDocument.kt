@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody
  */
 @Tag(name = "어드민 API", description = "어드민 관련 API")
 interface AdminApiDocument {
-    @Operation(summary = "자기소개서 PDF 조회", description = "1차 합격자들의 자기소개서를 하나의 PDF로 조회합니다.")
+    @Operation(summary = "자기소개서 PDF 조회 (1차 합격자)", description = "1차 합격자들의 자기소개서를 하나의 PDF로 조회합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
@@ -42,7 +42,29 @@ interface AdminApiDocument {
             ),
         ],
     )
-    suspend fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray>
+    fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray>
+
+    @Operation(summary = "전체 자기소개서 PDF 조회", description = "전체 원서 접수한 학생들의 자기소개서와 학업계획서를 하나의 PDF로 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "전체 자기소개서 PDF 조회 성공",
+                content = [
+                    Content(
+                        mediaType = "application/pdf",
+                        schema = Schema(type = "string", format = "binary"),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "PDF 조회 실패",
+                content = [Content(schema = Schema(hidden = true))],
+            ),
+        ],
+    )
+    fun getAllIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray>
 
     @Operation(summary = "전형 타입 생성", description = "새로운 전형 타입을 생성합니다.")
     @ApiResponses(

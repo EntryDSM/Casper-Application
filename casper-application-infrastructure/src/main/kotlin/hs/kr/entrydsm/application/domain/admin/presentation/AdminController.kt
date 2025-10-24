@@ -8,9 +8,11 @@ import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.Competi
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateApplicationTypeResponse
 import hs.kr.entrydsm.application.domain.admin.presentation.dto.response.CreateEducationalStatusResponse
 import hs.kr.entrydsm.application.domain.admin.usecase.AdminUseCase
+import hs.kr.entrydsm.application.domain.pdf.usecase.GetAllIntroductionPdfUseCase
 import hs.kr.entrydsm.application.domain.pdf.usecase.GetIntroductionPdfUseCase
 import hs.kr.entrydsm.application.global.document.admin.AdminApiDocument
 import jakarta.servlet.http.HttpServletResponse
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -26,20 +28,31 @@ import java.nio.charset.StandardCharsets
 class AdminController(
     private val adminUseCase: AdminUseCase,
     private val getIntroductionPdfUseCase: GetIntroductionPdfUseCase,
+    private val getAllIntroductionPdfUseCase: GetAllIntroductionPdfUseCase,
 ) : AdminApiDocument {
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
-    override suspend fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray> {
+    override fun getIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray> = runBlocking {
         val pdfBytes = getIntroductionPdfUseCase.execute()
 
-        response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
+        response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName("introduction_first_pass")}.pdf\"")
 
-        return ResponseEntity.ok()
+        ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
             .body(pdfBytes)
     }
 
-    private fun encodeFileName(): String {
-        val fileName = "introduction"
+    @GetMapping("/pdf/introduction/all", produces = [MediaType.APPLICATION_PDF_VALUE])
+    override fun getAllIntroductionPdf(response: HttpServletResponse): ResponseEntity<ByteArray> = runBlocking {
+        val pdfBytes = getAllIntroductionPdfUseCase.execute()
+
+        response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName("introduction_all")}.pdf\"")
+
+        ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+            .body(pdfBytes)
+    }
+
+    private fun encodeFileName(fileName: String): String {
         return String(fileName.toByteArray(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1)
     }
 

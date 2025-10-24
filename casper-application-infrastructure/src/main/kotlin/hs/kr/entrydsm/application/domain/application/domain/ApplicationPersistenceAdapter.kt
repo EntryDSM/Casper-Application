@@ -4,6 +4,7 @@ import hs.kr.entrydsm.application.domain.application.domain.mapper.ApplicationMa
 import hs.kr.entrydsm.application.domain.application.domain.repository.ApplicationJpaRepository
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.interfaces.ApplicationContract
+import hs.kr.entrydsm.domain.application.interfaces.QueryAllSubmittedApplicationContract
 import hs.kr.entrydsm.domain.status.interfaces.StatusContract
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
@@ -20,7 +21,7 @@ class ApplicationPersistenceAdapter(
     private val applicationJpaRepository: ApplicationJpaRepository,
     private val applicationMapper: ApplicationMapper,
     private val statusContract: StatusContract,
-) : ApplicationContract {
+) : ApplicationContract, QueryAllSubmittedApplicationContract {
     /**
      * 사용자 ID로 원서 정보를 조회합니다.
      *
@@ -58,7 +59,7 @@ class ApplicationPersistenceAdapter(
      *
      * @return 접수번호 순으로 정렬된 모든 원서 목록
      */
-    fun querySubmittedApplications(): List<Application> {
+    override suspend fun queryAllSubmittedApplication(): List<Application> {
         return applicationJpaRepository.findAllByOrderByReceiptCodeAsc()
             .map { applicationMapper.toModel(it) }
     }
