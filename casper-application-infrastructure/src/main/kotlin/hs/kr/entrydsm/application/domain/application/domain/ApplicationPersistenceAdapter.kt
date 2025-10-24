@@ -65,6 +65,16 @@ class ApplicationPersistenceAdapter(
     }
 
     /**
+     * 제출된 모든 원서를 접수번호 순으로 조회합니다. (기존 메서드 - Excel 생성용)
+     *
+     * @return 접수번호 순으로 정렬된 모든 원서 목록
+     */
+    fun querySubmittedApplications(): List<Application> {
+        return applicationJpaRepository.findAllByOrderByReceiptCodeAsc()
+            .map { applicationMapper.toModel(it) }
+    }
+
+    /**
      * 접수번호로 원서 정보를 조회합니다.
      *
      * @param receiptCode 접수번호
