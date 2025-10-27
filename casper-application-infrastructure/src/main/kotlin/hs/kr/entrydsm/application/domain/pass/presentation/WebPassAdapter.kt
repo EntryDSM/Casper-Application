@@ -25,4 +25,5 @@ class WebPassAdapter(
     override fun queryIsSecondRound(): QueryIsSecondRoundPassResponse = runBlocking {
         queryIsSecondRoundPassUseCase.execute()
     }
+
 }
