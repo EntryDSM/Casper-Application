@@ -34,7 +34,7 @@ interface PassApiDocument {
             ),
         ]
     )
-    suspend fun queryIsFirstRound(): QueryIsFirstRoundPassResponse
+    fun queryIsFirstRound(): QueryIsFirstRoundPassResponse
 
     @Operation(
         summary = "2차 전형 최종 합격 여부 조회",
@@ -59,5 +59,5 @@ interface PassApiDocument {
             ),
         ]
     )
-    suspend fun queryIsSecondRound(): QueryIsSecondRoundPassResponse
+    fun queryIsSecondRound(): QueryIsSecondRoundPassResponse
 }
