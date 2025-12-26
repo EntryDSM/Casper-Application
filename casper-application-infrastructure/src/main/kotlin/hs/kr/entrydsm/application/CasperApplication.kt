@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 
 /**
@@ -10,6 +11,7 @@ import org.springframework.boot.runApplication
  * equus-application의 하드코딩된 입시 계산 로직을 동적 수식으로 대체
  */
 @SpringBootApplication
+@EnableConfigurationProperties
 class CasperApplication
 
 /**

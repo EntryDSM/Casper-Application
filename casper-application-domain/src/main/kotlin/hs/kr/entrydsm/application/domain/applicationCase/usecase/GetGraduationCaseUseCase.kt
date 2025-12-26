@@ -1,0 +1,52 @@
+package hs.kr.entrydsm.application.domain.applicationCase.usecase
+
+import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
+import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
+import hs.kr.entrydsm.application.domain.applicationCase.exception.ApplicationCaseExceptions
+import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
+import hs.kr.entrydsm.application.domain.applicationCase.spi.QueryApplicationCasePort
+import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.response.GetExtraScoreResponse
+import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.response.GetGraduationCaseResponse
+import hs.kr.entrydsm.application.global.annotation.UseCase
+import hs.kr.entrydsm.application.global.security.spi.SecurityPort
+
+@UseCase
+class GetGraduationCaseUseCase(
+    private val securityPort: SecurityPort,
+    private val queryApplicationPort: QueryApplicationPort,
+    private val queryApplicationCasePort: QueryApplicationCasePort
+) {
+    fun execute(): GetGraduationCaseResponse {
+        val userId = securityPort.getCurrentUserId()
+
+        val application = queryApplicationPort.queryApplicationByUserId(userId)
+            ?: throw ApplicationExceptions.ApplicationNotFoundException()
+
+        val graduationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
+
+        if(graduationCase !is GraduationCase) throw ApplicationCaseExceptions.EducationalStatusUnmatchedException()
+
+        return graduationCase.run {
+            GetGraduationCaseResponse(
+                volunteerTime = volunteerTime,
+                absenceDayCount = absenceDayCount,
+                lectureAbsenceCount = lectureAbsenceCount,
+                latenessCount = latenessCount,
+                earlyLeaveCount = earlyLeaveCount,
+                koreanGrade = koreanGrade,
+                socialGrade = socialGrade,
+                historyGrade = historyGrade,
+                mathGrade = mathGrade,
+                scienceGrade = scienceGrade,
+                englishGrade = englishGrade,
+                techAndHomeGrade = techAndHomeGrade,
+                extraScore = extraScoreItem.run {
+                    GetExtraScoreResponse(
+                        hasCertificate = hasCertificate,
+                        hasCompetitionPrize = hasCompetitionPrize
+                    )
+                }
+            )
+        }
+    }
+}
