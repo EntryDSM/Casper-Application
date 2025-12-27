@@ -171,38 +171,6 @@ class ApplicationPersistenceService(
     }
 
     /**
-     * 원서 ID로 원서를 조회합니다.
-     *
-     * @param applicationId 원서 ID
-     * @return 원서 엔티티
-     * @throws ApplicationNotFoundException 원서를 찾을 수 없는 경우
-     */
-    @Transactional(readOnly = true)
-    fun getApplication(applicationId: UUID): ApplicationJpaEntity {
-        return applicationRepository.findByApplicationId(applicationId)
-            .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
-    }
-
-    /**
-     * 사용자 ID로 원서를 조회합니다.
-     *
-     * @param userId 사용자 ID
-     * @return 원서 엔티티
-     * @throws ApplicationNotFoundException 원서를 찾을 수 없는 경우
-     */
-    @Transactional(readOnly = true)
-    fun getApplicationByUserId(userId: UUID): ApplicationJpaEntity {
-        return applicationRepository.findLatestByUserId(userId)
-            .orElseThrow { ApplicationNotFoundException("사용자의 원서를 찾을 수 없습니다: $userId") }
-    }
-
-    /**
-     * 사용자 ID로 원서 존재 여부를 확인합니다.
-     */
-    @Transactional(readOnly = true)
-    fun existsApplicationByUserId(userId: UUID): Boolean = applicationRepository.existsByUserId(userId)
-
-    /**
      * 새로운 수험번호를 생성합니다.
      */
     private fun generateReceiptCode(): Long {

@@ -7,7 +7,6 @@ import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaR
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationNotFoundException
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationDetailResponse
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationListResponse
-import hs.kr.entrydsm.application.domain.application.presentation.dto.response.ApplicationScoresResponse
 import hs.kr.entrydsm.application.global.security.SecurityAdapter
 import hs.kr.entrydsm.domain.application.aggregates.Application
 import hs.kr.entrydsm.domain.application.values.ApplicationType
@@ -182,44 +181,6 @@ class ApplicationQueryUseCase(
         )
     }
 
-    fun getApplicationScores(applicationId: String): ApplicationScoresResponse {
-        val uuid = UUID.fromString(applicationId)
-        val application =
-            applicationRepository.findById(uuid)
-                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
-
-        // JSON 필드에서 성적 데이터 파싱
-        val scores = if (application.scoresData != null && application.scoresData.isNotBlank()) {
-            try {
-                objectMapper.readValue(application.scoresData, Map::class.java) as Map<String, Any>
-            } catch (e: Exception) {
-                emptyMap()
-            }
-        } else {
-            emptyMap()
-        }
-
-        return ApplicationScoresResponse(
-            success = true,
-            data =
-                ApplicationScoresResponse.ScoresData(
-                    applicationId = applicationId,
-                    scores = scores,
-                ),
-        )
-    }
-
-    /**
-     * Entity를 Domain Model로 변환합니다.
-     */
-    fun getApplicationDomainModel(applicationId: UUID): Application {
-        val entity =
-            applicationRepository.findById(applicationId)
-                .orElseThrow { ApplicationNotFoundException("원서를 찾을 수 없습니다: $applicationId") }
-
-        return entityToModel(entity)
-    }
-
     /**
      * 현재 로그인한 사용자의 원서를 Domain Model로 조회합니다.
      */
@@ -336,30 +297,6 @@ class ApplicationQueryUseCase(
         )
     }
 
-    private fun isArrivedDocuments(application: ApplicationJpaEntity): Boolean {
-        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
-            ?: throw StatusExceptions.StatusNotFoundException()
-
-        return when(status.applicationStatus) {
-            ApplicationStatus.DOCUMENTS_RECEIVED -> true
-            ApplicationStatus.SCREENING_IN_PROGRESS -> true
-            ApplicationStatus.RESULT_ANNOUNCED -> true
-            else -> false
-        }
-    }
-
-    /**
-     * 상태 기반 제출 여부 판단 (N+1 방지용)
-     */
-    private fun isSubmittedStatus(status: Status?): Boolean {
-        if (status == null) return false
-        return when(status.applicationStatus) {
-            ApplicationStatus.NOT_APPLIED -> false
-            ApplicationStatus.WRITING -> false
-            else -> true
-        }
-    }
-
     /**
      * 상태 기반 서류 도착 여부 판단 (N+1 방지용)
      */
@@ -369,26 +306,6 @@ class ApplicationQueryUseCase(
             ApplicationStatus.SCREENING_IN_PROGRESS -> true
             ApplicationStatus.RESULT_ANNOUNCED -> true
             else -> false
-        }
-    }
-
-    // === 아래는 단건 조회용 메서드 (getApplicationById 등에서 사용) ===
-
-    private fun getApplicationStatus(application: ApplicationJpaEntity): String {
-        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
-            ?: throw StatusExceptions.StatusNotFoundException()
-
-        return status.applicationStatus.name
-    }
-
-    private fun isSubmittedApplication(application: ApplicationJpaEntity): Boolean {
-        val status = applicationQueryStatusContract.queryStatusByReceiptCode(application.receiptCode)
-            ?: throw StatusExceptions.StatusNotFoundException()
-
-        return when(status.applicationStatus) {
-            ApplicationStatus.NOT_APPLIED -> false
-            ApplicationStatus.WRITING -> false
-            else -> true
         }
     }
 }

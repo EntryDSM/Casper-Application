@@ -22,14 +22,6 @@ data class SupportedApplicationTypes(
     
     override fun getIdentifier(): String = "supported-types"
     
-    fun isValidApplicationType(code: String): Boolean {
-        return applicationTypes.any { it.code == code }
-    }
-    
-    fun isValidEducationalStatus(code: String): Boolean {
-        return educationalStatuses.any { it.code == code }
-    }
-    
     companion object {
         fun create(
             applicationTypes: List<ApplicationTypeInfo>,
