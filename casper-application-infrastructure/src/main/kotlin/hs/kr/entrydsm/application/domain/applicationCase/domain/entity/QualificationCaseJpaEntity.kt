@@ -15,7 +15,7 @@ class QualificationCaseJpaEntity(
     override val extraScoreItem: ExtraScoreItem,
     val koreanGrade: BigDecimal,
     val socialGrade: BigDecimal,
-    val optGrade: BigDecimal,
+    val historyGrade: BigDecimal,
     val mathGrade: BigDecimal,
     val scienceGrade: BigDecimal,
     val englishGrade: BigDecimal,

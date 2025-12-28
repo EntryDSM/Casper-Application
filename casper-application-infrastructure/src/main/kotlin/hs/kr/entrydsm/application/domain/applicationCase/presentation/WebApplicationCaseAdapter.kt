@@ -56,7 +56,7 @@ class WebApplicationCaseAdapter(
                     mathGrade = mathGrade,
                     scienceGrade = scienceGrade,
                     englishGrade = englishGrade,
-                    optGrade = optGrade,
+                    historyGrade = historyGrade,
                     extraScore = extraScore
                 )
             }
