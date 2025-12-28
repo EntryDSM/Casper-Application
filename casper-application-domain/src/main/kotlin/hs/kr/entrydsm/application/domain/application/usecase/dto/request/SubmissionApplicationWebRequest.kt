@@ -5,6 +5,7 @@ import hs.kr.entrydsm.application.domain.application.model.types.EducationalStat
 import hs.kr.entrydsm.application.domain.application.model.types.Sex
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 
 data class SubmissionApplicationWebRequest(
     val applicantName: String,
@@ -28,7 +29,7 @@ data class SubmissionApplicationWebRequest(
     val teacherName: String,
     val nationalMeritChild: Boolean,
     val specialAdmissionTarget: Boolean,
-    val graduationDate: String,
+    val graduationDate: YearMonth,
     val studyPlan: String,
     val selfIntroduce: String,
 
