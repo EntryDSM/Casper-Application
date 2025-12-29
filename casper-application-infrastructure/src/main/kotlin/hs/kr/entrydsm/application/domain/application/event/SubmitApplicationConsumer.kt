@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import hs.kr.entrydsm.application.domain.application.event.dto.ApplicationSubmittedEvent
+import hs.kr.entrydsm.application.domain.application.event.dto.SubmitApplicationEvent
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.applicationCase.service.ApplicationCaseService
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.ExtraScoreRequest
@@ -26,7 +26,7 @@ class SubmitApplicationConsumer(
         containerFactory = "kafkaListenerContainerFactory"
     )
     fun submitApplication(message: String) {
-        val event = objectMapper.readValue(message, ApplicationSubmittedEvent::class.java)
+        val event = objectMapper.readValue(message, SubmitApplicationEvent::class.java)
 
         initializeApplicationCase(event)
         updateGraduationDate(event)
@@ -34,21 +34,21 @@ class SubmitApplicationConsumer(
         updateGraduationInformation(event)
     }
 
-    private fun initializeApplicationCase(event: ApplicationSubmittedEvent) {
+    private fun initializeApplicationCase(event: SubmitApplicationEvent) {
         applicationCaseService.initializeApplicationCase(
             event.receiptCode,
             event.educationalStatus
         )
     }
 
-    private fun updateGraduationDate(event: ApplicationSubmittedEvent) {
+    private fun updateGraduationDate(event: SubmitApplicationEvent) {
         graduationInfoService.changeGraduationDate(
             event.receiptCode,
             event.graduationDate
         )
     }
 
-    private fun updateScore(event: ApplicationSubmittedEvent) {
+    private fun updateScore(event: SubmitApplicationEvent) {
         when (event.educationalStatus) {
             EducationalStatus.QUALIFICATION_EXAM -> {
                 applicationCaseService.updateQualificationScore(
@@ -93,7 +93,7 @@ class SubmitApplicationConsumer(
         }
     }
 
-    private fun updateGraduationInformation(event: ApplicationSubmittedEvent) {
+    private fun updateGraduationInformation(event: SubmitApplicationEvent) {
         graduationInfoService.updateGraduationInformation(
             event.receiptCode,
             UpdateGraduationInformationRequest(

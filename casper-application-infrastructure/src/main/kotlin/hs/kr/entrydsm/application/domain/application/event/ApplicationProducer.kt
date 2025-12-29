@@ -2,7 +2,7 @@ package hs.kr.entrydsm.application.domain.application.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.event.dto.ApplicationScoreData
-import hs.kr.entrydsm.application.domain.application.event.dto.ApplicationSubmittedEvent
+import hs.kr.entrydsm.application.domain.application.event.dto.SubmitApplicationEvent
 import hs.kr.entrydsm.application.domain.application.event.dto.CreateApplicationEvent
 import hs.kr.entrydsm.application.domain.application.event.dto.SubmissionData
 import hs.kr.entrydsm.application.domain.application.event.spi.ApplicationEventPort
@@ -31,7 +31,7 @@ class ApplicationProducer(
     }
 
     override fun submitApplication(submissionData: SubmissionData) {
-        val event = ApplicationSubmittedEvent(
+        val event = SubmitApplicationEvent(
             receiptCode = submissionData.receiptCode,
             userId = submissionData.userId,
             educationalStatus = submissionData.educationalStatus,
