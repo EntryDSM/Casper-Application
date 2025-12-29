@@ -47,7 +47,7 @@ data class SubmissionApplicationWebRequest(
     val isDaejeon: Boolean,
 
     @field:NotBlank(message = "보호자 이름은 필수입니다")
-    @field:Size(max = 20, message = "보호자 이름은 20자 이하여야 합니다")
+    @field:Size(max = 10, message = "보호자 이름은 10자 이하여야 합니다")
     val parentName: String,
 
     @field:NotBlank(message = "보호자 전화번호는 필수입니다")
@@ -66,7 +66,7 @@ data class SubmissionApplicationWebRequest(
     val schoolName: String,
 
     @field:NotBlank(message = "학번은 필수입니다")
-    @field:Size(min = 5, max = 5, message = "학번은 5자리여야 합니다")
+    @field:Size(min = 4, max = 4, message = "학번은 4자리여야 합니다")
     val studentId: String,
 
     @field:NotBlank(message = "학교 전화번호는 필수입니다")
