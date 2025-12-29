@@ -36,6 +36,7 @@ class SubmitApplicationUseCase(
         /*
            이 부분 없애고 submitApplication에서 기존 create-application도 처리 가능함.
            Casper-Feed, Casper-Status에서 create-application topcit을 submit-application으로 로직 수정하기.
+           하지만 위처럼 수정할 시 submitApplication이라는 이벤트의 의미가 흐려질 거 같음.
          */
         //applicationEventPort.create(application.receiptCode, userId)
     }
