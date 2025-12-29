@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.domain.application.mapper
+package hs.kr.entrydsm.application.domain.application.usecase.mapper
 
 import hs.kr.entrydsm.application.domain.application.event.dto.ScoreData
 import hs.kr.entrydsm.application.domain.application.event.dto.SubmissionData
