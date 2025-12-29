@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-data class SubmissionApplicationWebRequest(
+data class SubmissionApplicationRequest(
     val applicantName: String,
     val applicantTel: String,
     val applicationType: ApplicationType,
@@ -41,38 +41,6 @@ data class SubmissionApplicationWebRequest(
     val scienceGrade: String,
     val englishGrade: String,
     val techAndHomeGrade: String,
-
-//    val korean_3_1: Int,
-//    val social_3_1: Int,
-//    val history_3_1: Int,
-//    val math_3_1: Int,
-//    val science_3_1: Int,
-//    val tech_3_1: Int,
-//    val english_3_1: Int,
-//
-//    val korean_3_2: Int,
-//    val social_3_2: Int,
-//    val history_3_2: Int,
-//    val math_3_2: Int,
-//    val science_3_2: Int,
-//    val tech_3_2: Int,
-//    val english_3_2: Int,
-//
-//    val korean_2_2: Int,
-//    val social_2_2: Int,
-//    val history_2_2: Int,
-//    val math_2_2: Int,
-//    val science_2_2: Int,
-//    val tech_2_2: Int,
-//    val english_2_2: Int,
-//
-//    val korean_2_1: Int,
-//    val social_2_1: Int,
-//    val history_2_1: Int,
-//    val math_2_1: Int,
-//    val science_2_1: Int,
-//    val tech_2_1: Int,
-//    val english_2_1: Int,
 
     val gedKorean: BigDecimal = BigDecimal.ZERO,
     val gedSocial: BigDecimal = BigDecimal.ZERO,
