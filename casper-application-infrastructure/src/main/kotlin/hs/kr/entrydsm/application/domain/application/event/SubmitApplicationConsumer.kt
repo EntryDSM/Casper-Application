@@ -29,7 +29,7 @@ class SubmitApplicationConsumer(
         val submitApplicationEvent = objectMapper.readValue(message, SubmitApplicationEvent::class.java)
 
         initializeApplicationCase(submitApplicationEvent)
-        updateGraduationDate(submitApplicationEvent)
+        updateGraduationInfo(submitApplicationEvent)
         updateScore(submitApplicationEvent)
         updateGraduationInformation(submitApplicationEvent)
     }
@@ -41,7 +41,7 @@ class SubmitApplicationConsumer(
         )
     }
 
-    private fun updateGraduationDate(submitApplicationEvent: SubmitApplicationEvent) {
+    private fun updateGraduationInfo(submitApplicationEvent: SubmitApplicationEvent) {
         graduationInfoService.changeGraduationInfo(
             submitApplicationEvent.receiptCode,
             submitApplicationEvent.graduationDate
