@@ -33,6 +33,10 @@ class SubmitApplicationUseCase(
             SubmitApplicationMapper.toSubmissionData(request, application, userId)
         )
 
-        applicationEventPort.create(application.receiptCode, userId)
+        /*
+           이 부분 없애고 submitApplication에서 기존 create-application도 처리 가능함.
+           Casper-Feed, Casper-Status에서 create-application topcit을 submit-application으로 로직 수정하기.
+         */
+        //applicationEventPort.create(application.receiptCode, userId)
     }
 }
