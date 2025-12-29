@@ -1,22 +1,36 @@
 package hs.kr.entrydsm.application.domain.application.presentation
 
-import hs.kr.entrydsm.application.domain.application.usecase.*
-import hs.kr.entrydsm.application.domain.application.usecase.dto.response.*
+import hs.kr.entrydsm.application.domain.application.usecase.GetMyApplicationStatusUseCase
+import hs.kr.entrydsm.application.domain.application.usecase.SubmitApplicationUseCase
+import hs.kr.entrydsm.application.domain.application.usecase.UploadPhotoUseCase
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmissionApplicationWebRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationStatusResponse
 import hs.kr.entrydsm.application.domain.file.presentation.converter.ImageFileConverter
 import hs.kr.entrydsm.application.domain.file.presentation.dto.response.UploadImageWebResponse
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestPart
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("/application")
 class WebApplicationAdapter(
-    private val createApplicationUseCase: CreateApplicationUseCase,
     private val uploadPhotoUseCase: UploadPhotoUseCase,
     private val getMyApplicationStatusUseCase: GetMyApplicationStatusUseCase,
+    private val submitApplicationUseCase: SubmitApplicationUseCase
 ) {
+//    @PostMapping
+//    fun createApplication() {
+//        createApplicationUseCase.execute()
+//    }
+
     @PostMapping
-    fun createApplication() {
-        createApplicationUseCase.execute()
+    fun submission(@RequestBody @Valid request: SubmissionApplicationWebRequest) {
+        submitApplicationUseCase.execute(request)
     }
 
     @PostMapping("/photo")
