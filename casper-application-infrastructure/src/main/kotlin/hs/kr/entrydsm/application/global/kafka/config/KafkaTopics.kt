@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.global.kafka.config
 
 object KafkaTopics {
     const val CREATE_APPLICATION = "create-application"
+    const val SUBMIT_APPLICATION = "submit-application"
     const val UPDATE_EDUCATIONAL_STATUS = "update-educational-status"
     const val UPDATE_GRADUATION_CASE = "update-graduation-case"
     const val UPDATE_QUALIFICATION_CASE = "update-qualification-case"
