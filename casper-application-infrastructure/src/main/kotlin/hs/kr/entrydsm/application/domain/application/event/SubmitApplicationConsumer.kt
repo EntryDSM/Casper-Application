@@ -97,9 +97,9 @@ class SubmitApplicationConsumer(
         graduationInfoService.updateGraduationInformation(
             submitApplicationEvent.receiptCode,
             UpdateGraduationInformationRequest(
-                gradeNumber = "2",
-                classNumber = "1",
-                studentNumber = "15",
+                gradeNumber = submitApplicationEvent.gradeNumber,
+                classNumber = submitApplicationEvent.classNumber,
+                studentNumber = submitApplicationEvent.studentNumber,
                 schoolCode = submitApplicationEvent.schoolCode,
                 teacherName = submitApplicationEvent.teacherName,
                 teacherTel = submitApplicationEvent.schoolPhone
