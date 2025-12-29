@@ -31,7 +31,7 @@ class ApplicationProducer(
     }
 
     override fun submitApplication(submissionData: SubmissionData) {
-        val event = SubmitApplicationEvent(
+        val submitApplicationEvent = SubmitApplicationEvent(
             receiptCode = submissionData.receiptCode,
             userId = submissionData.userId,
             educationalStatus = submissionData.educationalStatus,
@@ -64,7 +64,7 @@ class ApplicationProducer(
         )
         publishApplicationSubmittedTemplate.send(
             KafkaTopics.SUBMIT_APPLICATION,
-            mapper.writeValueAsString(event)
+            mapper.writeValueAsString(submitApplicationEvent)
         )
     }
 

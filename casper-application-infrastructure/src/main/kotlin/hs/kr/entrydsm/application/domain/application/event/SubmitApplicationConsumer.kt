@@ -26,66 +26,66 @@ class SubmitApplicationConsumer(
         containerFactory = "kafkaListenerContainerFactory"
     )
     fun submitApplication(message: String) {
-        val event = objectMapper.readValue(message, SubmitApplicationEvent::class.java)
+        val submitApplicationEvent = objectMapper.readValue(message, SubmitApplicationEvent::class.java)
 
-        initializeApplicationCase(event)
-        updateGraduationDate(event)
-        updateScore(event)
-        updateGraduationInformation(event)
+        initializeApplicationCase(submitApplicationEvent)
+        updateGraduationDate(submitApplicationEvent)
+        updateScore(submitApplicationEvent)
+        updateGraduationInformation(submitApplicationEvent)
     }
 
-    private fun initializeApplicationCase(event: SubmitApplicationEvent) {
+    private fun initializeApplicationCase(submitApplicationEvent: SubmitApplicationEvent) {
         applicationCaseService.initializeApplicationCase(
-            event.receiptCode,
-            event.educationalStatus
+            submitApplicationEvent.receiptCode,
+            submitApplicationEvent.educationalStatus
         )
     }
 
-    private fun updateGraduationDate(event: SubmitApplicationEvent) {
+    private fun updateGraduationDate(submitApplicationEvent: SubmitApplicationEvent) {
         graduationInfoService.changeGraduationDate(
-            event.receiptCode,
-            event.graduationDate
+            submitApplicationEvent.receiptCode,
+            submitApplicationEvent.graduationDate
         )
     }
 
-    private fun updateScore(event: SubmitApplicationEvent) {
-        when (event.educationalStatus) {
+    private fun updateScore(submitApplicationEvent: SubmitApplicationEvent) {
+        when (submitApplicationEvent.educationalStatus) {
             EducationalStatus.QUALIFICATION_EXAM -> {
                 applicationCaseService.updateQualificationScore(
-                    event.receiptCode,
+                    submitApplicationEvent.receiptCode,
                     UpdateQualificationCaseRequest(
-                        koreanGrade = event.scoreData.gedKorean,
-                        socialGrade = event.scoreData.gedSocial,
-                        mathGrade = event.scoreData.gedMath,
-                        scienceGrade = event.scoreData.gedScience,
-                        englishGrade = event.scoreData.gedEnglish,
-                        historyGrade = event.scoreData.gedHistory,
+                        koreanGrade = submitApplicationEvent.scoreData.gedKorean,
+                        socialGrade = submitApplicationEvent.scoreData.gedSocial,
+                        mathGrade = submitApplicationEvent.scoreData.gedMath,
+                        scienceGrade = submitApplicationEvent.scoreData.gedScience,
+                        englishGrade = submitApplicationEvent.scoreData.gedEnglish,
+                        historyGrade = submitApplicationEvent.scoreData.gedHistory,
                         extraScore = ExtraScoreRequest(
-                            hasCertificate = event.scoreData.infoProcessingCert,
-                            hasCompetitionPrize = event.scoreData.algorithmAward
+                            hasCertificate = submitApplicationEvent.scoreData.infoProcessingCert,
+                            hasCompetitionPrize = submitApplicationEvent.scoreData.algorithmAward
                         )
                     )
                 )
             }
             else -> {
                 applicationCaseService.updateGraduationScore(
-                    event.receiptCode,
+                    submitApplicationEvent.receiptCode,
                     UpdateGraduationCaseRequest(
-                        volunteerTime = event.scoreData.volunteer,
-                        absenceDayCount = event.scoreData.absence,
-                        lectureAbsenceCount = event.scoreData.classExit,
-                        latenessCount = event.scoreData.tardiness,
-                        earlyLeaveCount = event.scoreData.earlyLeave,
-                        koreanGrade = event.scoreData.koreanGrade,
-                        socialGrade = event.scoreData.socialGrade,
-                        historyGrade = event.scoreData.historyGrade,
-                        mathGrade = event.scoreData.mathGrade,
-                        scienceGrade = event.scoreData.scienceGrade,
-                        englishGrade = event.scoreData.englishGrade,
-                        techAndHomeGrade = event.scoreData.techAndHomeGrade,
+                        volunteerTime = submitApplicationEvent.scoreData.volunteer,
+                        absenceDayCount = submitApplicationEvent.scoreData.absence,
+                        lectureAbsenceCount = submitApplicationEvent.scoreData.classExit,
+                        latenessCount = submitApplicationEvent.scoreData.tardiness,
+                        earlyLeaveCount = submitApplicationEvent.scoreData.earlyLeave,
+                        koreanGrade = submitApplicationEvent.scoreData.koreanGrade,
+                        socialGrade = submitApplicationEvent.scoreData.socialGrade,
+                        historyGrade = submitApplicationEvent.scoreData.historyGrade,
+                        mathGrade = submitApplicationEvent.scoreData.mathGrade,
+                        scienceGrade = submitApplicationEvent.scoreData.scienceGrade,
+                        englishGrade = submitApplicationEvent.scoreData.englishGrade,
+                        techAndHomeGrade = submitApplicationEvent.scoreData.techAndHomeGrade,
                         extraScore = ExtraScoreRequest(
-                            hasCertificate = event.scoreData.infoProcessingCert,
-                            hasCompetitionPrize = event.scoreData.algorithmAward
+                            hasCertificate = submitApplicationEvent.scoreData.infoProcessingCert,
+                            hasCompetitionPrize = submitApplicationEvent.scoreData.algorithmAward
                         )
                     )
                 )
