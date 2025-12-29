@@ -66,6 +66,7 @@ data class SubmissionApplicationWebRequest(
     val schoolName: String,
 
     @field:NotBlank(message = "학번은 필수입니다")
+    @field:Size(min = 5, max = 5, message = "학번은 5자리여야 합니다")
     val studentId: String,
 
     @field:NotBlank(message = "학교 전화번호는 필수입니다")
