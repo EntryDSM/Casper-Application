@@ -1,5 +1,6 @@
-package hs.kr.entrydsm.application.domain.application.presentation.dto.request
+package hs.kr.entrydsm.application.domain.application.presentation.mapper
 
+import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmissionApplicationWebRequest
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmissionApplicationRequest
 
 fun SubmissionApplicationWebRequest.toSubmissionApplicationRequest(): SubmissionApplicationRequest =

@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.presentation
 
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmissionApplicationWebRequest
-import hs.kr.entrydsm.application.domain.application.presentation.dto.request.toSubmissionApplicationRequest
+import hs.kr.entrydsm.application.domain.application.presentation.mapper.toSubmissionApplicationRequest
 import hs.kr.entrydsm.application.domain.application.usecase.GetMyApplicationStatusUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.SubmitApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.UploadPhotoUseCase
