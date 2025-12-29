@@ -11,163 +11,153 @@ import javax.validation.constraints.DecimalMin
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
-import javax.validation.constraints.Past
-import javax.validation.constraints.Pattern
 import javax.validation.constraints.Size
 
 data class SubmissionApplicationWebRequest(
 
-    @field:NotBlank
-    @field:Size(max = 10)
+    @field:NotBlank(message = "지원자 이름은 필수입니다")
+    @field:Size(max = 10, message = "지원자 이름은 10자 이하여야 합니다")
     val applicantName: String,
 
-    @field:NotBlank
-    @field:Pattern(
-        regexp = "^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$",
-        message = "전화번호 형식이 올바르지 않습니다"
-    )
+    @field:NotBlank(message = "지원자 전화번호는 필수입니다")
     val applicantTel: String,
 
-    @field:NotNull
+    @field:NotNull(message = "지원 유형은 필수입니다")
     val applicationType: ApplicationType,
 
-    @field:NotNull
+    @field:NotNull(message = "학력 상태는 필수입니다")
     val educationalStatus: EducationalStatus,
 
-    @field:NotNull
-    @field:Past
+    @field:NotNull(message = "생년월일은 필수입니다")
     val birthDate: LocalDate,
 
-    @field:NotNull
+    @field:NotNull(message = "지원자 성별은 필수입니다")
     val applicantGender: Sex,
 
-    @field:NotBlank
+    @field:NotBlank(message = "주소는 필수입니다")
     val streetAddress: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "우편번호는 필수입니다")
     val postalCode: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "상세 주소는 필수입니다")
     val detailAddress: String,
 
-    @field:NotNull
+    @field:NotNull(message = "대전 지역 여부는 필수입니다")
     val isDaejeon: Boolean,
 
-    @field:NotBlank
-    @field:Size(max = 20)
+    @field:NotBlank(message = "보호자 이름은 필수입니다")
+    @field:Size(max = 20, message = "보호자 이름은 20자 이하여야 합니다")
     val parentName: String,
 
-    @field:NotBlank
-    @field:Pattern(
-        regexp = "^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$"
-    )
+    @field:NotBlank(message = "보호자 전화번호는 필수입니다")
     val parentTel: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "보호자 관계는 필수입니다")
     val parentRelation: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "보호자 성별은 필수입니다")
     val guardianGender: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "학교 코드는 필수입니다")
     val schoolCode: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "학교명은 필수입니다")
     val schoolName: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "학번은 필수입니다")
     val studentId: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "학교 전화번호는 필수입니다")
     val schoolPhone: String,
 
-    @field:NotBlank
+    @field:NotBlank(message = "담임 교사 이름은 필수입니다")
     val teacherName: String,
 
-    @field:NotNull
+    @field:NotNull(message = "국가유공자 자녀 여부는 필수입니다")
     val nationalMeritChild: Boolean,
 
-    @field:NotNull
+    @field:NotNull(message = "특별전형 대상 여부는 필수입니다")
     val specialAdmissionTarget: Boolean,
 
-    @field:NotNull
+    @field:NotNull(message = "졸업(예정)일은 필수입니다")
     val graduationDate: YearMonth,
 
-    @field:NotBlank
-    @field:Size(max = 1500)
+    @field:NotBlank(message = "학업 계획서는 필수입니다")
+    @field:Size(max = 1500, message = "학업 계획서는 1500자 이하여야 합니다")
     val studyPlan: String,
 
-    @field:NotBlank
-    @field:Size(max = 1500)
+    @field:NotBlank(message = "자기소개서는 필수입니다")
+    @field:Size(max = 1500, message = "자기소개서는 1500자 이하여야 합니다")
     val selfIntroduce: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "국어 성적은 필수입니다")
     val koreanGrade: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "사회 성적은 필수입니다")
     val socialGrade: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "역사 성적은 필수입니다")
     val historyGrade: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "수학 성적은 필수입니다")
     val mathGrade: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "과학 성적은 필수입니다")
     val scienceGrade: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "영어 성적은 필수입니다")
     val englishGrade: String,
 
-    @field:NotBlank
+    @field:NotNull(message = "기술·가정 성적은 필수입니다")
     val techAndHomeGrade: String,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 국어 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 국어 점수는 100점 이하여야 합니다")
     val gedKorean: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 사회 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 사회 점수는 100점 이하여야 합니다")
     val gedSocial: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 역사 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 역사 점수는 100점 이하여야 합니다")
     val gedHistory: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 수학 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 수학 점수는 100점 이하여야 합니다")
     val gedMath: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 과학 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 과학 점수는 100점 이하여야 합니다")
     val gedScience: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 기술 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 기술 점수는 100점 이하여야 합니다")
     val gedTech: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin("0.0")
-    @field:DecimalMax("100.0")
+    @field:DecimalMin(value = "0.0", message = "GED 영어 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 영어 점수는 100점 이하여야 합니다")
     val gedEnglish: BigDecimal = BigDecimal.ZERO,
 
-    @field:Min(0)
+    @field:Min(value = 0, message = "결석 횟수는 0 이상이어야 합니다")
     val absence: Int,
 
-    @field:Min(0)
+    @field:Min(value = 0, message = "지각 횟수는 0 이상이어야 합니다")
     val tardiness: Int,
 
-    @field:Min(0)
+    @field:Min(value = 0, message = "조퇴 횟수는 0 이상이어야 합니다")
     val earlyLeave: Int,
 
-    @field:Min(0)
+    @field:Min(value = 0, message = "결과 횟수는 0 이상이어야 합니다")
     val classExit: Int,
 
-    @field:Min(0)
+    @field:Min(value = 0, message = "봉사 시간은 0 이상이어야 합니다")
     val volunteer: Int,
 
-    @field:NotNull
+    @field:NotNull(message = "알고리즘 수상 여부는 필수입니다")
     val algorithmAward: Boolean,
 
-    @field:NotNull
+    @field:NotNull(message = "자격증 여부는 필수입니다")
     val infoProcessingCert: Boolean
 )
