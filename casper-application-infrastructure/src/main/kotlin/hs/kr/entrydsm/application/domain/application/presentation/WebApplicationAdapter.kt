@@ -26,7 +26,7 @@ class WebApplicationAdapter(
 ) {
 
     @PostMapping
-    fun submission(@RequestBody @Valid request: SubmissionApplicationWebRequest) {
+    fun submitApplication(@RequestBody @Valid request: SubmissionApplicationWebRequest) {
         submitApplicationUseCase.execute(request.toSubmissionApplicationRequest())
     }
 
