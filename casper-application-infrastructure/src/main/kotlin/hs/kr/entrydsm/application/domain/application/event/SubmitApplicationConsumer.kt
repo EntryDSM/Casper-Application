@@ -42,7 +42,7 @@ class SubmitApplicationConsumer(
     }
 
     private fun updateGraduationDate(submitApplicationEvent: SubmitApplicationEvent) {
-        graduationInfoService.changeGraduationDate(
+        graduationInfoService.changeGraduationInfo(
             submitApplicationEvent.receiptCode,
             submitApplicationEvent.graduationDate
         )
@@ -93,16 +93,16 @@ class SubmitApplicationConsumer(
         }
     }
 
-    private fun updateGraduationInformation(event: SubmitApplicationEvent) {
+    private fun updateGraduationInformation(submitApplicationEvent: SubmitApplicationEvent) {
         graduationInfoService.updateGraduationInformation(
-            event.receiptCode,
+            submitApplicationEvent.receiptCode,
             UpdateGraduationInformationRequest(
                 gradeNumber = "2",
                 classNumber = "1",
                 studentNumber = "15",
-                schoolCode = event.schoolCode,
-                teacherName = event.teacherName,
-                teacherTel = event.schoolPhone
+                schoolCode = submitApplicationEvent.schoolCode,
+                teacherName = submitApplicationEvent.teacherName,
+                teacherTel = submitApplicationEvent.schoolPhone
             )
         )
     }
