@@ -94,6 +94,9 @@ class SubmitApplicationConsumer(
     }
 
     private fun updateGraduationInformation(submitApplicationEvent: SubmitApplicationEvent) {
+        if (submitApplicationEvent.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+            return
+        }
         graduationInfoService.updateGraduationInformation(
             submitApplicationEvent.receiptCode,
             UpdateGraduationInformationRequest(
