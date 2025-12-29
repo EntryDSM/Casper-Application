@@ -89,7 +89,7 @@ class ApplicationCaseService(
         updateGraduationCase(application, request)
     }
 
-    fun updateQualificationScore(application: Application, request: UpdateQualificationCaseRequest) {
+    fun updateQualificationCase(application: Application, request: UpdateQualificationCaseRequest) {
         val qualificationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
 
         if (qualificationCase !is QualificationCase) {
@@ -117,6 +117,6 @@ class ApplicationCaseService(
     fun updateQualificationScore(receiptCode: Long, request: UpdateQualificationCaseRequest) {
         val application = applicationCaseQueryApplicationPort.queryApplicationByReceiptCode(receiptCode)
             ?: throw ApplicationExceptions.ApplicationNotFoundException()
-        updateQualificationScore(application, request)
+        updateQualificationCase(application, request)
     }
 }
