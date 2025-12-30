@@ -13,7 +13,7 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
-data class SubmissionApplicationWebRequest(
+data class SubmitApplicationWebRequest(
 
     @field:NotBlank(message = "지원자 이름은 필수입니다")
     @field:Size(max = 10, message = "지원자 이름은 10자 이하여야 합니다")
@@ -85,11 +85,11 @@ data class SubmissionApplicationWebRequest(
     val graduationDate: YearMonth,
 
     @field:NotBlank(message = "학업 계획서는 필수입니다")
-    @field:Size(max = 1500, message = "학업 계획서는 1500자 이하여야 합니다")
+    @field:Size(max = 1600, message = "학업 계획서는 1500자 이하여야 합니다")
     val studyPlan: String,
 
     @field:NotBlank(message = "자기소개서는 필수입니다")
-    @field:Size(max = 1500, message = "자기소개서는 1500자 이하여야 합니다")
+    @field:Size(max = 1600, message = "자기소개서는 1500자 이하여야 합니다")
     val selfIntroduce: String,
 
     @field:NotNull(message = "국어 성적은 필수입니다")
