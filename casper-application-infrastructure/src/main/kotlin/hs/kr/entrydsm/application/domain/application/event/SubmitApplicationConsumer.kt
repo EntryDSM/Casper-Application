@@ -29,7 +29,7 @@ class SubmitApplicationConsumer(
         val submitApplicationEvent = objectMapper.readValue(message, SubmitApplicationEvent::class.java)
 
         initializeApplicationCase(submitApplicationEvent)
-        updateGraduationInfo(submitApplicationEvent)
+        initializeGraduationInfo(submitApplicationEvent)
         updateScore(submitApplicationEvent)
         updateGraduationInformation(submitApplicationEvent)
     }
@@ -41,10 +41,27 @@ class SubmitApplicationConsumer(
         )
     }
 
-    private fun updateGraduationInfo(submitApplicationEvent: SubmitApplicationEvent) {
+    private fun initializeGraduationInfo(submitApplicationEvent: SubmitApplicationEvent) {
         graduationInfoService.changeGraduationInfo(
             submitApplicationEvent.receiptCode,
             submitApplicationEvent.graduationDate
+        )
+    }
+
+    private fun updateGraduationInformation(submitApplicationEvent: SubmitApplicationEvent) {
+        if (submitApplicationEvent.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
+            return
+        }
+        graduationInfoService.updateGraduationInformation(
+            submitApplicationEvent.receiptCode,
+            UpdateGraduationInformationRequest(
+                gradeNumber = submitApplicationEvent.gradeNumber,
+                classNumber = submitApplicationEvent.classNumber,
+                studentNumber = submitApplicationEvent.studentNumber,
+                schoolCode = submitApplicationEvent.schoolCode,
+                teacherName = submitApplicationEvent.teacherName,
+                teacherTel = submitApplicationEvent.schoolPhone
+            )
         )
     }
 
@@ -59,7 +76,7 @@ class SubmitApplicationConsumer(
                         mathGrade = submitApplicationEvent.scoreData.gedMath,
                         scienceGrade = submitApplicationEvent.scoreData.gedScience,
                         englishGrade = submitApplicationEvent.scoreData.gedEnglish,
-                        historyGrade = submitApplicationEvent.scoreData.gedHistory,
+                        optGrade = submitApplicationEvent.scoreData.gedOpt,
                         extraScore = ExtraScoreRequest(
                             hasCertificate = submitApplicationEvent.scoreData.infoProcessingCert,
                             hasCompetitionPrize = submitApplicationEvent.scoreData.algorithmAward
@@ -91,22 +108,5 @@ class SubmitApplicationConsumer(
                 )
             }
         }
-    }
-
-    private fun updateGraduationInformation(submitApplicationEvent: SubmitApplicationEvent) {
-        if (submitApplicationEvent.educationalStatus == EducationalStatus.QUALIFICATION_EXAM) {
-            return
-        }
-        graduationInfoService.updateGraduationInformation(
-            submitApplicationEvent.receiptCode,
-            UpdateGraduationInformationRequest(
-                gradeNumber = submitApplicationEvent.gradeNumber,
-                classNumber = submitApplicationEvent.classNumber,
-                studentNumber = submitApplicationEvent.studentNumber,
-                schoolCode = submitApplicationEvent.schoolCode,
-                teacherName = submitApplicationEvent.teacherName,
-                teacherTel = submitApplicationEvent.schoolPhone
-            )
-        )
     }
 }
