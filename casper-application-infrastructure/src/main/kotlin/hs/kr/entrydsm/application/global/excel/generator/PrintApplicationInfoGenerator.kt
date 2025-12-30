@@ -121,7 +121,7 @@ class PrintApplicationInfoGenerator(
             row.createCell(17).setCellValue("X")
             row.createCell(18).setCellValue(applicationService.safeGetValue(qualificationCase.mathGrade))
             row.createCell(19).setCellValue(applicationService.safeGetValue(qualificationCase.scienceGrade))
-            row.createCell(20).setCellValue(applicationService.safeGetValue(qualificationCase.optGrade))
+            row.createCell(20).setCellValue(applicationService.safeGetValue(qualificationCase.historyGrade))
             row.createCell(21).setCellValue(applicationService.safeGetValue(qualificationCase.englishGrade))
             for (i in 22..53) {
                 row.createCell(i).setCellValue("X")

@@ -76,7 +76,7 @@ class SubmitApplicationConsumer(
                         mathGrade = submitApplicationEvent.scoreData.gedMath,
                         scienceGrade = submitApplicationEvent.scoreData.gedScience,
                         englishGrade = submitApplicationEvent.scoreData.gedEnglish,
-                        optGrade = submitApplicationEvent.scoreData.gedOpt,
+                        historyGrade = submitApplicationEvent.scoreData.gedHistory,
                         extraScore = ExtraScoreRequest(
                             hasCertificate = submitApplicationEvent.scoreData.infoProcessingCert,
                             hasCompetitionPrize = submitApplicationEvent.scoreData.algorithmAward

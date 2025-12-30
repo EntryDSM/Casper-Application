@@ -133,17 +133,9 @@ data class SubmitApplicationWebRequest(
     @field:DecimalMax(value = "100.0", message = "GED 과학 점수는 100점 이하여야 합니다")
     val gedScience: BigDecimal = BigDecimal.ZERO,
 
-    @field:DecimalMin(value = "0.0", message = "GED 선택과목 점수는 0점 이상이어야 합니다")
-    @field:DecimalMax(value = "100.0", message = "GED 선택과목 점수는 100점 이하여야 합니다")
-    val gedOpt: BigDecimal = BigDecimal.ZERO,
-
-    //@field:DecimalMin(value = "0.0", message = "GED 기술 점수는 0점 이상이어야 합니다")
-    //@field:DecimalMax(value = "100.0", message = "GED 기술 점수는 100점 이하여야 합니다")
-    //val gedTech: BigDecimal = BigDecimal.ZERO,
-
-    //@field:DecimalMin(value = "0.0", message = "GED 역사 점수는 0점 이상이어야 합니다")
-    //@field:DecimalMax(value = "100.0", message = "GED 역사 점수는 100점 이하여야 합니다")
-    //val gedHistory: BigDecimal = BigDecimal.ZERO,
+    @field:DecimalMin(value = "0.0", message = "GED 역사 점수는 0점 이상이어야 합니다")
+    @field:DecimalMax(value = "100.0", message = "GED 역사 점수는 100점 이하여야 합니다")
+    val gedHistory: BigDecimal = BigDecimal.ZERO,
 
     @field:Min(value = 0, message = "결석 횟수는 0 이상이어야 합니다")
     val absence: Int,

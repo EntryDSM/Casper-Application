@@ -109,8 +109,7 @@ class ApplicationCaseService(
                 socialGrade = request.socialGrade,
                 mathGrade = request.mathGrade,
                 englishGrade = request.englishGrade,
-                optGrade = request.optGrade,
-                //historyGrade = request.historyGrade,
+                historyGrade = request.historyGrade,
                 extraScoreItem = ExtraScoreItem(
                     hasCertificate = request.extraScore.hasCertificate,
                     hasCompetitionPrize = request.extraScore.hasCompetitionPrize

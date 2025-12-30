@@ -15,11 +15,10 @@ class QualificationCaseJpaEntity(
     override val extraScoreItem: ExtraScoreItem,
     val koreanGrade: BigDecimal,
     val socialGrade: BigDecimal,
-    //val historyGrade: BigDecimal,
+    val historyGrade: BigDecimal,
     val mathGrade: BigDecimal,
     val scienceGrade: BigDecimal,
     val englishGrade: BigDecimal,
-    val optGrade: BigDecimal
 ) : ApplicationCaseEntity(
     id = id,
     receiptCode = receiptCode,
