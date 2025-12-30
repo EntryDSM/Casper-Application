@@ -7,6 +7,7 @@ import javax.validation.constraints.DecimalMin
 import javax.validation.constraints.Digits
 import javax.validation.constraints.NotNull
 
+// 현재 사용되지 않음.
 data class UpdateQualificationCaseWebRequest(
     @field:DecimalMin("0.0") @field:DecimalMax("100.0")  @field:NotNull
     val koreanGrade: BigDecimal = BigDecimal.ZERO,
