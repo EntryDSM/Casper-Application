@@ -3,13 +3,13 @@ package hs.kr.entrydsm.application.domain.application.usecase.mapper
 import hs.kr.entrydsm.application.domain.application.event.dto.ScoreData
 import hs.kr.entrydsm.application.domain.application.event.dto.SubmissionData
 import hs.kr.entrydsm.application.domain.application.model.Application
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmissionApplicationRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmitApplicationRequest
 import hs.kr.entrydsm.application.domain.user.model.User
 import java.util.UUID
 
 object SubmitApplicationMapper {
 
-    fun toApplication(request: SubmissionApplicationRequest, user: User): Application {
+    fun toApplication(request: SubmitApplicationRequest, user: User): Application {
         return request.run {
             Application(
                 applicantName = user.name,
@@ -33,7 +33,7 @@ object SubmitApplicationMapper {
     }
 
     fun toSubmissionData(
-        request: SubmissionApplicationRequest,
+        request: SubmitApplicationRequest,
         application: Application,
         userId: UUID
     ): SubmissionData {

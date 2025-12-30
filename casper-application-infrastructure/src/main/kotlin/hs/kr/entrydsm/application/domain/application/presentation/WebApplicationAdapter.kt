@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.presentation
 
-import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmissionApplicationWebRequest
-import hs.kr.entrydsm.application.domain.application.presentation.mapper.toSubmissionApplicationRequest
+import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmitApplicationWebRequest
+import hs.kr.entrydsm.application.domain.application.presentation.mapper.toSubmitApplicationRequest
 import hs.kr.entrydsm.application.domain.application.usecase.GetMyApplicationStatusUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.SubmitApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.UploadPhotoUseCase
@@ -26,8 +26,8 @@ class WebApplicationAdapter(
 ) {
 
     @PostMapping
-    fun submitApplication(@RequestBody @Valid request: SubmissionApplicationWebRequest) =
-        submitApplicationUseCase.execute(request.toSubmissionApplicationRequest())
+    fun submitApplication(@RequestBody @Valid request: SubmitApplicationWebRequest) =
+        submitApplicationUseCase.execute(request.toSubmitApplicationRequest())
 
     @PostMapping("/photo")
     fun uploadFile(@RequestPart(name = "image") file: MultipartFile): UploadImageWebResponse {

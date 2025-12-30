@@ -1,10 +1,10 @@
 package hs.kr.entrydsm.application.domain.application.presentation.mapper
 
-import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmissionApplicationWebRequest
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmissionApplicationRequest
+import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmitApplicationWebRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmitApplicationRequest
 
-fun SubmissionApplicationWebRequest.toSubmissionApplicationRequest(): SubmissionApplicationRequest =
-    SubmissionApplicationRequest(
+fun SubmitApplicationWebRequest.toSubmitApplicationRequest(): SubmitApplicationRequest =
+    SubmitApplicationRequest(
         applicantName = applicantName,
         applicantTel = applicantTel,
         applicationType = applicationType,

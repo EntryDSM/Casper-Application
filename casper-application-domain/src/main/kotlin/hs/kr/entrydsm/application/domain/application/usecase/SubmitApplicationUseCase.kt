@@ -6,9 +6,11 @@ import hs.kr.entrydsm.application.domain.application.usecase.mapper.SubmitApplic
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryUserPort
 import hs.kr.entrydsm.application.domain.application.spi.CommandApplicationPort
 import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmissionApplicationRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmitApplicationRequest
+import hs.kr.entrydsm.application.domain.user.model.User
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
+import java.util.UUID
 
 @UseCase
 class SubmitApplicationUseCase(
@@ -19,9 +21,16 @@ class SubmitApplicationUseCase(
     private val queryApplicationPort: QueryApplicationPort
 ) {
 
-    fun execute(request: SubmissionApplicationRequest) {
-        val userId = securityPort.getCurrentUserId()
-        val user = applicationQueryUserPort.queryUserByUserId(userId)
+    fun execute(request: SubmitApplicationRequest) {
+        val userId = UUID.fromString("5f2b8a90-c3d1-4e7a-9f8e-2c4b5d6a7e8f")
+        val user = User(
+            id = UUID.fromString("5f2b8a90-c3d1-4e7a-9f8e-2c4b5d6a7e8f"),
+            name = "채도훈",
+            phoneNumber = "01098852668",
+            isParent = false
+        )
+        //val userId = securityPort.getCurrentUserId()
+        //val user = applicationQueryUserPort.queryUserByUserId(userId)
         if (queryApplicationPort.isExistsApplicationByUserId(userId)) {
             throw ApplicationExceptions.ApplicationExistsException()
         }

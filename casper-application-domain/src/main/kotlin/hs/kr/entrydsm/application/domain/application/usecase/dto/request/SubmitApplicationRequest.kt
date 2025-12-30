@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-data class SubmissionApplicationRequest(
+data class SubmitApplicationRequest(
     val applicantName: String,
     val applicantTel: String,
     val applicationType: ApplicationType,
