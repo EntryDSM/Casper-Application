@@ -19,49 +19,50 @@ class WebApplicationCaseAdapter(
     private val getGraduationCaseUseCase: GetGraduationCaseUseCase,
     private val getQualificationCaseUseCase: GetQualificationCaseUseCase,
 ) {
-    @PatchMapping("/graduation")
-    fun updateGraduationCase(
-        @RequestBody @Valid request: UpdateGraduationCaseWebRequest,
-    ) {
-        updateGraduationCaseUseCase.execute(
-            request.run {
-                UpdateGraduationCaseRequest(
-                    volunteerTime = volunteerTime,
-                    absenceDayCount = absenceDayCount,
-                    lectureAbsenceCount = lectureAbsenceCount,
-                    latenessCount = latenessCount,
-                    earlyLeaveCount = earlyLeaveCount,
-                    koreanGrade = koreanGrade,
-                    socialGrade = socialGrade,
-                    historyGrade = historyGrade,
-                    mathGrade = mathGrade,
-                    scienceGrade = scienceGrade,
-                    englishGrade = englishGrade,
-                    techAndHomeGrade = techAndHomeGrade,
-                    extraScore = extraScore
-                )
-            }
-        )
-    }
+//    @PatchMapping("/graduation")
+//    fun updateGraduationCase(
+//        @RequestBody @Valid request: UpdateGraduationCaseWebRequest,
+//    ) {
+//        updateGraduationCaseUseCase.execute(
+//            request.run {
+//                UpdateGraduationCaseRequest(
+//                    volunteerTime = volunteerTime,
+//                    absenceDayCount = absenceDayCount,
+//                    lectureAbsenceCount = lectureAbsenceCount,
+//                    latenessCount = latenessCount,
+//                    earlyLeaveCount = earlyLeaveCount,
+//                    koreanGrade = koreanGrade,
+//                    socialGrade = socialGrade,
+//                    historyGrade = historyGrade,
+//                    mathGrade = mathGrade,
+//                    scienceGrade = scienceGrade,
+//                    englishGrade = englishGrade,
+//                    techAndHomeGrade = techAndHomeGrade,
+//                    extraScore = extraScore
+//                )
+//            }
+//        )
+//    }
 
-    @PatchMapping("/qualification")
-    fun updateQualificationCase(
-        @RequestBody @Valid request: UpdateQualificationCaseWebRequest,
-    ) {
-        updateQualificationCaseUseCase.execute(
-            request.run {
-                UpdateQualificationCaseRequest(
-                    koreanGrade = koreanGrade,
-                    socialGrade = socialGrade,
-                    mathGrade = mathGrade,
-                    scienceGrade = scienceGrade,
-                    englishGrade = englishGrade,
-                    historyGrade = historyGrade,
-                    extraScore = extraScore
-                )
-            }
-        )
-    }
+//    @PatchMapping("/qualification")
+//    fun updateQualificationCase(
+//        @RequestBody @Valid request: UpdateQualificationCaseWebRequest,
+//    ) {
+//        updateQualificationCaseUseCase.execute(
+//            request.run {
+//                UpdateQualificationCaseRequest(
+//                    koreanGrade = koreanGrade,
+//                    socialGrade = socialGrade,
+//                    mathGrade = mathGrade,
+//                    scienceGrade = scienceGrade,
+//                    englishGrade = englishGrade,
+//                    optGrade = optGrade,
+//                    //historyGrade = historyGrade,
+//                    extraScore = extraScore
+//                )
+//            }
+//        )
+//    }
 
     @GetMapping("/graduation")
     fun getGraduationCase() = getGraduationCaseUseCase.execute()
