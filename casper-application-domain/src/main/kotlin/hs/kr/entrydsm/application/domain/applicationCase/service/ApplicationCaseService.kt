@@ -89,6 +89,12 @@ class ApplicationCaseService(
         updateGraduationCase(application, request)
     }
 
+    fun updateQualificationScore(receiptCode: Long, request: UpdateQualificationCaseRequest) {
+        val application = applicationCaseQueryApplicationPort.queryApplicationByReceiptCode(receiptCode)
+            ?: throw ApplicationExceptions.ApplicationNotFoundException()
+        updateQualificationCase(application, request)
+    }
+
     fun updateQualificationCase(application: Application, request: UpdateQualificationCaseRequest) {
         val qualificationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
 
@@ -103,7 +109,8 @@ class ApplicationCaseService(
                 socialGrade = request.socialGrade,
                 mathGrade = request.mathGrade,
                 englishGrade = request.englishGrade,
-                historyGrade = request.historyGrade,
+                optGrade = request.optGrade,
+                //historyGrade = request.historyGrade,
                 extraScoreItem = ExtraScoreItem(
                     hasCertificate = request.extraScore.hasCertificate,
                     hasCompetitionPrize = request.extraScore.hasCompetitionPrize
@@ -112,11 +119,5 @@ class ApplicationCaseService(
         )
 
         applicationCaseEventPort.updateQualificationCase(qualificationCase)
-    }
-
-    fun updateQualificationScore(receiptCode: Long, request: UpdateQualificationCaseRequest) {
-        val application = applicationCaseQueryApplicationPort.queryApplicationByReceiptCode(receiptCode)
-            ?: throw ApplicationExceptions.ApplicationNotFoundException()
-        updateQualificationCase(application, request)
     }
 }

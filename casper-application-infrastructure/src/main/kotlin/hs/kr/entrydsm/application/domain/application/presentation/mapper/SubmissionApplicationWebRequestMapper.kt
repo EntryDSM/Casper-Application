@@ -40,11 +40,12 @@ fun SubmitApplicationWebRequest.toSubmitApplicationRequest(): SubmitApplicationR
 
         gedKorean = gedKorean,
         gedSocial = gedSocial,
-        gedHistory = gedHistory,
         gedMath = gedMath,
         gedScience = gedScience,
-        gedTech = gedTech,
         gedEnglish = gedEnglish,
+        gedOpt = gedOpt,
+        //gedHistory = gedHistory,
+        //gedTech = gedTech,
 
         absence = absence,
         tardiness = tardiness,

@@ -37,7 +37,8 @@ class UpdateQualificationCaseUseCase(
                 socialGrade = request.socialGrade,
                 mathGrade = request.mathGrade,
                 englishGrade = request.englishGrade,
-                historyGrade = request.historyGrade,
+                optGrade = request.optGrade,
+                //historyGrade = request.historyGrade,
                 extraScoreItem = ExtraScoreItem(
                     hasCertificate = request.extraScore.hasCertificate,
                     hasCompetitionPrize = request.extraScore.hasCompetitionPrize

@@ -15,7 +15,9 @@ data class QualificationCase(
     val mathGrade: BigDecimal = BigDecimal.ZERO,
     val scienceGrade: BigDecimal = BigDecimal.ZERO,
     val englishGrade: BigDecimal = BigDecimal.ZERO,
-    val historyGrade: BigDecimal = BigDecimal.ZERO,
+    val optGrade: BigDecimal = BigDecimal.ZERO,
+    //val historyGrade: BigDecimal = BigDecimal.ZERO,
+
     // 일반전형 여부
     val isCommon: Boolean = true,
 ) : ApplicationCase(
@@ -37,7 +39,7 @@ data class QualificationCase(
 
     fun calculateAverageScore(): BigDecimal {
         val totalPoints =
-            historyGrade +
+            optGrade +
                     socialGrade +
                     mathGrade +
                     englishGrade +
@@ -55,7 +57,7 @@ data class QualificationCase(
             getScorePoint(mathGrade),
             getScorePoint(scienceGrade),
             getScorePoint(englishGrade),
-            getScorePoint(historyGrade)
+            getScorePoint(optGrade)
         ).sum()
         return BigDecimal(totalPoints).divide(BigDecimal(6), 3, RoundingMode.HALF_UP)
     }

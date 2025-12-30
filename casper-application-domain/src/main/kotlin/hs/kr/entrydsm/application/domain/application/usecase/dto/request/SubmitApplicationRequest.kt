@@ -44,11 +44,12 @@ data class SubmitApplicationRequest(
 
     val gedKorean: BigDecimal = BigDecimal.ZERO,
     val gedSocial: BigDecimal = BigDecimal.ZERO,
-    val gedHistory: BigDecimal = BigDecimal.ZERO,
     val gedMath: BigDecimal = BigDecimal.ZERO,
     val gedScience: BigDecimal = BigDecimal.ZERO,
-    val gedTech: BigDecimal = BigDecimal.ZERO,
     val gedEnglish: BigDecimal = BigDecimal.ZERO,
+    val gedOpt: BigDecimal = BigDecimal.ZERO,
+    //val gedHistory: BigDecimal = BigDecimal.ZERO,
+    //val gedTech: BigDecimal = BigDecimal.ZERO,
 
     val absence: Int,
     val tardiness: Int,

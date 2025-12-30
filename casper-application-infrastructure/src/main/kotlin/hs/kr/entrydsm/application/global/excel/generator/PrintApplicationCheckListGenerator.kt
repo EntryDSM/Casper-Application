@@ -283,7 +283,7 @@ class PrintApplicationCheckListGenerator(
             getCell(dh + 13, 3).setCellValue("X")
             getCell(dh + 14, 3).setCellValue(qualificationCase.mathGrade.toString())
             getCell(dh + 15, 3).setCellValue(qualificationCase.scienceGrade.toString())
-            getCell(dh + 16, 3).setCellValue(qualificationCase.historyGrade.toString())
+            getCell(dh + 16, 3).setCellValue(qualificationCase.optGrade.toString())
             getCell(dh + 17, 3).setCellValue(qualificationCase.englishGrade.toString())
         }
 

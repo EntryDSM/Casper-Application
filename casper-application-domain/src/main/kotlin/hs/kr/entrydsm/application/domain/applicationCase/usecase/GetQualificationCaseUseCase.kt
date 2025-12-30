@@ -32,7 +32,8 @@ class GetQualificationCaseUseCase(
             mathGrade = qualificationCase.mathGrade,
             scienceGrade = qualificationCase.scienceGrade,
             englishGrade = qualificationCase.englishGrade,
-            historyGrade = qualificationCase.historyGrade,
+            optGrade = qualificationCase.optGrade,
+            //historyGrade = qualificationCase.historyGrade,
             extraScore = qualificationCase.extraScoreItem.run {
                 GetExtraScoreResponse(
                     hasCertificate = hasCertificate,

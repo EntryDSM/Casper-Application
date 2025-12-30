@@ -19,7 +19,9 @@ data class UpdateQualificationCaseWebRequest(
     @field:DecimalMin("0.0") @field:DecimalMax("100.0")  @field:NotNull
     val englishGrade: BigDecimal = BigDecimal.ZERO,
     @field:DecimalMin("0.0") @field:DecimalMax("100.0")  @field:NotNull
-    val historyGrade: BigDecimal = BigDecimal.ZERO,
+    val optGrade: BigDecimal = BigDecimal.ZERO,
+    //@field:DecimalMin("0.0") @field:DecimalMax("100.0")  @field:NotNull
+    //val historyGrade: BigDecimal = BigDecimal.ZERO,
     @field:NotNull
     val extraScore: ExtraScoreRequest
 )
