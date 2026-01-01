@@ -80,7 +80,7 @@ class ApplicationCaseService(
             )
         }
 
-        applicationCaseEventPort.updateGraduationCase(graduationCase)
+        //applicationCaseEventPort.updateGraduationCase(graduationCase)
     }
 
     fun updateGraduationScore(receiptCode: Long, request: UpdateGraduationCaseRequest) {
@@ -117,6 +117,6 @@ class ApplicationCaseService(
             )
         )
 
-        applicationCaseEventPort.updateQualificationCase(qualificationCase)
+        //applicationCaseEventPort.updateQualificationCase(qualificationCase)
     }
 }
