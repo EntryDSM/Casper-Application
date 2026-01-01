@@ -10,26 +10,24 @@ import java.util.UUID
 object SubmitApplicationMapper {
 
     fun toApplication(request: SubmitApplicationRequest, user: User): Application {
-        return request.run {
-            Application(
-                applicantName = user.name,
-                applicantTel = user.phoneNumber,
-                birthDate = birthDate,
-                sex = applicantGender,
-                streetAddress = streetAddress,
-                postalCode = postalCode,
-                detailAddress = detailAddress,
-                isDaejeon = isDaejeon,
-                parentName = parentName,
-                parentTel = parentTel,
-                parentRelation = parentRelation,
-                educationalStatus = educationalStatus,
-                applicationType = applicationType,
-                studyPlan = studyPlan,
-                selfIntroduce = selfIntroduce,
-                userId = user.id
-            )
-        }
+        return Application(
+            applicantName = user.name,
+            applicantTel = user.phoneNumber,
+            birthDate = request.applicantInfo.birthDate,
+            sex = request.applicantInfo.applicantGender,
+            streetAddress = request.addressInfo.streetAddress,
+            postalCode = request.addressInfo.postalCode,
+            detailAddress = request.addressInfo.detailAddress,
+            isDaejeon = request.addressInfo.isDaejeon,
+            parentName = request.applicantInfo.parentName,
+            parentTel = request.applicantInfo.parentTel,
+            parentRelation = request.applicantInfo.parentRelation,
+            educationalStatus = request.applicationInfo.educationalStatus,
+            applicationType = request.applicationInfo.applicationType,
+            studyPlan = request.applicationInfo.studyPlan,
+            selfIntroduce = request.applicationInfo.selfIntroduce,
+            userId = user.id
+        )
     }
 
     fun toSubmissionData(
@@ -40,35 +38,35 @@ object SubmitApplicationMapper {
         return SubmissionData(
             receiptCode = application.receiptCode,
             userId = userId,
-            educationalStatus = request.educationalStatus,
-            graduationDate = request.graduationDate,
-            gradeNumber = request.studentId.substring(0, 1),
-            classNumber = request.studentId.substring(1, 2),
-            studentNumber = request.studentId.substring(2),
-            schoolCode = request.schoolCode,
-            teacherName = request.teacherName,
-            schoolPhone = request.schoolPhone,
+            educationalStatus = request.applicationInfo.educationalStatus,
+            graduationDate = request.applicationInfo.graduationDate,
+            gradeNumber = request.applicationInfo.studentId.substring(0, 1),
+            classNumber = request.applicationInfo.studentId.substring(1, 2),
+            studentNumber = request.applicationInfo.studentId.substring(2),
+            schoolCode = request.schoolInfo.schoolCode,
+            teacherName = request.schoolInfo.teacherName,
+            schoolPhone = request.schoolInfo.schoolPhone,
             scoreData = ScoreData(
-                koreanGrade = request.koreanGrade,
-                socialGrade = request.socialGrade,
-                historyGrade = request.historyGrade,
-                mathGrade = request.mathGrade,
-                scienceGrade = request.scienceGrade,
-                englishGrade = request.englishGrade,
-                techAndHomeGrade = request.techAndHomeGrade,
-                gedKorean = request.gedKorean,
-                gedSocial = request.gedSocial,
-                gedHistory = request.gedHistory,
-                gedMath = request.gedMath,
-                gedScience = request.gedScience,
-                gedEnglish = request.gedEnglish,
-                absence = request.absence,
-                tardiness = request.tardiness,
-                earlyLeave = request.earlyLeave,
-                classExit = request.classExit,
-                volunteer = request.volunteer,
-                algorithmAward = request.algorithmAward,
-                infoProcessingCert = request.infoProcessingCert
+                koreanGrade = request.gradeInfo.koreanGrade,
+                socialGrade = request.gradeInfo.socialGrade,
+                historyGrade = request.gradeInfo.historyGrade,
+                mathGrade = request.gradeInfo.mathGrade,
+                scienceGrade = request.gradeInfo.scienceGrade,
+                englishGrade = request.gradeInfo.englishGrade,
+                techAndHomeGrade = request.gradeInfo.techAndHomeGrade,
+                gedKorean = request.gradeInfo.gedKorean,
+                gedSocial = request.gradeInfo.gedSocial,
+                gedHistory = request.gradeInfo.gedHistory,
+                gedMath = request.gradeInfo.gedMath,
+                gedScience = request.gradeInfo.gedScience,
+                gedEnglish = request.gradeInfo.gedEnglish,
+                absence = request.attendanceInfo.absence,
+                tardiness = request.attendanceInfo.tardiness,
+                earlyLeave = request.attendanceInfo.earlyLeave,
+                classExit = request.attendanceInfo.classExit,
+                volunteer = request.attendanceInfo.volunteer,
+                algorithmAward = request.awardAndCertificateInfo.algorithmAward,
+                infoProcessingCert = request.awardAndCertificateInfo.infoProcessingCert
             )
         )
     }
