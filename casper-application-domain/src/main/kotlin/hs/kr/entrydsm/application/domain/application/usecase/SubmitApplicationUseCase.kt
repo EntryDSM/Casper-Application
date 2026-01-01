@@ -13,6 +13,7 @@ import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.Ext
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.UpdateGraduationCaseRequest
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.UpdateQualificationCaseRequest
 import hs.kr.entrydsm.application.domain.graduationInfo.service.GraduationInfoService
+import hs.kr.entrydsm.application.domain.graduationInfo.model.vo.StudentNumber
 import hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.request.UpdateGraduationInformationRequest
 import hs.kr.entrydsm.application.domain.score.service.ScoreService
 import hs.kr.entrydsm.application.global.annotation.UseCase
@@ -29,7 +30,6 @@ class SubmitApplicationUseCase(
     private val graduationInfoService: GraduationInfoService,
     private val scoreService: ScoreService
 ) {
-
     fun execute(request: SubmitApplicationRequest) {
         val userId = securityPort.getCurrentUserId()
         val user = applicationQueryUserPort.queryUserByUserId(userId)
@@ -77,12 +77,13 @@ class SubmitApplicationUseCase(
         request: SubmitApplicationRequest
     ) {
         if (educationalStatus != EducationalStatus.QUALIFICATION_EXAM) {
+            val studentNumber: StudentNumber = StudentNumber.from(request.applicationInfo.studentNumber)
             graduationInfoService.updateGraduationInformation(
                 receiptCode = receiptCode,
                 request = UpdateGraduationInformationRequest(
-                    gradeNumber = request.applicationInfo.studentNumber.substring(0, 1),
-                    classNumber = request.applicationInfo.studentNumber.substring(1, 2),
-                    studentNumber = request.applicationInfo.studentNumber.substring(2),
+                    gradeNumber = studentNumber.gradeNumber,
+                    classNumber = studentNumber.classNumber,
+                    studentNumber = studentNumber.studentNumber,
                     schoolCode = request.schoolInfo.schoolCode,
                     teacherName = request.schoolInfo.teacherName,
                     teacherTel = request.schoolInfo.schoolPhone
