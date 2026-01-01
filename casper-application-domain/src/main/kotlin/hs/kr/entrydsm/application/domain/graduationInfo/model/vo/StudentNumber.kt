@@ -9,8 +9,8 @@ data class StudentNumber(
         fun from(studentNumber: String): StudentNumber {
             return StudentNumber(
                 gradeNumber = studentNumber.substring(0, 1),
-                classNumber = studentNumber.substring(1, 2),
-                studentNumber = studentNumber.substring(2)
+                classNumber = studentNumber.substring(1, 3),
+                studentNumber = studentNumber.substring(3, 5)
             )
         }
     }
