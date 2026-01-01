@@ -4,27 +4,35 @@ import java.math.BigDecimal
 import javax.validation.constraints.DecimalMax
 import javax.validation.constraints.DecimalMin
 import javax.validation.constraints.NotNull
+import javax.validation.constraints.Pattern
 
 data class GradeInfoWebRequest(
     @field:NotNull(message = "국어 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val koreanGrade: String,
 
     @field:NotNull(message = "사회 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val socialGrade: String,
 
     @field:NotNull(message = "역사 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val historyGrade: String,
 
     @field:NotNull(message = "수학 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val mathGrade: String,
 
     @field:NotNull(message = "과학 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val scienceGrade: String,
 
     @field:NotNull(message = "영어 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val englishGrade: String,
 
     @field:NotNull(message = "기술·가정 성적은 필수입니다")
+    @Pattern(regexp = "[A-E,X]{4}")
     val techAndHomeGrade: String,
 
     @field:DecimalMin(value = "0.0", message = "GED 국어 점수는 0점 이상이어야 합니다")
