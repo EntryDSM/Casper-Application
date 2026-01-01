@@ -80,9 +80,9 @@ class SubmitApplicationUseCase(
             graduationInfoService.updateGraduationInformation(
                 receiptCode = receiptCode,
                 request = UpdateGraduationInformationRequest(
-                    gradeNumber = request.applicationInfo.studentId.substring(0, 1),
-                    classNumber = request.applicationInfo.studentId.substring(1, 2),
-                    studentNumber = request.applicationInfo.studentId.substring(2),
+                    gradeNumber = request.applicationInfo.studentNumber.substring(0, 1),
+                    classNumber = request.applicationInfo.studentNumber.substring(1, 2),
+                    studentNumber = request.applicationInfo.studentNumber.substring(2),
                     schoolCode = request.schoolInfo.schoolCode,
                     teacherName = request.schoolInfo.teacherName,
                     teacherTel = request.schoolInfo.schoolPhone

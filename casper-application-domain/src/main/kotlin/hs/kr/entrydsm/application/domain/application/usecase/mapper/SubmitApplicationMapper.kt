@@ -56,7 +56,6 @@ object SubmitApplicationMapper {
                 techAndHomeGrade = request.gradeInfo.techAndHomeGrade,
                 gedKorean = request.gradeInfo.gedKorean,
                 gedSocial = request.gradeInfo.gedSocial,
-                gedHistory = request.gradeInfo.gedHistory,
                 gedMath = request.gradeInfo.gedMath,
                 gedScience = request.gradeInfo.gedScience,
                 gedEnglish = request.gradeInfo.gedEnglish,

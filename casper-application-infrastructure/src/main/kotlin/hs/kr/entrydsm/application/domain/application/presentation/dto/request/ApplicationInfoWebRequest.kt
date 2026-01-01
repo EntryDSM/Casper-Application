@@ -16,7 +16,7 @@ data class ApplicationInfoWebRequest(
 
     @field:NotBlank(message = "학번은 필수입니다")
     @field:Size(min = 4, max = 4, message = "학번은 4자리여야 합니다")
-    val studentId: String,
+    val studentNumber: String,
 
     @field:NotNull(message = "졸업(예정)일은 필수입니다")
     val graduationDate: YearMonth,

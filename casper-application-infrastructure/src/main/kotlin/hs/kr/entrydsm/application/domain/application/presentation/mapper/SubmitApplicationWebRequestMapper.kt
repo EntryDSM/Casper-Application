@@ -31,7 +31,7 @@ fun SubmitApplicationWebRequest.toSubmitApplicationRequest(): SubmitApplicationR
         applicationInfo = ApplicationInfo(
             applicationType = applicationInfo.applicationType,
             educationalStatus = applicationInfo.educationalStatus,
-            studentId = applicationInfo.studentId,
+            studentNumber = applicationInfo.studentNumber,
             graduationDate = applicationInfo.graduationDate,
             studyPlan = applicationInfo.studyPlan,
             selfIntroduce = applicationInfo.selfIntroduce,
