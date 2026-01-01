@@ -40,14 +40,42 @@ class SubmitApplicationUseCase(
             SubmitApplicationMapper.toApplication(request, user)
         )
 
-        val receiptCode = application.receiptCode
+        handleSubmissionSideEffects(application.receiptCode, request)
+
+        applicationEventPort.create(application.receiptCode, userId)
+
+        // 이벤트 처리 로직을 동기적으로 실행하도록 변경
+        // cause. 이벤트 순서 문제(Kafka는 비동기적으로 호출되어Score 생성, applicationCase, Score 업데이트 순서가 보장되지 않음.)
+//        applicationEventPort.submitApplication(
+//            SubmitApplicationMapper.toSubmissionData(request, application, userId)
+//        )
+    }
+
+    private fun handleSubmissionSideEffects(receiptCode: Long, request: SubmitApplicationRequest) {
         val educationalStatus = request.applicationInfo.educationalStatus
 
-        // 2. GraduationInfo 초기화 + 업데이트 (동기)
+        initializeGraduationInfo(receiptCode, request)
+        updateGraduationInformation(receiptCode, educationalStatus, request)
+
+        initializeApplicationCase(receiptCode, educationalStatus)
+        updateApplicationCase(receiptCode, educationalStatus, request)
+
+        scoreService.createScore(receiptCode)
+        scoreService.updateScore(receiptCode)
+    }
+
+    private fun initializeGraduationInfo(receiptCode: Long, request: SubmitApplicationRequest) {
         graduationInfoService.changeGraduationInfo(
             receiptCode = receiptCode,
             graduateDate = request.applicationInfo.graduationDate
         )
+    }
+
+    private fun updateGraduationInformation(
+        receiptCode: Long,
+        educationalStatus: EducationalStatus,
+        request: SubmitApplicationRequest
+    ) {
         if (educationalStatus != EducationalStatus.QUALIFICATION_EXAM) {
             graduationInfoService.updateGraduationInformation(
                 receiptCode = receiptCode,
@@ -61,9 +89,17 @@ class SubmitApplicationUseCase(
                 )
             )
         }
+    }
 
-        // 3. ApplicationCase 초기화 + 업데이트 (동기)
+    private fun initializeApplicationCase(receiptCode: Long, educationalStatus: EducationalStatus) {
         applicationCaseService.initializeApplicationCase(receiptCode, educationalStatus)
+    }
+
+    private fun updateApplicationCase(
+        receiptCode: Long,
+        educationalStatus: EducationalStatus,
+        request: SubmitApplicationRequest
+    ) {
         when (educationalStatus) {
             EducationalStatus.QUALIFICATION_EXAM -> {
                 applicationCaseService.updateQualificationScore(
@@ -106,17 +142,5 @@ class SubmitApplicationUseCase(
                 )
             }
         }
-
-        // 4. Score 생성 + 계산 (동기)
-        scoreService.createScore(receiptCode)
-        scoreService.updateScore(receiptCode)
-
-        applicationEventPort.create(receiptCode, userId)
-
-        // 이벤트 처리 로직을 동기적으로 실행하도록 변경
-        // cause. 이벤트 순서 문제(Kafka는 비동기적으로 호출되어Score 생성, applicationCase, Score 업데이트 순서가 보장되지 않음.)
-//        applicationEventPort.submitApplication(
-//            SubmitApplicationMapper.toSubmissionData(request, application, userId)
-//        )
     }
 }
