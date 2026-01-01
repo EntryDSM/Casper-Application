@@ -14,8 +14,7 @@ import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.Upd
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.UpdateQualificationCaseRequest
 import hs.kr.entrydsm.application.domain.graduationInfo.service.GraduationInfoService
 import hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.request.UpdateGraduationInformationRequest
-import hs.kr.entrydsm.application.domain.score.usecase.CreateScoreUseCase
-import hs.kr.entrydsm.application.domain.score.usecase.UpdateScoreUseCase
+import hs.kr.entrydsm.application.domain.score.service.ScoreService
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
 
@@ -28,8 +27,7 @@ class SubmitApplicationUseCase(
     private val queryApplicationPort: QueryApplicationPort,
     private val applicationCaseService: ApplicationCaseService,
     private val graduationInfoService: GraduationInfoService,
-    private val createScoreUseCase: CreateScoreUseCase,
-    private val updateScoreUseCase: UpdateScoreUseCase
+    private val scoreService: ScoreService
 ) {
 
     fun execute(request: SubmitApplicationRequest) {
@@ -110,8 +108,8 @@ class SubmitApplicationUseCase(
         }
 
         // 4. Score 생성 + 계산 (동기)
-        createScoreUseCase.execute(receiptCode)
-        updateScoreUseCase.execute(receiptCode)
+        scoreService.createScore(receiptCode)
+        scoreService.updateScore(receiptCode)
 
         applicationEventPort.create(receiptCode, userId)
 
