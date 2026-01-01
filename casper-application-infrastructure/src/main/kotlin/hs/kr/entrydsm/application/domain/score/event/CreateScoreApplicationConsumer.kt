@@ -17,24 +17,24 @@ class CreateScoreApplicationConsumer (
     private val createScoreUseCase: CreateScoreUseCase,
     private val applicationEventPort: ApplicationEventPort
 ) {
-    @Retryable(
-        value = [Exception::class],
-        maxAttempts = 3,
-        backoff = Backoff(delay = 100)
-    )
-    @KafkaListener(
-        topics = [KafkaTopics.CREATE_APPLICATION],
-        groupId = "create-score",
-        containerFactory = "kafkaListenerContainerFactory",
-    )
-    fun createScore(message: String) {
-        val createApplicationEvent = mapper.readValue(message, CreateApplicationEvent::class.java)
-        createScoreUseCase.execute(createApplicationEvent.receiptCode)
-    }
-
-    @Recover
-    fun recover(exception: Exception, message: String) {
-        val createApplicationEvent = mapper.readValue(message, CreateApplicationEvent::class.java)
-        applicationEventPort.createApplicationScoreRollback(createApplicationEvent.receiptCode)
-    }
+//    @Retryable(
+//        value = [Exception::class],
+//        maxAttempts = 3,
+//        backoff = Backoff(delay = 100)
+//    )
+//    @KafkaListener(
+//        topics = [KafkaTopics.CREATE_APPLICATION],
+//        groupId = "create-score",
+//        containerFactory = "kafkaListenerContainerFactory",
+//    )
+//    fun createScore(message: String) {
+//        val createApplicationEvent = mapper.readValue(message, CreateApplicationEvent::class.java)
+//        createScoreUseCase.execute(createApplicationEvent.receiptCode)
+//    }
+//
+//    @Recover
+//    fun recover(exception: Exception, message: String) {
+//        val createApplicationEvent = mapper.readValue(message, CreateApplicationEvent::class.java)
+//        applicationEventPort.createApplicationScoreRollback(createApplicationEvent.receiptCode)
+//    }
 }
