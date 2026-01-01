@@ -23,7 +23,7 @@ class CreateScoreApplicationConsumer (
         backoff = Backoff(delay = 100)
     )
     @KafkaListener(
-        topics = [KafkaTopics.SUBMIT_APPLICATION],
+        topics = [KafkaTopics.CREATE_APPLICATION],
         groupId = "create-score",
         containerFactory = "kafkaListenerContainerFactory",
     )
