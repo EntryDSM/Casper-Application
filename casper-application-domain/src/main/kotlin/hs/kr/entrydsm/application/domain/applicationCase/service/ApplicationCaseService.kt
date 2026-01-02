@@ -3,7 +3,6 @@ package hs.kr.entrydsm.application.domain.applicationCase.service
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
 import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
-import hs.kr.entrydsm.application.domain.applicationCase.event.spi.ApplicationCaseEventPort
 import hs.kr.entrydsm.application.domain.applicationCase.exception.ApplicationCaseExceptions
 import hs.kr.entrydsm.application.domain.applicationCase.factory.ApplicationCaseFactory
 import hs.kr.entrydsm.application.domain.applicationCase.model.ApplicationCase
@@ -23,7 +22,6 @@ class ApplicationCaseService(
     private val commandApplicationCasePort: CommandApplicationCasePort,
     private val queryApplicationCasePort: QueryApplicationCasePort,
     private val applicationCaseFactory: ApplicationCaseFactory,
-    private val applicationCaseEventPort: ApplicationCaseEventPort,
 ) {
     fun hasEducationalStatusMismatch(application: Application, applicationCase: ApplicationCase): Boolean {
         application.educationalStatus ?: throw ApplicationCaseExceptions.EducationalStatusUnmatchedException()
@@ -79,8 +77,6 @@ class ApplicationCaseService(
                 )
             )
         }
-
-        //applicationCaseEventPort.updateGraduationCase(graduationCase)
     }
 
     fun updateGraduationScore(receiptCode: Long, request: UpdateGraduationCaseRequest) {
@@ -116,7 +112,5 @@ class ApplicationCaseService(
                 )
             )
         )
-
-        //applicationCaseEventPort.updateQualificationCase(qualificationCase)
     }
 }
