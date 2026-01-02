@@ -11,5 +11,4 @@ data class ApplicantInfo(
     val parentName: String,
     val parentTel: String,
     val parentRelation: String,
-    val guardianGender: String
 )

@@ -29,7 +29,4 @@ data class ApplicantInfoWebRequest(
 
     @field:NotBlank(message = "보호자 관계는 필수입니다")
     val parentRelation: String,
-
-    @field:NotBlank(message = "보호자 성별은 필수입니다")
-    val guardianGender: String
 )

@@ -20,7 +20,6 @@ fun SubmitApplicationWebRequest.toSubmitApplicationRequest(): SubmitApplicationR
             parentName = applicantInfo.parentName,
             parentTel = applicantInfo.parentTel,
             parentRelation = applicantInfo.parentRelation,
-            guardianGender = applicantInfo.guardianGender
         ),
         addressInfo = AddressInfo(
             isDaejeon = addressInfo.isDaejeon,
