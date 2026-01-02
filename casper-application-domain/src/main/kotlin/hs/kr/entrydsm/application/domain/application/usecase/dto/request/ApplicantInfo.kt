@@ -3,16 +3,12 @@ package hs.kr.entrydsm.application.domain.application.usecase.dto.request
 import hs.kr.entrydsm.application.domain.application.model.types.Sex
 import java.time.LocalDate
 
-data class UpdateInformationRequest(
-    val sex: Sex,
-    val birthDate: LocalDate,
+data class ApplicantInfo(
     val applicantName: String,
     val applicantTel: String,
-    val parentTel: String,
+    val birthDate: LocalDate,
+    val applicantGender: Sex,
     val parentName: String,
+    val parentTel: String,
     val parentRelation: String,
-    val streetAddress: String,
-    val postalCode: String,
-    val detailAddress: String,
 )
-

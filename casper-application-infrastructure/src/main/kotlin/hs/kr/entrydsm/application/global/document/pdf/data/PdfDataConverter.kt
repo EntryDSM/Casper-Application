@@ -253,7 +253,8 @@ class PdfDataConverter(
                 put("mathThirdGradeFirstSemester", applicationCase.mathGrade)
                 put("scienceThirdGradeFirstSemester", applicationCase.scienceGrade)
                 put("englishThirdGradeFirstSemester", applicationCase.englishGrade)
-                put("techAndHomeThirdGradeFirstSemester", applicationCase.optGrade)
+                // TODO 추후 역사로 수정해야 함.
+                put("techAndHomeThirdGradeFirstSemester", applicationCase.historyGrade)
             }
         } else if(applicationCase is GraduationCase) {
             val grades = applicationCase.gradesPerSubject()

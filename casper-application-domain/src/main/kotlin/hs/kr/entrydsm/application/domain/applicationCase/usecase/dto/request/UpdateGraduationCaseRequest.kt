@@ -1,7 +1,5 @@
 package hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request
 
-import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
-
 data class UpdateGraduationCaseRequest(
     val volunteerTime: Int,
     val absenceDayCount: Int,
