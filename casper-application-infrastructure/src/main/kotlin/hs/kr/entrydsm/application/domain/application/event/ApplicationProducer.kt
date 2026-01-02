@@ -30,46 +30,46 @@ class ApplicationProducer(
         )
     }
 
-    override fun submitApplication(submissionData: SubmissionData) {
-        val submitApplicationEvent = SubmitApplicationEvent(
-            receiptCode = submissionData.receiptCode,
-            userId = submissionData.userId,
-            educationalStatus = submissionData.educationalStatus,
-            graduationDate = submissionData.graduationDate,
-            gradeNumber = submissionData.gradeNumber,
-            classNumber = submissionData.classNumber,
-            studentNumber = submissionData.studentNumber,
-            schoolCode = submissionData.schoolCode,
-            teacherName = submissionData.teacherName,
-            schoolPhone = submissionData.schoolPhone,
-            scoreData = ApplicationScoreData(
-                koreanGrade = submissionData.scoreData.koreanGrade,
-                socialGrade = submissionData.scoreData.socialGrade,
-                historyGrade = submissionData.scoreData.historyGrade,
-                mathGrade = submissionData.scoreData.mathGrade,
-                scienceGrade = submissionData.scoreData.scienceGrade,
-                englishGrade = submissionData.scoreData.englishGrade,
-                techAndHomeGrade = submissionData.scoreData.techAndHomeGrade,
-                gedKorean = submissionData.scoreData.gedKorean,
-                gedSocial = submissionData.scoreData.gedSocial,
-                gedHistory = submissionData.scoreData.gedHistory,
-                gedMath = submissionData.scoreData.gedMath,
-                gedScience = submissionData.scoreData.gedScience,
-                gedEnglish = submissionData.scoreData.gedEnglish,
-                absence = submissionData.scoreData.absence,
-                tardiness = submissionData.scoreData.tardiness,
-                earlyLeave = submissionData.scoreData.earlyLeave,
-                classExit = submissionData.scoreData.classExit,
-                volunteer = submissionData.scoreData.volunteer,
-                algorithmAward = submissionData.scoreData.algorithmAward,
-                infoProcessingCert = submissionData.scoreData.infoProcessingCert
-            )
-        )
-        publishApplicationSubmittedTemplate.send(
-            KafkaTopics.SUBMIT_APPLICATION,
-            mapper.writeValueAsString(submitApplicationEvent)
-        )
-    }
+//    override fun submitApplication(submissionData: SubmissionData) {
+//        val submitApplicationEvent = SubmitApplicationEvent(
+//            receiptCode = submissionData.receiptCode,
+//            userId = submissionData.userId,
+//            educationalStatus = submissionData.educationalStatus,
+//            graduationDate = submissionData.graduationDate,
+//            gradeNumber = submissionData.gradeNumber,
+//            classNumber = submissionData.classNumber,
+//            studentNumber = submissionData.studentNumber,
+//            schoolCode = submissionData.schoolCode,
+//            teacherName = submissionData.teacherName,
+//            schoolPhone = submissionData.schoolPhone,
+//            scoreData = ApplicationScoreData(
+//                koreanGrade = submissionData.scoreData.koreanGrade,
+//                socialGrade = submissionData.scoreData.socialGrade,
+//                historyGrade = submissionData.scoreData.historyGrade,
+//                mathGrade = submissionData.scoreData.mathGrade,
+//                scienceGrade = submissionData.scoreData.scienceGrade,
+//                englishGrade = submissionData.scoreData.englishGrade,
+//                techAndHomeGrade = submissionData.scoreData.techAndHomeGrade,
+//                gedKorean = submissionData.scoreData.gedKorean,
+//                gedSocial = submissionData.scoreData.gedSocial,
+//                gedHistory = submissionData.scoreData.gedHistory,
+//                gedMath = submissionData.scoreData.gedMath,
+//                gedScience = submissionData.scoreData.gedScience,
+//                gedEnglish = submissionData.scoreData.gedEnglish,
+//                absence = submissionData.scoreData.absence,
+//                tardiness = submissionData.scoreData.tardiness,
+//                earlyLeave = submissionData.scoreData.earlyLeave,
+//                classExit = submissionData.scoreData.classExit,
+//                volunteer = submissionData.scoreData.volunteer,
+//                algorithmAward = submissionData.scoreData.algorithmAward,
+//                infoProcessingCert = submissionData.scoreData.infoProcessingCert
+//            )
+//        )
+//        publishApplicationSubmittedTemplate.send(
+//            KafkaTopics.SUBMIT_APPLICATION,
+//            mapper.writeValueAsString(submitApplicationEvent)
+//        )
+//    }
 
     override fun createApplicationScoreRollback(receiptCode: Long) {
         createApplicationRollbackTemplate.send(

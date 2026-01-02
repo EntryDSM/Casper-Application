@@ -6,7 +6,8 @@ import java.util.UUID
 interface ApplicationEventPort {
     fun create(receiptCode: Long, userId: UUID)
 
-    fun submitApplication(submissionData: SubmissionData)
+    // 미사용
+    //fun submitApplication(submissionData: SubmissionData)
 
     // 미사용
     //fun updateEducationalStatus(receiptCode: Long, graduateDate: YearMonth)
