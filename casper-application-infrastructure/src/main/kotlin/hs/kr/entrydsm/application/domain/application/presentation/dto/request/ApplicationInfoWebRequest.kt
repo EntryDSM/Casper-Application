@@ -22,11 +22,11 @@ data class ApplicationInfoWebRequest(
     val graduationDate: YearMonth,
 
     @field:NotBlank(message = "학업 계획서는 필수입니다")
-    @field:Size(max = 1600, message = "학업 계획서는 1500자 이하여야 합니다")
+    @field:Size(max = 1600, message = "학업 계획서는 1600자 이하여야 합니다")
     val studyPlan: String,
 
     @field:NotBlank(message = "자기소개서는 필수입니다")
-    @field:Size(max = 1600, message = "자기소개서는 1500자 이하여야 합니다")
+    @field:Size(max = 1600, message = "자기소개서는 1600자 이하여야 합니다")
     val selfIntroduce: String,
 
     @field:NotNull(message = "국가유공자 자녀 여부는 필수입니다")
