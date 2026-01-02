@@ -9,6 +9,5 @@ data class UpdateQualificationCaseRequest(
     val scienceGrade: BigDecimal = BigDecimal.ZERO,
     val englishGrade: BigDecimal = BigDecimal.ZERO,
     val historyGrade: BigDecimal = BigDecimal.ZERO,
-
     val extraScore: ExtraScoreRequest
 )
