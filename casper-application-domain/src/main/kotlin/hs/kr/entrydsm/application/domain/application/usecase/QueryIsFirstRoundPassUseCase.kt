@@ -19,8 +19,7 @@ class QueryIsFirstRoundPassUseCase(
     private val applicationQueryStatusPort: ApplicationQueryStatusPort,
     private val applicationQuerySchedulePort: ApplicationQuerySchedulePort
 ) {
-    fun execute(): QueryIsFirstRoundPassResponse {
-
+    suspend fun execute(): QueryIsFirstRoundPassResponse {
         val userId = securityPort.getCurrentUserId()
         val application = queryApplicationPort.queryApplicationByUserId(userId)
             ?: throw ApplicationExceptions.ApplicationNotFoundException()
