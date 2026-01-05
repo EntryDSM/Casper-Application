@@ -19,7 +19,7 @@ class QueryIsSecondRoundPassUseCase (
     private val applicationQueryStatusPort: ApplicationQueryStatusPort,
     private val applicationQuerySchedulePort: ApplicationQuerySchedulePort
 ) {
-    fun execute(): QueryIsSecondRoundPassResponse {
+    suspend fun execute(): QueryIsSecondRoundPassResponse {
         val userId = securityPort.getCurrentUserId()
         val application = queryApplicationPort.queryApplicationByUserId(userId)
             ?: throw ApplicationExceptions.ApplicationNotFoundException()
