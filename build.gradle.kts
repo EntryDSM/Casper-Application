@@ -31,8 +31,8 @@
 //}
 
 plugins {
-    kotlin("jvm") version PluginVersions.JVM_VERSION
-    id("org.jlleitschuh.gradle.ktlint") version PluginVersions.KLINT_VERSION
+    kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
+    id(Plugins.KTLINT) version(PluginVersions.KLINT_VERSION)
 }
 
 subprojects {

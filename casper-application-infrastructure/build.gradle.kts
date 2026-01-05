@@ -234,6 +234,13 @@ plugins {
     kotlin("plugin.jpa") version PluginVersions.JPA_PLUGIN_VERSION
     application
     id("me.champeau.jmh") version "0.7.2"
+    id(Plugins.PROTOBUF) version PluginVersions.PROTOBUF_VERSION
+
+    kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KOTLIN_ALLOPEN) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KOTLIN_NOARG) version PluginVersions.KOTLIN_VERSION
+    kotlin(Plugins.KAPT)
+    id(Plugins.KTLINT) version PluginVersions.KLINT_VERSION
 }
 
 dependencyManagement {
@@ -254,6 +261,17 @@ sourceSets {
 
 application {
     mainClass.set("hs.kr.entrydsm.application.CasperApplicationKt")
+}
+
+tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask> {
+    exclude("**/build/**")
+    exclude("**/generated/**")
+    exclude { fileTreeElement ->
+        val path = fileTreeElement.file.absolutePath
+        path.contains("build${File.separator}generated") ||
+                path.contains("grpckt") ||
+                path.endsWith("GrpcKt.kt")
+    }
 }
 
 dependencies {
@@ -277,7 +295,8 @@ dependencies {
 
     // database
     implementation(Dependencies.SPRING_DATA_JPA)
-    runtimeOnly(Dependencies.MYSQL_CONNECTOR)
+    implementation("com.mysql:mysql-connector-j:8.4.0")
+    //runtimeOnly(Dependencies.MYSQL_CONNECTOR)
     implementation(Dependencies.REDIS)
     implementation(Dependencies.SPRING_REDIS)
 
@@ -335,6 +354,46 @@ dependencies {
     jmh ("org.openjdk.jmh:jmh-generator-annprocess:1.36")
 
     testImplementation("org.mockito:mockito-inline:2.13.0")
+
+    // gRPC
+    implementation(Dependencies.GRPC_NETTY_SHADED)
+    implementation(Dependencies.GRPC_PROTOBUF)
+    implementation(Dependencies.GRPC_STUB)
+    implementation(Dependencies.GRPC_KOTLIN_STUB)
+    implementation(Dependencies.PROTOBUF_KOTLIN)
+    implementation(Dependencies.GRPC_CLIENT)
+    testImplementation(Dependencies.GRPC_TESTING)
+    implementation(Dependencies.GOOGLE_PROTOBUF)
+
+    implementation(Dependencies.COROUTINES)
+    implementation(Dependencies.COROUTINES_REACTOR)
+
+    implementation(Dependencies.RESILIENCE4J_CIRCUITBREAKER)
+    implementation(Dependencies.RESILIENCE4J_RETRY)
+    implementation(Dependencies.RESILIENCE4J_SPRING_BOOT)
+    implementation(Dependencies.RESILIENCE4J_KOTLIN)
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${DependencyVersions.PROTOBUF}"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:${DependencyVersions.GRPC}:${osdetector.classifier}"
+        }
+        create("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:${DependencyVersions.GRPC_KOTLIN}:jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.plugins {
+                create("grpc")
+                create("grpckt")
+            }
+        }
+    }
 }
 
 tasks.withType<Jar> {

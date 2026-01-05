@@ -189,4 +189,23 @@ object Dependencies {
     const val THYMELEAF = "org.springframework.boot:spring-boot-starter-thymeleaf"
 
     const val RETRY = "org.springframework.retry:spring-retry"
+
+    // gRPC
+    const val GRPC_NETTY_SHADED = "io.grpc:grpc-netty-shaded:${DependencyVersions.GRPC}"
+    const val GRPC_PROTOBUF = "io.grpc:grpc-protobuf:${DependencyVersions.GRPC}"
+    const val GRPC_STUB = "io.grpc:grpc-stub:${DependencyVersions.GRPC}"
+    const val GRPC_KOTLIN_STUB = "io.grpc:grpc-kotlin-stub:${DependencyVersions.GRPC_KOTLIN}"
+    const val PROTOBUF_KOTLIN = "com.google.protobuf:protobuf-kotlin:${DependencyVersions.PROTOBUF}"
+    const val GRPC_TESTING = "io.grpc:grpc-testing:${DependencyVersions.GRPC}"
+    const val GRPC_CLIENT = "net.devh:grpc-client-spring-boot-starter:${DependencyVersions.GRPC_CLIENT}"
+    const val GOOGLE_PROTOBUF = "com.google.protobuf:protobuf-java:${DependencyVersions.GOOGLE_PROTOBUF}"
+
+    const val COROUTINES = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${DependencyVersions.COROUTINES}"
+    const val COROUTINES_REACTOR = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor"
+
+    //Resilience4j
+    const val RESILIENCE4J_CIRCUITBREAKER = "io.github.resilience4j:resilience4j-circuitbreaker:${DependencyVersions.RESILIENCE4J}"
+    const val RESILIENCE4J_RETRY = "io.github.resilience4j:resilience4j-retry:${DependencyVersions.RESILIENCE4J}"
+    const val RESILIENCE4J_SPRING_BOOT = "io.github.resilience4j:resilience4j-spring-boot3:${DependencyVersions.RESILIENCE4J}"
+    const val RESILIENCE4J_KOTLIN = "io.github.resilience4j:resilience4j-kotlin:${DependencyVersions.RESILIENCE4J}"
 }
