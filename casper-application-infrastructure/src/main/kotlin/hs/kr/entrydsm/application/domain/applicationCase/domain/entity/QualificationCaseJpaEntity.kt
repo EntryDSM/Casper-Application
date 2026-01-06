@@ -1,10 +1,10 @@
 package hs.kr.entrydsm.application.domain.applicationCase.domain.entity
 
 import hs.kr.entrydsm.application.domain.applicationCase.domain.entity.vo.ExtraScoreItem
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import java.math.BigDecimal
-import javax.persistence.Embedded
-import javax.persistence.Entity
-import javax.persistence.Table
 
 @Entity
 @Table(name = "tbl_qualification_case")
