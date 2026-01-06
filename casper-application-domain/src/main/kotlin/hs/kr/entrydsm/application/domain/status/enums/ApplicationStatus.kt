@@ -1,4 +1,4 @@
-package hs.kr.entrydsm.application.domain.status.model
+package hs.kr.entrydsm.application.domain.status.enums
 
 enum class ApplicationStatus {
     /**
