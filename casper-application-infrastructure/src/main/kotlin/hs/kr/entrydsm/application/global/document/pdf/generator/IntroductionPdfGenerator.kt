@@ -20,7 +20,7 @@ class IntroductionPdfGenerator (
     private val pdfDocumentFacade: PdfDocumentFacade
 ): IntroductionPdfGeneratorPort {
 
-    override fun generate(applicationList: List<Application>): ByteArray {
+    override suspend fun generate(applicationList: List<Application>): ByteArray {
         val outputStream = ByteArrayOutputStream()
         val mergedDocument = PdfDocument(PdfWriter(outputStream))
         val pdfMerger = PdfMerger(mergedDocument)
@@ -35,7 +35,7 @@ class IntroductionPdfGenerator (
         return outputStream.toByteArray()
     }
 
-    private fun generateIntroductionPdf(application: Application): ByteArrayOutputStream {
+    private suspend fun generateIntroductionPdf(application: Application): ByteArrayOutputStream {
         val data = introductionPdfConverter.execute(application)
         val template = TemplateFileName.ADMIN_INTRODUCTION
 
