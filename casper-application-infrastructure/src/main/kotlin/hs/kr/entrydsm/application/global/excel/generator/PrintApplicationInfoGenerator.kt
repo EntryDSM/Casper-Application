@@ -23,7 +23,7 @@ class PrintApplicationInfoGenerator(
     private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort,
     private val queryStatusPort: ApplicationQueryStatusPort
 ) : PrintApplicationInfoPort {
-    override fun execute(
+    override suspend fun execute(
         httpServletResponse: HttpServletResponse,
         applicationInfoVO: List<ApplicationInfoVO>
     ) {
@@ -49,7 +49,7 @@ class PrintApplicationInfoGenerator(
             throw ExcelExceptions.ExcelIOException().initCause(e)
         }
     }
-    private fun insertCode(row: Row, applicationInfoVO: ApplicationInfoVO) {
+    private suspend fun insertCode(row: Row, applicationInfoVO: ApplicationInfoVO) {
         row.createCell(0).setCellValue(applicationService.safeGetValue(applicationInfoVO.application.receiptCode))
         row.createCell(1).setCellValue(applicationService.translateApplicationType(applicationInfoVO.application.applicationType))
         row.createCell(2).setCellValue(applicationService.translateIsDaejeon(applicationInfoVO.application.isDaejeon))

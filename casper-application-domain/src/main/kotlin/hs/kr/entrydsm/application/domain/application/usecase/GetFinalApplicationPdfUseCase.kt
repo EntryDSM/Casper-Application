@@ -21,7 +21,7 @@ class GetFinalApplicationPdfUseCase (
     private val queryStatusPort: ApplicationQueryStatusPort
 ) {
 
-    fun getFinalApplicationPdf(): ByteArray {
+    suspend fun getFinalApplicationPdf(): ByteArray {
         val userId = securityPort.getCurrentUserId()
         val application = queryApplicationPort.queryApplicationByUserId(userId)
             ?: throw ApplicationExceptions.ApplicationNotFoundException()

@@ -24,7 +24,7 @@ class WebApplicationPdfAdapter(
     fun previewPdf(): ByteArray = getPreviewApplicationPdfUseCase.execute()
 
     @GetMapping("/final", produces = [MediaType.APPLICATION_PDF_VALUE])
-    fun finalPdf(response: HttpServletResponse): ByteArray {
+    suspend fun finalPdf(response: HttpServletResponse): ByteArray {
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
         return getFinalApplicationPdfUseCase.getFinalApplicationPdf()
     }

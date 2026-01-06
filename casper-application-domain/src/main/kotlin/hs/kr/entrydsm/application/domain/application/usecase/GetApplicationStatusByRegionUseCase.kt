@@ -29,7 +29,7 @@ class GetApplicationStatusByRegionUseCase(
         "충북" to { response: GetApplicationStatusByRegionResponse -> response.copy(chungcheongbukDo = response.chungcheongbukDo + 1) }
     )
 
-    fun execute(): GetApplicationStatusByRegionResponse {
+    suspend fun execute(): GetApplicationStatusByRegionResponse {
         val applicationList =
             queryApplicationInfoListByStatusIsSubmittedPort.queryApplicationInfoListByStatusIsSubmitted(true)
 

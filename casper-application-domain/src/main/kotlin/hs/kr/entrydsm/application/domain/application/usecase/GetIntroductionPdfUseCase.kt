@@ -9,7 +9,7 @@ class GetIntroductionPdfUseCase(
     private val applicationPort: QueryApplicationPort,
     private val introductionPdfGeneratorPort: IntroductionPdfGeneratorPort
 ) {
-    fun execute(): ByteArray {
+    suspend fun execute(): ByteArray {
         val applicationList = applicationPort.queryAllFirstRoundPassedApplication()
         return introductionPdfGeneratorPort.generate(applicationList)
     }

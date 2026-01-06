@@ -15,7 +15,7 @@ class UpdateFirstRoundPassedApplicationExamCodeUseCase(
     private val locationService: LocationService,
     private val applicationCommandStatusPort: ApplicationCommandStatusPort
 ) {
-    fun execute() {
+    suspend fun execute() {
         val firstRoundPassedApplications =
             queryApplicationPort.queryAllFirstRoundPassedApplication()
 

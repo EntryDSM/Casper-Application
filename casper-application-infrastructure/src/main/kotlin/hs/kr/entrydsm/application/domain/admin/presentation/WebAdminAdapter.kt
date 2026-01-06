@@ -50,15 +50,15 @@ class WebAdminAdapter(
 ) {
 
     @GetMapping("/statics/score")
-    fun queryStaticsScore(): List<GetStaticsScoreResponse> =
+    suspend fun queryStaticsScore(): List<GetStaticsScoreResponse> =
         queryStaticsScoreUseCase.execute()
 
     @GetMapping("/statics/count")
-    fun queryStaticsCount(): List<GetStaticsCountResponse> =
+    suspend fun queryStaticsCount(): List<GetStaticsCountResponse> =
         queryStaticsCountUseCase.execute()
 
     @GetMapping("/application-count") //todo 이걸 아예 통계쪽으로 빼야할수도?
-    fun getApplicationCount(): GetApplicationCountResponse {
+    suspend fun getApplicationCount(): GetApplicationCountResponse {
         return getApplicationCountUseCase.execute(
             applicationType = ApplicationType.COMMON,
             isDaejeon = true,
@@ -66,7 +66,7 @@ class WebAdminAdapter(
     }
 
     @GetMapping("/{receipt-code}")
-    fun getApplication(@PathVariable("receipt-code") receiptCode: Long): GetApplicationResponse {
+    suspend fun getApplication(@PathVariable("receipt-code") receiptCode: Long): GetApplicationResponse {
         return getApplicationUseCase.execute(receiptCode)
     }
 
@@ -104,7 +104,7 @@ class WebAdminAdapter(
         printAdmissionTicketUseCase.execute(httpServletResponse)
 
     @GetMapping("/region-status")
-    fun getApplicationStatusByRegion(): GetApplicationStatusByRegionWebResponse {
+    suspend fun getApplicationStatusByRegion(): GetApplicationStatusByRegionWebResponse {
         val response = getApplicationStatusByRegionUseCase.execute()
         return GetApplicationStatusByRegionWebResponse(
             seoul = response.seoul,
@@ -128,12 +128,12 @@ class WebAdminAdapter(
     }
 
     @PatchMapping("/exam-code")
-    fun updateFirstRoundPassedApplicationExamCode() {
+    suspend fun updateFirstRoundPassedApplicationExamCode() {
         updateFirstRoundPassedApplicationExamCodeUseCase.execute()
     }
 
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
-    fun getIntroductionPdf(response: HttpServletResponse): ByteArray {
+    suspend fun getIntroductionPdf(response: HttpServletResponse): ByteArray {
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
         return introductionPdfUseCase.execute()
     }

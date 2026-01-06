@@ -9,10 +9,11 @@ import hs.kr.entrydsm.application.global.annotation.UseCase
 class GetApplicationCountUseCase(
     private val queryApplicationPort: QueryApplicationPort,
 ) {
-    fun execute(
+    suspend fun execute(
         applicationType: ApplicationType,
         isDaejeon: Boolean,
     ): GetApplicationCountResponse {
-        return queryApplicationPort.queryApplicationCountByApplicationTypeAndIsDaejeon(applicationType, isDaejeon)
+        return queryApplicationPort.
+        queryApplicationCountByApplicationTypeAndIsDaejeon(applicationType, isDaejeon)
     }
 }

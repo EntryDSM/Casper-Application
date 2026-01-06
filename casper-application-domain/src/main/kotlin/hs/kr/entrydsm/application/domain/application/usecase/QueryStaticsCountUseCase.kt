@@ -9,8 +9,8 @@ import hs.kr.entrydsm.application.global.annotation.ReadOnlyUseCase
 class QueryStaticsCountUseCase(
     private val queryStaticsCountPort: QueryStaticsCountPort
 ) {
-    fun execute(): List<GetStaticsCountResponse> {
-        return ApplicationType.values().flatMap { it ->
+    suspend fun execute(): List<GetStaticsCountResponse> {
+        return ApplicationType.entries.flatMap { it ->
             // 대전 true false를 나누어 처리한다
             listOf(false, true).map { isDaejeon ->
                 val count = queryStaticsCountPort.queryStaticsCount(it, isDaejeon)

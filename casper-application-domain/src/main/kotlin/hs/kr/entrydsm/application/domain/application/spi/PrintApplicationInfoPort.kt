@@ -4,5 +4,5 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationI
 import jakarta.servlet.http.HttpServletResponse
 
 interface PrintApplicationInfoPort {
-    fun execute(httpServletResponse: HttpServletResponse, applicationInfoVO: List<ApplicationInfoVO>)
+    suspend fun execute(httpServletResponse: HttpServletResponse, applicationInfoVO: List<ApplicationInfoVO>)
 }
