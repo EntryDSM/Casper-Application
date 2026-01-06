@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
-import javax.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotBlank
 
 data class SchoolInfoWebRequest(
     @field:NotBlank(message = "학교 코드는 필수입니다")

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import javax.servlet.ServletOutputStream
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletOutputStream
+import jakarta.servlet.http.HttpServletResponse
 
 @Component
 class PrintApplicationCheckListGenerator(

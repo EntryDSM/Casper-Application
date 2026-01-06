@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.score.presentation.dto.request
 
-import javax.validation.constraints.Pattern
-import javax.validation.constraints.PositiveOrZero
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.PositiveOrZero
 
 data class UpdateGraduationCaseWebRequest(
     @PositiveOrZero

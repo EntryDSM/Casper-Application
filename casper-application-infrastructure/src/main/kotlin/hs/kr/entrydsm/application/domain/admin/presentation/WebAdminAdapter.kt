@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.nio.charset.StandardCharsets
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/admin/application")
@@ -70,20 +70,24 @@ class WebAdminAdapter(
         return getApplicationUseCase.execute(receiptCode)
     }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/code")
-    fun printApplicantCodes(httpServletResponse: HttpServletResponse) =
+    suspend fun printApplicantCodes(httpServletResponse: HttpServletResponse) =
         printApplicantCodesUseCase.execute(httpServletResponse)
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants")
-    fun printApplicationInfo(httpServletResponse: HttpServletResponse) =
+    suspend fun printApplicationInfo(httpServletResponse: HttpServletResponse) =
         printApplicationInfoUseCase.execute(httpServletResponse)
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/check-list")
-    fun printApplicationCheckList(httpServletResponse: HttpServletResponse) =
+    suspend fun printApplicationCheckList(httpServletResponse: HttpServletResponse) =
         printApplicationCheckListUseCase.execute(httpServletResponse)
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/applicants")
-    fun getApplicants(
+    suspend fun getApplicants(
         @RequestParam(name = "pageSize", defaultValue = "10")
         pageSize: Long,
         @RequestParam(name = "offset", defaultValue = "0")
@@ -94,8 +98,9 @@ class WebAdminAdapter(
         return getApplicantsUseCase.execute(pageSize, offset, getApplicantsRequest)
     }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/admission-ticket")
-    fun printAdmissionTicket(httpServletResponse: HttpServletResponse) =
+    suspend fun printAdmissionTicket(httpServletResponse: HttpServletResponse) =
         printAdmissionTicketUseCase.execute(httpServletResponse)
 
     @GetMapping("/region-status")

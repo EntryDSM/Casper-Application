@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class AwardAndCertificateInfoWebRequest(
     @field:NotNull(message = "알고리즘 수상 여부는 필수입니다")

@@ -4,7 +4,7 @@ import hs.kr.entrydsm.application.domain.application.spi.*
 import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationInfoVO
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
 import hs.kr.entrydsm.application.global.annotation.ReadOnlyUseCase
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 @ReadOnlyUseCase
 class PrintAdmissionTicketUseCase(
@@ -16,7 +16,7 @@ class PrintAdmissionTicketUseCase(
     private val queryScorePort: ApplicationQueryScorePort,
     private val queryApplicationInfoListByStatusIsSubmittedPort: QueryApplicationInfoListByStatusIsSubmittedPort
 ){
-    fun execute(httpServletResponse: HttpServletResponse) {
+    suspend fun execute(httpServletResponse: HttpServletResponse) {
         val applications = queryApplicationInfoListByStatusIsSubmittedPort.queryApplicationInfoListByStatusIsSubmitted(true)
         val receiptCodeList = applications.map { it.receiptCode }
         val graduationInfoMap = queryGraduationInfoPort.queryAllGraduationByReceiptCode(receiptCodeList)

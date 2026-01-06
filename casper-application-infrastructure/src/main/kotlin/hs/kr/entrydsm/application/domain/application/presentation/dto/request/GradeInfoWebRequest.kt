@@ -1,10 +1,10 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
 import java.math.BigDecimal
-import javax.validation.constraints.DecimalMax
-import javax.validation.constraints.DecimalMin
-import javax.validation.constraints.NotNull
-import javax.validation.constraints.Pattern
+import jakarta.validation.constraints.DecimalMax
+import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 
 data class GradeInfoWebRequest(
     @field:NotNull(message = "국어 성적은 필수입니다")
