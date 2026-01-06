@@ -11,7 +11,7 @@ import kotlin.math.ceil
 class GetApplicantsUseCase(
     private val queryApplicationPort: QueryApplicationPort
 ) {
-    fun execute(pageSize: Long, offset: Long, getApplicantsRequest: GetApplicantsRequest): GetApplicantsResponse{
+    suspend fun execute(pageSize: Long, offset: Long, getApplicantsRequest: GetApplicantsRequest): GetApplicantsResponse{
         val pagedApplicants = getApplicantsRequest.run {
             queryApplicationPort.queryAllApplicantsByFilter(
                 schoolName = schoolName!!,
