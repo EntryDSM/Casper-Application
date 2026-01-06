@@ -9,6 +9,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApp
 import hs.kr.entrydsm.application.domain.file.presentation.converter.ImageFileConverter
 import hs.kr.entrydsm.application.domain.file.presentation.dto.response.UploadImageWebResponse
 import jakarta.validation.Valid
+import kotlinx.coroutines.runBlocking
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -27,7 +28,7 @@ class WebApplicationAdapter(
 
     @PostMapping
     suspend fun submitApplication(@RequestBody @Valid request: SubmitApplicationWebRequest) =
-        submitApplicationUseCase.execute(request.toSubmitApplicationRequest())
+        runBlocking { submitApplicationUseCase.execute(request.toSubmitApplicationRequest()) }
 
     @PostMapping("/photo")
     fun uploadFile(@RequestPart(name = "image") file: MultipartFile): UploadImageWebResponse {
@@ -39,5 +40,6 @@ class WebApplicationAdapter(
     }
 
     @GetMapping("/status")
-    suspend fun getMyApplicationStatus(): GetApplicationStatusResponse = getMyApplicationStatusUseCase.execute()
+    suspend fun getMyApplicationStatus(): GetApplicationStatusResponse =
+        runBlocking { getMyApplicationStatusUseCase.execute() }
 }

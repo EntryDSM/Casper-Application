@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.domain.application.presentation
 
 import hs.kr.entrydsm.application.domain.application.usecase.GetFinalApplicationPdfUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.GetPreviewApplicationPdfUseCase
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -26,7 +27,7 @@ class WebApplicationPdfAdapter(
     @GetMapping("/final", produces = [MediaType.APPLICATION_PDF_VALUE])
     suspend fun finalPdf(response: HttpServletResponse): ByteArray {
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
-        return getFinalApplicationPdfUseCase.getFinalApplicationPdf()
+        return runBlocking { getFinalApplicationPdfUseCase.getFinalApplicationPdf() }
     }
 
     private fun encodeFileName(): String {
