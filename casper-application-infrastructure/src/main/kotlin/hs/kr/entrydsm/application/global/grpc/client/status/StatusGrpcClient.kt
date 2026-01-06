@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.global.grpc.client.status
 
 import com.google.protobuf.Empty
-import hs.kr.entrydsm.application.domain.status.model.ApplicationStatus
+import hs.kr.entrydsm.application.domain.status.enums.ApplicationStatus
 import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusListResponse
 import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse

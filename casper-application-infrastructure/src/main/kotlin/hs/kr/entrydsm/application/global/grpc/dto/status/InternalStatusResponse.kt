@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.global.grpc.dto.status
 
-import hs.kr.entrydsm.application.domain.status.model.ApplicationStatus
+import hs.kr.entrydsm.application.domain.status.enums.ApplicationStatus
 
 data class InternalStatusResponse(
     val id: Long,
