@@ -22,7 +22,7 @@ interface QueryApplicationPort {
 
     fun queryAllByReceiptCode(receiptCodeList: List<Long>): List<Application?>
 
-    fun queryAllApplicantsByFilter(
+    suspend fun queryAllApplicantsByFilter(
         schoolName: String,
         name: String,
         isDaejeon: Boolean?,
