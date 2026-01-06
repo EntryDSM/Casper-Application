@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.status.domain.entity
 
+import hs.kr.entrydsm.application.domain.status.enums.ApplicationStatus
 import org.springframework.data.annotation.Id
 import org.springframework.data.redis.core.RedisHash
 import org.springframework.data.redis.core.TimeToLive
@@ -9,11 +10,9 @@ class StatusCacheRedisEntity(
     @Id
     val receiptCode: Long,
 
-    val isPrintsArrived: Boolean,
-
-    val isSubmitted: Boolean,
-
     val examCode: String?,
+
+    val applicationStatus: ApplicationStatus,
 
     val isFirstRoundPass: Boolean,
 
