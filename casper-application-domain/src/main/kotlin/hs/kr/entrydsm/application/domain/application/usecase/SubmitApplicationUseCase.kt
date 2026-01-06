@@ -30,7 +30,7 @@ class SubmitApplicationUseCase(
     private val graduationInfoService: GraduationInfoService,
     private val scoreService: ScoreService
 ) {
-    fun execute(request: SubmitApplicationRequest) {
+    suspend fun execute(request: SubmitApplicationRequest) {
         val userId = securityPort.getCurrentUserId()
         val user = applicationQueryUserPort.queryUserByUserId(userId)
         if (queryApplicationPort.isExistsApplicationByUserId(userId)) {

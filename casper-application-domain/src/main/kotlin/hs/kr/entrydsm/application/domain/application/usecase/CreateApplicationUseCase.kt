@@ -19,7 +19,7 @@ class CreateApplicationUseCase(
     private val applicationQueryUserPort: ApplicationQueryUserPort,
     private val applicationEventPort: ApplicationEventPort,
 ) {
-    fun execute() {
+    suspend fun execute() {
         val userId = securityPort.getCurrentUserId()
         val user = applicationQueryUserPort.queryUserByUserId(userId)
         if (queryApplicationPort.isExistsApplicationByUserId(userId)) {
