@@ -14,7 +14,6 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetSta
 import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationCodeVO
 import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.QGraduationJpaEntity.graduationJpaEntity
 import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.QQualificationJpaEntity.qualificationJpaEntity
-import hs.kr.entrydsm.application.domain.status.model.ApplicationStatus
 import hs.kr.entrydsm.application.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.application.global.feign.client.LocationPort
 import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
@@ -93,7 +92,7 @@ class ApplicationPersistenceAdapter(
         val filteredApplicants = isSubmitted?.let { submitted ->
             applicationList.filter { application ->
                 statusMap[application.receiptCode]?.let { status ->
-                    isSubmittedByStatus(status) == submitted
+                    status.applicationStatus.isSubmitted() == submitted
                 } ?: false
             }
         } ?: applicationList
@@ -110,9 +109,9 @@ class ApplicationPersistenceAdapter(
                 name = application.applicantName,
                 telephoneNumber = application.applicantTel,
                 isDaejeon = application.isDaejeon,
-                isPrintsArrived = isPrintsArrivedByStatus(status),
+                isPrintsArrived = status.applicationStatus.isPrintsArrived(),
                 applicationType = application.applicationType?.name,
-                isSubmitted = isSubmittedByStatus(status),
+                isSubmitted = status.applicationStatus.isSubmitted(),
                 isOutOfHeadcount = application.isOutOfHeadcount
             )
         }
@@ -147,17 +146,6 @@ class ApplicationPersistenceAdapter(
         return applicationTypes
     }
 
-    private fun isSubmittedByStatus(status: InternalStatusResponse): Boolean {
-        return status.applicationStatus != ApplicationStatus.NOT_APPLIED &&
-                status.applicationStatus != ApplicationStatus.WRITING
-    }
-
-    private fun isPrintsArrivedByStatus(status: InternalStatusResponse): Boolean {
-        return status.applicationStatus == ApplicationStatus.DOCUMENTS_RECEIVED ||
-                status.applicationStatus == ApplicationStatus.SCREENING_IN_PROGRESS ||
-                status.applicationStatus == ApplicationStatus.RESULT_ANNOUNCED
-    }
-
     override suspend fun queryApplicationCountByApplicationTypeAndIsDaejeon(
         applicationType: ApplicationType,
         isDaejeon: Boolean,
@@ -186,7 +174,9 @@ class ApplicationPersistenceAdapter(
     override suspend fun queryApplicationInfoListByStatusIsSubmitted(isSubmitted: Boolean): List<Application> {
         val statusMap = statusGrpcClient.getStatusList().statusList.associateBy(InternalStatusResponse::receiptCode)
 
-        val filteredReceiptCodeList = statusMap.filterValues { isSubmittedByStatus(it) == isSubmitted }.keys.toList()
+        val filteredReceiptCodeList = statusMap.filterValues {
+            it.applicationStatus.isSubmitted() == isSubmitted
+        }.keys.toList()
 
         return jpaQueryFactory
             .select(applicationJpaEntity)
@@ -251,7 +241,7 @@ class ApplicationPersistenceAdapter(
 
         val count = applicationList.count {
             val status = statusMap[it.receiptCode]
-            isSubmittedByStatus(status!!)
+            status!!.applicationStatus.isSubmitted()
         }
 
         return GetStaticsCountResponse(
