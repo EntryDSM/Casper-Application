@@ -29,7 +29,9 @@ class GetFinalApplicationPdfUseCase (
         val status = queryStatusPort.queryStatusByReceiptCode(application.receiptCode)
             ?: throw StatusExceptions.StatusNotFoundException()
 
-        if (status.isSubmitted) throw StatusExceptions.AlreadySubmittedException()
+        if (status.isNotSubmitted) {
+            throw StatusExceptions.NotSubmitException()
+        }
 
         validatePrintableApplicant(application)
 
