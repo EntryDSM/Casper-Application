@@ -12,8 +12,12 @@ sealed class StatusExceptions(
     class AlreadySubmittedException(message: String = ALREADY_SUBMITTED) :
         StatusExceptions(409, message)
 
+    class NotSubmitException(message: String = NOT_SUBMIT) :
+        StatusExceptions(409, message)
+
     companion object {
         private const val STATUS_NOT_FOUND = "상태가 존재하지 않습니다"
         private const val ALREADY_SUBMITTED = "이미 최종제출이 되어있습니다."
+        private const val NOT_SUBMIT = "원서가 제출되어있지 않습니다."
     }
 }
