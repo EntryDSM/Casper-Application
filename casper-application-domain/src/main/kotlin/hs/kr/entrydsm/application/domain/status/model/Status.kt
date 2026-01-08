@@ -20,4 +20,8 @@ data class Status(
         get() = applicationStatus == ApplicationStatus.DOCUMENTS_RECEIVED ||
                 applicationStatus == ApplicationStatus.SCREENING_IN_PROGRESS ||
                 applicationStatus == ApplicationStatus.RESULT_ANNOUNCED
+
+    val isNotSubmitted: Boolean
+        get() = applicationStatus == ApplicationStatus.NOT_APPLIED ||
+                applicationStatus == ApplicationStatus.WRITING
 }
