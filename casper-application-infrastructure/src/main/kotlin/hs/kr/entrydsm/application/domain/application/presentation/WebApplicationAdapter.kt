@@ -27,7 +27,7 @@ class WebApplicationAdapter(
 ) {
 
     @PostMapping
-    suspend fun submitApplication(@RequestBody @Valid request: SubmitApplicationWebRequest) =
+    fun submitApplication(@RequestBody @Valid request: SubmitApplicationWebRequest) =
         runBlocking { submitApplicationUseCase.execute(request.toSubmitApplicationRequest()) }
 
     @PostMapping("/photo")
@@ -40,6 +40,6 @@ class WebApplicationAdapter(
     }
 
     @GetMapping("/status")
-    suspend fun getMyApplicationStatus(): GetApplicationStatusResponse =
+    fun getMyApplicationStatus(): GetApplicationStatusResponse =
         runBlocking { getMyApplicationStatusUseCase.execute() }
 }

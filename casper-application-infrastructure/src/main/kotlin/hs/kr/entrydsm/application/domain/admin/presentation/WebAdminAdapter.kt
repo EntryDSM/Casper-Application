@@ -51,15 +51,15 @@ class WebAdminAdapter(
 ) {
 
     @GetMapping("/statics/score")
-    suspend fun queryStaticsScore(): List<GetStaticsScoreResponse> =
+    fun queryStaticsScore(): List<GetStaticsScoreResponse> =
         runBlocking { queryStaticsScoreUseCase.execute() }
 
     @GetMapping("/statics/count")
-    suspend fun queryStaticsCount(): List<GetStaticsCountResponse> =
+    fun queryStaticsCount(): List<GetStaticsCountResponse> =
         runBlocking { queryStaticsCountUseCase.execute() }
 
     @GetMapping("/application-count") //todo 이걸 아예 통계쪽으로 빼야할수도?
-    suspend fun getApplicationCount(): GetApplicationCountResponse {
+    fun getApplicationCount(): GetApplicationCountResponse {
         return runBlocking {
             getApplicationCountUseCase.execute(
                 applicationType = ApplicationType.COMMON,
@@ -69,28 +69,28 @@ class WebAdminAdapter(
     }
 
     @GetMapping("/{receipt-code}")
-    suspend fun getApplication(@PathVariable("receipt-code") receiptCode: Long): GetApplicationResponse {
+    fun getApplication(@PathVariable("receipt-code") receiptCode: Long): GetApplicationResponse {
         return runBlocking { getApplicationUseCase.execute(receiptCode) }
     }
 
     // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/code")
-    suspend fun printApplicantCodes(httpServletResponse: HttpServletResponse) =
+    fun printApplicantCodes(httpServletResponse: HttpServletResponse) =
         runBlocking { printApplicantCodesUseCase.execute(httpServletResponse) }
 
     // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants")
-    suspend fun printApplicationInfo(httpServletResponse: HttpServletResponse) =
+    fun printApplicationInfo(httpServletResponse: HttpServletResponse) =
         runBlocking { printApplicationInfoUseCase.execute(httpServletResponse) }
 
     // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/check-list")
-    suspend fun printApplicationCheckList(httpServletResponse: HttpServletResponse) =
+    fun printApplicationCheckList(httpServletResponse: HttpServletResponse) =
         runBlocking { printApplicationCheckListUseCase.execute(httpServletResponse) }
 
     // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/applicants")
-    suspend fun getApplicants(
+    fun getApplicants(
         @RequestParam(name = "pageSize", defaultValue = "10")
         pageSize: Long,
         @RequestParam(name = "offset", defaultValue = "0")
@@ -103,11 +103,11 @@ class WebAdminAdapter(
 
     // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/admission-ticket")
-    suspend fun printAdmissionTicket(httpServletResponse: HttpServletResponse) =
+    fun printAdmissionTicket(httpServletResponse: HttpServletResponse) =
         runBlocking { printAdmissionTicketUseCase.execute(httpServletResponse) }
 
     @GetMapping("/region-status")
-    suspend fun getApplicationStatusByRegion(): GetApplicationStatusByRegionWebResponse {
+    fun getApplicationStatusByRegion(): GetApplicationStatusByRegionWebResponse {
         return runBlocking {
             val response = getApplicationStatusByRegionUseCase.execute()
             GetApplicationStatusByRegionWebResponse(
@@ -133,12 +133,12 @@ class WebAdminAdapter(
     }
 
     @PatchMapping("/exam-code")
-    suspend fun updateFirstRoundPassedApplicationExamCode() {
+    fun updateFirstRoundPassedApplicationExamCode() {
         runBlocking { updateFirstRoundPassedApplicationExamCodeUseCase.execute() }
     }
 
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
-    suspend fun getIntroductionPdf(response: HttpServletResponse): ByteArray {
+    fun getIntroductionPdf(response: HttpServletResponse): ByteArray {
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
         return runBlocking { introductionPdfUseCase.execute() }
     }

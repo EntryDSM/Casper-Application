@@ -16,12 +16,12 @@ class WebPassAdapter(
     private val queryIsSecondRoundPassUseCase: QueryIsSecondRoundPassUseCase
 ) {
     @GetMapping("/first-round")
-    suspend fun queryIsFirstRound(): QueryIsFirstRoundPassResponse = runBlocking {
+    fun queryIsFirstRound(): QueryIsFirstRoundPassResponse = runBlocking {
         queryIsFirstRoundPassUseCase.execute()
     }
 
     @GetMapping("/second-round")
-    suspend fun queryIsSecondRound(): QueryIsSecondRoundPassResponse = runBlocking {
+    fun queryIsSecondRound(): QueryIsSecondRoundPassResponse = runBlocking {
         queryIsSecondRoundPassUseCase.execute()
     }
 }
