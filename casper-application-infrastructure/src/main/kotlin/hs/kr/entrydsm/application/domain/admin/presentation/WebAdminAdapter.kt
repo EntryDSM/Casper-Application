@@ -133,8 +133,8 @@ class WebAdminAdapter(
     }
 
     @PatchMapping("/exam-code")
-    fun updateFirstRoundPassedApplicationExamCode() {
-        runBlocking { updateFirstRoundPassedApplicationExamCodeUseCase.execute() }
+    fun updateFirstRoundPassedApplicationExamCode() = runBlocking {
+        updateFirstRoundPassedApplicationExamCodeUseCase.execute()
     }
 
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
