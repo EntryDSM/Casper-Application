@@ -73,22 +73,18 @@ class WebAdminAdapter(
         return runBlocking { getApplicationUseCase.execute(receiptCode) }
     }
 
-    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/code")
     fun printApplicantCodes(httpServletResponse: HttpServletResponse) =
         runBlocking { printApplicantCodesUseCase.execute(httpServletResponse) }
 
-    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants")
     fun printApplicationInfo(httpServletResponse: HttpServletResponse) =
         runBlocking { printApplicationInfoUseCase.execute(httpServletResponse) }
 
-    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/check-list")
     fun printApplicationCheckList(httpServletResponse: HttpServletResponse) =
         runBlocking { printApplicationCheckListUseCase.execute(httpServletResponse) }
 
-    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/applicants")
     fun getApplicants(
         @RequestParam(name = "pageSize", defaultValue = "10")
@@ -101,7 +97,6 @@ class WebAdminAdapter(
         return runBlocking { getApplicantsUseCase.execute(pageSize, offset, getApplicantsRequest) }
     }
 
-    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/admission-ticket")
     fun printAdmissionTicket(httpServletResponse: HttpServletResponse) =
         runBlocking { printAdmissionTicketUseCase.execute(httpServletResponse) }
