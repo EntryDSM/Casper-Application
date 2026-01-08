@@ -1,12 +1,15 @@
 package hs.kr.entrydsm.application.global.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import hs.kr.entrydsm.application.global.error.GlobalExceptionFilter
+import hs.kr.entrydsm.application.global.security.jwt.JwtFilter
 import hs.kr.entrydsm.application.global.security.jwt.UserRole
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsUtils
 
 @Configuration
@@ -15,29 +18,24 @@ class SecurityConfig(
 ) {
     @Bean
     protected fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http.csrf()
-            .disable()
-            .cors()
-            .and()
-            .formLogin()
-            .disable()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        http
+            .csrf { it.disable() }
+            .cors { }
+            .formLogin { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
 
-        http.authorizeRequests()
-            .antMatchers("/")
-            .permitAll()
-            .antMatchers("/admin/**")
-            .hasRole(UserRole.ADMIN.name)
-            .antMatchers("/schools")
-            .permitAll()
-            .antMatchers("/score/**")
-            .hasRole(UserRole.USER.name)
-            .anyRequest()
-            .authenticated()
+        http.authorizeHttpRequests {
+            it.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+            it.requestMatchers("/").permitAll()
+            it.requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
+            it.requestMatchers("/schools").permitAll()
+            it.requestMatchers("/score/**").hasRole(UserRole.USER.name)
+            it.anyRequest().authenticated()
+        }
 
         http
-            .apply(FilterConfig(objectMapper))
+            .addFilterBefore(JwtFilter(), UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(GlobalExceptionFilter(objectMapper), JwtFilter::class.java)
 
         return http.build()
     }

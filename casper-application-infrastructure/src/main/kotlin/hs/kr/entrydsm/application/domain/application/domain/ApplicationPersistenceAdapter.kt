@@ -16,8 +16,8 @@ import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.QGraduatio
 import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.QQualificationJpaEntity.qualificationJpaEntity
 import hs.kr.entrydsm.application.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.application.global.feign.client.LocationPort
-import hs.kr.entrydsm.application.global.feign.client.StatusClient
-import hs.kr.entrydsm.application.global.feign.client.dto.response.StatusInfoElement
+import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
+import hs.kr.entrydsm.application.global.grpc.dto.status.InternalStatusResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -29,7 +29,7 @@ class ApplicationPersistenceAdapter(
     private val applicationMapper: ApplicationMapper,
     private val applicationJpaRepository: ApplicationJpaRepository,
     private val jpaQueryFactory: JPAQueryFactory,
-    private val statusClient: StatusClient,
+    private val statusGrpcClient: StatusGrpcClient,
     private val locationPort: LocationPort
 ) : ApplicationPort {
     override fun save(application: Application): Application {
@@ -60,7 +60,7 @@ class ApplicationPersistenceAdapter(
             .let(applicationMapper::toDomain)
     }
 
-    override fun queryAllApplicantsByFilter(
+    override suspend fun queryAllApplicantsByFilter(
         schoolName: String,
         name: String,
         isDaejeon: Boolean?,
@@ -72,9 +72,8 @@ class ApplicationPersistenceAdapter(
         pageSize: Long,
         offset: Long
     ): PagedResult<Applicant> {
-        val statusMap: Map<Long, StatusInfoElement> =
-            statusClient.getStatusList()
-                .associateBy(StatusInfoElement::receiptCode)
+        val statusMap: Map<Long, InternalStatusResponse> =
+            statusGrpcClient.getStatusList().statusList.associateBy(InternalStatusResponse::receiptCode)
 
         val query = jpaQueryFactory
             .selectFrom(applicationJpaEntity)
@@ -92,7 +91,9 @@ class ApplicationPersistenceAdapter(
 
         val filteredApplicants = isSubmitted?.let { submitted ->
             applicationList.filter { application ->
-                statusMap[application.receiptCode]?.isSubmitted == submitted
+                statusMap[application.receiptCode]?.let { status ->
+                    status.applicationStatus.isSubmitted() == submitted
+                } ?: false
             }
         } ?: applicationList
 
@@ -108,9 +109,9 @@ class ApplicationPersistenceAdapter(
                 name = application.applicantName,
                 telephoneNumber = application.applicantTel,
                 isDaejeon = application.isDaejeon,
-                isPrintsArrived = status.isPrintsArrived,
+                isPrintsArrived = status.applicationStatus.isPrintsArrived(),
                 applicationType = application.applicationType?.name,
-                isSubmitted = status.isSubmitted,
+                isSubmitted = status.applicationStatus.isSubmitted(),
                 isOutOfHeadcount = application.isOutOfHeadcount
             )
         }
@@ -120,11 +121,11 @@ class ApplicationPersistenceAdapter(
         return PagedResult(items = applicants, hasNextPage = hasNextPage, totalSize = totalSize)
     }
 
-    override fun queryAllFirstRoundPassedApplication(): List<Application> {
+    override suspend fun queryAllFirstRoundPassedApplication(): List<Application> {
         val firstRoundPassStatusKeyList =
-            statusClient.getStatusList()
+            statusGrpcClient.getStatusList().statusList
                 .filter { it.isFirstRoundPass }
-                .associateBy(StatusInfoElement::receiptCode)
+                .associateBy(InternalStatusResponse::receiptCode)
                 .keys.toList()
 
         return jpaQueryFactory
@@ -145,14 +146,14 @@ class ApplicationPersistenceAdapter(
         return applicationTypes
     }
 
-    override fun queryApplicationCountByApplicationTypeAndIsDaejeon(
+    override suspend fun queryApplicationCountByApplicationTypeAndIsDaejeon(
         applicationType: ApplicationType,
         isDaejeon: Boolean,
     ): GetApplicationCountResponse {
 
-        val statusMap: Map<Long, StatusInfoElement> =
-            statusClient.getStatusList()
-                .associateBy(StatusInfoElement::receiptCode)
+        val statusMap: Map<Long, InternalStatusResponse> =
+            statusGrpcClient.getStatusList().statusList
+                .associateBy(InternalStatusResponse::receiptCode)
 
         val count = jpaQueryFactory.selectFrom(applicationJpaEntity)
             .where(
@@ -170,10 +171,12 @@ class ApplicationPersistenceAdapter(
         )
     }
 
-    override fun queryApplicationInfoListByStatusIsSubmitted(isSubmitted: Boolean): List<Application> {
-        val statusMap = statusClient.getStatusList().associateBy(StatusInfoElement::receiptCode)
+    override suspend fun queryApplicationInfoListByStatusIsSubmitted(isSubmitted: Boolean): List<Application> {
+        val statusMap = statusGrpcClient.getStatusList().statusList.associateBy(InternalStatusResponse::receiptCode)
 
-        val filteredReceiptCodeList = statusMap.filterValues { it.isSubmitted == isSubmitted }.keys.toList()
+        val filteredReceiptCodeList = statusMap.filterValues {
+            it.applicationStatus.isSubmitted() == isSubmitted
+        }.keys.toList()
 
         return jpaQueryFactory
             .select(applicationJpaEntity)
@@ -201,8 +204,8 @@ class ApplicationPersistenceAdapter(
         applicationJpaRepository.deleteById(receiptCode)
     }
 
-    override fun queryApplicantCodesByIsFirstRoundPass(): List<ApplicationCodeVO> {
-        val statusMap = statusClient.getStatusList().associateBy(StatusInfoElement::receiptCode)
+    override suspend fun queryApplicantCodesByIsFirstRoundPass(): List<ApplicationCodeVO> {
+        val statusMap = statusGrpcClient.getStatusList().statusList.associateBy(InternalStatusResponse::receiptCode)
 
         return jpaQueryFactory
             .select(
@@ -220,13 +223,13 @@ class ApplicationPersistenceAdapter(
             }
     }
 
-    override fun queryStaticsCount(
+    override suspend fun queryStaticsCount(
         applicationType: ApplicationType,
         isDaejeon: Boolean
     ): GetStaticsCountResponse {
-        val statusMap: Map<Long, StatusInfoElement> =
-            statusClient.getStatusList()
-                .associateBy(StatusInfoElement::receiptCode)
+        val statusMap: Map<Long, InternalStatusResponse> =
+            statusGrpcClient.getStatusList().statusList
+                .associateBy(InternalStatusResponse::receiptCode)
 
         val applicationList = jpaQueryFactory
             .selectFrom(applicationJpaEntity)
@@ -238,7 +241,7 @@ class ApplicationPersistenceAdapter(
 
         val count = applicationList.count {
             val status = statusMap[it.receiptCode]
-            status?.isSubmitted == true
+            status!!.applicationStatus.isSubmitted()
         }
 
         return GetStaticsCountResponse(

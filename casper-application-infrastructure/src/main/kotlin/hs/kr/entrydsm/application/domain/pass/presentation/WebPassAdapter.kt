@@ -4,6 +4,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.QueryIsFirstRoundPa
 import hs.kr.entrydsm.application.domain.application.usecase.QueryIsSecondRoundPassUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.QueryIsFirstRoundPassResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.QueryIsSecondRoundPassResponse
+import kotlinx.coroutines.runBlocking
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -15,10 +16,12 @@ class WebPassAdapter(
     private val queryIsSecondRoundPassUseCase: QueryIsSecondRoundPassUseCase
 ) {
     @GetMapping("/first-round")
-    fun queryIsFirstRound(): QueryIsFirstRoundPassResponse =
+    fun queryIsFirstRound(): QueryIsFirstRoundPassResponse = runBlocking {
         queryIsFirstRoundPassUseCase.execute()
+    }
 
     @GetMapping("/second-round")
-    fun queryIsSecondRound(): QueryIsSecondRoundPassResponse =
+    fun queryIsSecondRound(): QueryIsSecondRoundPassResponse = runBlocking {
         queryIsSecondRoundPassUseCase.execute()
+    }
 }

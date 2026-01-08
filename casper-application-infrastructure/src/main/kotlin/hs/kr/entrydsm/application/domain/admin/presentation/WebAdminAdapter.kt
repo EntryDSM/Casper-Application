@@ -21,6 +21,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApp
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetStaticsCountResponse
 import hs.kr.entrydsm.application.domain.score.usecase.QueryStaticsScoreUseCase
 import hs.kr.entrydsm.application.domain.score.usecase.dto.response.GetStaticsScoreResponse
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.nio.charset.StandardCharsets
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/admin/application")
@@ -51,37 +52,43 @@ class WebAdminAdapter(
 
     @GetMapping("/statics/score")
     fun queryStaticsScore(): List<GetStaticsScoreResponse> =
-        queryStaticsScoreUseCase.execute()
+        runBlocking { queryStaticsScoreUseCase.execute() }
 
     @GetMapping("/statics/count")
     fun queryStaticsCount(): List<GetStaticsCountResponse> =
-        queryStaticsCountUseCase.execute()
+        runBlocking { queryStaticsCountUseCase.execute() }
 
     @GetMapping("/application-count") //todo 이걸 아예 통계쪽으로 빼야할수도?
     fun getApplicationCount(): GetApplicationCountResponse {
-        return getApplicationCountUseCase.execute(
-            applicationType = ApplicationType.COMMON,
-            isDaejeon = true,
-        )
+        return runBlocking {
+            getApplicationCountUseCase.execute(
+                applicationType = ApplicationType.COMMON,
+                isDaejeon = true,
+            )
+        }
     }
 
     @GetMapping("/{receipt-code}")
     fun getApplication(@PathVariable("receipt-code") receiptCode: Long): GetApplicationResponse {
-        return getApplicationUseCase.execute(receiptCode)
+        return runBlocking { getApplicationUseCase.execute(receiptCode) }
     }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/code")
     fun printApplicantCodes(httpServletResponse: HttpServletResponse) =
-        printApplicantCodesUseCase.execute(httpServletResponse)
+        runBlocking { printApplicantCodesUseCase.execute(httpServletResponse) }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants")
     fun printApplicationInfo(httpServletResponse: HttpServletResponse) =
-        printApplicationInfoUseCase.execute(httpServletResponse)
+        runBlocking { printApplicationInfoUseCase.execute(httpServletResponse) }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/applicants/check-list")
     fun printApplicationCheckList(httpServletResponse: HttpServletResponse) =
-        printApplicationCheckListUseCase.execute(httpServletResponse)
+        runBlocking { printApplicationCheckListUseCase.execute(httpServletResponse) }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/applicants")
     fun getApplicants(
         @RequestParam(name = "pageSize", defaultValue = "10")
@@ -91,46 +98,49 @@ class WebAdminAdapter(
         @ModelAttribute
         getApplicantsRequest: GetApplicantsRequest
     ): GetApplicantsResponse {
-        return getApplicantsUseCase.execute(pageSize, offset, getApplicantsRequest)
+        return runBlocking { getApplicantsUseCase.execute(pageSize, offset, getApplicantsRequest) }
     }
 
+    // TODO suspend 이므로 403 뜨는거 처리 해야 함.
     @GetMapping("/excel/admission-ticket")
     fun printAdmissionTicket(httpServletResponse: HttpServletResponse) =
-        printAdmissionTicketUseCase.execute(httpServletResponse)
+        runBlocking { printAdmissionTicketUseCase.execute(httpServletResponse) }
 
     @GetMapping("/region-status")
     fun getApplicationStatusByRegion(): GetApplicationStatusByRegionWebResponse {
-        val response = getApplicationStatusByRegionUseCase.execute()
-        return GetApplicationStatusByRegionWebResponse(
-            seoul = response.seoul,
-            gwangju = response.gwangju,
-            daegu = response.daegu,
-            daejeon = response.daejeon,
-            busan = response.busan,
-            sejong = response.sejong,
-            ulsan = response.ulsan,
-            incheon = response.incheon,
-            jeju = response.jeju,
-            gangwonDo = response.gangwonDo,
-            gyeonggiDo = response.gyeonggiDo,
-            gyeongsangnamDo = response.gyeongsangnamDo,
-            gyeongsangbukDo = response.gyeongsangbukDo,
-            jeollanamDo = response.jeollanamDo,
-            jeollabukDo = response.jeollabukDo,
-            chungcheongnamDo = response.chungcheongnamDo,
-            chungcheongbukDo = response.chungcheongbukDo
-        )
+        return runBlocking {
+            val response = getApplicationStatusByRegionUseCase.execute()
+            GetApplicationStatusByRegionWebResponse(
+                seoul = response.seoul,
+                gwangju = response.gwangju,
+                daegu = response.daegu,
+                daejeon = response.daejeon,
+                busan = response.busan,
+                sejong = response.sejong,
+                ulsan = response.ulsan,
+                incheon = response.incheon,
+                jeju = response.jeju,
+                gangwonDo = response.gangwonDo,
+                gyeonggiDo = response.gyeonggiDo,
+                gyeongsangnamDo = response.gyeongsangnamDo,
+                gyeongsangbukDo = response.gyeongsangbukDo,
+                jeollanamDo = response.jeollanamDo,
+                jeollabukDo = response.jeollabukDo,
+                chungcheongnamDo = response.chungcheongnamDo,
+                chungcheongbukDo = response.chungcheongbukDo
+            )
+        }
     }
 
     @PatchMapping("/exam-code")
     fun updateFirstRoundPassedApplicationExamCode() {
-        updateFirstRoundPassedApplicationExamCodeUseCase.execute()
+        runBlocking { updateFirstRoundPassedApplicationExamCodeUseCase.execute() }
     }
 
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun getIntroductionPdf(response: HttpServletResponse): ByteArray {
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
-        return introductionPdfUseCase.execute()
+        return runBlocking { introductionPdfUseCase.execute() }
     }
     private fun encodeFileName(): String {
         return String(WebApplicationPdfAdapter.FILE_NAME.toByteArray(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1)

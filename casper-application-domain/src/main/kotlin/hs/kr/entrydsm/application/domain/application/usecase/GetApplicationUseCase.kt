@@ -25,7 +25,7 @@ class GetApplicationUseCase(
     private val applicationQueryStatusPort: ApplicationQueryStatusPort,
     private val generateFileUrlPort: GenerateFileUrlPort
 ) {
-    fun execute(receiptCode: Long): GetApplicationResponse {
+    suspend fun execute(receiptCode: Long): GetApplicationResponse {
         val application = queryApplicationPort.queryApplicationByReceiptCode(receiptCode)
             ?: throw ApplicationExceptions.ApplicationNotFoundException()
         val status = applicationQueryStatusPort.queryStatusByReceiptCode(receiptCode)
@@ -54,7 +54,7 @@ class GetApplicationUseCase(
         return statusResponse
     }
 
-    private fun getCommonInformationResponse(application: Application): ApplicationCommonInformationResponse {
+    private suspend fun getCommonInformationResponse(application: Application): ApplicationCommonInformationResponse {
         val graduationInfo = applicationQueryGraduationInfoPort.queryGraduationInfoByApplication(application)
             ?: throw GraduationInfoExceptions.GraduationNotFoundException()
 

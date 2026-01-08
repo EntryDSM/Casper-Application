@@ -1,8 +1,8 @@
 package hs.kr.entrydsm.application.domain.graduationInfo.domain.entity
 
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import java.time.YearMonth
-import javax.persistence.Entity
-import javax.persistence.Table
 
 @Entity
 @Table(name = "tbl_qualification")

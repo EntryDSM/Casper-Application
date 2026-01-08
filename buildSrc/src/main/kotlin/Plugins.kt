@@ -1,24 +1,16 @@
 object Plugins {
     const val KOTLIN_JVM = "jvm"
-    const val JETBRAINS_KOTLIN_JVM = "org.jetbrains.kotlin.jvm"
     const val KOTLIN_SPRING = "plugin.spring"
     const val KOTLIN_JPA = "plugin.jpa"
     const val KOTLIN_ALLOPEN = "plugin.allopen"
     const val KOTLIN_NOARG = "plugin.noarg"
-    const val KOTLIN_KAPT = "kapt"
     const val KOTLIN_SERIALIZATION = "plugin.serialization"
-    const val JETBRAINS_KOTLIN_SERIALIZATION = "org.jetbrains.kotlin.plugin.serialization"
     const val SPRING_BOOT = "org.springframework.boot"
     const val SPRING_DEPENDENCY_MANAGEMENT = "io.spring.dependency-management"
     const val KTLINT = "org.jlleitschuh.gradle.ktlint"
-    const val CASPER_CONVENTION = "casper.documentation-convention"
-
-    // feature/28-school-info
-    const val KOTLIN_ALL_OPEN = "org.jetbrains.kotlin.plugin.spring"
 
     // main 브랜치
     const val KAPT = "kapt"
     const val PROTOBUF = "com.google.protobuf"
     const val GOOGLE_OSDETECTOR = "com.google.osdetector"
-    const val ALL_OPEN = "plugin.allopen"
 }

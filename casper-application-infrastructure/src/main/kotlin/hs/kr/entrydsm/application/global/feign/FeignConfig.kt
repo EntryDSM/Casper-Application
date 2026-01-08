@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-@EnableFeignClients
+@EnableFeignClients(basePackages = ["hs.kr.entrydsm.application"])
 @Configuration
 class FeignConfig {
     @Bean

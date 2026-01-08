@@ -12,8 +12,8 @@ class QueryStaticsScoreUseCase(
     private val queryScorePort: QueryScorePort,
     private val rateScoreService: RateScoreService
 ) {
-    fun execute(): List<GetStaticsScoreResponse> {
-        return ApplicationType.values().flatMap { type ->
+    suspend fun execute(): List<GetStaticsScoreResponse> {
+        return ApplicationType.entries.flatMap { type ->
             listOf(true, false).map { isDaejeon ->
                 val totalScores = queryScorePort.queryScoreByApplicationTypeAndIsDaejeon(type, isDaejeon)
                     .map { it?.totalScore ?: BigDecimal.ZERO }

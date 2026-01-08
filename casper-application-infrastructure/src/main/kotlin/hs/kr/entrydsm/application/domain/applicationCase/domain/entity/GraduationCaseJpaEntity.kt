@@ -1,9 +1,9 @@
 package hs.kr.entrydsm.application.domain.applicationCase.domain.entity
 
 import hs.kr.entrydsm.application.domain.applicationCase.domain.entity.vo.ExtraScoreItem
-import javax.persistence.Embedded
-import javax.persistence.Entity
-import javax.persistence.Table
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "tbl_graduation_case")

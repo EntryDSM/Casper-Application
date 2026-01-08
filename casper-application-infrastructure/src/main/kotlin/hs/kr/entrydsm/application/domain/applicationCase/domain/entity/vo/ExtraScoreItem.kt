@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.applicationCase.domain.entity.vo
 
-import javax.persistence.Embeddable
+import jakarta.persistence.Embeddable
 
 @Embeddable
 data class ExtraScoreItem(

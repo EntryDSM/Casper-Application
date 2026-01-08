@@ -1,53 +1,44 @@
 package hs.kr.entrydsm.application.global.config
 
-import feign.RetryableException
-import hs.kr.entrydsm.application.global.feign.exception.FeignExceptions
-import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
-import io.github.resilience4j.timelimiter.TimeLimiterConfig
-import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory
-import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder
-import org.springframework.cloud.client.circuitbreaker.Customizer
+import io.github.resilience4j.circuitbreaker.CircuitBreaker
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
+import io.github.resilience4j.retry.Retry
+import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
-import java.net.ConnectException
-import java.time.Duration
-import java.util.concurrent.TimeoutException
+import org.springframework.context.annotation.Configuration
 
-@Component
-class Resilience4JConfig {
+@Configuration
+class Resilience4JConfig(
+    private val circuitBreakerRegistry: CircuitBreakerRegistry,
+    private val retryRegistry: RetryRegistry,
+) {
     @Bean
-    fun globalCustomConfiguration(): Customizer<Resilience4JCircuitBreakerFactory> {
-        val circuitBreakerConfig = CircuitBreakerConfig.custom()
-            .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
-            .slidingWindowSize(50)
-            .failureRateThreshold(50f)
-            .slowCallRateThreshold(50f)
-            .slowCallDurationThreshold(Duration.ofSeconds(10))
-            .minimumNumberOfCalls(20)
-            .permittedNumberOfCallsInHalfOpenState(10)
-            .maxWaitDurationInHalfOpenState(Duration.ofSeconds(5))
-            .waitDurationInOpenState(Duration.ofSeconds(10))
-            .automaticTransitionFromOpenToHalfOpenEnabled(false)
-            .recordExceptions(
-                ConnectException::class.java,
-                RetryableException::class.java,
-                TimeoutException::class.java,
-                FeignExceptions.FeignServerErrorException::class.java,
-                RuntimeException::class.java
-            )
-            .build()
+    fun userGrpcCircuitBreaker(): CircuitBreaker {
+        return circuitBreakerRegistry.circuitBreaker("user-grpc")
+    }
 
-        val timeLimiterConfig = TimeLimiterConfig.custom()
-            .timeoutDuration(Duration.ofSeconds(5))
-            .build()
+    @Bean
+    fun statusGrpcCircuitBreaker(): CircuitBreaker {
+        return circuitBreakerRegistry.circuitBreaker("status-grpc")
+    }
 
-        return Customizer { factory: Resilience4JCircuitBreakerFactory ->
-            factory.configureDefault { id: String? ->
-                Resilience4JConfigBuilder(id)
-                    .timeLimiterConfig(timeLimiterConfig)
-                    .circuitBreakerConfig(circuitBreakerConfig)
-                    .build()
-            }
-        }
+    @Bean
+    fun scheduleGrpcCircuitBreaker(): CircuitBreaker {
+        return circuitBreakerRegistry.circuitBreaker("schedule-grpc")
+    }
+
+    @Bean
+    fun userGrpcRetry(): Retry {
+        return retryRegistry.retry("user-grpc")
+    }
+
+    @Bean
+    fun statusGrpcRetry(): Retry {
+        return retryRegistry.retry("status-grpc")
+    }
+
+    @Bean
+    fun scheduleGrpcRetry(): Retry {
+        return retryRegistry.retry("schedule-grpc")
     }
 }

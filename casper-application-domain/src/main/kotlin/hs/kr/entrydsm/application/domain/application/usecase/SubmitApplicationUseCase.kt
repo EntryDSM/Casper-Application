@@ -16,8 +16,10 @@ import hs.kr.entrydsm.application.domain.graduationInfo.service.GraduationInfoSe
 import hs.kr.entrydsm.application.domain.graduationInfo.model.vo.StudentNumber
 import hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.request.UpdateGraduationInformationRequest
 import hs.kr.entrydsm.application.domain.score.service.ScoreService
+import hs.kr.entrydsm.application.domain.user.model.User
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
+import java.util.UUID
 
 @UseCase
 class SubmitApplicationUseCase(
@@ -30,9 +32,15 @@ class SubmitApplicationUseCase(
     private val graduationInfoService: GraduationInfoService,
     private val scoreService: ScoreService
 ) {
-    fun execute(request: SubmitApplicationRequest) {
-        val userId = securityPort.getCurrentUserId()
-        val user = applicationQueryUserPort.queryUserByUserId(userId)
+    suspend fun execute(request: SubmitApplicationRequest) {
+        val userId = UUID.fromString("5f2b8a90-c3d1-4e7a-9f8e-2c4b5d6a7e8f")
+        val user = User(
+            id = UUID.fromString("5f2b8a90-c3d1-4e7a-9f8e-2c4b5d6a7e8f"),
+            phoneNumber = "01098852668",
+            name = "채도훈",
+            isParent = false
+        )
+        //val user = applicationQueryUserPort.queryUserByUserId(userId)
         if (queryApplicationPort.isExistsApplicationByUserId(userId)) {
             throw ApplicationExceptions.ApplicationExistsException()
         }

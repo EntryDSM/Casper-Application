@@ -2,7 +2,7 @@ package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class UpdateApplicationTypeWebRequest(
     @NotNull

@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
 data class AddressInfoWebRequest(
     @field:NotNull(message = "대전 지역 여부는 필수입니다")

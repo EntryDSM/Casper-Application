@@ -3,10 +3,10 @@ package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 import hs.kr.entrydsm.application.domain.application.model.types.Sex
 import org.hibernate.validator.constraints.Length
 import java.time.LocalDate
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
-import javax.validation.constraints.Pattern
-import javax.validation.constraints.Size
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 
 data class UpdateInformationWebRequest(
     @NotNull(message = "sex는 null일 수 없습니다.")

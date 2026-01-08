@@ -1,33 +1,18 @@
-//rootProject.name = "Casper-Application"
-//
-//pluginManagement {
-//    includeBuild("casper-convention")
-//    repositories {
-//        gradlePluginPortal()
-//        mavenCentral()
-//    }
-//}
-//
-//dependencyResolutionManagement {
-//    repositories {
-//        mavenCentral()
-//    }
-//}
-//
-//include(
-//    "casper-application-domain",
-//    "casper-application-infrastructure",
-//)
-//
+rootProject.name = "Casper-Application"
+
 pluginManagement {
+    includeBuild("casper-convention")
     repositories {
-        maven { url = uri("https://repo.spring.io/milestone") }
-        maven { url = uri("https://repo.spring.io/snapshot") }
         gradlePluginPortal()
+        mavenCentral()
     }
 }
 
-rootProject.name = "Casper-Application"
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
 
 include("casper-application-domain")
 include("casper-application-infrastructure")

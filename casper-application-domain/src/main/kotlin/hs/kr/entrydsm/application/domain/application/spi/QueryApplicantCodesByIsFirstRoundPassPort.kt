@@ -4,5 +4,5 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationC
 
 
 interface QueryApplicantCodesByIsFirstRoundPassPort {
-    fun queryApplicantCodesByIsFirstRoundPass(): List<ApplicationCodeVO>
+    suspend fun queryApplicantCodesByIsFirstRoundPass(): List<ApplicationCodeVO>
 }

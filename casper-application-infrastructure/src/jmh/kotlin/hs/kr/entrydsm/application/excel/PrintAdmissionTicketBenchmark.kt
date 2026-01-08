@@ -21,7 +21,7 @@ import org.openjdk.jmh.annotations.*
 import org.springframework.mock.web.MockHttpServletResponse
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)

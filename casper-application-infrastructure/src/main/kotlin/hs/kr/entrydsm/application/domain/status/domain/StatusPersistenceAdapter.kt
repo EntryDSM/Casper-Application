@@ -4,20 +4,19 @@ import hs.kr.entrydsm.application.domain.status.domain.repository.StatusCacheRep
 import hs.kr.entrydsm.application.domain.status.model.Status
 import hs.kr.entrydsm.application.domain.status.model.StatusCache
 import hs.kr.entrydsm.application.domain.status.spi.StatusPort
-import hs.kr.entrydsm.application.global.feign.client.StatusClient
+import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
 import org.springframework.stereotype.Component
 
 @Component
 class StatusPersistenceAdapter(
-    private val statusClient: StatusClient,
-    private val statusCacheRepository: StatusCacheRepository
+    private val statusCacheRepository: StatusCacheRepository,
+    private val statusGrpcClient: StatusGrpcClient
 ): StatusPort {
-    override fun queryStatusByReceiptCode(receiptCode: Long): Status? {
-        return statusClient.getStatusByReceiptCode(receiptCode)?.let {
+    override suspend fun queryStatusByReceiptCode(receiptCode: Long): Status? {
+        return statusGrpcClient.getStatusByReceiptCode(receiptCode)?.let {
             Status(
                 id = it.id,
-                isSubmitted = it.isSubmitted,
-                isPrintsArrived = it.isPrintsArrived,
+                applicationStatus = it.applicationStatus,
                 examCode = it.examCode,
                 isFirstRoundPass = it.isFirstRoundPass,
                 isSecondRoundPass = it.isSecondRoundPass,
@@ -31,8 +30,7 @@ class StatusPersistenceAdapter(
             .map {
                 StatusCache(
                     receiptCode = it.receiptCode,
-                    isPrintsArrived = it.isPrintsArrived,
-                    isSubmitted = it.isSubmitted,
+                    applicationStatus = it.applicationStatus,
                     examCode = it.examCode,
                     isFirstRoundPass = it.isFirstRoundPass,
                     isSecondRoundPass = it.isSecondRoundPass,
@@ -41,7 +39,7 @@ class StatusPersistenceAdapter(
             }.orElse(null)
     }
 
-    override fun updateExamCode(receiptCode: Long, examCode: String) {
-        statusClient.updateExamCode(receiptCode, examCode)
+    override suspend fun updateExamCode(receiptCode: Long, examCode: String) {
+        statusGrpcClient.updateExamCode(receiptCode, examCode)
     }
 }

@@ -2,9 +2,9 @@ package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
 import hs.kr.entrydsm.application.domain.application.model.types.Sex
 import java.time.LocalDate
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
-import javax.validation.constraints.Size
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class ApplicantInfoWebRequest(
     @field:NotBlank(message = "지원자 이름은 필수입니다")

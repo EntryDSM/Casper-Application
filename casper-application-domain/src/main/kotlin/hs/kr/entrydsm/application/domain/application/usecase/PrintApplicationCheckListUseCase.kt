@@ -5,7 +5,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationI
 import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
 import hs.kr.entrydsm.application.global.annotation.ReadOnlyUseCase
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 @ReadOnlyUseCase
 class PrintApplicationCheckListUseCase(
@@ -17,7 +17,7 @@ class PrintApplicationCheckListUseCase(
     private val queryGraduationInfoPort: ApplicationQueryGraduationInfoPort,
     private val applicationQuerySchoolPort: ApplicationQuerySchoolPort,
 ) {
-    fun execute(httpServletResponse: HttpServletResponse) {
+    suspend fun execute(httpServletResponse: HttpServletResponse) {
         val applicationInfoVOList =
             queryApplicationInfoListByStatusIsSubmittedPort.queryApplicationInfoListByStatusIsSubmitted(true)
         val receiptCodeList = applicationInfoVOList.map { it.receiptCode }

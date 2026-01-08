@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
-import javax.validation.constraints.PositiveOrZero
+import jakarta.validation.constraints.PositiveOrZero
 
 data class AttendanceInfoWebRequest(
     @PositiveOrZero

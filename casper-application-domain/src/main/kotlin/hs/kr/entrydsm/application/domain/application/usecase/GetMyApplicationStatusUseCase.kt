@@ -16,7 +16,7 @@ class GetMyApplicationStatusUseCase(
     private val applicationQueryUserPort: ApplicationQueryUserPort,
     private val applicationQueryStatusPort: ApplicationQueryStatusPort
 ) {
-    fun execute(): GetApplicationStatusResponse {
+    suspend fun execute(): GetApplicationStatusResponse {
         val userId = securityPort.getCurrentUserId()
 
         val application = queryApplicationPort.queryApplicationByUserId(userId)

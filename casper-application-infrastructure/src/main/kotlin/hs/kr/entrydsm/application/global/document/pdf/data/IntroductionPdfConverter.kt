@@ -16,7 +16,7 @@ class IntroductionPdfConverter(
     private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort,
     private val queryGraduationInfoPort: QueryGraduationInfoPort
 ) {
-    fun execute(application: Application): PdfData {
+    suspend fun execute(application: Application): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setIntroduction(application, values)
         setPersonalInfo(application, values)
@@ -66,7 +66,7 @@ class IntroductionPdfConverter(
     }
 
 
-    private fun setIntroduction(application: Application, values: MutableMap<String, Any>) {
+    private suspend fun setIntroduction(application: Application, values: MutableMap<String, Any>) {
         values["selfIntroduction"] = application.selfIntroduce!!
         values["studyPlan"] = application.studyPlan!!
         values["newLineChar"] = "\n"

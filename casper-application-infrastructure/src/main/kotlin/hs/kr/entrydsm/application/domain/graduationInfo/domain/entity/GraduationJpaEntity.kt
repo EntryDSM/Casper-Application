@@ -1,11 +1,11 @@
 package hs.kr.entrydsm.application.domain.graduationInfo.domain.entity
 
 import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.vo.StudentNumber
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import java.time.YearMonth
-import javax.persistence.Column
-import javax.persistence.Embedded
-import javax.persistence.Entity
-import javax.persistence.Table
 
 @Entity
 @Table(name = "tbl_graduation")

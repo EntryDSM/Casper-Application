@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class SubmitApplicationWebRequest(
     @field:NotNull(message = "지원자 정보는 필수입니다")

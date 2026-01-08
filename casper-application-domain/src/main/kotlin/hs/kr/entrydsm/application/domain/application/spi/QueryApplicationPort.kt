@@ -13,7 +13,7 @@ interface QueryApplicationPort {
 
     fun isExistsApplicationByUserId(userId: UUID): Boolean
 
-    fun queryApplicationCountByApplicationTypeAndIsDaejeon(
+    suspend fun queryApplicationCountByApplicationTypeAndIsDaejeon(
         applicationType: ApplicationType,
         isDaejeon: Boolean,
     ): GetApplicationCountResponse
@@ -22,7 +22,7 @@ interface QueryApplicationPort {
 
     fun queryAllByReceiptCode(receiptCodeList: List<Long>): List<Application?>
 
-    fun queryAllApplicantsByFilter(
+    suspend fun queryAllApplicantsByFilter(
         schoolName: String,
         name: String,
         isDaejeon: Boolean?,
@@ -35,5 +35,5 @@ interface QueryApplicationPort {
         offset: Long
     ): PagedResult<Applicant>
 
-    fun queryAllFirstRoundPassedApplication(): List<Application>
+    suspend fun queryAllFirstRoundPassedApplication(): List<Application>
 }

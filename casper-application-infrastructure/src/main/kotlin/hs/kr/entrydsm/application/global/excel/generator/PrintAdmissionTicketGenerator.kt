@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 @Component
 class PrintAdmissionTicketGenerator(
@@ -40,7 +40,7 @@ class PrintAdmissionTicketGenerator(
 
     private lateinit var drawing: XSSFDrawing
 
-    override fun execute(response: HttpServletResponse, applications: List<ApplicationInfoVO>) {
+    override suspend fun execute(response: HttpServletResponse, applications: List<ApplicationInfoVO>) {
         val targetWorkbook = generate(applications)
         try {
             setResponseHeaders()
@@ -52,7 +52,7 @@ class PrintAdmissionTicketGenerator(
         }
     }
 
-    fun generate(applications: List<ApplicationInfoVO>): Workbook {
+    suspend fun generate(applications: List<ApplicationInfoVO>): Workbook {
         val sourceWorkbook = loadSourceWorkbook()
         val targetWorkbook = XSSFWorkbook()
 
@@ -165,7 +165,7 @@ class PrintAdmissionTicketGenerator(
         }
     }
 
-    fun fillApplicationData(sheet: Sheet, startRowIndex: Int, applicationInfoVo: ApplicationInfoVO, workbook: Workbook) {
+    suspend fun fillApplicationData(sheet: Sheet, startRowIndex: Int, applicationInfoVo: ApplicationInfoVO, workbook: Workbook) {
         val application = applicationInfoVo.application
         val school = applicationInfoVo.school
 

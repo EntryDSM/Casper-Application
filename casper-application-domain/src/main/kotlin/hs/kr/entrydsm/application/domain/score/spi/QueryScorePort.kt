@@ -10,5 +10,5 @@ interface QueryScorePort {
 
     fun queryTotalScore(receiptCode: Long): BigDecimal?
 
-    fun queryScoreByApplicationTypeAndIsDaejeon(applicationType: ApplicationType, isDaejeon: Boolean): List<Score?>
+    suspend fun queryScoreByApplicationTypeAndIsDaejeon(applicationType: ApplicationType, isDaejeon: Boolean): List<Score?>
 }
