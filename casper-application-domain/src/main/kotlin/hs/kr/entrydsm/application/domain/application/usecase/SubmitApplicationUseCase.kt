@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
-import hs.kr.entrydsm.application.domain.application.event.spi.ApplicationEventPort
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
 import hs.kr.entrydsm.application.domain.application.usecase.mapper.SubmitApplicationMapper
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryUserPort
@@ -15,6 +14,7 @@ import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.Upd
 import hs.kr.entrydsm.application.domain.graduationInfo.service.GraduationInfoService
 import hs.kr.entrydsm.application.domain.graduationInfo.model.vo.StudentNumber
 import hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.request.UpdateGraduationInformationRequest
+import hs.kr.entrydsm.application.domain.outbox.spi.OutboxEventPublisherPort
 import hs.kr.entrydsm.application.domain.score.service.ScoreService
 import hs.kr.entrydsm.application.domain.user.model.User
 import hs.kr.entrydsm.application.global.annotation.UseCase
@@ -24,7 +24,7 @@ import java.util.UUID
 @UseCase
 class SubmitApplicationUseCase(
     private val securityPort: SecurityPort,
-    private val applicationEventPort: ApplicationEventPort,
+    private val outboxEventPublisher: OutboxEventPublisherPort,
     private val commandApplicationPort: CommandApplicationPort,
     private val applicationQueryUserPort: ApplicationQueryUserPort,
     private val queryApplicationPort: QueryApplicationPort,
@@ -50,13 +50,15 @@ class SubmitApplicationUseCase(
 
         handleSubmissionSideEffects(application.receiptCode, request)
 
-        applicationEventPort.create(application.receiptCode, userId)
-
-        // 이벤트 처리 로직을 동기적으로 실행하도록 변경
-        // cause. 이벤트 순서 문제(Kafka는 비동기적으로 호출되어Score 생성, applicationCase, Score 업데이트 순서가 보장되지 않음.)
-//        applicationEventPort.submitApplication(
-//            SubmitApplicationMapper.toSubmissionData(request, application, userId)
-//        )
+        outboxEventPublisher.publish(
+            aggregateType = "Application",
+            aggregateId = application.receiptCode.toString(),
+            eventType = "create-application",
+            payload = mapOf(
+                "receiptCode" to application.receiptCode,
+                "userId" to userId
+            )
+        )
     }
 
     private fun handleSubmissionSideEffects(receiptCode: Long, request: SubmitApplicationRequest) {
