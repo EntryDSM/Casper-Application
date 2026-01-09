@@ -16,7 +16,7 @@ data class SubmitApplicationEvent(
     val schoolCode: String,
     val teacherName: String,
     val schoolPhone: String,
-    val scoreData: ApplicationScoreData
+    val scoreData: ApplicationScoreData,
 )
 
 data class ApplicationScoreData(
@@ -39,5 +39,5 @@ data class ApplicationScoreData(
     val classExit: Int,
     val volunteer: Int,
     val algorithmAward: Boolean,
-    val infoProcessingCert: Boolean
+    val infoProcessingCert: Boolean,
 )

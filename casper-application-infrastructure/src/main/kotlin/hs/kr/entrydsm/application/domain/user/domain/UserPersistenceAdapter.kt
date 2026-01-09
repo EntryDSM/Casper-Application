@@ -8,7 +8,7 @@ import java.util.UUID
 
 @Component
 class UserPersistenceAdapter(
-    private val userGrpcClient: UserGrpcClient
+    private val userGrpcClient: UserGrpcClient,
 ) : UserPort {
     override suspend fun queryUserByUserId(userId: UUID): User {
         return userGrpcClient.getUserInfoByUserId(userId).run {

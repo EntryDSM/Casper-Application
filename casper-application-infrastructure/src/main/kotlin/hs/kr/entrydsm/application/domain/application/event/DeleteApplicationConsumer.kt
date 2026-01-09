@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class DeleteApplicationConsumer(
     private val mapper: ObjectMapper,
-    private val commandApplicationPort: CommandApplicationPort
+    private val commandApplicationPort: CommandApplicationPort,
 ) {
     private val logger = LoggerFactory.getLogger(DeleteApplicationConsumer::class.java)
 

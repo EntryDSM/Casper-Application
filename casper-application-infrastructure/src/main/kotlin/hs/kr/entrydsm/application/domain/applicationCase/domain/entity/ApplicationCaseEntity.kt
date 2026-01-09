@@ -13,5 +13,5 @@ abstract class ApplicationCaseEntity(
     val id: Long,
     val receiptCode: Long,
     @Embedded
-    val extraScoreItem: ExtraScoreItem
+    val extraScoreItem: ExtraScoreItem,
 )

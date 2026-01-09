@@ -1,13 +1,11 @@
 package hs.kr.entrydsm.application.global.excel.exception
 
-import hs.kr.entrydsm.application.domain.file.presentation.exception.WebFileExceptions
 import hs.kr.entrydsm.application.global.exception.WebException
 
 sealed class ExcelExceptions(
     override val status: Int,
     override val message: String,
 ) : WebException(status, message) {
-
     class ExcelIOException(message: String = EXCEL_IO_EXCEPTION) : ExcelExceptions(500, message)
 
     companion object {

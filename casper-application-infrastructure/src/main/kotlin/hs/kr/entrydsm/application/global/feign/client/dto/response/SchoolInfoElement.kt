@@ -35,7 +35,7 @@ data class Row(
     @JsonProperty("SCHUL_NM")
     val schulNm: String,
     @JsonProperty("ENG_SCHUL_NM")
-    val engSchulNm: String ? = null,
+    val engSchulNm: String? = null,
     @JsonProperty("SCHUL_KND_SC_NM")
     val schulKndScNm: String,
     @JsonProperty("LCTN_SC_NM")

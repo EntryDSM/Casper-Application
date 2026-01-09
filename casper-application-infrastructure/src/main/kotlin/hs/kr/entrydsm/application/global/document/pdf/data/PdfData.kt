@@ -1,9 +1,8 @@
 package hs.kr.entrydsm.application.global.document.pdf.data
 
 class PdfData(
-    val data: MutableMap<String, Any>? = null
+    val data: MutableMap<String, Any>? = null,
 ) {
-
     fun toMap(): MutableMap<String, Any>? {
         return data
     }

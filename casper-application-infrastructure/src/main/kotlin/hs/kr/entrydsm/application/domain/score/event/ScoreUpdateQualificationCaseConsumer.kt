@@ -16,12 +16,12 @@ import org.springframework.stereotype.Component
 class ScoreUpdateQualificationCaseConsumer(
     private val mapper: ObjectMapper,
     private val updateScoreUseCase: UpdateScoreUseCase,
-    private val applicationCaseEventPort: ApplicationCaseEventPort
-)  {
+    private val applicationCaseEventPort: ApplicationCaseEventPort,
+) {
     @Retryable(
         value = [Exception::class],
         maxAttempts = 3,
-        backoff = Backoff(delay = 100)
+        backoff = Backoff(delay = 100),
     )
     @KafkaListener(
         topics = [KafkaTopics.UPDATE_QUALIFICATION_CASE],
@@ -34,7 +34,10 @@ class ScoreUpdateQualificationCaseConsumer(
     }
 
     @Recover
-    fun recover(exception: Exception, message: String) {
+    fun recover(
+        exception: Exception,
+        message: String,
+    ) {
         val originQualificationCase = mapper.readValue(message, ApplicationCase::class.java)
         applicationCaseEventPort.updateApplicationCaseRollback(originQualificationCase)
     }

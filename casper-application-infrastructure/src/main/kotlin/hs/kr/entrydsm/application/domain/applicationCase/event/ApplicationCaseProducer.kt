@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class ApplicationCaseProducer(
     private val updateApplicationCaseTemplate: KafkaTemplate<String, Any>,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : ApplicationCaseEventPort {
     override fun updateGraduationCase(originGraduationCase: GraduationCase) {
         updateApplicationCaseTemplate.send(

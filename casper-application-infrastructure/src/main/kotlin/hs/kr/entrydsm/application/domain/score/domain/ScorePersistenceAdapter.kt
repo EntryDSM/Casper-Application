@@ -1,9 +1,9 @@
 package hs.kr.entrydsm.application.domain.score.domain
 
 import com.querydsl.jpa.impl.JPAQueryFactory
+import hs.kr.entrydsm.application.domain.application.domain.entity.QApplicationJpaEntity.applicationJpaEntity
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
 import hs.kr.entrydsm.application.domain.score.domain.entity.QScoreJpaEntity.scoreJpaEntity
-import hs.kr.entrydsm.application.domain.application.domain.entity.QApplicationJpaEntity.applicationJpaEntity
 import hs.kr.entrydsm.application.domain.score.domain.mapper.ScoreMapper
 import hs.kr.entrydsm.application.domain.score.domain.repository.ScoreJpaRepository
 import hs.kr.entrydsm.application.domain.score.model.Score
@@ -18,7 +18,7 @@ class ScorePersistenceAdapter(
     private val scoreMapper: ScoreMapper,
     private val scoreJpaRepository: ScoreJpaRepository,
     private val jpaQueryFactory: JPAQueryFactory,
-    private val statusGrpcClient: StatusGrpcClient
+    private val statusGrpcClient: StatusGrpcClient,
 ) : ScorePort {
     override fun save(score: Score): Score {
         return scoreJpaRepository.save(
@@ -36,7 +36,8 @@ class ScorePersistenceAdapter(
     }
 
     override suspend fun queryScoreByApplicationTypeAndIsDaejeon(
-        applicationType: ApplicationType, isDaejeon: Boolean
+        applicationType: ApplicationType,
+        isDaejeon: Boolean,
     ): List<Score?> {
         val statusMap: Map<Long, InternalStatusResponse> =
             statusGrpcClient.getStatusList().statusList
@@ -52,19 +53,18 @@ class ScorePersistenceAdapter(
                         .from(applicationJpaEntity)
                         .where(
                             applicationJpaEntity.applicationType.eq(applicationType),
-                            applicationJpaEntity.isDaejeon.eq(isDaejeon)
+                            applicationJpaEntity.isDaejeon.eq(isDaejeon),
                         )
-                        .fetch()
-                )
+                        .fetch(),
+                ),
             )
             .orderBy(scoreJpaEntity.totalScore.desc())
             .fetch()
-            .filter { statusMap[it.receiptCode]?.applicationStatus?.isSubmitted() == true}
+            .filter { statusMap[it.receiptCode]?.applicationStatus?.isSubmitted() == true }
             .map { scoreMapper.toDomain(it) }
     }
-            
-    override fun queryTotalScore(receiptCode: Long): BigDecimal? {
 
+    override fun queryTotalScore(receiptCode: Long): BigDecimal? {
         return jpaQueryFactory.select(scoreJpaEntity.totalScore)
             .from(scoreJpaEntity)
             .where(scoreJpaEntity.receiptCode.eq(receiptCode))

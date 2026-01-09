@@ -1,31 +1,31 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
-import hs.kr.entrydsm.application.domain.application.spi.PrintApplicationInfoPort
-import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationInfoVO
 import hs.kr.entrydsm.application.domain.application.service.ApplicationService
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
+import hs.kr.entrydsm.application.domain.application.spi.PrintApplicationInfoPort
+import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationInfoVO
 import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
 import hs.kr.entrydsm.application.domain.applicationCase.model.QualificationCase
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
 import hs.kr.entrydsm.application.domain.graduationInfo.spi.GraduationInfoQuerySchoolPort
 import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
 import hs.kr.entrydsm.application.global.excel.model.ApplicationInfo
+import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import jakarta.servlet.http.HttpServletResponse
 
 @Component
 class PrintApplicationInfoGenerator(
     private val applicationService: ApplicationService,
     private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort,
-    private val queryStatusPort: ApplicationQueryStatusPort
+    private val queryStatusPort: ApplicationQueryStatusPort,
 ) : PrintApplicationInfoPort {
     override suspend fun execute(
         httpServletResponse: HttpServletResponse,
-        applicationInfoVO: List<ApplicationInfoVO>
+        applicationInfoVO: List<ApplicationInfoVO>,
     ) {
         val applicationInfo = ApplicationInfo()
         val sheet = applicationInfo.getSheet()
@@ -49,7 +49,11 @@ class PrintApplicationInfoGenerator(
             throw ExcelExceptions.ExcelIOException().initCause(e)
         }
     }
-    private suspend fun insertCode(row: Row, applicationInfoVO: ApplicationInfoVO) {
+
+    private suspend fun insertCode(
+        row: Row,
+        applicationInfoVO: ApplicationInfoVO,
+    ) {
         row.createCell(0).setCellValue(applicationService.safeGetValue(applicationInfoVO.application.receiptCode))
         row.createCell(1).setCellValue(applicationService.translateApplicationType(applicationInfoVO.application.applicationType))
         row.createCell(2).setCellValue(applicationService.translateIsDaejeon(applicationInfoVO.application.isDaejeon))
@@ -63,9 +67,11 @@ class PrintApplicationInfoGenerator(
         row.createCell(10).setCellValue(applicationService.safeGetValue(applicationInfoVO.graduationInfo?.graduateDate))
         val graduation = applicationInfoVO.graduationInfo as? Graduation
         if (applicationInfoVO.graduationInfo is Graduation) {
-            row.createCell(11).setCellValue(applicationService.safeGetValue(
-                graduationInfoQuerySchoolPort.querySchoolBySchoolCode(graduation?.schoolCode!!)!!.name
-            ))
+            row.createCell(11).setCellValue(
+                applicationService.safeGetValue(
+                    graduationInfoQuerySchoolPort.querySchoolBySchoolCode(graduation?.schoolCode!!)!!.name,
+                ),
+            )
         } else {
             row.createCell(11).setCellValue("X")
         }
@@ -127,19 +133,24 @@ class PrintApplicationInfoGenerator(
                 row.createCell(i).setCellValue("X")
             }
         }
-        row.createCell(54).setCellValue(applicationService.translateBoolean(applicationInfoVO.applicationCase?.extraScoreItem?.hasCompetitionPrize))
-        row.createCell(55).setCellValue(applicationService.translateBoolean(applicationInfoVO.applicationCase?.extraScoreItem?.hasCertificate))
+        row.createCell(
+            54,
+        ).setCellValue(applicationService.translateBoolean(applicationInfoVO.applicationCase?.extraScoreItem?.hasCompetitionPrize))
+        row.createCell(
+            55,
+        ).setCellValue(applicationService.translateBoolean(applicationInfoVO.applicationCase?.extraScoreItem?.hasCertificate))
         row.createCell(56).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.extraScore).toString())
         row.createCell(57).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.totalScore).toString())
         applicationInfoVO.applicationCase?.let {
-            row.createCell(58).setCellValue(applicationService.safeGetValue(
+            row.createCell(58).setCellValue(
+                applicationService.safeGetValue(
                     applicationInfoVO.score?.calculateByIsCommonAndExtraScore(
                         applicationCase = it,
                         isCommon = true,
                         calculateCompetitionScore = true,
-                        calculateCertificateScore = false
-                    )
-                )
+                        calculateCertificateScore = false,
+                    ),
+                ),
             )
         }
         val status = queryStatusPort.queryStatusByReceiptCode(applicationInfoVO.application.receiptCode)

@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository
 
 interface GraduationCaseJpaRepository : CrudRepository<GraduationCaseJpaEntity, Long> {
     fun existsByReceiptCode(receiptCode: Long): Boolean
+
     fun findByReceiptCode(receiptCode: Long): GraduationCaseJpaEntity?
 
     fun findAllByReceiptCodeIn(receiptCode: List<Long>): List<GraduationCaseJpaEntity?>

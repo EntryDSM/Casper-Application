@@ -7,15 +7,14 @@ import hs.kr.entrydsm.application.global.grpc.client.schedule.ScheduleGrpcClient
 import org.springframework.stereotype.Component
 
 @Component
-
 class SchedulePersistenceAdapterApplication(
-    private val scheduleGrpcClient: ScheduleGrpcClient
-): SchedulePortApplication {
+    private val scheduleGrpcClient: ScheduleGrpcClient,
+) : SchedulePortApplication {
     override suspend fun queryByScheduleType(scheduleType: ScheduleType): Schedule? {
         return scheduleGrpcClient.getScheduleByType(scheduleType.name).let {
             Schedule(
                 scheduleType = it.type,
-                date = it.date
+                date = it.date,
             )
         }
     }

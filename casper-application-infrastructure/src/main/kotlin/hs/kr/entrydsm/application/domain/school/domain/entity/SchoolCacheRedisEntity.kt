@@ -11,5 +11,5 @@ data class SchoolCacheRedisEntity(
     val tel: String,
     val type: String,
     val address: String,
-    val regionName: String
+    val regionName: String,
 )

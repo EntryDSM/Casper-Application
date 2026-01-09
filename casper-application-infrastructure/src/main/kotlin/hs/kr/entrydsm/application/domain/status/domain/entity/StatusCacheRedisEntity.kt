@@ -9,15 +9,10 @@ import org.springframework.data.redis.core.TimeToLive
 class StatusCacheRedisEntity(
     @Id
     val receiptCode: Long,
-
     val examCode: String?,
-
     val applicationStatus: ApplicationStatus,
-
     val isFirstRoundPass: Boolean,
-
     val isSecondRoundPass: Boolean,
-
     @TimeToLive
-    var ttl: Long
+    var ttl: Long,
 )

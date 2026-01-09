@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.application.domain.score.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
 import hs.kr.entrydsm.application.domain.score.usecase.DeleteScoreUseCase
 import hs.kr.entrydsm.application.global.kafka.config.KafkaTopics
 import org.slf4j.LoggerFactory
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class DeleteScoreConsumer(
     private val mapper: ObjectMapper,
-    private val deleteScoreUseCase: DeleteScoreUseCase
+    private val deleteScoreUseCase: DeleteScoreUseCase,
 ) {
     private val logger = LoggerFactory.getLogger(DeleteScoreConsumer::class.java)
 

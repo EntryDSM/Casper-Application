@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component
 @Component
 class StatusPersistenceAdapter(
     private val statusCacheRepository: StatusCacheRepository,
-    private val statusGrpcClient: StatusGrpcClient
-): StatusPort {
+    private val statusGrpcClient: StatusGrpcClient,
+) : StatusPort {
     override suspend fun queryStatusByReceiptCode(receiptCode: Long): Status? {
         return statusGrpcClient.getStatusByReceiptCode(receiptCode)?.let {
             Status(
@@ -20,7 +20,7 @@ class StatusPersistenceAdapter(
                 examCode = it.examCode,
                 isFirstRoundPass = it.isFirstRoundPass,
                 isSecondRoundPass = it.isSecondRoundPass,
-                receiptCode = it.receiptCode
+                receiptCode = it.receiptCode,
             )
         }
     }
@@ -34,12 +34,15 @@ class StatusPersistenceAdapter(
                     examCode = it.examCode,
                     isFirstRoundPass = it.isFirstRoundPass,
                     isSecondRoundPass = it.isSecondRoundPass,
-                    ttl = it.ttl
+                    ttl = it.ttl,
                 )
             }.orElse(null)
     }
 
-    override suspend fun updateExamCode(receiptCode: Long, examCode: String) {
+    override suspend fun updateExamCode(
+        receiptCode: Long,
+        examCode: String,
+    ) {
         statusGrpcClient.updateExamCode(receiptCode, examCode)
     }
 }

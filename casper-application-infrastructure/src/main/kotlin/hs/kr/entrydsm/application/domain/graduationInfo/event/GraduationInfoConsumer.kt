@@ -21,7 +21,7 @@ class GraduationInfoConsumer(
         dto.apply {
             changeGraduationInfoUseCase.execute(
                 receiptCode = receiptCode,
-                graduateDate = graduateDate
+                graduateDate = graduateDate,
             )
         }
     }

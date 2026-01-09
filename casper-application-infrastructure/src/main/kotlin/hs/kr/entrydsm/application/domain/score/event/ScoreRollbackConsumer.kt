@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class ScoreRollbackConsumer(
     private val objectMapper: ObjectMapper,
-    private val deleteScoreUseCase: DeleteScoreUseCase
+    private val deleteScoreUseCase: DeleteScoreUseCase,
 ) {
     @KafkaListener(
         topics = [KafkaTopics.CREATE_APPLICATION_STATUS_ROLLBACK],

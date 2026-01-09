@@ -20,7 +20,7 @@ class QualificationCaseJpaEntity(
     val scienceGrade: BigDecimal,
     val englishGrade: BigDecimal,
 ) : ApplicationCaseEntity(
-    id = id,
-    receiptCode = receiptCode,
-    extraScoreItem = extraScoreItem
-)
+        id = id,
+        receiptCode = receiptCode,
+        extraScoreItem = extraScoreItem,
+    )

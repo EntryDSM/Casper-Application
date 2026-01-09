@@ -5,11 +5,8 @@ import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRema
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus.*
 import hs.kr.entrydsm.application.domain.application.service.ApplicationService
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
-import hs.kr.entrydsm.application.domain.applicationCase.exception.ApplicationCaseExceptions
-import hs.kr.entrydsm.application.domain.applicationCase.model.ApplicationCase
 import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
 import hs.kr.entrydsm.application.domain.applicationCase.model.QualificationCase
-import hs.kr.entrydsm.application.domain.applicationCase.model.vo.ExtraScoreItem
 import hs.kr.entrydsm.application.domain.applicationCase.spi.QueryApplicationCasePort
 import hs.kr.entrydsm.application.domain.file.spi.GetObjectPort
 import hs.kr.entrydsm.application.domain.file.usecase.`object`.PathList
@@ -25,7 +22,6 @@ import java.time.LocalDateTime
 import java.time.YearMonth
 import java.util.*
 
-
 @Component
 class PdfDataConverter(
     private val queryGraduationInfoPort: QueryGraduationInfoPort,
@@ -33,9 +29,12 @@ class PdfDataConverter(
     private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort,
     private val queryApplicationCasePort: QueryApplicationCasePort,
     private val applicationService: ApplicationService,
-    private val statusPort: ApplicationQueryStatusPort
+    private val statusPort: ApplicationQueryStatusPort,
 ) {
-    fun applicationToInfo(application: Application, score: Score): PdfData {
+    fun applicationToInfo(
+        application: Application,
+        score: Score,
+    ): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
         setEntranceYear(values)
@@ -66,7 +65,10 @@ class PdfDataConverter(
         return PdfData(values)
     }
 
-    private fun setReceiptCode(application: Application, values: MutableMap<String, Any>) {
+    private fun setReceiptCode(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         values["receiptCode"] = application.receiptCode
     }
 
@@ -75,11 +77,17 @@ class PdfDataConverter(
         values["entranceYear"] = entranceYear.toString()
     }
 
-    private fun setVeteransNumber(application: Application, values: MutableMap<String, Any>) {
+    private fun setVeteransNumber(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         values["veteransNumber"] = application.veteransNumber ?: ""
     }
 
-    private fun setPersonalInfo(application: Application, values: MutableMap<String, Any>) {
+    private fun setPersonalInfo(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         val name = application.applicantName
         values["userName"] = setBlankIfNull(name)
         values["isMale"] = toBallotBox(application.isMale())
@@ -88,63 +96,84 @@ class PdfDataConverter(
         values["detailAddress"] = setBlankIfNull(application.detailAddress)
         values["birthday"] = setBlankIfNull(application.birthDate.toString().replace("-", "."))
 
-        values["region"] = when {
-            application.isDaejeon == true -> "대전"
-            application.isDaejeon == false -> "전국"
-            else -> ""
-        }
-
-        values["applicationType"] = when {
-            application.isCommon() -> "일반전형"
-            application.isSocial() -> "사회통합 전형"
-            application.isMeister() -> "마이스터인재 전형"
-            else -> ""
-        }
-
-        values["applicationRemark"] = if (application.isSocial()) {
-            when (application.applicationRemark) {
-                ApplicationRemark.BASIC_LIVING -> "기초생활수급자"
-                ApplicationRemark.ONE_PARENT -> "한부모가족"
-                ApplicationRemark.TEEN_HOUSEHOLDER -> "소년소녀가장"
-                ApplicationRemark.LOWEST_INCOME -> "차상위계층"
-                ApplicationRemark.FROM_NORTH -> "북한이탈주민"
-                ApplicationRemark.MULTICULTURAL -> "다문화가정"
-                ApplicationRemark.PROTECTED_CHILDREN -> "보호대상아동"
-                else -> "해당없음"
+        values["region"] =
+            when {
+                application.isDaejeon == true -> "대전"
+                application.isDaejeon == false -> "전국"
+                else -> ""
             }
-        } else "해당없음"
+
+        values["applicationType"] =
+            when {
+                application.isCommon() -> "일반전형"
+                application.isSocial() -> "사회통합 전형"
+                application.isMeister() -> "마이스터인재 전형"
+                else -> ""
+            }
+
+        values["applicationRemark"] =
+            if (application.isSocial()) {
+                when (application.applicationRemark) {
+                    ApplicationRemark.BASIC_LIVING -> "기초생활수급자"
+                    ApplicationRemark.ONE_PARENT -> "한부모가족"
+                    ApplicationRemark.TEEN_HOUSEHOLDER -> "소년소녀가장"
+                    ApplicationRemark.LOWEST_INCOME -> "차상위계층"
+                    ApplicationRemark.FROM_NORTH -> "북한이탈주민"
+                    ApplicationRemark.MULTICULTURAL -> "다문화가정"
+                    ApplicationRemark.PROTECTED_CHILDREN -> "보호대상아동"
+                    else -> "해당없음"
+                }
+            } else {
+                "해당없음"
+            }
     }
 
-    private fun setAttendanceAndVolunteer(application: Application, values: MutableMap<String, Any>) {
+    private fun setAttendanceAndVolunteer(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
 
-        if(applicationCase is GraduationCase) {
+        if (applicationCase is GraduationCase) {
             values["absenceDayCount"] = applicationCase.absenceDayCount
             values["latenessCount"] = applicationCase.latenessCount
             values["earlyLeaveCount"] = applicationCase.earlyLeaveCount
             values["lectureAbsenceCount"] = applicationCase.lectureAbsenceCount
-                values["volunteerTime"] = applicationCase.volunteerTime
+            values["volunteerTime"] = applicationCase.volunteerTime
         }
     }
 
-    private fun setGenderInfo(application: Application, values: MutableMap<String, Any>) {
+    private fun setGenderInfo(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         var gender: String? = null
-        if (application.isFemale()){ gender = "여" }
-        else if (application.isMale()){ gender = "남" }
+        if (application.isFemale())
+            {
+                gender = "여"
+            } else if (application.isMale())
+            {
+                gender = "남"
+            }
         values["gender"] = setBlankIfNull(gender)
     }
 
-    private fun setSchoolInfo(application: Application, values: MutableMap<String, Any>) {
+    private fun setSchoolInfo(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         if (!application.isEducationalStatusEmpty() && !application.isQualificationExam()) {
             val graduation =
                 queryGraduationInfoPort.queryGraduationInfoByApplication(application)
                     ?: throw GraduationInfoExceptions.GraduationNotFoundException()
 
-            if (graduation !is Graduation)
+            if (graduation !is Graduation) {
                 throw GraduationInfoExceptions.EducationalStatusUnmatchedException()
+            }
 
-            val school = graduationInfoQuerySchoolPort.querySchoolBySchoolCode(graduation.schoolCode!!)
-                ?: throw SchoolExceptions.SchoolNotFoundException()
+            val school =
+                graduationInfoQuerySchoolPort.querySchoolBySchoolCode(graduation.schoolCode!!)
+                    ?: throw SchoolExceptions.SchoolNotFoundException()
 
             values["schoolCode"] = setBlankIfNull(school.code)
             values["schoolRegion"] = setBlankIfNull(school.regionName)
@@ -156,7 +185,10 @@ class PdfDataConverter(
         }
     }
 
-    private fun setPhoneNumber(application: Application, values: MutableMap<String, Any>) {
+    private fun setPhoneNumber(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         if (application.applicantTel == "00000000000") {
             values["applicantTel"] = ""
         } else {
@@ -165,11 +197,15 @@ class PdfDataConverter(
         values["parentTel"] = toFormattedPhoneNumber(application.parentTel)
     }
 
-    private fun setGraduationClassification(application: Application, values: MutableMap<String, Any>) {
+    private fun setGraduationClassification(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         values.putAll(emptyGraduationClassification())
 
-        val graduationInfo = queryGraduationInfoPort.queryGraduationInfoByApplication(application)
-            ?: throw Exception()
+        val graduationInfo =
+            queryGraduationInfoPort.queryGraduationInfoByApplication(application)
+                ?: throw Exception()
 
         val yearMonth = graduationInfo.graduateDate?.let { YearMonth.from(it) } ?: YearMonth.now()
 
@@ -194,39 +230,50 @@ class PdfDataConverter(
         }
     }
 
-    private fun setUserType(application: Application, values: MutableMap<String, Any>) {
-        val list = listOf(
-            "isQualificationExam" to application.isQualificationExam(),
-            "isGraduate" to application.isGraduate(),
-            "isProspectiveGraduate" to application.isProspectiveGraduate(),
-            "isDaejeon" to application.isDaejeon,
-            "isNotDaejeon" to !application.isDaejeon!!,
-            "isBasicLiving" to application.isBasicLiving(),
-            "isFromNorth" to application.isFromNorth(),
-            "isLowestIncome" to application.isLowestIncome(),
-            "isMulticultural" to application.isMulticultural(),
-            "isOneParent" to application.isOneParent(),
-            "isTeenHouseholder" to application.isTeenHouseholder(),
-            "isPrivilegedAdmission" to application.isPrivilegedAdmission(),
-            "isNationalMerit" to application.isNationalMerit(),
-            "isProtectedChildren" to application.isProtectedChildren(),
-            "isCommon" to application.isCommon(),
-            "isMeister" to application.isMeister(),
-            "isSocialMerit" to application.isSocial()
-        )
+    private fun setUserType(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
+        val list =
+            listOf(
+                "isQualificationExam" to application.isQualificationExam(),
+                "isGraduate" to application.isGraduate(),
+                "isProspectiveGraduate" to application.isProspectiveGraduate(),
+                "isDaejeon" to application.isDaejeon,
+                "isNotDaejeon" to !application.isDaejeon!!,
+                "isBasicLiving" to application.isBasicLiving(),
+                "isFromNorth" to application.isFromNorth(),
+                "isLowestIncome" to application.isLowestIncome(),
+                "isMulticultural" to application.isMulticultural(),
+                "isOneParent" to application.isOneParent(),
+                "isTeenHouseholder" to application.isTeenHouseholder(),
+                "isPrivilegedAdmission" to application.isPrivilegedAdmission(),
+                "isNationalMerit" to application.isNationalMerit(),
+                "isProtectedChildren" to application.isProtectedChildren(),
+                "isCommon" to application.isCommon(),
+                "isMeister" to application.isMeister(),
+                "isSocialMerit" to application.isSocial(),
+            )
 
         list.forEach { (key, value) ->
             values[key] = toBallotBox(value!!)
         }
     }
 
-    private fun setExtraScore(application: Application, values: MutableMap<String, Any>) {
+    private fun setExtraScore(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
         values["hasCompetitionPrize"] = toCircleBallotbox(applicationCase?.extraScoreItem!!.hasCompetitionPrize)
         values["hasCertificate"] = toCircleBallotbox(applicationCase.extraScoreItem.hasCertificate)
     }
 
-    private fun setGradeScore(application: Application, score: Score, values: MutableMap<String, Any>) {
+    private fun setGradeScore(
+        application: Application,
+        score: Score,
+        values: MutableMap<String, Any>,
+    ) {
         val isQualificationExam = application.isQualificationExam()
         val score1st = if (isQualificationExam) "" else score.thirdBeforeBeforeScore.toString()
         val score2nd = if (isQualificationExam) "" else score.thirdBeforeScore.toString()
@@ -243,7 +290,10 @@ class PdfDataConverter(
         }
     }
 
-    private fun setAllSubjectScores(application: Application, values: MutableMap<String, Any>) {
+    private fun setAllSubjectScores(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
         if (applicationCase is QualificationCase) {
             with(values) {
@@ -256,30 +306,31 @@ class PdfDataConverter(
                 // TODO 추후 역사로 수정해야 함.
                 put("techAndHomeThirdGradeFirstSemester", applicationCase.historyGrade)
             }
-        } else if(applicationCase is GraduationCase) {
+        } else if (applicationCase is GraduationCase) {
             val grades = applicationCase.gradesPerSubject()
             val subjects = listOf("국어", "사회", "역사", "수학", "과학", "영어", "기술가정")
 
             subjects.forEach { subject ->
                 val subjectGrades = grades[subject]
                 if (subjectGrades != null) {
-                    val subjectPrefix = when (subject) {
-                        "국어" -> "korean"
-                        "사회" -> "social"
-                        "역사" -> "history"
-                        "수학" -> "math"
-                        "과학" -> "science"
-                        "영어" -> "english"
-                        "기술가정" -> "techAndHome"
-                        else -> subject.toLowerCase()
-                    }
+                    val subjectPrefix =
+                        when (subject) {
+                            "국어" -> "korean"
+                            "사회" -> "social"
+                            "역사" -> "history"
+                            "수학" -> "math"
+                            "과학" -> "science"
+                            "영어" -> "english"
+                            "기술가정" -> "techAndHome"
+                            else -> subject.toLowerCase()
+                        }
 
                     with(values) {
                         put("applicationCase", "기술∙가정")
                         put("${subjectPrefix}ThirdGradeSecondSemester", applicationService.safeGetValue(subjectGrades[0]))
-                        put("${subjectPrefix}ThirdGradeFirstSemester",  applicationService.safeGetValue(subjectGrades[1]))
-                        put("${subjectPrefix}SecondGradeSecondSemester",  applicationService.safeGetValue(subjectGrades[2]))
-                        put("${subjectPrefix}SecondGradeFirstSemester",  applicationService.safeGetValue(subjectGrades[3]))
+                        put("${subjectPrefix}ThirdGradeFirstSemester", applicationService.safeGetValue(subjectGrades[1]))
+                        put("${subjectPrefix}SecondGradeSecondSemester", applicationService.safeGetValue(subjectGrades[2]))
+                        put("${subjectPrefix}SecondGradeFirstSemester", applicationService.safeGetValue(subjectGrades[3]))
                     }
                 }
             }
@@ -295,26 +346,38 @@ class PdfDataConverter(
         }
     }
 
-    private fun setIntroduction(application: Application, values: MutableMap<String, Any>) {
+    private fun setIntroduction(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         values["selfIntroduction"] = setBlankIfNull(application.selfIntroduce)
         values["studyPlan"] = setBlankIfNull(application.studyPlan)
         values["newLineChar"] = "\n"
     }
 
-    private fun setTeacherInfo(application: Application, values: MutableMap<String, Any>) {
+    private fun setTeacherInfo(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         val graduationInfo = queryGraduationInfoPort.queryGraduationInfoByApplication(application)
-        if(graduationInfo is Graduation) {
+        if (graduationInfo is Graduation) {
             values["teacherName"] = graduationInfo.teacherName ?: ""
             values["teacherTel"] = toFormattedPhoneNumber(graduationInfo.teacherTel)
         }
     }
 
-    private fun setParentInfo(application: Application, values: MutableMap<String, Any>) {
+    private fun setParentInfo(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         values["parentName"] = application.parentName!!
         values["parentRelation"] = application.parentRelation ?: ""
     }
 
-    private fun setRecommendations(application: Application, values: MutableMap<String, Any>) {
+    private fun setRecommendations(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         values["isDaejeonAndMeister"] = markIfTrue(application.isDaejeon!! && application.isMeister())
         values["isDaejeonAndSocialMerit"] = markIfTrue(application.isDaejeon!! && application.isSocial())
         values["isNotDaejeonAndMeister"] = markIfTrue(!application.isDaejeon!! && application.isMeister())
@@ -322,12 +385,14 @@ class PdfDataConverter(
             markIfTrue(!application.isDaejeon!! && application.isSocial())
     }
 
-    private fun setBase64Image(application: Application, values: MutableMap<String, Any>) {
+    private fun setBase64Image(
+        application: Application,
+        values: MutableMap<String, Any>,
+    ) {
         val imageBytes: ByteArray = getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
         val base64EncodedImage = Base64.getEncoder().encodeToString(imageBytes)
         values["base64Image"] = base64EncodedImage
     }
-
 
     private fun markIfTrue(isTrue: Boolean): String {
         return if (isTrue) "◯" else ""
@@ -335,13 +400,16 @@ class PdfDataConverter(
 
     private fun emptySchoolInfo(): Map<String, Any> {
         return java.util.Map.of<String, Any>(
-            "schoolCode", "",
-            "schoolClass", "",
-            "schoolTel", "",
-            "schoolName", ""
+            "schoolCode",
+            "",
+            "schoolClass",
+            "",
+            "schoolTel",
+            "",
+            "schoolName",
+            "",
         )
     }
-
 
     private fun emptyGraduationClassification(): Map<String, Any> {
         return java.util.Map.of<String, Any>(
@@ -350,7 +418,7 @@ class PdfDataConverter(
             "graduateYear", "20__",
             "graduateMonth", "__",
             "prospectiveGraduateYear", "20__",
-            "prospectiveGraduateMonth", "__"
+            "prospectiveGraduateMonth", "__",
         )
     }
 

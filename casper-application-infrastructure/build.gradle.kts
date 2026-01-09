@@ -51,7 +51,7 @@ dependencies {
     // security
     implementation(Dependencies.SPRING_SECURITY)
 
-    //jwt
+    // jwt
     implementation(Dependencies.JWT)
 
     // database
@@ -89,7 +89,7 @@ dependencies {
     implementation(Dependencies.OPEN_FEIGN)
 
     // Cloud Config
-    //implementation(Dependencies.CLOUD_CONFIG)
+    // implementation(Dependencies.CLOUD_CONFIG)
 
     // Kafka
     implementation(Dependencies.KAFKA)
@@ -102,7 +102,7 @@ dependencies {
 
     // PDF
     implementation(Dependencies.PDF_HTML)
-    implementation (Dependencies.THYMELEAF)
+    implementation(Dependencies.THYMELEAF)
 
     // Retry
     implementation(Dependencies.RETRY)
@@ -125,8 +125,8 @@ dependencies {
     implementation(Dependencies.RESILIENCE4J_SPRING_BOOT)
     implementation(Dependencies.RESILIENCE4J_KOTLIN)
 
-    jmh ("org.openjdk.jmh:jmh-core:1.36")
-    jmh ("org.openjdk.jmh:jmh-generator-annprocess:1.36")
+    jmh("org.openjdk.jmh:jmh-core:1.36")
+    jmh("org.openjdk.jmh:jmh-generator-annprocess:1.36")
 }
 
 protobuf {
@@ -157,8 +157,8 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask> {
     exclude { fileTreeElement ->
         val path = fileTreeElement.file.absolutePath
         path.contains("build${File.separator}generated") ||
-                path.contains("grpckt") ||
-                path.endsWith("GrpcKt.kt")
+            path.contains("grpckt") ||
+            path.endsWith("GrpcKt.kt")
     }
 }
 

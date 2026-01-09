@@ -14,12 +14,15 @@ class ApplicationProducer(
     private val createApplicationTemplate: KafkaTemplate<String, Any>,
     private val createApplicationRollbackTemplate: KafkaTemplate<String, Any>,
 ) : ApplicationEventPort {
-
-    override fun create(receiptCode: Long, userId: UUID) {
-        val createApplicationEvent = CreateApplicationEvent(
-            userId = userId,
-            receiptCode = receiptCode,
-        )
+    override fun create(
+        receiptCode: Long,
+        userId: UUID,
+    ) {
+        val createApplicationEvent =
+            CreateApplicationEvent(
+                userId = userId,
+                receiptCode = receiptCode,
+            )
         createApplicationTemplate.send(
             KafkaTopics.CREATE_APPLICATION,
             mapper.writeValueAsString(createApplicationEvent),
@@ -29,7 +32,7 @@ class ApplicationProducer(
     override fun createApplicationScoreRollback(receiptCode: Long) {
         createApplicationRollbackTemplate.send(
             KafkaTopics.CREATE_APPLICATION_SCORE_ROLLBACK,
-            receiptCode
+            receiptCode,
         )
     }
 }

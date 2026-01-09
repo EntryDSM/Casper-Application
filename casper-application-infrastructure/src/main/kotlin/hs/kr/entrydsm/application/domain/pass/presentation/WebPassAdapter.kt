@@ -13,15 +13,17 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/pass")
 class WebPassAdapter(
     private val queryIsFirstRoundPassUseCase: QueryIsFirstRoundPassUseCase,
-    private val queryIsSecondRoundPassUseCase: QueryIsSecondRoundPassUseCase
+    private val queryIsSecondRoundPassUseCase: QueryIsSecondRoundPassUseCase,
 ) {
     @GetMapping("/first-round")
-    fun queryIsFirstRound(): QueryIsFirstRoundPassResponse = runBlocking {
-        queryIsFirstRoundPassUseCase.execute()
-    }
+    fun queryIsFirstRound(): QueryIsFirstRoundPassResponse =
+        runBlocking {
+            queryIsFirstRoundPassUseCase.execute()
+        }
 
     @GetMapping("/second-round")
-    fun queryIsSecondRound(): QueryIsSecondRoundPassResponse = runBlocking {
-        queryIsSecondRoundPassUseCase.execute()
-    }
+    fun queryIsSecondRound(): QueryIsSecondRoundPassResponse =
+        runBlocking {
+            queryIsSecondRoundPassUseCase.execute()
+        }
 }

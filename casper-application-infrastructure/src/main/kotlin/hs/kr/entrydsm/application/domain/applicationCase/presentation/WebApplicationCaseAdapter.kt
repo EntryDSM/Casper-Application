@@ -10,7 +10,6 @@ class WebApplicationCaseAdapter(
     private val getGraduationCaseUseCase: GetGraduationCaseUseCase,
     private val getQualificationCaseUseCase: GetQualificationCaseUseCase,
 ) {
-
     @GetMapping("/graduation")
     fun getGraduationCase() = getGraduationCaseUseCase.execute()
 

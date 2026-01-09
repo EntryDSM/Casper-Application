@@ -19,7 +19,6 @@ import java.io.IOException
 import java.net.URLDecoder
 import java.util.*
 
-
 @Component
 class AwsS3Adapter(
     private val awsProperties: AwsS3Properties,
@@ -29,7 +28,10 @@ class AwsS3Adapter(
         const val EXP_TIME = 1000 * 60 * 2
     }
 
-    override fun upload(file: File, path: String): String {
+    override fun upload(
+        file: File,
+        path: String,
+    ): String {
         val fileName = UUID.randomUUID().toString() + file.name
         runCatching { inputS3(file, path, fileName) }
             .also { file.delete() }
@@ -37,7 +39,10 @@ class AwsS3Adapter(
         return fileName
     }
 
-    override fun getObject(fileName: String, path: String): ByteArray {
+    override fun getObject(
+        fileName: String,
+        path: String,
+    ): ByteArray {
         try {
             val `object` = amazonS3Client.getObject(awsProperties.bucket, path + fileName)
             return IOUtils.toByteArray(`object`.objectContent)
@@ -46,21 +51,26 @@ class AwsS3Adapter(
         }
     }
 
-    private fun inputS3(file: File, path: String, fileName: String) {
+    private fun inputS3(
+        file: File,
+        path: String,
+        fileName: String,
+    ) {
         try {
             val inputStream = file.inputStream()
-            val objectMetadata = ObjectMetadata().apply {
-                contentLength = file.length()
-                contentType = Mimetypes.getInstance().getMimetype(file)
-            }
+            val objectMetadata =
+                ObjectMetadata().apply {
+                    contentLength = file.length()
+                    contentType = Mimetypes.getInstance().getMimetype(file)
+                }
 
             amazonS3Client.putObject(
                 PutObjectRequest(
                     awsProperties.bucket,
-                    path+fileName,
+                    path + fileName,
                     inputStream,
-                    objectMetadata
-                ).withCannedAcl(CannedAccessControlList.PublicRead)
+                    objectMetadata,
+                ).withCannedAcl(CannedAccessControlList.PublicRead),
             )
         } catch (e: IOException) {
             throw FileExceptions.IOInterrupted()
@@ -72,15 +82,19 @@ class AwsS3Adapter(
         return amazonS3Client.doesObjectExist(awsProperties.bucket, key)
     }
 
-    override fun generateFileUrl(fileName: String, path: String): String {
-        val expiration = Date().apply {
-            time += EXP_TIME
+    override fun generateFileUrl(
+        fileName: String,
+        path: String,
+    ): String {
+        val expiration =
+            Date().apply {
+                time += EXP_TIME
             }
         return amazonS3Client.generatePresignedUrl(
             GeneratePresignedUrlRequest(
                 awsProperties.bucket,
-                "${path}$fileName"
-            ).withMethod(HttpMethod.GET).withExpiration(expiration)
+                "${path}$fileName",
+            ).withMethod(HttpMethod.GET).withExpiration(expiration),
         ).toString()
-        }
+    }
 }

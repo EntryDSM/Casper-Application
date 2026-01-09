@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class UpdateApplicationCaseRollbackConsumer(
     private val objectMapper: ObjectMapper,
-    private val commandApplicationCasePort: CommandApplicationCasePort
+    private val commandApplicationCasePort: CommandApplicationCasePort,
 ) {
     @KafkaListener(
         topics = [KafkaTopics.UPDATE_APPLICATION_CASE_ROLLBACK],

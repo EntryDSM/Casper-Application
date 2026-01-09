@@ -3,7 +3,6 @@ package hs.kr.entrydsm.application.global.document.pdf.generator
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.utils.PdfMerger
-import com.itextpdf.layout.Document
 import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.spi.IntroductionPdfGeneratorPort
 import hs.kr.entrydsm.application.global.document.pdf.data.IntroductionPdfConverter
@@ -13,13 +12,12 @@ import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 
 @Component
-class IntroductionPdfGenerator (
+class IntroductionPdfGenerator(
     private val pdfProcessor: PdfProcessor,
     private val introductionPdfConverter: IntroductionPdfConverter,
     private val templateProcessor: TemplateProcessor,
-    private val pdfDocumentFacade: PdfDocumentFacade
-): IntroductionPdfGeneratorPort {
-
+    private val pdfDocumentFacade: PdfDocumentFacade,
+) : IntroductionPdfGeneratorPort {
     override suspend fun generate(applicationList: List<Application>): ByteArray {
         val outputStream = ByteArrayOutputStream()
         val mergedDocument = PdfDocument(PdfWriter(outputStream))
@@ -44,7 +42,10 @@ class IntroductionPdfGenerator (
         return pdfStream
     }
 
-    private fun mergeDocument(merger: PdfMerger, document: PdfDocument?) {
+    private fun mergeDocument(
+        merger: PdfMerger,
+        document: PdfDocument?,
+    ) {
         if (document != null) {
             merger.merge(document, 1, document.numberOfPages)
             document.close()

@@ -21,6 +21,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApp
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetStaticsCountResponse
 import hs.kr.entrydsm.application.domain.score.usecase.QueryStaticsScoreUseCase
 import hs.kr.entrydsm.application.domain.score.usecase.dto.response.GetStaticsScoreResponse
+import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.runBlocking
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.nio.charset.StandardCharsets
-import jakarta.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/admin/application")
@@ -47,18 +47,15 @@ class WebAdminAdapter(
     private val printAdmissionTicketUseCase: PrintAdmissionTicketUseCase,
     private val getApplicationStatusByRegionUseCase: GetApplicationStatusByRegionUseCase,
     private val updateFirstRoundPassedApplicationExamCodeUseCase: UpdateFirstRoundPassedApplicationExamCodeUseCase,
-    private val introductionPdfUseCase: GetIntroductionPdfUseCase
+    private val introductionPdfUseCase: GetIntroductionPdfUseCase,
 ) {
-
     @GetMapping("/statics/score")
-    fun queryStaticsScore(): List<GetStaticsScoreResponse> =
-        runBlocking { queryStaticsScoreUseCase.execute() }
+    fun queryStaticsScore(): List<GetStaticsScoreResponse> = runBlocking { queryStaticsScoreUseCase.execute() }
 
     @GetMapping("/statics/count")
-    fun queryStaticsCount(): List<GetStaticsCountResponse> =
-        runBlocking { queryStaticsCountUseCase.execute() }
+    fun queryStaticsCount(): List<GetStaticsCountResponse> = runBlocking { queryStaticsCountUseCase.execute() }
 
-    @GetMapping("/application-count") //todo 이걸 아예 통계쪽으로 빼야할수도?
+    @GetMapping("/application-count") // todo 이걸 아예 통계쪽으로 빼야할수도?
     fun getApplicationCount(): GetApplicationCountResponse {
         return runBlocking {
             getApplicationCountUseCase.execute(
@@ -69,7 +66,9 @@ class WebAdminAdapter(
     }
 
     @GetMapping("/{receipt-code}")
-    fun getApplication(@PathVariable("receipt-code") receiptCode: Long): GetApplicationResponse {
+    fun getApplication(
+        @PathVariable("receipt-code") receiptCode: Long,
+    ): GetApplicationResponse {
         return runBlocking { getApplicationUseCase.execute(receiptCode) }
     }
 
@@ -92,7 +91,7 @@ class WebAdminAdapter(
         @RequestParam(name = "offset", defaultValue = "0")
         offset: Long,
         @ModelAttribute
-        getApplicantsRequest: GetApplicantsRequest
+        getApplicantsRequest: GetApplicantsRequest,
     ): GetApplicantsResponse {
         return runBlocking { getApplicantsUseCase.execute(pageSize, offset, getApplicantsRequest) }
     }
@@ -122,21 +121,23 @@ class WebAdminAdapter(
                 jeollanamDo = response.jeollanamDo,
                 jeollabukDo = response.jeollabukDo,
                 chungcheongnamDo = response.chungcheongnamDo,
-                chungcheongbukDo = response.chungcheongbukDo
+                chungcheongbukDo = response.chungcheongbukDo,
             )
         }
     }
 
     @PatchMapping("/exam-code")
-    fun updateFirstRoundPassedApplicationExamCode() = runBlocking {
-        updateFirstRoundPassedApplicationExamCodeUseCase.execute()
-    }
+    fun updateFirstRoundPassedApplicationExamCode() =
+        runBlocking {
+            updateFirstRoundPassedApplicationExamCodeUseCase.execute()
+        }
 
     @GetMapping("/pdf/introduction", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun getIntroductionPdf(response: HttpServletResponse): ByteArray {
         response.setHeader("Content-Disposition", "attachment; filename=\"${encodeFileName()}.pdf\"")
         return runBlocking { introductionPdfUseCase.execute() }
     }
+
     private fun encodeFileName(): String {
         return String(WebApplicationPdfAdapter.FILE_NAME.toByteArray(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1)
     }

@@ -1,8 +1,8 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
-import java.time.YearMonth
 import jakarta.validation.constraints.NotNull
+import java.time.YearMonth
 
 data class UpdateEducationalStatusWebRequest(
     @NotNull

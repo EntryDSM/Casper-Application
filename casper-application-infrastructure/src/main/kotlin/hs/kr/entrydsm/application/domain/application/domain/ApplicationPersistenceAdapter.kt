@@ -30,7 +30,7 @@ class ApplicationPersistenceAdapter(
     private val applicationJpaRepository: ApplicationJpaRepository,
     private val jpaQueryFactory: JPAQueryFactory,
     private val statusGrpcClient: StatusGrpcClient,
-    private val locationPort: LocationPort
+    private val locationPort: LocationPort,
 ) : ApplicationPort {
     override fun save(application: Application): Application {
         return applicationJpaRepository.save(
@@ -70,51 +70,54 @@ class ApplicationPersistenceAdapter(
         isSocial: Boolean,
         isSubmitted: Boolean?,
         pageSize: Long,
-        offset: Long
+        offset: Long,
     ): PagedResult<Applicant> {
         val statusMap: Map<Long, InternalStatusResponse> =
             statusGrpcClient.getStatusList().statusList.associateBy(InternalStatusResponse::receiptCode)
 
-        val query = jpaQueryFactory
-            .selectFrom(applicationJpaEntity)
-            .leftJoin(qualificationJpaEntity).on(applicationJpaEntity.receiptCode.eq(qualificationJpaEntity.receiptCode))
-            .leftJoin(graduationJpaEntity).on(applicationJpaEntity.receiptCode.eq(graduationJpaEntity.receiptCode))
-            .where(
-                applicationJpaEntity.applicantName.contains(name),
-                isDaejeon?.let { applicationJpaEntity.isDaejeon.eq(it) },
-                isOutOfHeadcount?.let { applicationJpaEntity.isOutOfHeadcount.eq(it) },
-                applicationJpaEntity.applicationType.`in`(getApplicationTypes(isCommon, isMeister, isSocial))
-            )
-            .orderBy(applicationJpaEntity.receiptCode.asc())
+        val query =
+            jpaQueryFactory
+                .selectFrom(applicationJpaEntity)
+                .leftJoin(qualificationJpaEntity).on(applicationJpaEntity.receiptCode.eq(qualificationJpaEntity.receiptCode))
+                .leftJoin(graduationJpaEntity).on(applicationJpaEntity.receiptCode.eq(graduationJpaEntity.receiptCode))
+                .where(
+                    applicationJpaEntity.applicantName.contains(name),
+                    isDaejeon?.let { applicationJpaEntity.isDaejeon.eq(it) },
+                    isOutOfHeadcount?.let { applicationJpaEntity.isOutOfHeadcount.eq(it) },
+                    applicationJpaEntity.applicationType.`in`(getApplicationTypes(isCommon, isMeister, isSocial)),
+                )
+                .orderBy(applicationJpaEntity.receiptCode.asc())
 
         val applicationList = query.fetch()
 
-        val filteredApplicants = isSubmitted?.let { submitted ->
-            applicationList.filter { application ->
-                statusMap[application.receiptCode]?.let { status ->
-                    status.applicationStatus.isSubmitted() == submitted
-                } ?: false
-            }
-        } ?: applicationList
+        val filteredApplicants =
+            isSubmitted?.let { submitted ->
+                applicationList.filter { application ->
+                    statusMap[application.receiptCode]?.let { status ->
+                        status.applicationStatus.isSubmitted() == submitted
+                    } ?: false
+                }
+            } ?: applicationList
 
         val safePageSize = if (pageSize > 0) pageSize else 1
-        val totalSize = ceil(filteredApplicants.size.toDouble() / safePageSize ).toInt()
+        val totalSize = ceil(filteredApplicants.size.toDouble() / safePageSize).toInt()
 
         val pagedApplicationList = filteredApplicants.drop(offset.toInt()).take(pageSize.toInt())
 
-        val applicants = pagedApplicationList.map { application ->
-            val status = statusMap[application.receiptCode] ?: throw StatusExceptions.StatusNotFoundException()
-            Applicant(
-                receiptCode = application.receiptCode,
-                name = application.applicantName,
-                telephoneNumber = application.applicantTel,
-                isDaejeon = application.isDaejeon,
-                isPrintsArrived = status.applicationStatus.isPrintsArrived(),
-                applicationType = application.applicationType?.name,
-                isSubmitted = status.applicationStatus.isSubmitted(),
-                isOutOfHeadcount = application.isOutOfHeadcount
-            )
-        }
+        val applicants =
+            pagedApplicationList.map { application ->
+                val status = statusMap[application.receiptCode] ?: throw StatusExceptions.StatusNotFoundException()
+                Applicant(
+                    receiptCode = application.receiptCode,
+                    name = application.applicantName,
+                    telephoneNumber = application.applicantTel,
+                    isDaejeon = application.isDaejeon,
+                    isPrintsArrived = status.applicationStatus.isPrintsArrived(),
+                    applicationType = application.applicationType?.name,
+                    isSubmitted = status.applicationStatus.isSubmitted(),
+                    isOutOfHeadcount = application.isOutOfHeadcount,
+                )
+            }
 
         val hasNextPage = filteredApplicants.size > offset + pageSize
 
@@ -136,13 +139,16 @@ class ApplicationPersistenceAdapter(
             .map { applicationMapper.toDomain(it)!! }
     }
 
-
-    private fun getApplicationTypes(isCommon: Boolean?, isMeister: Boolean?, isSocial: Boolean?): List<ApplicationType> {
+    private fun getApplicationTypes(
+        isCommon: Boolean?,
+        isMeister: Boolean?,
+        isSocial: Boolean?,
+    ): List<ApplicationType> {
         val applicationTypes = mutableListOf<ApplicationType>()
         if (isCommon == true) applicationTypes.add(ApplicationType.COMMON)
         if (isMeister == true) applicationTypes.add(ApplicationType.MEISTER)
         if (isSocial == true) applicationTypes.add(ApplicationType.SOCIAL)
-        
+
         return applicationTypes
     }
 
@@ -150,19 +156,19 @@ class ApplicationPersistenceAdapter(
         applicationType: ApplicationType,
         isDaejeon: Boolean,
     ): GetApplicationCountResponse {
-
         val statusMap: Map<Long, InternalStatusResponse> =
             statusGrpcClient.getStatusList().statusList
                 .associateBy(InternalStatusResponse::receiptCode)
 
-        val count = jpaQueryFactory.selectFrom(applicationJpaEntity)
-            .where(
-                applicationJpaEntity.applicationType.eq(applicationType)
-                    .and(applicationJpaEntity.isDaejeon.eq(isDaejeon))
-            ).fetch().count {
-                val status = statusMap[it.receiptCode]
-                status != null && status.isFirstRoundPass
-            }
+        val count =
+            jpaQueryFactory.selectFrom(applicationJpaEntity)
+                .where(
+                    applicationJpaEntity.applicationType.eq(applicationType)
+                        .and(applicationJpaEntity.isDaejeon.eq(isDaejeon)),
+                ).fetch().count {
+                    val status = statusMap[it.receiptCode]
+                    status != null && status.isFirstRoundPass
+                }
 
         return GetApplicationCountResponse(
             applicationType,
@@ -174,9 +180,10 @@ class ApplicationPersistenceAdapter(
     override suspend fun queryApplicationInfoListByStatusIsSubmitted(isSubmitted: Boolean): List<Application> {
         val statusMap = statusGrpcClient.getStatusList().statusList.associateBy(InternalStatusResponse::receiptCode)
 
-        val filteredReceiptCodeList = statusMap.filterValues {
-            it.applicationStatus.isSubmitted() == isSubmitted
-        }.keys.toList()
+        val filteredReceiptCodeList =
+            statusMap.filterValues {
+                it.applicationStatus.isSubmitted() == isSubmitted
+            }.keys.toList()
 
         return jpaQueryFactory
             .select(applicationJpaEntity)
@@ -184,7 +191,6 @@ class ApplicationPersistenceAdapter(
             .where(applicationJpaEntity.receiptCode.`in`(filteredReceiptCodeList))
             .fetch()
             .map { applicationMapper.toDomain(it)!! }
-
     }
 
     @Value("\${kakao.authorization}")
@@ -193,7 +199,7 @@ class ApplicationPersistenceAdapter(
     override fun queryLatitudeAndLongitudeByStreetAddress(streetAddress: String): Pair<Double, Double> {
         return locationPort.getLocationInfo(
             streetAddress = streetAddress,
-            kakaoAuthorization = "KakaoAK $kakaoAuthorization"
+            kakaoAuthorization = "KakaoAK $kakaoAuthorization",
         ).documents[0].address.let {
             Pair(it.y.toDouble(), it.x.toDouble())
         }
@@ -209,7 +215,7 @@ class ApplicationPersistenceAdapter(
 
         return jpaQueryFactory
             .select(
-                applicationJpaEntity
+                applicationJpaEntity,
             )
             .from(applicationJpaEntity)
             .where(
@@ -225,29 +231,31 @@ class ApplicationPersistenceAdapter(
 
     override suspend fun queryStaticsCount(
         applicationType: ApplicationType,
-        isDaejeon: Boolean
+        isDaejeon: Boolean,
     ): GetStaticsCountResponse {
         val statusMap: Map<Long, InternalStatusResponse> =
             statusGrpcClient.getStatusList().statusList
                 .associateBy(InternalStatusResponse::receiptCode)
 
-        val applicationList = jpaQueryFactory
-            .selectFrom(applicationJpaEntity)
-            .where(
-                applicationJpaEntity.applicationType.eq(applicationType),
-                applicationJpaEntity.isDaejeon.eq(isDaejeon)
-            )
-            .fetch()
+        val applicationList =
+            jpaQueryFactory
+                .selectFrom(applicationJpaEntity)
+                .where(
+                    applicationJpaEntity.applicationType.eq(applicationType),
+                    applicationJpaEntity.isDaejeon.eq(isDaejeon),
+                )
+                .fetch()
 
-        val count = applicationList.count {
-            val status = statusMap[it.receiptCode]
-            status!!.applicationStatus.isSubmitted()
-        }
+        val count =
+            applicationList.count {
+                val status = statusMap[it.receiptCode]
+                status!!.applicationStatus.isSubmitted()
+            }
 
         return GetStaticsCountResponse(
-                applicationType = applicationType,
-                isDaejeon = isDaejeon,
-                count = count
+            applicationType = applicationType,
+            isDaejeon = isDaejeon,
+            count = count,
         )
     }
 

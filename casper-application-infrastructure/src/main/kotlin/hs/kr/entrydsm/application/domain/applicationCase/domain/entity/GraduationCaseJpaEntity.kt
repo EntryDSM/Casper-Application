@@ -27,7 +27,7 @@ class GraduationCaseJpaEntity(
     @Embedded
     override val extraScoreItem: ExtraScoreItem,
 ) : ApplicationCaseEntity(
-    id = id,
-    receiptCode = receiptCode,
-    extraScoreItem = extraScoreItem
-)
+        id = id,
+        receiptCode = receiptCode,
+        extraScoreItem = extraScoreItem,
+    )

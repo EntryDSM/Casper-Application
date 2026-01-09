@@ -1,14 +1,14 @@
-//plugins {
+// plugins {
 //    kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION
 //    id(Plugins.KTLINT) version(PluginVersions.KTLINT_VERSION)
 //    id(Plugins.CASPER_CONVENTION) version(Plugins.CASPER_CONVENTION)
-//}
+// }
 //
-//allprojects {
+// allprojects {
 //    group = Projects.GROUP
-//}
+// }
 //
-//subprojects {
+// subprojects {
 //    apply(plugin = Plugins.JETBRAINS_KOTLIN_JVM)
 //
 //    repositories {
@@ -22,13 +22,13 @@
 //    tasks.withType<Test> {
 //        useJUnitPlatform()
 //    }
-//}
+// }
 //
-//version = Projects.VERSION
+// version = Projects.VERSION
 //
-//kotlin {
+// kotlin {
 //    jvmToolchain(17)
-//}
+// }
 
 plugins {
     kotlin(Plugins.KOTLIN_JVM) version PluginVersions.KOTLIN_VERSION

@@ -7,7 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener
 
 class ApplicationRollbackConsumer(
     private val objectMapper: ObjectMapper,
-    private val deleteApplicationUseCase: DeleteApplicationUseCase
+    private val deleteApplicationUseCase: DeleteApplicationUseCase,
 ) {
     @KafkaListener(
         topics = [KafkaTopics.CREATE_APPLICATION_STATUS_ROLLBACK],

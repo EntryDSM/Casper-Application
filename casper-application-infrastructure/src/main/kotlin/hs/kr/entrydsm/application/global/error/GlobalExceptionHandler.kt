@@ -2,7 +2,6 @@ package hs.kr.entrydsm.application.global.error
 
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import hs.kr.entrydsm.application.global.exception.BusinessException
-import hs.kr.entrydsm.application.global.feign.client.dto.response.SchoolInfoElement
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,6 +31,7 @@ class GlobalExceptionHandler(
             HttpStatus.BAD_REQUEST,
         )
     }
+
     @ExceptionHandler(MissingKotlinParameterException::class)
     fun handleMissingKotlinParameterException(ex: MissingKotlinParameterException): ResponseEntity<Any> {
         val emptyListResponse = emptyList<Any>()

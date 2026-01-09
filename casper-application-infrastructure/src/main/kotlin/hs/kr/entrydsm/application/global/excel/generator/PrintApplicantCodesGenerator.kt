@@ -2,18 +2,21 @@ package hs.kr.entrydsm.application.global.excel.generator
 
 import hs.kr.entrydsm.application.domain.application.spi.PrintApplicantCodesPort
 import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationCodeVO
-import hs.kr.entrydsm.application.global.excel.model.ApplicantCode
 import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
+import hs.kr.entrydsm.application.global.excel.model.ApplicantCode
+import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import jakarta.servlet.http.HttpServletResponse
 
 @Component
-class PrintApplicantCodesGenerator(): PrintApplicantCodesPort {
-    override fun execute(response: HttpServletResponse, applicantCodes: List<ApplicationCodeVO>) {
+class PrintApplicantCodesGenerator() : PrintApplicantCodesPort {
+    override fun execute(
+        response: HttpServletResponse,
+        applicantCodes: List<ApplicationCodeVO>,
+    ) {
         val applicantCode = ApplicantCode()
         val sheet = applicantCode.getSheet()
         applicantCode.format()
@@ -35,7 +38,10 @@ class PrintApplicantCodesGenerator(): PrintApplicantCodesPort {
         }
     }
 
-    private fun insertCode(row: Row, applicationCodeVO: ApplicationCodeVO) {
+    private fun insertCode(
+        row: Row,
+        applicationCodeVO: ApplicationCodeVO,
+    ) {
         row.createCell(0).setCellValue(applicationCodeVO.examCode)
         row.createCell(1).setCellValue(applicationCodeVO.receiptCode.toString())
         row.createCell(2).setCellValue(applicationCodeVO.name)

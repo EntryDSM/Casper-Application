@@ -8,6 +8,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationI
 import hs.kr.entrydsm.application.domain.file.spi.GetObjectPort
 import hs.kr.entrydsm.application.domain.file.usecase.`object`.PathList
 import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
+import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.CellReference
@@ -16,20 +17,18 @@ import org.apache.poi.xssf.usermodel.XSSFDrawing
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
-import java.io.BufferedOutputStream
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import jakarta.servlet.http.HttpServletResponse
 
 @Component
 class PrintAdmissionTicketGenerator(
     private val httpServletResponse: HttpServletResponse,
     private val applicationService: ApplicationService,
     private val getObjectPort: GetObjectPort,
-    private val statusPort: ApplicationQueryStatusPort
+    private val statusPort: ApplicationQueryStatusPort,
 ) : PrintAdmissionTicketPort {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
@@ -40,7 +39,10 @@ class PrintAdmissionTicketGenerator(
 
     private lateinit var drawing: XSSFDrawing
 
-    override suspend fun execute(response: HttpServletResponse, applications: List<ApplicationInfoVO>) {
+    override suspend fun execute(
+        response: HttpServletResponse,
+        applications: List<ApplicationInfoVO>,
+    ) {
         val targetWorkbook = generate(applications)
         try {
             setResponseHeaders()
@@ -64,14 +66,15 @@ class PrintAdmissionTicketGenerator(
         val styleMap = createStyleMap(sourceWorkbook, targetWorkbook)
         targetSheet.setDefaultColumnWidth(13)
 
-        val futures = applications.map { applicationInfoVo ->
-            CompletableFuture.runAsync {
-                val application = applicationInfoVo.application
-                imageCache.get(application.receiptCode!!) {
-                    getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
+        val futures =
+            applications.map { applicationInfoVo ->
+                CompletableFuture.runAsync {
+                    val application = applicationInfoVo.application
+                    imageCache.get(application.receiptCode!!) {
+                        getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
+                    }
                 }
             }
-        }
 
         CompletableFuture.allOf(*futures.toTypedArray()).join()
 
@@ -81,9 +84,10 @@ class PrintAdmissionTicketGenerator(
             fillApplicationData(sourceSheet, 0, applicationInfoVo, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
 
-            val imageBytes = imageCache.get(application.receiptCode!!) {
-                getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
-            }
+            val imageBytes =
+                imageCache.get(application.receiptCode!!) {
+                    getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
+                }
             copyImage(imageBytes, targetSheet, currentRowIndex)
             currentRowIndex += 20
         }
@@ -97,20 +101,31 @@ class PrintAdmissionTicketGenerator(
         return resource.inputStream.use { XSSFWorkbook(it) }
     }
 
-    fun createStyleMap(sourceWorkbook: Workbook, targetWorkbook: Workbook): Map<CellStyle, CellStyle> {
+    fun createStyleMap(
+        sourceWorkbook: Workbook,
+        targetWorkbook: Workbook,
+    ): Map<CellStyle, CellStyle> {
         val styleCache = mutableMapOf<Short, CellStyle>()
         return (0 until sourceWorkbook.numCellStyles).associate { i ->
             val sourceStyle = sourceWorkbook.getCellStyleAt(i)
-            val targetStyle = styleCache.getOrPut(sourceStyle.index) {
-                val newStyle = targetWorkbook.createCellStyle()
-                newStyle.cloneStyleFrom(sourceStyle)
-                newStyle
-            }
+            val targetStyle =
+                styleCache.getOrPut(sourceStyle.index) {
+                    val newStyle = targetWorkbook.createCellStyle()
+                    newStyle.cloneStyleFrom(sourceStyle)
+                    newStyle
+                }
             sourceStyle to targetStyle
         }
     }
 
-    fun copyRows(sourceSheet: Sheet, targetSheet: Sheet, sourceStartRow: Int, sourceEndRow: Int, targetStartRow: Int, styleMap: Map<CellStyle, CellStyle>) {
+    fun copyRows(
+        sourceSheet: Sheet,
+        targetSheet: Sheet,
+        sourceStartRow: Int,
+        sourceEndRow: Int,
+        targetStartRow: Int,
+        styleMap: Map<CellStyle, CellStyle>,
+    ) {
         for (i in sourceStartRow..sourceEndRow) {
             val sourceRow = sourceSheet.getRow(i)
             val targetRow = targetSheet.createRow(targetStartRow + i - sourceStartRow)
@@ -120,7 +135,13 @@ class PrintAdmissionTicketGenerator(
         }
     }
 
-    fun copyRow(sourceSheet: Sheet, targetSheet: Sheet, sourceRow: Row, targetRow: Row, styleMap: Map<CellStyle, CellStyle>) {
+    fun copyRow(
+        sourceSheet: Sheet,
+        targetSheet: Sheet,
+        sourceRow: Row,
+        targetRow: Row,
+        styleMap: Map<CellStyle, CellStyle>,
+    ) {
         targetRow.height = sourceRow.height
 
         for (i in 0 until sourceRow.lastCellNum) {
@@ -137,18 +158,23 @@ class PrintAdmissionTicketGenerator(
         for (i in 0 until sourceSheet.numMergedRegions) {
             val mergedRegion = sourceSheet.getMergedRegion(i)
             if (mergedRegion.firstRow == sourceRow.rowNum) {
-                val newMergedRegion = CellRangeAddress(
-                    targetRow.rowNum,
-                    targetRow.rowNum + (mergedRegion.lastRow - mergedRegion.firstRow),
-                    mergedRegion.firstColumn,
-                    mergedRegion.lastColumn
-                )
+                val newMergedRegion =
+                    CellRangeAddress(
+                        targetRow.rowNum,
+                        targetRow.rowNum + (mergedRegion.lastRow - mergedRegion.firstRow),
+                        mergedRegion.firstColumn,
+                        mergedRegion.lastColumn,
+                    )
                 targetSheet.addMergedRegion(newMergedRegion)
             }
         }
     }
 
-    fun copyCell(oldCell: Cell, newCell: Cell, styleMap: Map<CellStyle, CellStyle>) {
+    fun copyCell(
+        oldCell: Cell,
+        newCell: Cell,
+        styleMap: Map<CellStyle, CellStyle>,
+    ) {
         val newStyle = styleMap[oldCell.cellStyle]
         if (newStyle != null) {
             newCell.cellStyle = newStyle
@@ -165,7 +191,12 @@ class PrintAdmissionTicketGenerator(
         }
     }
 
-    suspend fun fillApplicationData(sheet: Sheet, startRowIndex: Int, applicationInfoVo: ApplicationInfoVO, workbook: Workbook) {
+    suspend fun fillApplicationData(
+        sheet: Sheet,
+        startRowIndex: Int,
+        applicationInfoVo: ApplicationInfoVO,
+        workbook: Workbook,
+    ) {
         val application = applicationInfoVo.application
         val school = applicationInfoVo.school
 
@@ -179,7 +210,11 @@ class PrintAdmissionTicketGenerator(
         setValue(sheet, "E14", application.receiptCode.toString())
     }
 
-    fun copyImage(imageBytes: ByteArray?, targetSheet: Sheet, targetRowIndex: Int) {
+    fun copyImage(
+        imageBytes: ByteArray?,
+        targetSheet: Sheet,
+        targetRowIndex: Int,
+    ) {
         imageBytes?.let {
             val workbook = targetSheet.workbook
             val pictureId = workbook.addPicture(it, Workbook.PICTURE_TYPE_PNG)
@@ -194,7 +229,11 @@ class PrintAdmissionTicketGenerator(
         }
     }
 
-    fun setValue(sheet: Sheet, position: String, value: String) {
+    fun setValue(
+        sheet: Sheet,
+        position: String,
+        value: String,
+    ) {
         val ref = CellReference(position)
         val r = sheet.getRow(ref.row)
         if (r != null) {

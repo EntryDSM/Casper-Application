@@ -4,5 +4,5 @@ import java.util.UUID
 
 data class CreateApplicationEvent(
     val receiptCode: Long,
-    val userId: UUID
+    val userId: UUID,
 )

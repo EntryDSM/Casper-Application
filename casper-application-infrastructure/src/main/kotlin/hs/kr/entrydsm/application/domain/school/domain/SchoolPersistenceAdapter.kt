@@ -15,16 +15,17 @@ import org.springframework.stereotype.Component
 @Component
 class SchoolPersistenceAdapter(
     private val schoolClient: SchoolClient,
-    private val schoolCacheRepository: SchoolCacheRepository
+    private val schoolCacheRepository: SchoolCacheRepository,
 ) : SchoolPort {
     @Value("\${neis.key}")
     lateinit var apiKey: String
+
     override fun isExistsSchoolBySchoolCode(schoolCode: String): Boolean {
         return querySchoolBySchoolCode(schoolCode) != null
     }
 
     override fun querySchoolBySchoolCode(school: String): School? {
-        if(schoolCacheRepository.existsById(school)) {
+        if (schoolCacheRepository.existsById(school)) {
             val schoolCache = schoolCacheRepository.findById(school).get()
             schoolCache.run {
                 return School(
@@ -33,25 +34,26 @@ class SchoolPersistenceAdapter(
                     tel = tel,
                     type = type,
                     address = address,
-                    regionName = regionName
+                    regionName = regionName,
                 )
             }
         }
 
-        val school = schoolClient.getSchoolBySchoolCode(schoolCode = school, key = apiKey)?.let { response ->
-            val mapper = ObjectMapper().registerKotlinModule()
-            val responseObject = mapper.readValue<SchoolInfoElement>(response)
-            responseObject.schoolInfo[1].row?.map {
-                School(
-                    code = it.sdSchulCode,
-                    name = it.schulNm,
-                    tel = it.orgTelno,
-                    type = it.schulKndScNm,
-                    address = it.orgRdnma,
-                    regionName = it.lctnScNm
-                )
-            }?.firstOrNull()
-        }
+        val school =
+            schoolClient.getSchoolBySchoolCode(schoolCode = school, key = apiKey)?.let { response ->
+                val mapper = ObjectMapper().registerKotlinModule()
+                val responseObject = mapper.readValue<SchoolInfoElement>(response)
+                responseObject.schoolInfo[1].row?.map {
+                    School(
+                        code = it.sdSchulCode,
+                        name = it.schulNm,
+                        tel = it.orgTelno,
+                        type = it.schulKndScNm,
+                        address = it.orgRdnma,
+                        regionName = it.lctnScNm,
+                    )
+                }?.firstOrNull()
+            }
         return school?.let { saveInCache(it) }
     }
 
@@ -66,21 +68,22 @@ class SchoolPersistenceAdapter(
                     tel = it.orgTelno,
                     type = it.schulKndScNm,
                     address = it.orgRdnma,
-                    regionName = it.lctnScNm
+                    regionName = it.lctnScNm,
                 )
             }
         } ?: emptyList()
     }
 
     private fun saveInCache(school: School): School {
-        val schoolCache = SchoolCacheRedisEntity(
-            code = school.code,
-            name = school.name,
-            tel = school.tel,
-            type = school.type,
-            address = school.address,
-            regionName = school.regionName
-        )
+        val schoolCache =
+            SchoolCacheRedisEntity(
+                code = school.code,
+                name = school.name,
+                tel = school.tel,
+                type = school.type,
+                address = school.address,
+                regionName = school.regionName,
+            )
 
         schoolCacheRepository.save(schoolCache)
         return school

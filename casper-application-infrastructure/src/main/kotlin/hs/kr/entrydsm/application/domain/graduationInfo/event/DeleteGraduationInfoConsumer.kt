@@ -16,7 +16,7 @@ class DeleteGraduationInfoConsumer(
     private val mapper: ObjectMapper,
     private val commandGraduationInfoPort: CommandGraduationInfoPort,
     private val queryGraduationInfoPort: QueryGraduationInfoPort,
-    private val queryApplicationPort: QueryApplicationPort
+    private val queryApplicationPort: QueryApplicationPort,
 ) {
     private val logger = LoggerFactory.getLogger(DeleteGraduationInfoConsumer::class.java)
 
@@ -30,11 +30,13 @@ class DeleteGraduationInfoConsumer(
             val receiptCode = mapper.readValue(message, Long::class.java)
             logger.info("delete-graduation-info-consumer 에서 $receiptCode 번 졸업정보를 삭제합니다.")
 
-            val application = queryApplicationPort.queryApplicationByReceiptCode(receiptCode) ?:
-                throw ApplicationExceptions.ApplicationNotFoundException()
+            val application =
+                queryApplicationPort.queryApplicationByReceiptCode(receiptCode)
+                    ?: throw ApplicationExceptions.ApplicationNotFoundException()
 
-            val graduationInfo = queryGraduationInfoPort.queryGraduationInfoByApplication(application) ?:
-                throw GraduationInfoExceptions.GraduationNotFoundException()
+            val graduationInfo =
+                queryGraduationInfoPort.queryGraduationInfoByApplication(application)
+                    ?: throw GraduationInfoExceptions.GraduationNotFoundException()
 
             commandGraduationInfoPort.delete(graduationInfo)
             logger.info("$receiptCode 번 점수를 성공적으로 삭제하였습니다.")

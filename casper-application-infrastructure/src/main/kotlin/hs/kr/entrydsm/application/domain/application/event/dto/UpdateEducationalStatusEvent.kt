@@ -4,5 +4,5 @@ import java.time.YearMonth
 
 data class UpdateEducationalStatusEvent(
     val receiptCode: Long,
-    val graduateDate: YearMonth
+    val graduateDate: YearMonth,
 )

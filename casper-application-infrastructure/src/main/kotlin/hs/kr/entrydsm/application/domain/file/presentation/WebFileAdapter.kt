@@ -15,7 +15,9 @@ class WebFileAdapter(
     private val uploadImageUseCase: UploadImageUseCase,
 ) {
     @PostMapping
-    fun uploadSingleImage(@RequestPart(name = "file") file: MultipartFile): UploadImageWebResponse {
+    fun uploadSingleImage(
+        @RequestPart(name = "file") file: MultipartFile,
+    ): UploadImageWebResponse {
         return UploadImageWebResponse(
             uploadImageUseCase.execute(
                 file.let(ImageFileConverter::transferTo),

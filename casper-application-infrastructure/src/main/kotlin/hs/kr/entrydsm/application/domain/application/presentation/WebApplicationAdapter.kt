@@ -23,23 +23,24 @@ import org.springframework.web.multipart.MultipartFile
 class WebApplicationAdapter(
     private val uploadPhotoUseCase: UploadPhotoUseCase,
     private val getMyApplicationStatusUseCase: GetMyApplicationStatusUseCase,
-    private val submitApplicationUseCase: SubmitApplicationUseCase
+    private val submitApplicationUseCase: SubmitApplicationUseCase,
 ) {
-
     @PostMapping
-    fun submitApplication(@RequestBody @Valid request: SubmitApplicationWebRequest) =
-        runBlocking { submitApplicationUseCase.execute(request.toSubmitApplicationRequest()) }
+    fun submitApplication(
+        @RequestBody @Valid request: SubmitApplicationWebRequest,
+    ) = runBlocking { submitApplicationUseCase.execute(request.toSubmitApplicationRequest()) }
 
     @PostMapping("/photo")
-    fun uploadFile(@RequestPart(name = "image") file: MultipartFile): UploadImageWebResponse {
+    fun uploadFile(
+        @RequestPart(name = "image") file: MultipartFile,
+    ): UploadImageWebResponse {
         return UploadImageWebResponse(
             uploadPhotoUseCase.execute(
-                file.let(ImageFileConverter::transferTo)
-            )
+                file.let(ImageFileConverter::transferTo),
+            ),
         )
     }
 
     @GetMapping("/status")
-    fun getMyApplicationStatus(): GetApplicationStatusResponse =
-        runBlocking { getMyApplicationStatusUseCase.execute() }
+    fun getMyApplicationStatus(): GetApplicationStatusResponse = runBlocking { getMyApplicationStatusUseCase.execute() }
 }
