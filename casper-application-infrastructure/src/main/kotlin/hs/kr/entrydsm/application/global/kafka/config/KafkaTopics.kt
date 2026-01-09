@@ -11,4 +11,10 @@ object KafkaTopics {
     const val SUBMIT_APPLICATION_FINAL = "submit-application-final"
     const val CREATE_APPLICATION_SCORE_ROLLBACK = "create-application-score-rollback"
     const val CREATE_APPLICATION_STATUS_ROLLBACK = "create-application-status-rollback"
+
+    // Outbox 기반 실패 이벤트 토픽
+    const val SCORE_CREATION_FAILED = "score-creation-failed"
+    const val STATUS_CREATION_FAILED = "status-creation-failed"
+    const val APPLICATION_ROLLBACK_COMPLETED = "application-rollback-completed"
+    const val DELETE_APPLICATION_FAILED = "delete-application-failed"
 }
