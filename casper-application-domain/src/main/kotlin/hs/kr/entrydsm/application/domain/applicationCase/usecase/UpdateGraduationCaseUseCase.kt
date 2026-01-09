@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.application.domain.applicationCase.usecase
 
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
-import hs.kr.entrydsm.application.domain.applicationCase.event.spi.ApplicationCaseEventPort
 import hs.kr.entrydsm.application.domain.applicationCase.exception.ApplicationCaseExceptions
 import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
 import hs.kr.entrydsm.application.domain.applicationCase.model.vo.ExtraScoreItem
@@ -9,6 +8,7 @@ import hs.kr.entrydsm.application.domain.applicationCase.spi.ApplicationCaseQuer
 import hs.kr.entrydsm.application.domain.applicationCase.spi.CommandApplicationCasePort
 import hs.kr.entrydsm.application.domain.applicationCase.spi.QueryApplicationCasePort
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.UpdateGraduationCaseRequest
+import hs.kr.entrydsm.application.domain.outbox.spi.OutboxEventPublisherPort
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
 
@@ -18,7 +18,7 @@ class UpdateGraduationCaseUseCase(
     private val applicationCaseQueryApplicationPort: ApplicationCaseQueryApplicationPort,
     private val commandApplicationCasePort: CommandApplicationCasePort,
     private val queryApplicationCasePort: QueryApplicationCasePort,
-    private val graduationCaseEventPort: ApplicationCaseEventPort,
+    private val outboxEventPublisher: OutboxEventPublisherPort,
 ) {
     fun execute(request: UpdateGraduationCaseRequest) {
         val userId = securityPort.getCurrentUserId()
@@ -53,6 +53,12 @@ class UpdateGraduationCaseUseCase(
             )
         }
 
-        graduationCaseEventPort.updateGraduationCase(graduationCase)
+        // Outbox 패턴 적용: 이전 상태 저장 (rollback용)
+        outboxEventPublisher.publish(
+            aggregateType = "GraduationCase",
+            aggregateId = graduationCase.receiptCode.toString(),
+            eventType = "update-graduation-case",
+            payload = graduationCase
+        )
     }
 }
