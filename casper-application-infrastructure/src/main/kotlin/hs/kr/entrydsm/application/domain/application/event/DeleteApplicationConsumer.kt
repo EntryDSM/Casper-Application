@@ -2,6 +2,7 @@ package hs.kr.entrydsm.application.domain.application.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import hs.kr.entrydsm.application.domain.application.spi.CommandApplicationPort
+import hs.kr.entrydsm.application.domain.outbox.spi.OutboxEventPublisherPort
 import hs.kr.entrydsm.application.global.kafka.config.KafkaTopics
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component
 class DeleteApplicationConsumer(
     private val mapper: ObjectMapper,
     private val commandApplicationPort: CommandApplicationPort,
+    private val outboxEventPublisher: OutboxEventPublisherPort,
 ) {
     private val logger = LoggerFactory.getLogger(DeleteApplicationConsumer::class.java)
 
@@ -20,14 +22,31 @@ class DeleteApplicationConsumer(
         containerFactory = "kafkaListenerContainerFactory",
     )
     fun deleteApplication(message: String) {
+        var receiptCode: Long? = null
         try {
-            val receiptCode = mapper.readValue(message, Long::class.java)
+            receiptCode = mapper.readValue(message, Long::class.java)
             logger.info("delete-application-consumer groupId 에서 $receiptCode 번 원서를 삭제합니다.")
             commandApplicationPort.deleteByReceiptCode(receiptCode)
             logger.info("$receiptCode 번 원서를 성공적으로 삭제하였습니다.")
         } catch (e: Exception) {
             logger.error("delete-application-consumer groupId 에서 원서를 삭제하던 중 오류가 발생하였습니다. $message", e)
-            // TODO :: 재시도 로직 작성
+
+            receiptCode?.let {
+                try {
+                    outboxEventPublisher.publish(
+                        aggregateType = "Application",
+                        aggregateId = it.toString(),
+                        eventType = KafkaTopics.DELETE_APPLICATION_FAILED,
+                        payload = mapOf(
+                            "receiptCode" to it,
+                            "errorMessage" to (e.message ?: "Unknown error"),
+                            "errorType" to e.javaClass.simpleName
+                        )
+                    )
+                } catch (outboxException: Exception) {
+                    logger.error("Outbox 이벤트 저장 중 오류가 발생하였습니다.", outboxException)
+                }
+            }
         }
     }
 }
