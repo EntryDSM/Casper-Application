@@ -33,14 +33,8 @@ class SubmitApplicationUseCase(
     private val scoreService: ScoreService
 ) {
     suspend fun execute(request: SubmitApplicationRequest) {
-        val userId = UUID.fromString("5f2b8a90-c3d1-4e7a-9f8e-2c4b5d6a7e8f")
-        val user = User(
-            id = UUID.fromString("5f2b8a90-c3d1-4e7a-9f8e-2c4b5d6a7e8f"),
-            phoneNumber = "01098852668",
-            name = "채도훈",
-            isParent = false
-        )
-        //val user = applicationQueryUserPort.queryUserByUserId(userId)
+        val userId = securityPort.getCurrentUserId()
+        val user = applicationQueryUserPort.queryUserByUserId(userId)
         if (queryApplicationPort.isExistsApplicationByUserId(userId)) {
             throw ApplicationExceptions.ApplicationExistsException()
         }
@@ -51,12 +45,6 @@ class SubmitApplicationUseCase(
         handleSubmissionSideEffects(application.receiptCode, request)
 
         applicationEventPort.create(application.receiptCode, userId)
-
-        // 이벤트 처리 로직을 동기적으로 실행하도록 변경
-        // cause. 이벤트 순서 문제(Kafka는 비동기적으로 호출되어Score 생성, applicationCase, Score 업데이트 순서가 보장되지 않음.)
-//        applicationEventPort.submitApplication(
-//            SubmitApplicationMapper.toSubmissionData(request, application, userId)
-//        )
     }
 
     private fun handleSubmissionSideEffects(receiptCode: Long, request: SubmitApplicationRequest) {
