@@ -14,6 +14,8 @@ import hs.kr.entrydsm.application.domain.graduationInfo.exception.GraduationInfo
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
 import hs.kr.entrydsm.application.domain.graduationInfo.spi.GraduationInfoQuerySchoolPort
 import hs.kr.entrydsm.application.domain.graduationInfo.spi.QueryGraduationInfoPort
+import hs.kr.entrydsm.application.domain.photo.model.Photo
+import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.domain.school.exception.SchoolExceptions
 import hs.kr.entrydsm.application.domain.score.model.Score
 import org.springframework.stereotype.Component
@@ -34,6 +36,7 @@ class PdfDataConverter(
     fun applicationToInfo(
         application: Application,
         score: Score,
+        photo: Photo
     ): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
@@ -58,8 +61,8 @@ class PdfDataConverter(
             setRecommendations(application, values)
         }
 
-        if (!application.photoPath.isNullOrBlank()) {
-            setBase64Image(application, values)
+        if (photo.photoPath.isNotBlank()) {
+            setBase64Image(photo, values)
         }
 
         return PdfData(values)
@@ -386,10 +389,10 @@ class PdfDataConverter(
     }
 
     private fun setBase64Image(
-        application: Application,
+        photo: Photo,
         values: MutableMap<String, Any>,
     ) {
-        val imageBytes: ByteArray = getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
+        val imageBytes: ByteArray = getObjectPort.getObject(photo.photoPath, PathList.PHOTO)
         val base64EncodedImage = Base64.getEncoder().encodeToString(imageBytes)
         values["base64Image"] = base64EncodedImage
     }
