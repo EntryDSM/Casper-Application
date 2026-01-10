@@ -8,7 +8,6 @@ import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
 import java.io.File
-import java.util.UUID
 
 @UseCase
 class UploadPhotoUseCase(
@@ -18,7 +17,7 @@ class UploadPhotoUseCase(
     private val uploadFilePort: UploadFilePort,
 ) {
     fun execute(file: File): String {
-        val userId = UUID.fromString("c5e99b01-561b-45f5-9ae3-78c76c1670ba")
+        val userId = securityPort.getCurrentUserId()
         val photo = uploadFilePort.upload(file, PathList.PHOTO)
 
         queryPhotoPort.queryPhotoByUserId(userId)?.apply {
