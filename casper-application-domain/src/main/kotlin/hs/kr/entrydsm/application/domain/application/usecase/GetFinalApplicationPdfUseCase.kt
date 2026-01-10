@@ -6,6 +6,8 @@ import hs.kr.entrydsm.application.domain.application.spi.ApplicationPdfGenerator
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
 import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
 import hs.kr.entrydsm.application.domain.graduationInfo.exception.GraduationInfoExceptions
+import hs.kr.entrydsm.application.domain.photo.exception.PhotoExceptions
+import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.domain.score.exception.ScoreExceptions
 import hs.kr.entrydsm.application.domain.score.spi.QueryScorePort
 import hs.kr.entrydsm.application.domain.status.exception.StatusExceptions
@@ -18,7 +20,8 @@ class GetFinalApplicationPdfUseCase (
     private val queryApplicationPort: QueryApplicationPort,
     private val queryScorePort: QueryScorePort,
     private val applicationPdfGeneratorPort: ApplicationPdfGeneratorPort,
-    private val queryStatusPort: ApplicationQueryStatusPort
+    private val queryStatusPort: ApplicationQueryStatusPort,
+    private val queryPhotoPort: QueryPhotoPort
 ) {
 
     suspend fun getFinalApplicationPdf(): ByteArray {
@@ -35,10 +38,13 @@ class GetFinalApplicationPdfUseCase (
 
         validatePrintableApplicant(application)
 
+        val photo = queryPhotoPort.queryPhotoByUserId(userId)
+            ?: throw PhotoExceptions.PhotoNotFoundException()
+
         val calculatedScore = queryScorePort.queryScoreByReceiptCode(application.receiptCode)
             ?: throw ScoreExceptions.ScoreNotFoundException()
 
-        return applicationPdfGeneratorPort.generate(application, calculatedScore)
+        return applicationPdfGeneratorPort.generate(application, calculatedScore, photo)
     }
 
     private fun validatePrintableApplicant(application: Application) {
