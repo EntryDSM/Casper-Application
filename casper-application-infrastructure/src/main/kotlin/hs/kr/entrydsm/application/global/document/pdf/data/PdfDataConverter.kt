@@ -4,18 +4,16 @@ import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus.*
 import hs.kr.entrydsm.application.domain.application.service.ApplicationService
-import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
+import hs.kr.entrydsm.application.domain.applicationCase.model.ApplicationCase
 import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
 import hs.kr.entrydsm.application.domain.applicationCase.model.QualificationCase
-import hs.kr.entrydsm.application.domain.applicationCase.spi.QueryApplicationCasePort
 import hs.kr.entrydsm.application.domain.file.spi.GetObjectPort
 import hs.kr.entrydsm.application.domain.file.usecase.`object`.PathList
 import hs.kr.entrydsm.application.domain.graduationInfo.exception.GraduationInfoExceptions
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
+import hs.kr.entrydsm.application.domain.graduationInfo.model.GraduationInfo
 import hs.kr.entrydsm.application.domain.graduationInfo.spi.GraduationInfoQuerySchoolPort
-import hs.kr.entrydsm.application.domain.graduationInfo.spi.QueryGraduationInfoPort
 import hs.kr.entrydsm.application.domain.photo.model.Photo
-import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.domain.school.exception.SchoolExceptions
 import hs.kr.entrydsm.application.domain.score.model.Score
 import org.springframework.stereotype.Component
@@ -26,35 +24,34 @@ import java.util.*
 
 @Component
 class PdfDataConverter(
-    private val queryGraduationInfoPort: QueryGraduationInfoPort,
     private val getObjectPort: GetObjectPort,
-    private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort,
-    private val queryApplicationCasePort: QueryApplicationCasePort,
     private val applicationService: ApplicationService,
-    private val statusPort: ApplicationQueryStatusPort,
+    private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort
 ) {
     fun applicationToInfo(
         application: Application,
         score: Score,
-        photo: Photo
+        photo: Photo,
+        graduationInfo: GraduationInfo,
+        applicationCase: ApplicationCase
     ): PdfData {
         val values: MutableMap<String, Any> = HashMap()
         setReceiptCode(application, values)
         setEntranceYear(values)
         setPersonalInfo(application, values)
         setGenderInfo(application, values)
-        setSchoolInfo(application, values)
+        setSchoolInfo(application, graduationInfo, values)
         setPhoneNumber(application, values)
-        setGraduationClassification(application, values)
+        setGraduationClassification(application, graduationInfo, values)
         setUserType(application, values)
         setGradeScore(application, score, values)
         setLocalDate(values)
         setIntroduction(application, values)
         setParentInfo(application, values)
-        setAllSubjectScores(application, values)
-        setAttendanceAndVolunteer(application, values)
-        setExtraScore(application, values)
-        setTeacherInfo(application, values)
+        setAllSubjectScores(applicationCase, values)
+        setAttendanceAndVolunteer(applicationCase, values)
+        setExtraScore(applicationCase, values)
+        setTeacherInfo(graduationInfo, values)
         setVeteransNumber(application, values)
 
         if (application.isRecommendationsRequired()) {
@@ -132,11 +129,9 @@ class PdfDataConverter(
     }
 
     private fun setAttendanceAndVolunteer(
-        application: Application,
+        applicationCase: ApplicationCase,
         values: MutableMap<String, Any>,
     ) {
-        val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
-
         if (applicationCase is GraduationCase) {
             values["absenceDayCount"] = applicationCase.absenceDayCount
             values["latenessCount"] = applicationCase.latenessCount
@@ -163,16 +158,12 @@ class PdfDataConverter(
 
     private fun setSchoolInfo(
         application: Application,
+        graduationInfo: GraduationInfo,
         values: MutableMap<String, Any>,
     ) {
         if (!application.isEducationalStatusEmpty() && !application.isQualificationExam()) {
-            val graduation =
-                queryGraduationInfoPort.queryGraduationInfoByApplication(application)
-                    ?: throw GraduationInfoExceptions.GraduationNotFoundException()
-
-            if (graduation !is Graduation) {
-                throw GraduationInfoExceptions.EducationalStatusUnmatchedException()
-            }
+            val graduation = graduationInfo as? Graduation
+                ?: throw GraduationInfoExceptions.EducationalStatusUnmatchedException()
 
             val school =
                 graduationInfoQuerySchoolPort.querySchoolBySchoolCode(graduation.schoolCode!!)
@@ -202,13 +193,10 @@ class PdfDataConverter(
 
     private fun setGraduationClassification(
         application: Application,
+        graduationInfo: GraduationInfo,
         values: MutableMap<String, Any>,
     ) {
         values.putAll(emptyGraduationClassification())
-
-        val graduationInfo =
-            queryGraduationInfoPort.queryGraduationInfoByApplication(application)
-                ?: throw Exception()
 
         val yearMonth = graduationInfo.graduateDate?.let { YearMonth.from(it) } ?: YearMonth.now()
 
@@ -264,11 +252,10 @@ class PdfDataConverter(
     }
 
     private fun setExtraScore(
-        application: Application,
+        applicationCase: ApplicationCase,
         values: MutableMap<String, Any>,
     ) {
-        val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
-        values["hasCompetitionPrize"] = toCircleBallotbox(applicationCase?.extraScoreItem!!.hasCompetitionPrize)
+        values["hasCompetitionPrize"] = toCircleBallotbox(applicationCase.extraScoreItem.hasCompetitionPrize)
         values["hasCertificate"] = toCircleBallotbox(applicationCase.extraScoreItem.hasCertificate)
     }
 
@@ -294,10 +281,9 @@ class PdfDataConverter(
     }
 
     private fun setAllSubjectScores(
-        application: Application,
+        applicationCase: ApplicationCase,
         values: MutableMap<String, Any>,
     ) {
-        val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
         if (applicationCase is QualificationCase) {
             with(values) {
                 put("applicationCase", "선택과목")
@@ -359,10 +345,9 @@ class PdfDataConverter(
     }
 
     private fun setTeacherInfo(
-        application: Application,
+        graduationInfo: GraduationInfo,
         values: MutableMap<String, Any>,
     ) {
-        val graduationInfo = queryGraduationInfoPort.queryGraduationInfoByApplication(application)
         if (graduationInfo is Graduation) {
             values["teacherName"] = graduationInfo.teacherName ?: ""
             values["teacherTel"] = toFormattedPhoneNumber(graduationInfo.teacherTel)

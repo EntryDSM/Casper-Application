@@ -6,7 +6,7 @@ import hs.kr.entrydsm.application.domain.application.usecase.mapper.SubmitApplic
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryUserPort
 import hs.kr.entrydsm.application.domain.application.spi.CommandApplicationPort
 import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmitApplicationRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicationRequest
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.applicationCase.service.ApplicationCaseService
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.ExtraScoreRequest
@@ -16,10 +16,8 @@ import hs.kr.entrydsm.application.domain.graduationInfo.service.GraduationInfoSe
 import hs.kr.entrydsm.application.domain.graduationInfo.model.vo.StudentNumber
 import hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.request.UpdateGraduationInformationRequest
 import hs.kr.entrydsm.application.domain.score.service.ScoreService
-import hs.kr.entrydsm.application.domain.user.model.User
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
-import java.util.UUID
 
 @UseCase
 class SubmitApplicationUseCase(
@@ -32,7 +30,7 @@ class SubmitApplicationUseCase(
     private val graduationInfoService: GraduationInfoService,
     private val scoreService: ScoreService
 ) {
-    suspend fun execute(request: SubmitApplicationRequest) {
+    suspend fun execute(request: ApplicationRequest) {
         val userId = securityPort.getCurrentUserId()
         val user = applicationQueryUserPort.queryUserByUserId(userId)
         if (queryApplicationPort.isExistsApplicationByUserId(userId)) {
@@ -47,7 +45,7 @@ class SubmitApplicationUseCase(
         applicationEventPort.create(application.receiptCode, userId)
     }
 
-    private fun handleSubmissionSideEffects(receiptCode: Long, request: SubmitApplicationRequest) {
+    private fun handleSubmissionSideEffects(receiptCode: Long, request: ApplicationRequest) {
         val educationalStatus = request.applicationInfo.educationalStatus
 
         initializeGraduationInfo(receiptCode, request)
@@ -60,7 +58,7 @@ class SubmitApplicationUseCase(
         scoreService.updateScore(receiptCode)
     }
 
-    private fun initializeGraduationInfo(receiptCode: Long, request: SubmitApplicationRequest) {
+    private fun initializeGraduationInfo(receiptCode: Long, request: ApplicationRequest) {
         graduationInfoService.changeGraduationInfo(
             receiptCode = receiptCode,
             graduateDate = request.applicationInfo.graduationDate
@@ -70,7 +68,7 @@ class SubmitApplicationUseCase(
     private fun updateGraduationInformation(
         receiptCode: Long,
         educationalStatus: EducationalStatus,
-        request: SubmitApplicationRequest
+        request: ApplicationRequest
     ) {
         if (educationalStatus != EducationalStatus.QUALIFICATION_EXAM) {
             val studentNumber: StudentNumber = StudentNumber.from(request.applicationInfo.studentNumber)
@@ -95,7 +93,7 @@ class SubmitApplicationUseCase(
     private fun updateApplicationCase(
         receiptCode: Long,
         educationalStatus: EducationalStatus,
-        request: SubmitApplicationRequest
+        request: ApplicationRequest
     ) {
         when (educationalStatus) {
             EducationalStatus.QUALIFICATION_EXAM -> {

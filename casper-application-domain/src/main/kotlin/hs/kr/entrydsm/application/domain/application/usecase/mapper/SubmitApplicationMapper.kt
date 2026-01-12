@@ -1,12 +1,12 @@
 package hs.kr.entrydsm.application.domain.application.usecase.mapper
 
 import hs.kr.entrydsm.application.domain.application.model.Application
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmitApplicationRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicationRequest
 import hs.kr.entrydsm.application.domain.user.model.User
 
 object SubmitApplicationMapper {
 
-    fun toApplication(request: SubmitApplicationRequest, user: User): Application {
+    fun toApplication(request: ApplicationRequest, user: User): Application {
         return Application(
             applicantName = user.name,
             applicantTel = user.phoneNumber,

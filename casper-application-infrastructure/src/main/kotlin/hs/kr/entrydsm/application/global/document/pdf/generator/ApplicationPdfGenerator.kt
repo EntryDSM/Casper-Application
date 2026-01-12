@@ -6,6 +6,8 @@ import com.itextpdf.kernel.utils.PdfMerger
 import com.itextpdf.layout.Document
 import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationPdfGeneratorPort
+import hs.kr.entrydsm.application.domain.applicationCase.model.ApplicationCase
+import hs.kr.entrydsm.application.domain.graduationInfo.model.GraduationInfo
 import hs.kr.entrydsm.application.domain.photo.model.Photo
 import hs.kr.entrydsm.application.domain.score.model.Score
 import hs.kr.entrydsm.application.global.document.pdf.data.PdfDataConverter
@@ -25,17 +27,27 @@ class ApplicationPdfGenerator(
     override fun generate(
         application: Application,
         score: Score,
-        photo: Photo
+        photo: Photo,
+        graduationInfo: GraduationInfo,
+        applicationCase: ApplicationCase
     ): ByteArray {
-        return generateApplicationPdf(application, score, photo)
+        return generateApplicationPdf(application, score, photo, graduationInfo, applicationCase)
     }
 
     private fun generateApplicationPdf(
         application: Application,
         score: Score,
-        photo: Photo
+        photo: Photo,
+        graduationInfo: GraduationInfo,
+        applicationCase: ApplicationCase
     ): ByteArray {
-        val data = pdfDataConverter.applicationToInfo(application, score, photo)
+        val data = pdfDataConverter.applicationToInfo(
+            application = application,
+            score = score,
+            photo = photo,
+            graduationInfo = graduationInfo,
+            applicationCase = applicationCase
+        )
         val templates = getTemplateFileNames(application)
 
         val outStream =

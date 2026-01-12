@@ -5,7 +5,10 @@ import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationPdfGeneratorPort
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
 import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
+import hs.kr.entrydsm.application.domain.applicationCase.exception.ApplicationCaseExceptions
+import hs.kr.entrydsm.application.domain.applicationCase.spi.QueryApplicationCasePort
 import hs.kr.entrydsm.application.domain.graduationInfo.exception.GraduationInfoExceptions
+import hs.kr.entrydsm.application.domain.graduationInfo.spi.QueryGraduationInfoPort
 import hs.kr.entrydsm.application.domain.photo.exception.PhotoExceptions
 import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.domain.score.exception.ScoreExceptions
@@ -20,6 +23,8 @@ class GetFinalApplicationPdfUseCase (
     private val queryApplicationPort: QueryApplicationPort,
     private val queryScorePort: QueryScorePort,
     private val applicationPdfGeneratorPort: ApplicationPdfGeneratorPort,
+    private val queryGraduationInfoPort: QueryGraduationInfoPort,
+    private val queryApplicationCasePort: QueryApplicationCasePort,
     private val queryStatusPort: ApplicationQueryStatusPort,
     private val queryPhotoPort: QueryPhotoPort
 ) {
@@ -44,7 +49,19 @@ class GetFinalApplicationPdfUseCase (
         val calculatedScore = queryScorePort.queryScoreByReceiptCode(application.receiptCode)
             ?: throw ScoreExceptions.ScoreNotFoundException()
 
-        return applicationPdfGeneratorPort.generate(application, calculatedScore, photo)
+        val graduationInfo = queryGraduationInfoPort.queryGraduationInfoByApplication(application)
+            ?: throw GraduationInfoExceptions.GraduationNotFoundException()
+
+        val applicationCase = queryApplicationCasePort.queryApplicationCaseByApplication(application)
+            ?: throw ApplicationCaseExceptions.ApplicationCaseNotFoundException()
+
+        return applicationPdfGeneratorPort.generate(
+            application = application,
+            score = calculatedScore,
+            photo = photo,
+            graduationInfo = graduationInfo,
+            applicationCase = applicationCase
+        )
     }
 
     private fun validatePrintableApplicant(application: Application) {
