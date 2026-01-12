@@ -2,7 +2,7 @@ package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
 import jakarta.validation.constraints.NotNull
 
-data class SubmitApplicationWebRequest(
+data class ApplicationWebRequest(
     @field:NotNull(message = "지원자 정보는 필수입니다")
     val applicantInfo: ApplicantInfoWebRequest,
     @field:NotNull(message = "주소 정보는 필수입니다")
