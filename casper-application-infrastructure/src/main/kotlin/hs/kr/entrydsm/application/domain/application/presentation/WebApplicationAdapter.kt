@@ -1,7 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.presentation
 
-import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmitApplicationWebRequest
-import hs.kr.entrydsm.application.domain.application.presentation.mapper.toSubmitApplicationRequest
+import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationWebRequest
+import hs.kr.entrydsm.application.domain.application.presentation.mapper.toApplicationRequest
 import hs.kr.entrydsm.application.domain.application.usecase.GetMyApplicationStatusUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.SubmitApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationStatusResponse
@@ -21,8 +21,8 @@ class WebApplicationAdapter(
 ) {
     @PostMapping
     fun submitApplication(
-        @RequestBody @Valid request: SubmitApplicationWebRequest,
-    ) = runBlocking { submitApplicationUseCase.execute(request.toSubmitApplicationRequest()) }
+        @RequestBody @Valid request: ApplicationWebRequest,
+    ) = runBlocking { submitApplicationUseCase.execute(request.toApplicationRequest()) }
 
     @GetMapping("/status")
     fun getMyApplicationStatus(): GetApplicationStatusResponse = runBlocking { getMyApplicationStatusUseCase.execute() }
