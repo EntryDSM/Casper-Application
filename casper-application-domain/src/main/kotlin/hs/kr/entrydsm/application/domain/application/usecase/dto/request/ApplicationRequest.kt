@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.usecase.dto.request
 
-data class SubmitApplicationRequest(
+data class ApplicationRequest(
     val applicantInfo: ApplicantInfo,
     val addressInfo: AddressInfo,
     val applicationInfo: ApplicationInfo,
