@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import org.springframework.kafka.support.serializer.JsonDeserializer
 
 @EnableKafka
@@ -28,18 +29,13 @@ class KafkaConsumerConfig(
         return mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperty.serverAddress,
             ConsumerConfig.ISOLATION_LEVEL_CONFIG to "read_committed",
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
             ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to 5000,
-//            JsonDeserializer.TRUSTED_PACKAGES to "*",
-//            "security.protocol" to "SASL_PLAINTEXT",
-//            "sasl.mechanism" to "SCRAM-SHA-512",
-//            "sasl.jaas.config" to
-//                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
-//                "username=\"${kafkaProperty.confluentApiKey}\" " +
-//                "password=\"${kafkaProperty.confluentApiSecret}\";"
+            ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS to StringDeserializer::class.java,
+            ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS to StringDeserializer::class.java
         )
     }
 }
