@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.mapper
 
-import hs.kr.entrydsm.application.domain.application.presentation.dto.request.SubmitApplicationWebRequest
+import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationWebRequest
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.AddressInfo
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicantInfo
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicationInfo
@@ -8,10 +8,10 @@ import hs.kr.entrydsm.application.domain.application.usecase.dto.request.Attenda
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.AwardAndCertificateInfo
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.GradeInfo
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SchoolInfo
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.SubmitApplicationRequest
+import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicationRequest
 
-fun SubmitApplicationWebRequest.toSubmitApplicationRequest(): SubmitApplicationRequest =
-    SubmitApplicationRequest(
+fun ApplicationWebRequest.toApplicationRequest(): ApplicationRequest =
+    ApplicationRequest(
         applicantInfo =
             ApplicantInfo(
                 applicantName = applicantInfo.applicantName,
