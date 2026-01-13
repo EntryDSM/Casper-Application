@@ -112,19 +112,10 @@ class PdfDataConverter(
             }
 
         values["applicationRemark"] =
-            if (application.isSocial()) {
-                when (application.applicationRemark) {
-                    ApplicationRemark.BASIC_LIVING -> "기초생활수급자"
-                    ApplicationRemark.ONE_PARENT -> "한부모가족"
-                    ApplicationRemark.TEEN_HOUSEHOLDER -> "소년소녀가장"
-                    ApplicationRemark.LOWEST_INCOME -> "차상위계층"
-                    ApplicationRemark.FROM_NORTH -> "북한이탈주민"
-                    ApplicationRemark.MULTICULTURAL -> "다문화가정"
-                    ApplicationRemark.PROTECTED_CHILDREN -> "보호대상아동"
-                    else -> "해당없음"
-                }
-            } else {
-                "해당없음"
+            when (application.applicationRemark) {
+                ApplicationRemark.PRIVILEGED_ADMISSION -> "특례입학대상"
+                ApplicationRemark.NATIONAL_MERIT -> "국가유공자"
+                ApplicationRemark.NOTHING, null -> "해당없음"
             }
     }
 
@@ -232,15 +223,8 @@ class PdfDataConverter(
                 "isProspectiveGraduate" to application.isProspectiveGraduate(),
                 "isDaejeon" to application.isDaejeon,
                 "isNotDaejeon" to !application.isDaejeon!!,
-                "isBasicLiving" to application.isBasicLiving(),
-                "isFromNorth" to application.isFromNorth(),
-                "isLowestIncome" to application.isLowestIncome(),
-                "isMulticultural" to application.isMulticultural(),
-                "isOneParent" to application.isOneParent(),
-                "isTeenHouseholder" to application.isTeenHouseholder(),
                 "isPrivilegedAdmission" to application.isPrivilegedAdmission(),
                 "isNationalMerit" to application.isNationalMerit(),
-                "isProtectedChildren" to application.isProtectedChildren(),
                 "isCommon" to application.isCommon(),
                 "isMeister" to application.isMeister(),
                 "isSocialMerit" to application.isSocial(),
