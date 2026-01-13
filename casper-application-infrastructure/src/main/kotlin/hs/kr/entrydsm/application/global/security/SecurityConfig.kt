@@ -30,6 +30,7 @@ class SecurityConfig(
             it.requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name)
             it.requestMatchers("/schools").permitAll()
             it.requestMatchers("/score/**").hasRole(UserRole.USER.name)
+            it.requestMatchers("/calculator").permitAll()
             it.anyRequest().authenticated()
         }
 
