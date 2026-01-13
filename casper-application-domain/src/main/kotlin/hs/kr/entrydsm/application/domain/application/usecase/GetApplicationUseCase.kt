@@ -2,7 +2,6 @@ package hs.kr.entrydsm.application.domain.application.usecase
 
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
 import hs.kr.entrydsm.application.domain.application.model.Application
-import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryScorePort
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
 import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
@@ -47,8 +46,6 @@ class GetApplicationUseCase(
     private fun getCommonInformationResponse(application: Application): ApplicationCommonInformationResponse {
         return ApplicationCommonInformationResponse(
             name = application.applicantName!!,
-            applicantGender = application.sex!!,
-            telephoneNumber = application.applicantTel!!,
             parentName = application.parentName!!,
             parentTel = application.parentTel!!
         )
@@ -67,9 +64,7 @@ class GetApplicationUseCase(
             applicationStatus = status.applicationStatus,
             educationalStatus = application.educationalStatus!!,
             applicationType = application.applicationType!!,
-            applicationRemark = application.applicationRemark ?: ApplicationRemark.NOTHING,
-            isDaejeon = application.isDaejeon!!,
-            streetAddress = application.streetAddress!!
+            isDaejeon = application.isDaejeon!!
         )
     }
 
