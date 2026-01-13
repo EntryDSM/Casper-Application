@@ -2,15 +2,19 @@ package hs.kr.entrydsm.application.domain.application.usecase
 
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
 import hs.kr.entrydsm.application.domain.application.model.Application
-import hs.kr.entrydsm.application.domain.application.spi.*
-import hs.kr.entrydsm.application.domain.application.usecase.dto.response.*
-import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
-import hs.kr.entrydsm.application.domain.applicationCase.model.QualificationCase
+import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
+import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryScorePort
+import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
+import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
+import hs.kr.entrydsm.application.domain.application.usecase.dto.response.ApplicationCommonInformationResponse
+import hs.kr.entrydsm.application.domain.application.usecase.dto.response.ApplicationEvaluationResponse
+import hs.kr.entrydsm.application.domain.application.usecase.dto.response.ApplicationMoreInformationResponse
+import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationResponse
 import hs.kr.entrydsm.application.domain.file.spi.GenerateFileUrlPort
 import hs.kr.entrydsm.application.domain.file.usecase.`object`.PathList
-import hs.kr.entrydsm.application.domain.graduationInfo.exception.GraduationInfoExceptions
-import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
-import hs.kr.entrydsm.application.domain.school.exception.SchoolExceptions
+import hs.kr.entrydsm.application.domain.photo.exception.PhotoExceptions
+import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
+import hs.kr.entrydsm.application.domain.score.exception.ScoreExceptions
 import hs.kr.entrydsm.application.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.application.domain.status.model.Status
 import hs.kr.entrydsm.application.global.annotation.UseCase
@@ -18,11 +22,9 @@ import hs.kr.entrydsm.application.global.annotation.UseCase
 @UseCase
 class GetApplicationUseCase(
     private val queryApplicationPort: QueryApplicationPort,
-    private val applicationQueryUserPort: ApplicationQueryUserPort,
-    private val applicationQuerySchoolPort: ApplicationQuerySchoolPort,
-    private val applicationQueryGraduationInfoPort: ApplicationQueryGraduationInfoPort,
-    private val applicationQueryApplicationCasePort: ApplicationQueryApplicationCasePort,
     private val applicationQueryStatusPort: ApplicationQueryStatusPort,
+    private val applicationQueryScorePort: ApplicationQueryScorePort,
+    private val queryPhotoPort: QueryPhotoPort,
     private val generateFileUrlPort: GenerateFileUrlPort
 ) {
     suspend fun execute(receiptCode: Long): GetApplicationResponse {
@@ -31,113 +33,58 @@ class GetApplicationUseCase(
         val status = applicationQueryStatusPort.queryStatusByReceiptCode(receiptCode)
             ?: throw StatusExceptions.StatusNotFoundException()
 
-        val statusResponse = getStatusResponse(status)
         val commonInformationResponse = getCommonInformationResponse(application)
         val moreInformationResponse = getMoreInformationResponse(application, status)
-        val evaluationResponse = getEvaluationResponse(application, status)
+        val evaluationResponse = getEvaluationResponse(application)
 
         return GetApplicationResponse(
-            status = statusResponse,
             commonInformation = commonInformationResponse,
             moreInformation = moreInformationResponse,
             evaluation = evaluationResponse
         )
     }
 
-    private fun getStatusResponse(status: Status): ApplicationStatusResponse {
-        val statusResponse = status.run {
-            ApplicationStatusResponse(
-                isPrintedArrived = isPrintsArrived,
-                isSubmit = isSubmitted
-            )
-        }
-        return statusResponse
-    }
-
-    private suspend fun getCommonInformationResponse(application: Application): ApplicationCommonInformationResponse {
-        val graduationInfo = applicationQueryGraduationInfoPort.queryGraduationInfoByApplication(application)
-            ?: throw GraduationInfoExceptions.GraduationNotFoundException()
-
-        val school = if (graduationInfo is Graduation) {
-            graduationInfo.schoolCode?.let {
-                applicationQuerySchoolPort.querySchoolBySchoolCode(it)
-            }
-        } else {
-            null
-        }
-
-        val user = applicationQueryUserPort.queryUserByUserId(application.userId)
-
+    private fun getCommonInformationResponse(application: Application): ApplicationCommonInformationResponse {
         return ApplicationCommonInformationResponse(
             name = application.applicantName!!,
-            schoolName = school?.name,
-            telephoneNumber = user.phoneNumber,
-            parentTel = application.parentTel,
-            schoolTel = school?.tel,
-            parentRelation = application.parentRelation
+            applicantGender = application.sex!!,
+            telephoneNumber = application.applicantTel!!,
+            parentName = application.parentName!!,
+            parentTel = application.parentTel!!
         )
     }
-
 
     private fun getMoreInformationResponse(
         application: Application,
         status: Status
     ): ApplicationMoreInformationResponse? {
-        if(!status.isSubmitted) {
-            return null
-        }
+        val photo = queryPhotoPort.queryPhotoByUserId(application.userId)
+            ?: throw PhotoExceptions.PhotoNotFoundException()
+
         return ApplicationMoreInformationResponse(
-            photoUrl = generateFileUrlPort.generateFileUrl(application.photoPath!!, PathList.PHOTO),
+            photoUrl = generateFileUrlPort.generateFileUrl(photo.photoPath, PathList.PHOTO),
             birthDay = application.birthDate!!,
+            applicationStatus = status.applicationStatus,
             educationalStatus = application.educationalStatus!!,
-            applicationRemark = application.applicationRemark,
             applicationType = application.applicationType!!,
-            address = application.streetAddress!!,
-            detailAddress = application.detailAddress!!,
-            headCount = null
+            applicationRemark = application.applicationRemark ?: ApplicationRemark.NOTHING,
+            isDaejeon = application.isDaejeon!!,
+            streetAddress = application.streetAddress!!
         )
     }
 
-    private fun getEvaluationResponse(application: Application, status: Status): ApplicationEvaluationResponse? {
-        if(!status.isSubmitted) {
-            return null
-        }
+    private fun getEvaluationResponse(application: Application): ApplicationEvaluationResponse? {
+        val score = applicationQueryScorePort.queryScoreByReceiptCode(application.receiptCode)
+            ?: throw ScoreExceptions.ScoreNotFoundException()
 
-        val applicationCase = applicationQueryApplicationCasePort.queryApplicationCaseByApplication(application)
-            ?: throw ApplicationExceptions.ApplicationNotFoundException()
-
-        var applicationEvaluationResponse: ApplicationEvaluationResponse? = null
-        if(applicationCase is GraduationCase) {
-            applicationCase.run {
-                applicationEvaluationResponse = ApplicationEvaluationResponse(
-                    volunteerTime = volunteerTime,
-                    conversionScore = applicationCase.calculateTotalGradeScore(application.isCommon()),
-                    dayAbsenceCount = absenceDayCount,
-                    lectureAbsenceCount = lectureAbsenceCount,
-                    earlyLeaveCount = earlyLeaveCount,
-                    latenessCount = latenessCount,
-                    averageScore = null,
-                    selfIntroduce = application.selfIntroduce!!,
-                    studyPlan = application.studyPlan!!
-                )
-            }
-        }
-
-        if(applicationCase is QualificationCase) {
-            applicationCase.run {
-                applicationEvaluationResponse = ApplicationEvaluationResponse(
-                    volunteerTime = null,
-                    conversionScore = applicationCase.calculateTotalGradeScore(application.isCommon()),
-                    dayAbsenceCount = null,
-                    lectureAbsenceCount = null,
-                    earlyLeaveCount = null,
-                    latenessCount = null,
-                    averageScore = applicationCase.calculateAverageScore(),
-                    selfIntroduce = application.selfIntroduce!!,
-                    studyPlan = application.studyPlan!!
-                )
-            }
-        }
-        return applicationEvaluationResponse
+        return ApplicationEvaluationResponse(
+            totalScore = score.totalScore!!,
+            totalGradeScore = score.totalGradeScore!!,
+            attendanceScore = score.attendanceScore!!,
+            volunteerScore = score.volunteerScore!!,
+            extraScore = score.extraScore!!,
+            selfIntroduce = application.selfIntroduce,
+            studyPlan = application.studyPlan
+        )
     }
 }
