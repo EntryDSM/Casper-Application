@@ -4,8 +4,9 @@ import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.presentation.WebApplicationPdfAdapter
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.GetApplicationStatusByRegionWebResponse
+import hs.kr.entrydsm.application.domain.application.presentation.dto.response.GetApplicationStatusByGenderWebResponse
 import hs.kr.entrydsm.application.domain.application.usecase.GetApplicantsUseCase
-import hs.kr.entrydsm.application.domain.application.usecase.GetApplicationCountUseCase
+import hs.kr.entrydsm.application.domain.application.usecase.GetApplicationStatusByGenderUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.GetApplicationStatusByRegionUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.GetApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.GetIntroductionPdfUseCase
@@ -16,11 +17,8 @@ import hs.kr.entrydsm.application.domain.application.usecase.PrintApplicationInf
 import hs.kr.entrydsm.application.domain.application.usecase.QueryStaticsCountUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.UpdateFirstRoundPassedApplicationExamCodeUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicantsResponse
-import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationCountResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetStaticsCountResponse
-import hs.kr.entrydsm.application.domain.score.usecase.QueryStaticsScoreUseCase
-import hs.kr.entrydsm.application.domain.score.usecase.dto.response.GetStaticsScoreResponse
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.runBlocking
 import org.springframework.http.MediaType
@@ -35,34 +33,20 @@ import java.nio.charset.StandardCharsets
 @RestController
 @RequestMapping("/admin/application")
 class WebAdminAdapter(
-    private val getApplicationCountUseCase: GetApplicationCountUseCase,
     private val getApplicationUseCase: GetApplicationUseCase,
     private val getApplicantsUseCase: GetApplicantsUseCase,
     private val printApplicantCodesUseCase: PrintApplicantCodesUseCase,
     private val queryStaticsCountUseCase: QueryStaticsCountUseCase,
-    private val queryStaticsScoreUseCase: QueryStaticsScoreUseCase,
     private val printApplicationInfoUseCase: PrintApplicationInfoUseCase,
     private val printApplicationCheckListUseCase: PrintApplicationCheckListUseCase,
     private val printAdmissionTicketUseCase: PrintAdmissionTicketUseCase,
     private val getApplicationStatusByRegionUseCase: GetApplicationStatusByRegionUseCase,
+    private val getApplicationStatusByGenderUseCase: GetApplicationStatusByGenderUseCase,
     private val updateFirstRoundPassedApplicationExamCodeUseCase: UpdateFirstRoundPassedApplicationExamCodeUseCase,
     private val introductionPdfUseCase: GetIntroductionPdfUseCase,
 ) {
-    @GetMapping("/statics/score")
-    fun queryStaticsScore(): List<GetStaticsScoreResponse> = runBlocking { queryStaticsScoreUseCase.execute() }
-
     @GetMapping("/statics/count")
     fun queryStaticsCount(): List<GetStaticsCountResponse> = runBlocking { queryStaticsCountUseCase.execute() }
-
-    @GetMapping("/application-count") // todo 이걸 아예 통계쪽으로 빼야할수도?
-    fun getApplicationCount(): GetApplicationCountResponse {
-        return runBlocking {
-            getApplicationCountUseCase.execute(
-                applicationType = ApplicationType.COMMON,
-                isDaejeon = true,
-            )
-        }
-    }
 
     @GetMapping("/{receipt-code}")
     fun getApplication(
@@ -120,6 +104,17 @@ class WebAdminAdapter(
                 jeollabukDo = response.jeollabukDo,
                 chungcheongnamDo = response.chungcheongnamDo,
                 chungcheongbukDo = response.chungcheongbukDo,
+            )
+        }
+    }
+
+    @GetMapping("/gender-status")
+    fun getApplicationStatusByGender(): GetApplicationStatusByGenderWebResponse {
+        return runBlocking {
+            val response = getApplicationStatusByGenderUseCase.execute()
+            GetApplicationStatusByGenderWebResponse(
+                male = response.male,
+                female = response.female,
             )
         }
     }
