@@ -46,5 +46,4 @@ class ApplicationJpaEntity(
     val selfIntroduce: String?,
     @Column(unique = true, columnDefinition = "BINARY(16)")
     val userId: UUID,
-    val veteransNumber: Int?,
 )

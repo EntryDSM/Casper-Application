@@ -25,5 +25,5 @@ data class ApplicationInfoWebRequest(
     @field:Size(max = 1600, message = "자기소개서는 1600자 이하여야 합니다")
     val selfIntroduce: String,
     @field:NotNull(message = "지원 자격은 필수입니다")
-    val applicationRemark: ApplicationRemark?,
+    val applicationRemark: ApplicationRemark,
 )

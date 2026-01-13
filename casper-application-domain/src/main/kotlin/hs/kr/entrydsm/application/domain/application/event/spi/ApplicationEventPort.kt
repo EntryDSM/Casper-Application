@@ -6,4 +6,6 @@ interface ApplicationEventPort {
     fun create(receiptCode: Long, userId: UUID)
 
     fun createApplicationScoreRollback(receiptCode: Long)
+
+    fun cancelSubmittedApplication(receiptCode: Long)
 }
