@@ -1,9 +1,7 @@
 package hs.kr.entrydsm.application.domain.application.usecase.dto.response
 
-import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
-import hs.kr.entrydsm.application.domain.application.model.types.Sex
 import hs.kr.entrydsm.application.domain.status.enums.ApplicationStatus
 import java.math.BigDecimal
 import java.time.LocalDate
