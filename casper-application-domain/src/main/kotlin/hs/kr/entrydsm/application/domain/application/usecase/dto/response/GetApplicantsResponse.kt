@@ -2,17 +2,17 @@ package hs.kr.entrydsm.application.domain.application.usecase.dto.response
 
 data class GetApplicantsResponse(
     val applicants: List<ApplicantDto>,
-    val hasNextPage: Boolean,
-    val totalSize: Int
-)
-
-data class ApplicantDto(
-    val receiptCode: Long,
-    val name: String?,
-    val telephoneNumber: String?,
-    val isDaejeon: Boolean?,
-    val applicationType: String?,
-    val isPrintsArrived: Boolean?,
-    val isSubmitted: Boolean?,
-    val isOutOfHeadcount: Boolean?
-)
+    val total: Int,
+    val page: Int,
+    val size: Int,
+    val totalPages: Int,
+) {
+    data class ApplicantDto(
+        val receiptCode: Long,
+        val applicantName: String?,
+        val applicationType: String?,
+        val educationalStatus: String?,
+        val isDaejeon: Boolean?,
+        val isArrived: Boolean?,
+    )
+}
