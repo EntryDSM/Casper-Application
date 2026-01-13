@@ -16,8 +16,6 @@ data class GetApplicationResponse(
 
 data class ApplicationCommonInformationResponse(
     val name: String,
-    val applicantGender: Sex,
-    val telephoneNumber: String,
     val parentName: String,
     val parentTel: String,
 )
@@ -28,9 +26,7 @@ data class ApplicationMoreInformationResponse(
     val applicationStatus: ApplicationStatus,
     val educationalStatus: EducationalStatus,
     val applicationType: ApplicationType,
-    val applicationRemark: ApplicationRemark,
     val isDaejeon: Boolean,
-    val streetAddress: String,
 )
 
 data class ApplicationEvaluationResponse(
