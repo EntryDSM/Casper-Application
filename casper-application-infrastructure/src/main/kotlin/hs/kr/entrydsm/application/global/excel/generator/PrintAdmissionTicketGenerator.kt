@@ -7,6 +7,8 @@ import hs.kr.entrydsm.application.domain.application.spi.PrintAdmissionTicketPor
 import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationInfoVO
 import hs.kr.entrydsm.application.domain.file.spi.GetObjectPort
 import hs.kr.entrydsm.application.domain.file.usecase.`object`.PathList
+import hs.kr.entrydsm.application.domain.photo.exception.PhotoExceptions
+import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.*
@@ -29,6 +31,7 @@ class PrintAdmissionTicketGenerator(
     private val applicationService: ApplicationService,
     private val getObjectPort: GetObjectPort,
     private val statusPort: ApplicationQueryStatusPort,
+    private val queryPhotoPort: QueryPhotoPort
 ) : PrintAdmissionTicketPort {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
@@ -70,8 +73,9 @@ class PrintAdmissionTicketGenerator(
             applications.map { applicationInfoVo ->
                 CompletableFuture.runAsync {
                     val application = applicationInfoVo.application
-                    imageCache.get(application.receiptCode!!) {
-                        getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
+                    val photo = queryPhotoPort.queryPhotoByUserId(application.userId)
+                    imageCache.get(application.receiptCode) {
+                        getObjectPort.getObject(photo?.photoPath!!, PathList.PHOTO)
                     }
                 }
             }
@@ -84,9 +88,10 @@ class PrintAdmissionTicketGenerator(
             fillApplicationData(sourceSheet, 0, applicationInfoVo, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
 
+            val photo = queryPhotoPort.queryPhotoByUserId(application.userId)
             val imageBytes =
-                imageCache.get(application.receiptCode!!) {
-                    getObjectPort.getObject(application.photoPath!!, PathList.PHOTO)
+                imageCache.get(application.receiptCode) {
+                    getObjectPort.getObject(photo?.photoPath!!, PathList.PHOTO)
                 }
             copyImage(imageBytes, targetSheet, currentRowIndex)
             currentRowIndex += 20

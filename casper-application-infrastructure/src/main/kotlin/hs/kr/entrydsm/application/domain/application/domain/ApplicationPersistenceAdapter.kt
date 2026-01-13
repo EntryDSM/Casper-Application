@@ -7,13 +7,12 @@ import hs.kr.entrydsm.application.domain.application.domain.repository.Applicati
 import hs.kr.entrydsm.application.domain.application.model.Applicant
 import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
+import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationPort
 import hs.kr.entrydsm.application.domain.application.spi.dto.PagedResult
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationCountResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetStaticsCountResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationCodeVO
-import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.QGraduationJpaEntity.graduationJpaEntity
-import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.QQualificationJpaEntity.qualificationJpaEntity
 import hs.kr.entrydsm.application.domain.status.exception.StatusExceptions
 import hs.kr.entrydsm.application.global.feign.client.LocationPort
 import hs.kr.entrydsm.application.global.grpc.client.status.StatusGrpcClient
@@ -22,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import kotlin.math.ceil
 
 @Component
 class ApplicationPersistenceAdapter(
@@ -61,14 +59,9 @@ class ApplicationPersistenceAdapter(
     }
 
     override suspend fun queryAllApplicantsByFilter(
-        schoolName: String,
-        name: String,
+        applicationType: ApplicationType?,
+        educationalStatus: EducationalStatus?,
         isDaejeon: Boolean?,
-        isOutOfHeadcount: Boolean?,
-        isCommon: Boolean,
-        isMeister: Boolean,
-        isSocial: Boolean,
-        isSubmitted: Boolean?,
         pageSize: Long,
         offset: Long,
     ): PagedResult<Applicant> {
@@ -78,31 +71,16 @@ class ApplicationPersistenceAdapter(
         val query =
             jpaQueryFactory
                 .selectFrom(applicationJpaEntity)
-                .leftJoin(qualificationJpaEntity).on(applicationJpaEntity.receiptCode.eq(qualificationJpaEntity.receiptCode))
-                .leftJoin(graduationJpaEntity).on(applicationJpaEntity.receiptCode.eq(graduationJpaEntity.receiptCode))
                 .where(
-                    applicationJpaEntity.applicantName.contains(name),
                     isDaejeon?.let { applicationJpaEntity.isDaejeon.eq(it) },
-                    isOutOfHeadcount?.let { applicationJpaEntity.isOutOfHeadcount.eq(it) },
-                    applicationJpaEntity.applicationType.`in`(getApplicationTypes(isCommon, isMeister, isSocial)),
+                    applicationType?.let { applicationJpaEntity.applicationType.eq(it) },
+                    educationalStatus?.let { applicationJpaEntity.educationalStatus.eq(it) },
                 )
                 .orderBy(applicationJpaEntity.receiptCode.asc())
 
         val applicationList = query.fetch()
 
-        val filteredApplicants =
-            isSubmitted?.let { submitted ->
-                applicationList.filter { application ->
-                    statusMap[application.receiptCode]?.let { status ->
-                        status.applicationStatus.isSubmitted() == submitted
-                    } ?: false
-                }
-            } ?: applicationList
-
-        val safePageSize = if (pageSize > 0) pageSize else 1
-        val totalSize = ceil(filteredApplicants.size.toDouble() / safePageSize).toInt()
-
-        val pagedApplicationList = filteredApplicants.drop(offset.toInt()).take(pageSize.toInt())
+        val pagedApplicationList = applicationList.drop(offset.toInt()).take(pageSize.toInt())
 
         val applicants =
             pagedApplicationList.map { application ->
@@ -110,18 +88,16 @@ class ApplicationPersistenceAdapter(
                 Applicant(
                     receiptCode = application.receiptCode,
                     name = application.applicantName,
-                    telephoneNumber = application.applicantTel,
                     isDaejeon = application.isDaejeon,
-                    isPrintsArrived = status.applicationStatus.isPrintsArrived(),
+                    isArrived = status.applicationStatus.isPrintsArrived(),
                     applicationType = application.applicationType?.name,
-                    isSubmitted = status.applicationStatus.isSubmitted(),
-                    isOutOfHeadcount = application.isOutOfHeadcount,
+                    educationalStatus = application.educationalStatus?.name,
                 )
             }
 
-        val hasNextPage = filteredApplicants.size > offset + pageSize
+        val hasNextPage = applicationList.size > offset + pageSize
 
-        return PagedResult(items = applicants, hasNextPage = hasNextPage, totalSize = totalSize)
+        return PagedResult(items = applicants, hasNextPage = hasNextPage, totalElements = applicationList.size)
     }
 
     override suspend fun queryAllFirstRoundPassedApplication(): List<Application> {
@@ -137,19 +113,6 @@ class ApplicationPersistenceAdapter(
             .where(applicationJpaEntity.receiptCode.`in`(firstRoundPassStatusKeyList))
             .fetch()
             .map { applicationMapper.toDomain(it)!! }
-    }
-
-    private fun getApplicationTypes(
-        isCommon: Boolean?,
-        isMeister: Boolean?,
-        isSocial: Boolean?,
-    ): List<ApplicationType> {
-        val applicationTypes = mutableListOf<ApplicationType>()
-        if (isCommon == true) applicationTypes.add(ApplicationType.COMMON)
-        if (isMeister == true) applicationTypes.add(ApplicationType.MEISTER)
-        if (isSocial == true) applicationTypes.add(ApplicationType.SOCIAL)
-
-        return applicationTypes
     }
 
     override suspend fun queryApplicationCountByApplicationTypeAndIsDaejeon(

@@ -37,8 +37,7 @@ fun ApplicationWebRequest.toApplicationRequest(): ApplicationRequest =
                 graduationDate = applicationInfo.graduationDate,
                 studyPlan = applicationInfo.studyPlan,
                 selfIntroduce = applicationInfo.selfIntroduce,
-                nationalMeritChild = applicationInfo.nationalMeritChild,
-                specialAdmissionTarget = applicationInfo.specialAdmissionTarget,
+                applicationRemark = applicationInfo.applicationRemark,
             ),
         schoolInfo =
             SchoolInfo(

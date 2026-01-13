@@ -1,5 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.presentation.dto.request
 
+import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import jakarta.validation.constraints.NotBlank
@@ -23,8 +24,6 @@ data class ApplicationInfoWebRequest(
     @field:NotBlank(message = "자기소개서는 필수입니다")
     @field:Size(max = 1600, message = "자기소개서는 1600자 이하여야 합니다")
     val selfIntroduce: String,
-    @field:NotNull(message = "국가유공자 자녀 여부는 필수입니다")
-    val nationalMeritChild: Boolean,
-    @field:NotNull(message = "특별전형 대상 여부는 필수입니다")
-    val specialAdmissionTarget: Boolean,
+    @field:NotNull(message = "지원 자격은 필수입니다")
+    val applicationRemark: ApplicationRemark?,
 )

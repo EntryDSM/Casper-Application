@@ -1,7 +1,9 @@
 package hs.kr.entrydsm.application.domain.application.model
 
-import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
-import hs.kr.entrydsm.application.domain.application.model.types.*
+import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
+import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
+import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
+import hs.kr.entrydsm.application.domain.application.model.types.Sex
 import hs.kr.entrydsm.application.global.annotation.Aggregate
 import java.time.LocalDate
 import java.util.*
@@ -15,7 +17,6 @@ data class Application(
     @get:JvmName("getIsOutOfHeadcount")
     var isOutOfHeadcount: Boolean? = null,
     val birthDate: LocalDate? = null,
-    val photoPath: String? = null,
     val educationalStatus: EducationalStatus? = null,
     val applicantName: String? = null,
     val applicantTel: String? = null,
@@ -34,29 +35,7 @@ data class Application(
 ) {
     companion object {
         const val DEFAULT_TEL = "01000000000"
-        private val SOCIAL_REMARKS =
-            listOf(
-                ApplicationRemark.ONE_PARENT,
-                ApplicationRemark.FROM_NORTH,
-                ApplicationRemark.MULTICULTURAL,
-                ApplicationRemark.BASIC_LIVING,
-                ApplicationRemark.LOWEST_INCOME,
-                ApplicationRemark.TEEN_HOUSEHOLDER,
-                ApplicationRemark.PROTECTED_CHILDREN,
-                ApplicationRemark.NOTHING
-            )
     }
-
-// 일반신청도 리마크 선택 가능
-//    init {
-//        if (checkSocialSelectOtherRemark() || checkNotSocialSelectSocialRemark()) {
-//            throw ApplicationExceptions.InvalidApplicationRemarkException()
-//        }
-//    }
-
-    private fun checkSocialSelectOtherRemark(): Boolean = isSocial() && applicationRemark !in SOCIAL_REMARKS
-
-    private fun checkNotSocialSelectSocialRemark() = !isSocial() && applicationRemark in SOCIAL_REMARKS
 
     fun isRecommendationsRequired(): Boolean = !isEducationalStatusEmpty() && !isCommonApplicationType()
 
@@ -79,7 +58,6 @@ data class Application(
             detailAddress,
             streetAddress,
             postalCode,
-            photoPath,
             applicationType,
             selfIntroduce,
             studyPlan
@@ -94,23 +72,9 @@ data class Application(
 
     fun isProspectiveGraduate(): Boolean = EducationalStatus.PROSPECTIVE_GRADUATE == educationalStatus
 
-    fun isBasicLiving(): Boolean = ApplicationRemark.BASIC_LIVING == applicationRemark
-
-    fun isFromNorth(): Boolean = ApplicationRemark.FROM_NORTH == applicationRemark
-
-    fun isLowestIncome(): Boolean = ApplicationRemark.LOWEST_INCOME == applicationRemark
-
-    fun isMulticultural(): Boolean = ApplicationRemark.MULTICULTURAL == applicationRemark
-
-    fun isOneParent(): Boolean = ApplicationRemark.ONE_PARENT == applicationRemark
-
-    fun isTeenHouseholder(): Boolean = ApplicationRemark.TEEN_HOUSEHOLDER == applicationRemark
-
     fun isPrivilegedAdmission(): Boolean = ApplicationRemark.PRIVILEGED_ADMISSION == applicationRemark
 
     fun isNationalMerit(): Boolean = ApplicationRemark.NATIONAL_MERIT == applicationRemark
-
-    fun isProtectedChildren(): Boolean = ApplicationRemark.PROTECTED_CHILDREN == applicationRemark
 
     fun isEducationalStatusEmpty(): Boolean = this.educationalStatus == null
 

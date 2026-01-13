@@ -51,15 +51,8 @@ class ApplicationService {
 
      fun translateApplicationRemark(remark: ApplicationRemark?): String {
         return when(remark) {
-            ApplicationRemark.ONE_PARENT -> "한부모가족"
-            ApplicationRemark.FROM_NORTH -> "북한이탈주민"
-            ApplicationRemark.MULTICULTURAL -> "다문화가족"
-            ApplicationRemark.BASIC_LIVING -> "기초생활수급자"
-            ApplicationRemark.LOWEST_INCOME -> "차상위계층"
-            ApplicationRemark.TEEN_HOUSEHOLDER -> "소년소녀가장"
             ApplicationRemark.PRIVILEGED_ADMISSION -> "특례입학대상"
             ApplicationRemark.NATIONAL_MERIT -> "국가유공자"
-            ApplicationRemark.PROTECTED_CHILDREN -> "보호대상아동"
             ApplicationRemark.NOTHING -> "없음"
             null -> "없음"
         }

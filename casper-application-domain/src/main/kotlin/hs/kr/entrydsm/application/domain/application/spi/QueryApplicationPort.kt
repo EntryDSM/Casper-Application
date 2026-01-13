@@ -3,6 +3,7 @@ package hs.kr.entrydsm.application.domain.application.spi
 import hs.kr.entrydsm.application.domain.application.model.Applicant
 import hs.kr.entrydsm.application.domain.application.model.Application
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
+import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.spi.dto.PagedResult
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationCountResponse
 import java.util.*
@@ -23,16 +24,11 @@ interface QueryApplicationPort {
     fun queryAllByReceiptCode(receiptCodeList: List<Long>): List<Application?>
 
     suspend fun queryAllApplicantsByFilter(
-        schoolName: String,
-        name: String,
+        applicationType: ApplicationType?,
+        educationalStatus: EducationalStatus?,
         isDaejeon: Boolean?,
-        isOutOfHeadcount: Boolean?,
-        isCommon: Boolean,
-        isMeister: Boolean,
-        isSocial: Boolean,
-        isSubmitted: Boolean?,
         pageSize: Long,
-        offset: Long
+        offset: Long,
     ): PagedResult<Applicant>
 
     suspend fun queryAllFirstRoundPassedApplication(): List<Application>

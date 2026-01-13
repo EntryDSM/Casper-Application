@@ -1,6 +1,7 @@
 package hs.kr.entrydsm.application.domain.admin.presentation
 
 import hs.kr.entrydsm.application.domain.application.model.types.ApplicationType
+import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.presentation.WebApplicationPdfAdapter
 import hs.kr.entrydsm.application.domain.application.presentation.dto.response.GetApplicationStatusByRegionWebResponse
 import hs.kr.entrydsm.application.domain.application.usecase.GetApplicantsUseCase
@@ -14,7 +15,6 @@ import hs.kr.entrydsm.application.domain.application.usecase.PrintApplicationChe
 import hs.kr.entrydsm.application.domain.application.usecase.PrintApplicationInfoUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.QueryStaticsCountUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.UpdateFirstRoundPassedApplicationExamCodeUseCase
-import hs.kr.entrydsm.application.domain.application.usecase.dto.request.GetApplicantsRequest
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicantsResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationCountResponse
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationResponse
@@ -25,7 +25,6 @@ import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.runBlocking
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -86,14 +85,13 @@ class WebAdminAdapter(
 
     @GetMapping("/applicants")
     fun getApplicants(
-        @RequestParam(name = "pageSize", defaultValue = "10")
-        pageSize: Long,
-        @RequestParam(name = "offset", defaultValue = "0")
-        offset: Long,
-        @ModelAttribute
-        getApplicantsRequest: GetApplicantsRequest,
-    ): GetApplicantsResponse {
-        return runBlocking { getApplicantsUseCase.execute(pageSize, offset, getApplicantsRequest) }
+        @RequestParam(required = false) applicationType: ApplicationType?,
+        @RequestParam(required = false) educationalStatus: EducationalStatus?,
+        @RequestParam(required = false) isDaejeon: Boolean?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
+    ): GetApplicantsResponse = runBlocking {
+        getApplicantsUseCase.execute(page, size, applicationType, educationalStatus, isDaejeon)
     }
 
     @GetMapping("/excel/admission-ticket")

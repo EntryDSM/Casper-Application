@@ -9,6 +9,8 @@ import hs.kr.entrydsm.application.domain.graduationInfo.spi.GraduationInfoQueryA
 import hs.kr.entrydsm.application.domain.graduationInfo.spi.GraduationInfoQuerySchoolPort
 import hs.kr.entrydsm.application.domain.graduationInfo.spi.QueryGraduationInfoPort
 import hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.response.GetGraduationInformationResponse
+import hs.kr.entrydsm.application.domain.photo.exception.PhotoExceptions
+import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
 import hs.kr.entrydsm.application.global.annotation.UseCase
 import hs.kr.entrydsm.application.global.security.spi.SecurityPort
 
@@ -18,10 +20,12 @@ class GetGraduationInformationUseCase(
     private val queryGraduationInfoPort: QueryGraduationInfoPort,
     private val graduationInfoQueryApplicationPort: GraduationInfoQueryApplicationPort,
     private val graduationInfoQuerySchoolPort: GraduationInfoQuerySchoolPort,
-    private val generateFileUrlPort: GenerateFileUrlPort
+    private val generateFileUrlPort: GenerateFileUrlPort,
+    private val queryPhotoPort: QueryPhotoPort
 ) {
     fun execute(): GetGraduationInformationResponse {
         val userId = securityPort.getCurrentUserId()
+        val photo = queryPhotoPort.queryPhotoByUserId(userId)
 
         val application =
             graduationInfoQueryApplicationPort.queryApplicationByUserId(userId)
@@ -37,7 +41,7 @@ class GetGraduationInformationUseCase(
         return GetGraduationInformationResponse(
             sex = application.sex,
             birthDate = application.birthDate,
-            photoPath = application.photoPath?.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) },
+            photoPath = photo!!.photoPath.let { generateFileUrlPort.generateFileUrl(it, PathList.PHOTO) },
             applicantName = application.applicantName,
             applicantTel = application.applicantTel,
             parentTel = application.parentTel,

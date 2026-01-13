@@ -1,7 +1,6 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
 import hs.kr.entrydsm.application.domain.application.model.Application
-import hs.kr.entrydsm.application.domain.application.model.types.ApplicationRemark
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
 import hs.kr.entrydsm.application.domain.application.spi.ApplicationPdfGeneratorPort
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicationRequest
@@ -55,12 +54,6 @@ class GetPreviewApplicationPdfUseCase(
     }
 
     private fun createTempApplication(request: ApplicationRequest, userId: UUID): Application {
-        val applicationRemark = when {
-            request.applicationInfo.nationalMeritChild -> ApplicationRemark.NATIONAL_MERIT
-            request.applicationInfo.specialAdmissionTarget -> ApplicationRemark.PRIVILEGED_ADMISSION
-            else -> null
-        }
-
         return Application(
             sex = request.applicantInfo.applicantGender,
             isDaejeon = request.addressInfo.isDaejeon,
@@ -75,7 +68,7 @@ class GetPreviewApplicationPdfUseCase(
             postalCode = request.addressInfo.postalCode,
             detailAddress = request.addressInfo.detailAddress,
             applicationType = request.applicationInfo.applicationType,
-            applicationRemark = applicationRemark,
+            applicationRemark = request.applicationInfo.applicationRemark,
             studyPlan = request.applicationInfo.studyPlan,
             selfIntroduce = request.applicationInfo.selfIntroduce,
             userId = userId

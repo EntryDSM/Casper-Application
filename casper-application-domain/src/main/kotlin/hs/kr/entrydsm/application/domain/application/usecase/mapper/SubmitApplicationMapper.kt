@@ -21,6 +21,7 @@ object SubmitApplicationMapper {
             parentRelation = request.applicantInfo.parentRelation,
             educationalStatus = request.applicationInfo.educationalStatus,
             applicationType = request.applicationInfo.applicationType,
+            applicationRemark = request.applicationInfo.applicationRemark,
             studyPlan = request.applicationInfo.studyPlan,
             selfIntroduce = request.applicationInfo.selfIntroduce,
             userId = user.id
