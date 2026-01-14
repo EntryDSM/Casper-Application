@@ -10,7 +10,6 @@ import java.util.*
 @Component
 class ApplicationProducer(
     private val createApplicationTemplate: KafkaTemplate<String, Any>,
-    private val createApplicationRollbackTemplate: KafkaTemplate<String, Any>,
     private val cancelSubmittedApplicationTemplate: KafkaTemplate<String, Any>
 ) : ApplicationEventPort {
     override fun create(
@@ -25,13 +24,6 @@ class ApplicationProducer(
         createApplicationTemplate.send(
             KafkaTopics.CREATE_APPLICATION,
             createApplicationEvent,
-        )
-    }
-
-    override fun createApplicationScoreRollback(receiptCode: Long) {
-        createApplicationRollbackTemplate.send(
-            KafkaTopics.CREATE_APPLICATION_SCORE_ROLLBACK,
-            receiptCode,
         )
     }
 

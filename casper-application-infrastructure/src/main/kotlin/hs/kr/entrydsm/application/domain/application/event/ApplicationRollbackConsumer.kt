@@ -19,13 +19,4 @@ class ApplicationRollbackConsumer(
         deleteApplicationUseCase.execute(receiptCode)
     }
 
-    @KafkaListener(
-        topics = [KafkaTopics.CREATE_APPLICATION_SCORE_ROLLBACK],
-        groupId = "create-score-rollback",
-        containerFactory = "kafkaListenerContainerFactory",
-    )
-    fun createScoreRollback(message: String) {
-        val receiptCode = objectMapper.readValue(message, Long::class.java)
-        deleteApplicationUseCase.execute(receiptCode)
-    }
 }
