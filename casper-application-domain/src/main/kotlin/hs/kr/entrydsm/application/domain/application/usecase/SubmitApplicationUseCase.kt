@@ -71,14 +71,14 @@ class SubmitApplicationUseCase(
         request: ApplicationRequest
     ) {
         if (educationalStatus != EducationalStatus.QUALIFICATION_EXAM) {
-            val studentNumber: StudentNumber = StudentNumber.from(request.applicationInfo.studentNumber)
+            val studentNumber: StudentNumber = StudentNumber.from(request.applicationInfo.studentNumber!!)
             graduationInfoService.updateGraduationInformation(
                 receiptCode = receiptCode,
                 request = UpdateGraduationInformationRequest(
                     gradeNumber = studentNumber.gradeNumber,
                     classNumber = studentNumber.classNumber,
                     studentNumber = studentNumber.studentNumber,
-                    schoolCode = request.schoolInfo.schoolCode,
+                    schoolCode = request.schoolInfo.schoolCode!!,
                     teacherName = request.schoolInfo.teacherName,
                     teacherTel = request.schoolInfo.schoolPhone
                 )
@@ -117,11 +117,11 @@ class SubmitApplicationUseCase(
                 applicationCaseService.updateGraduationScore(
                     receiptCode = receiptCode,
                     request = UpdateGraduationCaseRequest(
-                        volunteerTime = request.attendanceInfo.volunteer,
-                        absenceDayCount = request.attendanceInfo.absence,
-                        lectureAbsenceCount = request.attendanceInfo.classExit,
-                        latenessCount = request.attendanceInfo.tardiness,
-                        earlyLeaveCount = request.attendanceInfo.earlyLeave,
+                        volunteerTime = request.attendanceInfo.volunteer!!,
+                        absenceDayCount = request.attendanceInfo.absence!!,
+                        lectureAbsenceCount = request.attendanceInfo.classExit!!,
+                        latenessCount = request.attendanceInfo.tardiness!!,
+                        earlyLeaveCount = request.attendanceInfo.earlyLeave!!,
                         koreanGrade = request.gradeInfo.koreanGrade,
                         socialGrade = request.gradeInfo.socialGrade,
                         historyGrade = request.gradeInfo.historyGrade,
