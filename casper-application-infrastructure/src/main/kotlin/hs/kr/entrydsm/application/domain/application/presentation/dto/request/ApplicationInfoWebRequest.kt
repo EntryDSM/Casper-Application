@@ -13,11 +13,8 @@ data class ApplicationInfoWebRequest(
     val applicationType: ApplicationType,
     @field:NotNull(message = "학력 상태는 필수입니다")
     val educationalStatus: EducationalStatus,
-    @field:NotBlank(message = "학번은 필수입니다")
-    @field:Size(min = 5, max = 5, message = "학번은 5자리여야 합니다")
-    val studentNumber: String,
-    @field:NotNull(message = "졸업(예정)일은 필수입니다")
-    val graduationDate: YearMonth,
+    val studentNumber: String?,
+    val graduationDate: YearMonth?,
     @field:NotBlank(message = "학업 계획서는 필수입니다")
     @field:Size(max = 1600, message = "학업 계획서는 1600자 이하여야 합니다")
     val studyPlan: String,
