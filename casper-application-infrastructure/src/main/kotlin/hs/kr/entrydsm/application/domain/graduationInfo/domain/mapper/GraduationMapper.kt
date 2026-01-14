@@ -1,15 +1,55 @@
 package hs.kr.entrydsm.application.domain.graduationInfo.domain.mapper
 
 import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.GraduationJpaEntity
+import hs.kr.entrydsm.application.domain.graduationInfo.domain.entity.vo.StudentNumber as EntityStudentNumber
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
+import hs.kr.entrydsm.application.domain.graduationInfo.model.vo.StudentNumber as DomainStudentNumber
 import hs.kr.entrydsm.application.global.mapper.GenericMapper
-import org.mapstruct.Mapper
+import org.springframework.stereotype.Component
 
-@Mapper
-abstract class GraduationMapper : GenericMapper<GraduationJpaEntity, Graduation> {
-    abstract override fun toEntity(model: Graduation): GraduationJpaEntity
+@Component
+class GraduationMapper : GenericMapper<GraduationJpaEntity, Graduation> {
+    override fun toEntity(model: Graduation): GraduationJpaEntity {
+        return GraduationJpaEntity(
+            id = model.id,
+            graduateDate = model.graduateDate,
+            isProspectiveGraduate = model.isProspectiveGraduate,
+            receiptCode = model.receiptCode,
+            studentNumber = model.studentNumber?.let {
+                EntityStudentNumber(
+                    gradeNumber = it.gradeNumber,
+                    classNumber = it.classNumber,
+                    studentNumber = it.studentNumber
+                )
+            },
+            schoolCode = model.schoolCode,
+            teacherName = model.teacherName,
+            teacherTel = model.teacherTel
+        )
+    }
 
-    abstract override fun toDomain(entity: GraduationJpaEntity?): Graduation?
+    override fun toDomain(entity: GraduationJpaEntity?): Graduation? {
+        return entity?.let {
+            Graduation(
+                id = it.id,
+                graduateDate = it.graduateDate,
+                isProspectiveGraduate = it.isProspectiveGraduate,
+                receiptCode = it.receiptCode,
+                studentNumber = it.studentNumber?.let { student ->
+                    DomainStudentNumber(
+                        gradeNumber = student.gradeNumber,
+                        classNumber = student.classNumber,
+                        studentNumber = student.studentNumber
+                    )
+                },
+                schoolCode = it.schoolCode,
+                teacherName = it.teacherName,
+                teacherTel = it.teacherTel
+            )
+        }
+    }
 
-    abstract override fun toDomainNotNull(entity: GraduationJpaEntity): Graduation
+    override fun toDomainNotNull(entity: GraduationJpaEntity): Graduation {
+        return toDomain(entity)!!
+    }
 }
