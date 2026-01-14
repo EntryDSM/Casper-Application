@@ -31,10 +31,4 @@ class GlobalExceptionHandler(
             HttpStatus.BAD_REQUEST,
         )
     }
-
-    @ExceptionHandler(MissingKotlinParameterException::class)
-    fun handleMissingKotlinParameterException(ex: MissingKotlinParameterException): ResponseEntity<Any> {
-        val emptyListResponse = emptyList<Any>()
-        return ResponseEntity.status(HttpStatus.OK).body(emptyListResponse)
-    }
 }
