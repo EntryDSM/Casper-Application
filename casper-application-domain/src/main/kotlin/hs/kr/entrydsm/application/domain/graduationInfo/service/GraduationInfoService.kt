@@ -38,7 +38,7 @@ class GraduationInfoService(
         }
     }
 
-    fun changeGraduationInfo(receiptCode: Long, graduateDate: YearMonth) {
+    fun changeGraduationInfo(receiptCode: Long, graduateDate: YearMonth?) {
         val application = graduationInfoQueryApplicationPort.queryApplicationByReceiptCode(receiptCode)
             ?: throw ApplicationExceptions.ApplicationNotFoundException()
 
