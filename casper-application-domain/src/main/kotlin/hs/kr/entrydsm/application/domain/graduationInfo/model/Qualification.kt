@@ -1,6 +1,5 @@
 package hs.kr.entrydsm.application.domain.graduationInfo.model
 
-import java.time.LocalDate
 import java.time.YearMonth
 
 data class Qualification(
@@ -16,7 +15,7 @@ data class Qualification(
 ) {
     override fun hasEmptyInfo(): Boolean = graduateDate == null
 
-    override fun changeGraduateDate(graduateDate: YearMonth): GraduationInfo {
+    override fun changeGraduateDate(graduateDate: YearMonth?): GraduationInfo {
         return this.copy(graduateDate = graduateDate)
     }
 }
