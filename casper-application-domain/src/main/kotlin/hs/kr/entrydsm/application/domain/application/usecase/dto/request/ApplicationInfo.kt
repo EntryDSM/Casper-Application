@@ -8,9 +8,9 @@ import java.time.YearMonth
 data class ApplicationInfo(
     val applicationType: ApplicationType,
     val educationalStatus: EducationalStatus,
-    val studentNumber: String,
-    val graduationDate: YearMonth,
+    val studentNumber: String?,
+    val graduationDate: YearMonth?,
     val studyPlan: String,
     val selfIntroduce: String,
-    val applicationRemark: ApplicationRemark?
+    val applicationRemark: ApplicationRemark
 )

@@ -6,7 +6,6 @@ import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
 import hs.kr.entrydsm.application.domain.graduationInfo.model.GraduationInfo
 import hs.kr.entrydsm.application.domain.graduationInfo.model.Qualification
 import hs.kr.entrydsm.application.global.annotation.Factory
-import java.time.LocalDate
 import java.time.YearMonth
 
 @Factory
@@ -14,13 +13,13 @@ class GraduationInfoFactory {
     fun createGraduationInfo(
         receiptCode: Long,
         educationalStatus: EducationalStatus?,
-        graduateDate: YearMonth,
+        graduateDate: YearMonth?,
         teacherName: String? = null
     ): GraduationInfo {
         return when (educationalStatus) {
             EducationalStatus.QUALIFICATION_EXAM ->
                 Qualification(
-                    graduateDate = graduateDate,
+                    graduateDate = null,
                     receiptCode = receiptCode,
                     isProspectiveGraduate = false,
                 )

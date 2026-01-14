@@ -13,5 +13,5 @@ sealed class GraduationInfo(
     abstract fun hasEmptyInfo(): Boolean
 
     // GraduateDate 변경 함수
-    abstract fun changeGraduateDate(graduateDate: YearMonth): GraduationInfo
+    abstract fun changeGraduateDate(graduateDate: YearMonth?): GraduationInfo
 }
