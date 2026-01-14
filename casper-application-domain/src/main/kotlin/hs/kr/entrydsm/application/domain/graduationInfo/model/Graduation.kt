@@ -29,7 +29,7 @@ data class Graduation(
         ).any { it == null }
     }
 
-    override fun changeGraduateDate(graduateDate: YearMonth): GraduationInfo {
+    override fun changeGraduateDate(graduateDate: YearMonth?): GraduationInfo {
         return this.copy(graduateDate = graduateDate)
     }
 }
