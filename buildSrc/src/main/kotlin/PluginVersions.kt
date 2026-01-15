@@ -4,7 +4,7 @@ object PluginVersions {
     const val JVM_VERSION = "1.9.23"
     const val SPRING_PLUGIN_VERSION = "1.9.23"
     const val JPA_PLUGIN_VERSION = "1.9.23"
-    const val KAPT_VERSION = "1.7.10"
+    const val KAPT_VERSION = "1.9.23"
     const val KLINT_VERSION = "12.1.1"
     const val ALLOPEN_VERSION = "1.9.23"
     const val MOCKITO_KOTLIN_VERSION = "5.0.0"
