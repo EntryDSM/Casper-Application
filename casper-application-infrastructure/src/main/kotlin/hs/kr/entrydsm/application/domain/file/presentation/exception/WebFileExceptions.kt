@@ -1,6 +1,6 @@
 package hs.kr.entrydsm.application.domain.file.presentation.exception
 
-import hs.kr.entrydsm.global.exception.WebException
+import hs.kr.entrydsm.application.global.exception.WebException
 
 sealed class WebFileExceptions(
     override val status: Int,

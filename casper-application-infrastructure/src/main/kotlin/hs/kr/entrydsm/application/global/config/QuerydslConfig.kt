@@ -10,7 +10,5 @@ class QuerydslConfig(
     private val entityManager: EntityManager,
 ) {
     @Bean
-    fun jpaQueryFactory(): JPAQueryFactory {
-        return JPAQueryFactory(entityManager)
-    }
+    protected fun queryFactory(): JPAQueryFactory = JPAQueryFactory(entityManager)
 }

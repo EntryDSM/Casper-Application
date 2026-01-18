@@ -1,63 +1,50 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.application.values.ApplicationType
-import hs.kr.entrydsm.domain.application.values.EducationalStatus
-import hs.kr.entrydsm.domain.school.aggregate.School
-import hs.kr.entrydsm.domain.status.aggregates.Status
-import hs.kr.entrydsm.domain.user.aggregates.User
+import hs.kr.entrydsm.application.domain.application.service.ApplicationService
+import hs.kr.entrydsm.application.domain.application.spi.PrintApplicationCheckListPort
+import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationInfoVO
+import hs.kr.entrydsm.application.domain.applicationCase.model.GraduationCase
+import hs.kr.entrydsm.application.domain.applicationCase.model.QualificationCase
+import hs.kr.entrydsm.application.domain.graduationInfo.model.Graduation
+import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.poi.ss.usermodel.BorderStyle
-import org.apache.poi.ss.usermodel.Cell
-import org.apache.poi.ss.usermodel.Row
-import org.apache.poi.ss.usermodel.Sheet
-import org.apache.poi.ss.usermodel.Workbook
+import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.RegionUtil
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Component
 import java.io.IOException
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Component
-class PrintApplicationCheckListGenerator {
-    
-    fun printApplicationCheckList(
-        applications: List<Application>,
-        users: List<User>,
-        schools: List<School>,
-        statuses: List<Status>,
+class PrintApplicationCheckListGenerator(
+    private val applicationService: ApplicationService,
+) : PrintApplicationCheckListPort {
+    private val workbook: Workbook = XSSFWorkbook()
+    private val sheet: Sheet = workbook.createSheet("application Check List")
+
+    override fun printApplicationCheckList(
+        applicationInfoVO: List<ApplicationInfoVO>,
         httpServletResponse: HttpServletResponse,
     ) {
-        val workbook: Workbook = XSSFWorkbook()
-        val sheet: Sheet = workbook.createSheet("application Check List")
-        
         var outputStream: ServletOutputStream? = null
         var dh = 0
         try {
-            val userMap = users.associateBy { it.id }
-            val schoolMap = schools.associateBy { it.code }
-            val statusMap = statuses.associateBy { it.receiptCode }
-
-            applications.forEach { application ->
-                val user = userMap[application.userId]
-                val status = statusMap[application.receiptCode]
-                val school = application.schoolCode?.let { schoolMap[it] }
-
-                formatSheet(sheet, dh)
-                insertDataIntoSheet(sheet, application, user, school, status, dh)
+            applicationInfoVO.forEach { it ->
+                formatSheet(dh)
+                insertDataIntoSheet(it, dh)
                 dh += 20
             }
+            println(dh)
 
             httpServletResponse.apply {
                 contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 val formatFilename = "attachment;filename=\"점검표"
                 val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년MM월dd일_HH시mm분"))
                 val fileName = String(("$formatFilename$time.xlsx\"").toByteArray(Charsets.UTF_8), Charsets.ISO_8859_1)
-                setHeader("Content-Disposition", fileName)
+                httpServletResponse.setHeader("Content-Disposition", fileName)
             }
 
             outputStream = httpServletResponse.outputStream
@@ -67,19 +54,18 @@ class PrintApplicationCheckListGenerator {
             if (!httpServletResponse.isCommitted) {
                 httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
             } else {
-                throw IllegalArgumentException("Excel 파일 생성 중 오류가 발생했습니다.")
+                throw ExcelExceptions.ExcelIOException()
             }
         } finally {
             try {
                 outputStream?.close()
-                workbook.close()
             } catch (e: Exception) {
-                // ignore
+                workbook.close()
             }
         }
     }
 
-    private fun formatSheet(sheet: Sheet, dh: Int) {
+    private fun formatSheet(dh: Int) {
         sheet.apply {
             mergeRegions(dh)
             applyBorderStyles(dh)
@@ -107,10 +93,7 @@ class PrintApplicationCheckListGenerator {
 
     private fun Sheet.isRegionMerged(region: CellRangeAddress): Boolean {
         return mergedRegions.any {
-            it.firstRow == region.firstRow &&
-                it.lastRow == region.lastRow &&
-                it.firstColumn == region.firstColumn &&
-                it.lastColumn == region.lastColumn
+            it.firstRow == region.firstRow && it.lastRow == region.lastRow && it.firstColumn == region.firstColumn && it.lastColumn == region.lastColumn
         }
     }
 
@@ -131,7 +114,7 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(15 + dh, 15 + dh, 1, 7),
                 intArrayOf(16 + dh, 16 + dh, 1, 7),
             )
-        setBorderStyle(this, borderRegionsDashedBottom, BorderStyle.DASHED, Direction.BOTTOM)
+        setBorderStyle(borderRegionsDashedBottom, BorderStyle.DASHED, Direction.BOTTOM)
 
         val borderRegionsThin =
             arrayOf(
@@ -144,7 +127,7 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(10 + dh, 10 + dh, 1, 5),
                 intArrayOf(18 + dh, 18 + dh, 1, 5),
             )
-        setBorderStyle(this, borderRegionsThin, BorderStyle.THIN, Direction.ALL)
+        setBorderStyle(borderRegionsThin, BorderStyle.THIN, Direction.ALL)
 
         val borderRegionsThick =
             arrayOf(
@@ -155,7 +138,7 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(18 + dh, 18 + dh, 6, 7),
                 intArrayOf(19 + dh, 19 + dh, 6, 7),
             )
-        setBorderStyle(this, borderRegionsThick, BorderStyle.THICK, Direction.ALL)
+        setBorderStyle(borderRegionsThick, BorderStyle.THICK, Direction.ALL)
 
         val borderRegionsDashedRight =
             arrayOf(
@@ -177,14 +160,14 @@ class PrintApplicationCheckListGenerator {
                 intArrayOf(3 + dh, 5 + dh, 1, 1),
                 intArrayOf(19 + dh, 19 + dh, 6, 6),
             )
-        setBorderStyle(this, borderRegionsDashedRight, BorderStyle.DASHED, Direction.RIGHT)
+        setBorderStyle(borderRegionsDashedRight, BorderStyle.DASHED, Direction.RIGHT)
 
         val borderRegionsThinRight =
             arrayOf(
                 intArrayOf(11 + dh, 17 + dh, 5, 5),
                 intArrayOf(3 + dh, 5 + dh, 5, 5),
             )
-        setBorderStyle(this, borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
+        setBorderStyle(borderRegionsThinRight, BorderStyle.THIN, Direction.RIGHT)
     }
 
     private fun Sheet.setCellValues(dh: Int) {
@@ -222,12 +205,11 @@ class PrintApplicationCheckListGenerator {
                 Pair(18 + dh, 1) to "점수",
             )
         cellValues.forEach { (cell, value) ->
-            getCell(this, cell.first, cell.second).setCellValue(value)
+            getCell(cell.first, cell.second).setCellValue(value)
         }
     }
 
     private fun setBorderStyle(
-        sheet: Sheet,
         regions: Array<IntArray>,
         borderStyle: BorderStyle,
         direction: Direction,
@@ -249,233 +231,115 @@ class PrintApplicationCheckListGenerator {
         }
     }
 
-    private fun getCell(sheet: Sheet, rowNum: Int, cellNum: Int): Cell {
-        val row: Row = sheet.getRow(rowNum) ?: sheet.createRow(rowNum)
+    private fun getCell(
+        rowNum: Int,
+        cellNum: Int,
+    ): Cell {
+        val row = sheet.getRow(rowNum) ?: sheet.createRow(rowNum)
         return row.getCell(cellNum) ?: row.createCell(cellNum)
     }
 
-    private fun setRowHeight(sheet: Sheet, rowIndex: Int, height: Int) {
-        val row: Row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
+    private fun setRowHeight(
+        rowIndex: Int,
+        height: Int,
+    ) {
+        val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
         row.heightInPoints = height.toFloat()
     }
 
     private fun insertDataIntoSheet(
-        sheet: Sheet,
-        application: Application,
-        user: User?,
-        school: School?,
-        status: Status?,
+        applicationInfoVO: ApplicationInfoVO,
         dh: Int,
     ) {
-        getCell(sheet, dh + 1, 2).setCellValue(application.receiptCode.toString())
-        getCell(sheet, dh + 1, 3).setCellValue(application.schoolName ?: school?.name ?: "")
-        getCell(sheet, dh + 1, 6).setCellValue(application.educationalStatus.displayName)
-        getCell(sheet, dh + 1, 7).setCellValue(application.graduationDate ?: "")
-        getCell(sheet, dh + 4, 1).setCellValue(translateApplicationType(application.applicationType.name))
-        getCell(sheet, dh + 3, 2).setCellValue(application.applicantName)
-        getCell(sheet, dh + 3, 6).setCellValue(application.studentId ?: "")
-        getCell(sheet, dh + 3, 1).setCellValue(if (application.isDaejeon == true) "대전" else "전국")
-        getCell(sheet, dh + 4, 2).setCellValue(application.birthDate ?: "")
-        getCell(sheet, dh + 4, 6).setCellValue(formatPhoneNumber(application.applicantTel))
-        getCell(sheet, dh + 5, 1).setCellValue(getAdditionalType(application))
-        getCell(sheet, dh + 5, 2).setCellValue(application.applicantGender?.name ?: "")
-        getCell(sheet, dh + 5, 6).setCellValue(formatPhoneNumber(application.parentTel))
+        val graduation = applicationInfoVO.graduationInfo as? Graduation
+        val number = graduation?.studentNumber
+        val studentNumber =
+            if (number != null) {
+                number.gradeNumber.toInt() * 10000 +
+                    number.classNumber.toInt() * 100 +
+                    number.studentNumber.toInt()
+            } else {
+                null
+            }
+        getCell(dh + 1, 2).setCellValue(applicationInfoVO.application.receiptCode.toString())
+        getCell(dh + 1, 3).setCellValue(applicationService.safeGetValue(applicationInfoVO.school?.name))
+        getCell(dh + 1, 6).setCellValue(applicationService.translateEducationalStatus(applicationInfoVO.application.educationalStatus))
+        getCell(dh + 1, 7).setCellValue(applicationService.safeGetValue(applicationInfoVO.graduationInfo?.graduateDate?.year))
+        getCell(dh + 4, 1).setCellValue(applicationService.translateApplicationType(applicationInfoVO.application.applicationType))
+        getCell(dh + 3, 2).setCellValue(applicationInfoVO.application.applicantName)
+        getCell(dh + 3, 6).setCellValue(applicationService.safeGetValue(studentNumber))
+        getCell(dh + 3, 1).setCellValue(applicationService.translateIsDaejeon(applicationInfoVO.application.isDaejeon))
+        getCell(dh + 4, 2).setCellValue(applicationInfoVO.application.birthDate.toString())
+        getCell(dh + 4, 6).setCellValue(applicationService.formatPhoneNumber(applicationInfoVO.application.applicantTel))
+        getCell(dh + 5, 1).setCellValue(applicationService.translateApplicationRemark(applicationInfoVO.application.applicationRemark))
+        getCell(dh + 5, 2).setCellValue(applicationService.translateSex(applicationInfoVO.application.sex))
+        getCell(
+            dh + 5,
+            6,
+        ).setCellValue(applicationService.safeGetValue(applicationService.formatPhoneNumber(applicationInfoVO.application.parentTel)))
 
-        getCell(sheet, dh + 8, 1).setCellValue((application.absence ?: 0).toString())
-        getCell(sheet, dh + 8, 2).setCellValue((application.tardiness ?: 0).toString())
-        getCell(sheet, dh + 8, 3).setCellValue((application.earlyLeave ?: 0).toString())
-        getCell(sheet, dh + 8, 4).setCellValue((application.classExit ?: 0).toString())
-        
-        // Application의 계산 메서드 사용
-        getCell(sheet, dh + 8, 5).setCellValue(application.calculateAttendanceScore().toString())
-        getCell(sheet, dh + 8, 6).setCellValue((application.volunteer ?: 0).toString())
-        getCell(sheet, dh + 8, 7).setCellValue(application.calculateVolunteerScore().toString())
-        
-        // application-info와 동일한 학기별 점수 계산 (가중치 적용)
-        val semesterScores = application.calculateSemesterScores()
-        
-        val subjects = listOf("국어", "사회", "역사", "수학", "과학", "기술가정", "영어")
-        val gradeData = getGradeData(application)
-
-        subjects.forEachIndexed { index, subject ->
-            val rowIndex = dh + 11 + index
-            getCell(sheet, rowIndex, 1).setCellValue(subject)
-            getCell(sheet, rowIndex, 2).setCellValue(gradeData.semester3_2[index])
-            getCell(sheet, rowIndex, 3).setCellValue(gradeData.semester3_1[index])
-            getCell(sheet, rowIndex, 4).setCellValue(gradeData.semester2_2[index])
-            getCell(sheet, rowIndex, 5).setCellValue(gradeData.semester2_1[index])
-        }
-
-        getCell(sheet, dh + 11, 7).setCellValue(if (application.algorithmAward == true) "O" else "X")
-        getCell(sheet, dh + 12, 7).setCellValue(if (application.infoProcessingCert == true) "O" else "X")
-        getCell(sheet, dh + 13, 7).setCellValue(application.calculateBonusScore().toString())
-
-        // 점수 행 (18행) - application-info와 동일하게 가중치 적용된 점수
-        // 2열: 3_2학기 점수 (가중치 적용)
-        // 3열: 3_1학기 점수 (가중치 적용)
-        // 4열: 2_2학기 점수 (가중치 적용)
-        // 5열: 2_1학기 점수 (가중치 적용)
-        // 7열: 교과성적 (위 점수들의 합)
-
-        val semester3_2Score = semesterScores["3-2"] ?: BigDecimal.ZERO
-        val semester3_1Score = semesterScores["3-1"] ?: BigDecimal.ZERO
-        val semester2_2Score = semesterScores["2-2"] ?: BigDecimal.ZERO
-        val semester2_1Score = semesterScores["2-1"] ?: BigDecimal.ZERO
-
-        // 졸업자는 3-2 점수 표시, 졸업예정자/검정고시는 빈칸
-        if (application.educationalStatus == EducationalStatus.GRADUATE) {
-            getCell(sheet, dh + 18, 2).setCellValue(String.format("%.3f", semester3_2Score))
-        } else {
-            getCell(sheet, dh + 18, 2).setCellValue("")
-        }
-
-        getCell(sheet, dh + 18, 3).setCellValue(String.format("%.3f", semester3_1Score))
-        getCell(sheet, dh + 18, 4).setCellValue(String.format("%.3f", semester2_2Score))
-        getCell(sheet, dh + 18, 5).setCellValue(String.format("%.3f", semester2_1Score))
-
-        // 교과성적 = 각 학기 점수의 합 (10행 7열)
-        val subjectScoreSum = semester3_2Score
-            .add(semester3_1Score)
-            .add(semester2_2Score)
-            .add(semester2_1Score)
-        getCell(sheet, dh + 10, 7).setCellValue(String.format("%.3f", subjectScoreSum))
-
-        // 환산점수 (18행 7열) - 전형별 배수 적용
-        val convertedScore = application.calculateSubjectScore()
-        getCell(sheet, dh + 18, 7).setCellValue(String.format("%.3f", convertedScore))
-
-        // 총점 (환산점수 + 출석점수 + 봉사점수 + 가산점)
-        val totalScore = convertedScore
-            .add(application.calculateAttendanceScore())
-            .add(application.calculateVolunteerScore())
-            .add(application.calculateBonusScore())
-        getCell(sheet, dh + 19, 7).setCellValue(String.format("%.3f", totalScore))
-
-        setRowHeight(sheet, dh + 2, 10)
-        setRowHeight(sheet, dh + 6, 10)
-        setRowHeight(sheet, dh + 9, 10)
-        setRowHeight(sheet, dh + 0, 71)
-    }
-    
-    private data class GradeData(
-        val semester3_2: List<String>,
-        val semester3_1: List<String>,
-        val semester2_2: List<String>,
-        val semester2_1: List<String>
-    )
-    
-    private fun getGradeData(application: Application): GradeData {
-        return when (application.educationalStatus) {
-            EducationalStatus.GRADUATE -> GradeData(
-                semester3_2 = listOf(
-                    convertGradeToLetter(application.korean_3_2),
-                    convertGradeToLetter(application.social_3_2),
-                    convertGradeToLetter(application.history_3_2),
-                    convertGradeToLetter(application.math_3_2),
-                    convertGradeToLetter(application.science_3_2),
-                    convertGradeToLetter(application.tech_3_2),
-                    convertGradeToLetter(application.english_3_2)
-                ),
-                semester3_1 = listOf(
-                    convertGradeToLetter(application.korean_3_1),
-                    convertGradeToLetter(application.social_3_1),
-                    convertGradeToLetter(application.history_3_1),
-                    convertGradeToLetter(application.math_3_1),
-                    convertGradeToLetter(application.science_3_1),
-                    convertGradeToLetter(application.tech_3_1),
-                    convertGradeToLetter(application.english_3_1)
-                ),
-                semester2_2 = listOf(
-                    convertGradeToLetter(application.korean_2_2),
-                    convertGradeToLetter(application.social_2_2),
-                    convertGradeToLetter(application.history_2_2),
-                    convertGradeToLetter(application.math_2_2),
-                    convertGradeToLetter(application.science_2_2),
-                    convertGradeToLetter(application.tech_2_2),
-                    convertGradeToLetter(application.english_2_2)
-                ),
-                semester2_1 = listOf(
-                    convertGradeToLetter(application.korean_2_1),
-                    convertGradeToLetter(application.social_2_1),
-                    convertGradeToLetter(application.history_2_1),
-                    convertGradeToLetter(application.math_2_1),
-                    convertGradeToLetter(application.science_2_1),
-                    convertGradeToLetter(application.tech_2_1),
-                    convertGradeToLetter(application.english_2_1)
-                )
-            )
-            EducationalStatus.PROSPECTIVE_GRADUATE -> GradeData(
-                semester3_2 = List(7) { "" },
-                semester3_1 = listOf(
-                    convertGradeToLetter(application.korean_3_1),
-                    convertGradeToLetter(application.social_3_1),
-                    convertGradeToLetter(application.history_3_1),
-                    convertGradeToLetter(application.math_3_1),
-                    convertGradeToLetter(application.science_3_1),
-                    convertGradeToLetter(application.tech_3_1),
-                    convertGradeToLetter(application.english_3_1)
-                ),
-                semester2_2 = listOf(
-                    convertGradeToLetter(application.korean_2_2),
-                    convertGradeToLetter(application.social_2_2),
-                    convertGradeToLetter(application.history_2_2),
-                    convertGradeToLetter(application.math_2_2),
-                    convertGradeToLetter(application.science_2_2),
-                    convertGradeToLetter(application.tech_2_2),
-                    convertGradeToLetter(application.english_2_2)
-                ),
-                semester2_1 = listOf(
-                    convertGradeToLetter(application.korean_2_1),
-                    convertGradeToLetter(application.social_2_1),
-                    convertGradeToLetter(application.history_2_1),
-                    convertGradeToLetter(application.math_2_1),
-                    convertGradeToLetter(application.science_2_1),
-                    convertGradeToLetter(application.tech_2_1),
-                    convertGradeToLetter(application.english_2_1)
-                )
-            )
-            EducationalStatus.QUALIFICATION_EXAM -> {
-                val gedGrades = listOf(
-                    application.gedKorean?.toString() ?: "",
-                    application.gedSocial?.toString() ?: "",
-                    application.gedHistory?.toString() ?: "",
-                    application.gedMath?.toString() ?: "",
-                    application.gedScience?.toString() ?: "",
-                    application.gedTech?.toString() ?: "",
-                    application.gedEnglish?.toString() ?: ""
-                )
-                GradeData(
-                    semester3_2 = List(7) { "" },
-                    semester3_1 = gedGrades,
-                    semester2_2 = List(7) { "" },
-                    semester2_1 = List(7) { "" }
-                )
+        val graduationCase = applicationInfoVO.applicationCase as? GraduationCase
+        when (val case = applicationInfoVO.applicationCase) {
+            is GraduationCase -> {
+                getCell(dh + 8, 1).setCellValue(applicationService.safeGetDouble(case.absenceDayCount).toString())
+                getCell(dh + 8, 2).setCellValue(applicationService.safeGetDouble(case.latenessCount).toString())
+                getCell(dh + 8, 3).setCellValue(applicationService.safeGetDouble(case.earlyLeaveCount).toString())
+                getCell(dh + 8, 4).setCellValue(applicationService.safeGetDouble(case.lectureAbsenceCount).toString())
+                getCell(dh + 8, 6).setCellValue(applicationService.safeGetDouble(case.volunteerTime).toString())
+            }
+            else -> {
+                getCell(dh + 8, 1).setCellValue(applicationService.safeGetDouble(null).toString())
+                getCell(dh + 8, 2).setCellValue(applicationService.safeGetDouble(null).toString())
+                getCell(dh + 8, 3).setCellValue(applicationService.safeGetDouble(null).toString())
+                getCell(dh + 8, 4).setCellValue(applicationService.safeGetDouble(null).toString())
+                getCell(dh + 8, 6).setCellValue(applicationService.safeGetDouble(null).toString())
             }
         }
-    }
-    
-    private fun getAdditionalType(application: Application): String {
-        val types = mutableListOf<String>()
-        if (application.nationalMeritChild == true) types.add("국가유공자")
-        if (application.specialAdmissionTarget == true) types.add("특례입학대상자")
-        return if (types.isEmpty()) "해당없음" else types.joinToString(", ")
-    }
+        getCell(dh + 8, 5).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.attendanceScore).toString())
+        getCell(dh + 8, 7).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.volunteerScore).toString())
+        getCell(dh + 10, 7).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.calculateSubjectScore()).toString())
 
-    private fun translateApplicationType(applicationType: String?): String {
-        return when (applicationType) {
-            "COMMON" -> "일반전형"
-            "MEISTER" -> "마이스터전형"
-            "SOCIAL" -> "사회통합전형"
-            else -> "일반전형"
+        if (applicationInfoVO.applicationCase is QualificationCase) {
+            val qualificationCase = applicationInfoVO.applicationCase as QualificationCase
+            getCell(dh + 11, 3).setCellValue(qualificationCase.koreanGrade.toString())
+            getCell(dh + 12, 3).setCellValue(qualificationCase.socialGrade.toString())
+            getCell(dh + 13, 3).setCellValue("X")
+            getCell(dh + 14, 3).setCellValue(qualificationCase.mathGrade.toString())
+            getCell(dh + 15, 3).setCellValue(qualificationCase.scienceGrade.toString())
+            getCell(dh + 16, 3).setCellValue(qualificationCase.historyGrade.toString())
+            getCell(dh + 17, 3).setCellValue(qualificationCase.englishGrade.toString())
         }
-    }
 
-    private fun formatPhoneNumber(phoneNumber: String?): String {
-        if (phoneNumber.isNullOrBlank()) return ""
-        if (phoneNumber.length == 8) {
-            return phoneNumber.replace("(\\d{4})(\\d{4})".toRegex(), "$1-$2")
+        val subjectGrades = graduationCase?.gradesPerSubject()
+        var rowIndex = dh + 11
+        subjectGrades?.forEach { (subject, grades) ->
+            getCell(rowIndex, 1).setCellValue(applicationService.safeGetValue(subject))
+            grades.forEachIndexed { index, grade ->
+                getCell(rowIndex, index + 2).setCellValue(grade)
+            }
+            rowIndex++
         }
-        return phoneNumber.replace("(\\d{2,3})(\\d{3,4})(\\d{4})".toRegex(), "$1-$2-$3")
+
+        getCell(
+            dh + 11,
+            7,
+        ).setCellValue(applicationService.translateBoolean(applicationInfoVO.applicationCase?.extraScoreItem?.hasCompetitionPrize))
+        getCell(
+            dh + 12,
+            7,
+        ).setCellValue(applicationService.translateBoolean(applicationInfoVO.applicationCase?.extraScoreItem?.hasCertificate))
+        getCell(dh + 13, 7).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.extraScore).toString())
+        getCell(dh + 18, 2).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.thirdScore).toString())
+        getCell(dh + 18, 3).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.thirdGradeScore).toString())
+        getCell(dh + 18, 4).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.thirdBeforeScore).toString())
+        getCell(dh + 18, 5).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.thirdBeforeBeforeScore).toString())
+        getCell(dh + 18, 7).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.totalGradeScore).toString())
+        getCell(dh + 19, 7).setCellValue(applicationService.safeGetDouble(applicationInfoVO.score?.totalScore).toString())
+
+        setRowHeight(dh + 2, 10)
+        setRowHeight(dh + 6, 10)
+        setRowHeight(dh + 9, 10)
+        setRowHeight(dh + 0, 71)
     }
 
     enum class Direction {
@@ -484,19 +348,5 @@ class PrintApplicationCheckListGenerator {
         LEFT,
         RIGHT,
         ALL,
-    }
-    
-    /**
-     * 숫자 성적을 문자 등급으로 변환 (5=A, 4=B, 3=C, 2=D, 1=E)
-     */
-    private fun convertGradeToLetter(grade: Int?): String {
-        return when (grade) {
-            5 -> "A"
-            4 -> "B"
-            3 -> "C"
-            2 -> "D"
-            1 -> "E"
-            else -> ""
-        }
     }
 }

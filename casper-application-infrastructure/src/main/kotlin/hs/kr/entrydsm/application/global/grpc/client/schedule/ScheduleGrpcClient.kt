@@ -1,10 +1,10 @@
 package hs.kr.entrydsm.application.global.grpc.client.schedule
 
+import hs.kr.entrydsm.application.domain.schedule.enums.ScheduleType
 import hs.kr.entrydsm.application.global.extension.executeGrpcCallWithResilience
 import hs.kr.entrydsm.application.global.grpc.dto.schedule.InternalScheduleResponse
 import hs.kr.entrydsm.casper.schedule.proto.ScheduleServiceGrpc
 import hs.kr.entrydsm.casper.schedule.proto.ScheduleServiceProto
-import hs.kr.entrydsm.domain.schedule.values.ScheduleType
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.retry.Retry
 import io.grpc.Channel
@@ -18,9 +18,6 @@ import java.time.format.DateTimeFormatter
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-/**
- * Schedule Service와 gRPC 통신을 하는 클라이언트입니다.
- */
 @Component
 class ScheduleGrpcClient(
     @Qualifier("scheduleGrpcRetry") private val retry: Retry,
@@ -29,11 +26,6 @@ class ScheduleGrpcClient(
     @GrpcClient("schedule-grpc")
     lateinit var channel: Channel
 
-    /**
-     * 일정 종류를 통해 일정을 조회합니다.
-     * @param type 일정 종류
-     * @return 일정 정보
-     */
     suspend fun getScheduleByType(type: String): InternalScheduleResponse {
         return executeGrpcCallWithResilience(
             retry = retry,
@@ -83,11 +75,6 @@ class ScheduleGrpcClient(
         }
     }
 
-    /**
-     * gRPC DTO를 내부 DTO로 변환합니다.
-     * @param type gRPC DTO
-     * @return 내부 DTO
-     */
     private fun toInternal(type: ScheduleServiceProto.Type): ScheduleType {
         return when (type) {
             ScheduleServiceProto.Type.START_DATE -> ScheduleType.START_DATE

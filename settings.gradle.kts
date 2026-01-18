@@ -14,7 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(
-    "casper-application-domain",
-    "casper-application-infrastructure",
-)
+include("casper-application-domain")
+include("casper-application-infrastructure")

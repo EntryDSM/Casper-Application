@@ -4,8 +4,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.github.resilience4j.kotlin.retry.executeSuspendFunction
 import io.github.resilience4j.retry.Retry
-import kotlinx.coroutines.CancellationException
 import org.slf4j.LoggerFactory
+import kotlin.coroutines.cancellation.CancellationException
 
 private val log = LoggerFactory.getLogger("ResilienceGrpcExtensions")
 

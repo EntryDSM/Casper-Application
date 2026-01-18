@@ -5,41 +5,18 @@ import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 
-/**
- * 전형자료 Excel 파일의 구조를 정의하는 모델 클래스입니다.
- *
- * 60개 컬럼으로 구성된 상세한 전형자료 Excel 워크북을 생성하고
- * 개인정보, 성적, 출석, 봉사, 가산점 등 모든 헤더를 설정합니다.
- * 각 학기별 과목 성적과 종합 점수 정보를 포함하는 복잡한 구조를 가집니다.
- */
 class ApplicationInfo {
     private val workbook: Workbook = XSSFWorkbook()
     private val sheet: Sheet = workbook.createSheet("전형자료")
 
-    /**
-     * 설정된 Workbook 객체를 반환합니다.
-     *
-     * @return Excel 워크북 객체
-     */
     fun getWorkbook(): Workbook {
         return workbook
     }
 
-    /**
-     * 전형자료 시트 객체를 반환합니다.
-     *
-     * @return Excel 시트 객체
-     */
     fun getSheet(): Sheet {
         return sheet
     }
 
-    /**
-     * 전형자료 Excel 시트의 헤더를 설정합니다.
-     *
-     * 60개 컬럼에 해당하는 모든 헤더를 순차적으로 생성하며,
-     * 개인정보, 학기별 성적, 출석 정보, 가산점 등을 포함합니다.
-     */
     fun format() {
         val row: Row = sheet.createRow(0)
         row.createCell(0).setCellValue("접수번호")

@@ -8,22 +8,22 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.util.IOUtils
-import hs.kr.entrydsm.application.domain.file.presentation.exception.FileExceptions
-import hs.kr.entrydsm.domain.file.spi.GenerateFileUrlPort
-import hs.kr.entrydsm.domain.file.spi.GetObjectPort
-import hs.kr.entrydsm.domain.file.spi.UploadFilePort
+import hs.kr.entrydsm.application.domain.file.exception.FileExceptions
+import hs.kr.entrydsm.application.domain.file.spi.CheckFilePort
+import hs.kr.entrydsm.application.domain.file.spi.GenerateFileUrlPort
+import hs.kr.entrydsm.application.domain.file.spi.GetObjectPort
+import hs.kr.entrydsm.application.domain.file.spi.UploadFilePort
 import org.springframework.stereotype.Component
 import java.io.File
 import java.io.IOException
-import java.util.Date
-import java.util.UUID
+import java.net.URLDecoder
+import java.util.*
 
 @Component
 class AwsS3Adapter(
+    private val awsProperties: AwsS3Properties,
     private val amazonS3Client: AmazonS3Client,
-    private val awsProperties: AwsProperties,
-) : UploadFilePort, GenerateFileUrlPort, GetObjectPort {
-
+) : UploadFilePort, CheckFilePort, GenerateFileUrlPort, GetObjectPort {
     companion object {
         const val EXP_TIME = 1000 * 60 * 2
     }
@@ -37,6 +37,18 @@ class AwsS3Adapter(
             .also { file.delete() }
 
         return fileName
+    }
+
+    override fun getObject(
+        fileName: String,
+        path: String,
+    ): ByteArray {
+        try {
+            val `object` = amazonS3Client.getObject(awsProperties.bucket, path + fileName)
+            return IOUtils.toByteArray(`object`.objectContent)
+        } catch (e: Exception) {
+            throw FileExceptions.PathNotFound()
+        }
     }
 
     private fun inputS3(
@@ -65,18 +77,10 @@ class AwsS3Adapter(
         }
     }
 
-    override fun getObject(fileName: String, path: String): ByteArray {
-        try {
-            val `object` = amazonS3Client.getObject(awsProperties.bucket, path + fileName)
-            return IOUtils.toByteArray(`object`.objectContent)
-        } catch (e: Exception) {
-            throw FileExceptions.PathNotFound()
-        }
+    override fun existsPath(path: String): Boolean {
+        val key = URLDecoder.decode(path.substringAfterLast('/', ""), Charsets.UTF_8)
+        return amazonS3Client.doesObjectExist(awsProperties.bucket, key)
     }
-
-//    private fun getS3Url(fileName: String): String {
-//        return amazonS3Client.getUrl(awsProperties.bucket, fileName).toString()
-//    }
 
     override fun generateFileUrl(
         fileName: String,

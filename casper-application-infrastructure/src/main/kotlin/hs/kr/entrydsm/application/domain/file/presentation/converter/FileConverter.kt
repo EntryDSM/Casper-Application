@@ -4,7 +4,6 @@ import hs.kr.entrydsm.application.domain.file.presentation.exception.WebFileExce
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.Files
 import java.util.UUID
 
 interface FileConverter {
@@ -21,16 +20,22 @@ interface FileConverter {
         return transferFile(multipartFile)
     }
 
-    private fun transferFile(multipartFile: MultipartFile): File {
-        val file =
-            Files.createTempFile(
-                UUID.randomUUID().toString(),
-                multipartFile.originalFilename,
-            ).toFile()
-
-        FileOutputStream(file).use {
-            it.write(multipartFile.bytes)
+    fun transferToList(multipartFiles: List<MultipartFile>): List<File> {
+        multipartFiles.forEach {
+            if (!isCorrectExtension(it)) {
+                throw WebFileExceptions.InvalidExtension()
+            }
         }
-        return file
+
+        return multipartFiles.map(this::transferFile)
+    }
+
+    private fun transferFile(multipartFile: MultipartFile): File {
+        return File("${UUID.randomUUID()}_${multipartFile.originalFilename}")
+            .apply {
+                FileOutputStream(this).use {
+                    it.write(multipartFile.bytes)
+                }
+            }
     }
 }

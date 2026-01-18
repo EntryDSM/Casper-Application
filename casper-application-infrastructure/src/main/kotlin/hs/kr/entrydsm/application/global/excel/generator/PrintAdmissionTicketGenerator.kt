@@ -1,27 +1,19 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
-import hs.kr.entrydsm.application.domain.application.domain.entity.PhotoJpaEntity
-import hs.kr.entrydsm.application.domain.application.domain.repository.PhotoJpaRepository
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.file.`object`.PathList
-import hs.kr.entrydsm.domain.file.spi.GetObjectPort
-import hs.kr.entrydsm.domain.school.aggregate.School
-import hs.kr.entrydsm.domain.status.aggregates.Status
-import hs.kr.entrydsm.domain.user.aggregates.User
+import com.github.benmanes.caffeine.cache.Caffeine
+import hs.kr.entrydsm.application.domain.application.service.ApplicationService
+import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryStatusPort
+import hs.kr.entrydsm.application.domain.application.spi.PrintAdmissionTicketPort
+import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationInfoVO
+import hs.kr.entrydsm.application.domain.file.spi.GetObjectPort
+import hs.kr.entrydsm.application.domain.file.usecase.`object`.PathList
+import hs.kr.entrydsm.application.domain.photo.exception.PhotoExceptions
+import hs.kr.entrydsm.application.domain.photo.spi.QueryPhotoPort
+import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import org.apache.poi.ss.usermodel.Cell
-import org.apache.poi.ss.usermodel.CellStyle
-import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.Row
-import org.apache.poi.ss.usermodel.Sheet
-import org.apache.poi.ss.usermodel.Workbook
+import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
+import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor
 import org.apache.poi.xssf.usermodel.XSSFDrawing
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -30,44 +22,42 @@ import org.springframework.stereotype.Component
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 @Component
 class PrintAdmissionTicketGenerator(
-    private val photoJpaRepository: PhotoJpaRepository,
-    private val getObjectPort: GetObjectPort
-) {
+    private val httpServletResponse: HttpServletResponse,
+    private val applicationService: ApplicationService,
+    private val getObjectPort: GetObjectPort,
+    private val statusPort: ApplicationQueryStatusPort,
+    private val queryPhotoPort: QueryPhotoPort
+) : PrintAdmissionTicketPort {
     companion object {
         const val EXCEL_PATH = "/excel/excel-form.xlsx"
     }
 
+    private val imageCache =
+        Caffeine.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).maximumSize(1000).build<Long, ByteArray>()
+
     private lateinit var drawing: XSSFDrawing
 
-    fun execute(
+    override suspend fun execute(
         response: HttpServletResponse,
-        applications: List<Application>,
-        users: List<User>,
-        schools: List<School>,
-        statuses: List<Status>,
+        applications: List<ApplicationInfoVO>,
     ) {
-        val targetWorkbook = generate(applications, users, schools, statuses)
+        val targetWorkbook = generate(applications)
         try {
-            setResponseHeaders(response)
-            targetWorkbook.write(response.outputStream)
+            setResponseHeaders()
+            targetWorkbook.write(httpServletResponse.outputStream)
         } catch (e: IOException) {
-            throw IllegalArgumentException("Excel 파일 생성 중 오류가 발생했습니다.", e)
+            throw ExcelExceptions.ExcelIOException().initCause(e)
         } finally {
             targetWorkbook.close()
         }
     }
 
-    fun generate(
-        applications: List<Application>,
-        users: List<User>,
-        schools: List<School>,
-        statuses: List<Status>,
-    ): Workbook {
+    suspend fun generate(applications: List<ApplicationInfoVO>): Workbook {
         val sourceWorkbook = loadSourceWorkbook()
         val targetWorkbook = XSSFWorkbook()
 
@@ -79,89 +69,36 @@ class PrintAdmissionTicketGenerator(
         val styleMap = createStyleMap(sourceWorkbook, targetWorkbook)
         targetSheet.setDefaultColumnWidth(13)
 
-        val userMap = users.associateBy { it.id }
-        val schoolMap = schools.associateBy { it.code }
-        val statusMap = statuses.associateBy { it.receiptCode }
+        val futures =
+            applications.map { applicationInfoVo ->
+                CompletableFuture.runAsync {
+                    val application = applicationInfoVo.application
+                    val photo = queryPhotoPort.queryPhotoByUserId(application.userId)
+                    imageCache.get(application.receiptCode) {
+                        getObjectPort.getObject(photo?.photoPath!!, PathList.PHOTO)
+                    }
+                }
+            }
 
-        val userIds = applications.map { it.userId }
-        val photoMap = photoJpaRepository.findAllByUserIdIn(userIds)
-            .associateBy { it.userId }
-        
-        // 이미지 캐시 - 모든 이미지를 한 번에 미리 로드
-        val imageCache = preloadImages(applications, photoMap)
+        CompletableFuture.allOf(*futures.toTypedArray()).join()
 
         var currentRowIndex = 0
-        applications.forEach { application ->
-            val user = userMap[application.userId]
-            val status = statusMap[application.receiptCode]
-            val school = application.schoolCode?.let { schoolMap[it] }
-
+        applications.forEach { applicationInfoVo ->
+            val application = applicationInfoVo.application
+            fillApplicationData(sourceSheet, 0, applicationInfoVo, sourceWorkbook)
             copyRows(sourceSheet, targetSheet, 0, 16, currentRowIndex, styleMap)
-            fillApplicationData(targetSheet, currentRowIndex, application, user, school, status, targetWorkbook)
-            copyApplicationImageFromCache(application, targetSheet, currentRowIndex, imageCache, targetWorkbook, photoMap)
+
+            val photo = queryPhotoPort.queryPhotoByUserId(application.userId)
+            val imageBytes =
+                imageCache.get(application.receiptCode) {
+                    getObjectPort.getObject(photo?.photoPath!!, PathList.PHOTO)
+                }
+            copyImage(imageBytes, targetSheet, currentRowIndex)
             currentRowIndex += 20
         }
 
         sourceWorkbook.close()
         return targetWorkbook
-    }
-
-    private fun preloadImages(
-        applications: List<Application>,
-        photoMap: Map<UUID, PhotoJpaEntity>
-    ): Map<String, ByteArray> = runBlocking {
-        val imageCache = ConcurrentHashMap<String, ByteArray>()
-
-        applications.map { application ->
-            async(Dispatchers.IO) {
-                val photoPath = photoMap[application.userId]?.photo
-                if (!photoPath.isNullOrBlank()) {
-                    try {
-                        withTimeout(5000) {
-                            val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
-                            imageCache[photoPath] = imageBytes
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        // 타임아웃 시 무시
-                    } catch (e: Exception) {
-                        // 이미지 로드 실패 시 무시
-                    }
-                }
-            }
-        }.awaitAll()
-
-        imageCache
-    }
-    
-    private fun copyApplicationImageFromCache(
-        application: Application,
-        targetSheet: Sheet,
-        targetRowIndex: Int,
-        imageCache: Map<String, ByteArray>,
-        workbook: Workbook,
-        photoMap: Map<UUID, PhotoJpaEntity>
-    ) {
-        val photoPath = photoMap[application.userId]?.photo
-        
-        if (photoPath.isNullOrBlank() || !imageCache.containsKey(photoPath)) {
-            copyDummyImage(targetSheet, targetRowIndex)
-            return
-        }
-
-        try {
-            val imageBytes = imageCache[photoPath]!!
-            val pictureId = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG)
-            val anchor = XSSFClientAnchor()
-
-            anchor.setCol1(0)
-            anchor.row1 = targetRowIndex + 3
-            anchor.setCol2(2)
-            anchor.row2 = targetRowIndex + 15
-
-            drawing.createPicture(anchor, pictureId)
-        } catch (e: Exception) {
-            copyDummyImage(targetSheet, targetRowIndex)
-        }
     }
 
     fun loadSourceWorkbook(): Workbook {
@@ -259,43 +196,33 @@ class PrintAdmissionTicketGenerator(
         }
     }
 
-    fun fillApplicationData(
+    suspend fun fillApplicationData(
         sheet: Sheet,
         startRowIndex: Int,
-        application: Application,
-        user: User?,
-        school: School?,
-        status: Status?,
+        applicationInfoVo: ApplicationInfoVO,
         workbook: Workbook,
     ) {
-        // 학년도 하드코딩
-        setValue(sheet, startRowIndex + 1, 4, "2026학년도")
-        
-        setValue(sheet, startRowIndex + 3, 4, status?.examCode ?: "미발급")
-        setValue(sheet, startRowIndex + 5, 4, application.applicantName)
-        setValue(sheet, startRowIndex + 7, 4, school?.name ?: "")
-        setValue(sheet, startRowIndex + 9, 4, if (application.isDaejeon == true) "대전" else "전국")
-        setValue(sheet, startRowIndex + 11, 4, translateApplicationType(application.applicationType.name))
-        setValue(sheet, startRowIndex + 13, 4, application.receiptCode.toString())
+        val application = applicationInfoVo.application
+        val school = applicationInfoVo.school
+
+        val status = statusPort.queryStatusByReceiptCode(application.receiptCode!!)
+
+        setValue(sheet, "E4", status?.examCode ?: "")
+        setValue(sheet, "E6", application.applicantName!!)
+        setValue(sheet, "E8", school?.name ?: "")
+        setValue(sheet, "E10", applicationService.translateIsDaejeon(application.isDaejeon))
+        setValue(sheet, "E12", applicationService.translateApplicationType(application.applicationType))
+        setValue(sheet, "E14", application.receiptCode.toString())
     }
 
-    fun copyApplicationImage(
-        application: Application,
+    fun copyImage(
+        imageBytes: ByteArray?,
         targetSheet: Sheet,
         targetRowIndex: Int,
     ) {
-        val photoPath = photoJpaRepository.findByUserId(application.userId)?.photo
-        
-        if (photoPath.isNullOrBlank()) {
-            copyDummyImage(targetSheet, targetRowIndex)
-            return
-        }
-
-        try {
-            val imageBytes = getObjectPort.getObject(photoPath, PathList.PHOTO)
-            
+        imageBytes?.let {
             val workbook = targetSheet.workbook
-            val pictureId = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG)
+            val pictureId = workbook.addPicture(it, Workbook.PICTURE_TYPE_PNG)
             val anchor = XSSFClientAnchor()
 
             anchor.setCol1(0)
@@ -304,59 +231,27 @@ class PrintAdmissionTicketGenerator(
             anchor.row2 = targetRowIndex + 15
 
             drawing.createPicture(anchor, pictureId)
-        } catch (e: Exception) {
-            // 이미지 로드 실패 시 더미 이미지 사용
-            copyDummyImage(targetSheet, targetRowIndex)
-        }
-    }
-
-    private fun translateApplicationType(applicationType: String?): String {
-        return when (applicationType) {
-            "COMMON" -> "일반전형"
-            "MEISTER" -> "마이스터전형"
-            "SOCIAL" -> "사회통합전형"
-            else -> "일반전형"
-        }
-    }
-
-    fun copyDummyImage(
-        targetSheet: Sheet,
-        targetRowIndex: Int,
-    ) {
-        val dummyImageBytes = ByteArray(100) { 0 }
-
-        try {
-            val workbook = targetSheet.workbook
-            val pictureId = workbook.addPicture(dummyImageBytes, Workbook.PICTURE_TYPE_PNG)
-            val anchor = XSSFClientAnchor()
-
-            anchor.setCol1(0)
-            anchor.row1 = targetRowIndex + 3
-            anchor.setCol2(2)
-            anchor.row2 = targetRowIndex + 15
-
-            drawing.createPicture(anchor, pictureId)
-        } catch (e: Exception) {
-            // 더미 이미지 추가 실패 시 무시
         }
     }
 
     fun setValue(
         sheet: Sheet,
-        rowIndex: Int,
-        columnIndex: Int,
+        position: String,
         value: String,
     ) {
-        val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
-        val cell = row.getCell(columnIndex) ?: row.createCell(columnIndex)
-        cell.setCellValue(value)
+        val ref = CellReference(position)
+        val r = sheet.getRow(ref.row)
+        if (r != null) {
+            val c = r.getCell(ref.col.toInt())
+            c.setCellValue(value)
+        }
     }
 
-    fun setResponseHeaders(response: HttpServletResponse) {
-        response.contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    fun setResponseHeaders() {
+        httpServletResponse.contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         val formatFilename = "attachment;filename=\"수험표"
         val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년MM월dd일_HH시mm분"))
         val fileName = String(("$formatFilename$time.xlsx\"").toByteArray(Charsets.UTF_8), Charsets.ISO_8859_1)
-        response.setHeader("Content-Disposition", fileName)
+        httpServletResponse.setHeader("Content-Disposition", fileName)
     }
 }

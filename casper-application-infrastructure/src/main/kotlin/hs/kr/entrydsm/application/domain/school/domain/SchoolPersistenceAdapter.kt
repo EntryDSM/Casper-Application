@@ -5,33 +5,28 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import hs.kr.entrydsm.application.domain.school.domain.entity.SchoolCacheRedisEntity
 import hs.kr.entrydsm.application.domain.school.domain.repository.SchoolCacheRepository
+import hs.kr.entrydsm.application.domain.school.model.School
+import hs.kr.entrydsm.application.domain.school.spi.SchoolPort
 import hs.kr.entrydsm.application.global.feign.client.SchoolClient
-import hs.kr.entrydsm.application.global.feign.client.dto.SchoolInfoElement
-import hs.kr.entrydsm.domain.school.aggregate.School
-import hs.kr.entrydsm.domain.school.interfaces.SchoolContract
+import hs.kr.entrydsm.application.global.feign.client.dto.response.SchoolInfoElement
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-/**
- * School 도메인의 영속성을 관리하는 Adapter 입니다.
- */
 @Component
 class SchoolPersistenceAdapter(
     private val schoolClient: SchoolClient,
     private val schoolCacheRepository: SchoolCacheRepository,
-) : SchoolContract {
+) : SchoolPort {
     @Value("\${neis.key}")
     lateinit var apiKey: String
 
-    /**
-     * 학교 코드로 학교를 조회합니다.
-     *
-     * @param schoolCode 학교 코드
-     * @return 학교 정보
-     */
-    override fun querySchoolBySchoolCode(schoolCode: String): School? {
-        if (schoolCacheRepository.existsById(schoolCode)) {
-            val schoolCache = schoolCacheRepository.findById(schoolCode).get()
+    override fun isExistsSchoolBySchoolCode(schoolCode: String): Boolean {
+        return querySchoolBySchoolCode(schoolCode) != null
+    }
+
+    override fun querySchoolBySchoolCode(school: String): School? {
+        if (schoolCacheRepository.existsById(school)) {
+            val schoolCache = schoolCacheRepository.findById(school).get()
             schoolCache.run {
                 return School(
                     code = code,
@@ -45,10 +40,10 @@ class SchoolPersistenceAdapter(
         }
 
         val school =
-            schoolClient.getSchoolBySchoolCode(schoolCode = schoolCode, key = apiKey)?.let { response ->
+            schoolClient.getSchoolBySchoolCode(schoolCode = school, key = apiKey)?.let { response ->
                 val mapper = ObjectMapper().registerKotlinModule()
                 val responseObject = mapper.readValue<SchoolInfoElement>(response)
-                responseObject.schoolInfo?.getOrNull(1)?.row?.map {
+                responseObject.schoolInfo[1].row?.map {
                     School(
                         code = it.sdSchulCode,
                         name = it.schulNm,
@@ -62,17 +57,11 @@ class SchoolPersistenceAdapter(
         return school?.let { saveInCache(it) }
     }
 
-    /**
-     * 학교 이름으로 학교 리스트를 조회합니다.
-     *
-     * @param schoolName 학교 이름
-     * @return 학교 리스트
-     */
     override fun querySchoolListBySchoolName(schoolName: String): List<School> {
         return schoolClient.getSchoolListBySchoolName(schoolName = schoolName, key = apiKey)?.let { response ->
             val mapper = ObjectMapper().registerKotlinModule()
             val responseObject = mapper.readValue<SchoolInfoElement>(response)
-            responseObject.schoolInfo?.getOrNull(1)?.row?.map {
+            responseObject.schoolInfo[1].row?.map {
                 School(
                     code = it.sdSchulCode,
                     name = it.schulNm,
@@ -85,24 +74,6 @@ class SchoolPersistenceAdapter(
         } ?: emptyList()
     }
 
-    /**
-     * 여러 학교 코드로 학교 목록을 조회합니다.
-     *
-     * @param schoolCodes 학교 코드 목록
-     * @return 학교 정보 목록
-     */
-    override fun querySchoolsByCodes(schoolCodes: List<String>): List<School> {
-        return schoolCodes.mapNotNull { schoolCode ->
-            querySchoolBySchoolCode(schoolCode)
-        }
-    }
-
-    /**
-     * 학교 정보를 캐시에 저장합니다.
-     *
-     * @param school 학교 정보
-     * @return 저장된 학교 정보
-     */
     private fun saveInCache(school: School): School {
         val schoolCache =
             SchoolCacheRedisEntity(

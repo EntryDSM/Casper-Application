@@ -1,8 +1,9 @@
 package hs.kr.entrydsm.application.global.excel.generator
 
+import hs.kr.entrydsm.application.domain.application.spi.PrintApplicantCodesPort
+import hs.kr.entrydsm.application.domain.application.usecase.dto.vo.ApplicationCodeVO
+import hs.kr.entrydsm.application.global.excel.exception.ExcelExceptions
 import hs.kr.entrydsm.application.global.excel.model.ApplicantCode
-import hs.kr.entrydsm.domain.application.aggregates.Application
-import hs.kr.entrydsm.domain.status.aggregates.Status
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.poi.ss.usermodel.Row
 import org.springframework.stereotype.Component
@@ -11,22 +12,17 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Component
-class PrintApplicantCodesGenerator {
-    fun execute(
+class PrintApplicantCodesGenerator() : PrintApplicantCodesPort {
+    override fun execute(
         response: HttpServletResponse,
-        applications: List<Application>,
-        statuses: List<Status>,
+        applicantCodes: List<ApplicationCodeVO>,
     ) {
         val applicantCode = ApplicantCode()
         val sheet = applicantCode.getSheet()
         applicantCode.format()
-
-        val statusMap = statuses.associateBy { it.receiptCode }
-
-        applications.forEachIndexed { index, application ->
-            val status = statusMap[application.receiptCode]
+        applicantCodes.forEachIndexed { index, it ->
             val row = sheet.createRow(index + 1)
-            insertCode(row, application, status)
+            insertCode(row, it)
         }
 
         try {
@@ -38,17 +34,16 @@ class PrintApplicantCodesGenerator {
 
             applicantCode.getWorkbook().write(response.outputStream)
         } catch (e: IOException) {
-            throw IllegalArgumentException("Excel 파일 생성 중 오류가 발생했습니다.", e)
+            throw ExcelExceptions.ExcelIOException()
         }
     }
 
     private fun insertCode(
         row: Row,
-        application: Application,
-        status: Status?,
+        applicationCodeVO: ApplicationCodeVO,
     ) {
-        row.createCell(0).setCellValue(status?.examCode ?: "미발급")
-        row.createCell(1).setCellValue(application.receiptCode.toString())
-        row.createCell(2).setCellValue(application.applicantName ?: "")
+        row.createCell(0).setCellValue(applicationCodeVO.examCode)
+        row.createCell(1).setCellValue(applicationCodeVO.receiptCode.toString())
+        row.createCell(2).setCellValue(applicationCodeVO.name)
     }
 }

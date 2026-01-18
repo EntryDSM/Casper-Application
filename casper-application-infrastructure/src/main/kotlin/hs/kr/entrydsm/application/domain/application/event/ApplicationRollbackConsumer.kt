@@ -1,0 +1,22 @@
+package hs.kr.entrydsm.application.domain.application.event
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import hs.kr.entrydsm.application.domain.application.usecase.DeleteApplicationUseCase
+import hs.kr.entrydsm.application.global.kafka.config.KafkaTopics
+import org.springframework.kafka.annotation.KafkaListener
+
+class ApplicationRollbackConsumer(
+    private val objectMapper: ObjectMapper,
+    private val deleteApplicationUseCase: DeleteApplicationUseCase,
+) {
+    @KafkaListener(
+        topics = [KafkaTopics.CREATE_APPLICATION_STATUS_ROLLBACK],
+        groupId = "create-application-status-rollback",
+        containerFactory = "kafkaListenerContainerFactory",
+    )
+    fun createStatusRollback(message: String) {
+        val receiptCode = objectMapper.readValue(message, Long::class.java)
+        deleteApplicationUseCase.execute(receiptCode)
+    }
+
+}

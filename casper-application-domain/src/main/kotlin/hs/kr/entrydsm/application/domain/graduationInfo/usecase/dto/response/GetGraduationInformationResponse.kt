@@ -1,0 +1,24 @@
+package hs.kr.entrydsm.application.domain.graduationInfo.usecase.dto.response
+
+import hs.kr.entrydsm.application.domain.application.model.types.Sex
+import hs.kr.entrydsm.application.domain.graduationInfo.model.vo.StudentNumber
+import java.time.LocalDate
+
+data class GetGraduationInformationResponse(
+    val sex: Sex?,
+    val birthDate: LocalDate?,
+    val photoPath: String?,
+    val applicantName: String?,
+    val applicantTel: String?,
+    val parentTel: String?,
+    val parentName: String?,
+    val streetAddress: String?,
+    val postalCode: String?,
+    val detailAddress: String?,
+    val schoolCode: String?,
+    val schoolName: String?,
+    val schoolTel: String?,
+    val teacherName: String?,
+    val studentNumber: StudentNumber?,
+    val teacherTel: String?
+)
