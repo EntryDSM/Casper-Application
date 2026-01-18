@@ -1,13 +1,14 @@
 package hs.kr.entrydsm.application.domain.application.usecase
 
-import hs.kr.entrydsm.application.domain.application.event.spi.ApplicationEventPort
+import hs.kr.entrydsm.application.domain.application.event.model.ApplicationSubmittedEvent
+import hs.kr.entrydsm.application.domain.application.event.spi.ApplicationEventPublishPort
 import hs.kr.entrydsm.application.domain.application.exception.ApplicationExceptions
 import hs.kr.entrydsm.application.domain.application.usecase.mapper.SubmitApplicationMapper
-import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryUserPort
 import hs.kr.entrydsm.application.domain.application.spi.CommandApplicationPort
 import hs.kr.entrydsm.application.domain.application.spi.QueryApplicationPort
 import hs.kr.entrydsm.application.domain.application.usecase.dto.request.ApplicationRequest
 import hs.kr.entrydsm.application.domain.application.model.types.EducationalStatus
+import hs.kr.entrydsm.application.domain.application.spi.ApplicationQueryUserPort
 import hs.kr.entrydsm.application.domain.applicationCase.service.ApplicationCaseService
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.ExtraScoreRequest
 import hs.kr.entrydsm.application.domain.applicationCase.usecase.dto.request.UpdateGraduationCaseRequest
@@ -22,7 +23,7 @@ import hs.kr.entrydsm.application.global.security.spi.SecurityPort
 @UseCase
 class SubmitApplicationUseCase(
     private val securityPort: SecurityPort,
-    private val applicationEventPort: ApplicationEventPort,
+    private val applicationEventPublishPort: ApplicationEventPublishPort,
     private val commandApplicationPort: CommandApplicationPort,
     private val applicationQueryUserPort: ApplicationQueryUserPort,
     private val queryApplicationPort: QueryApplicationPort,
@@ -42,7 +43,9 @@ class SubmitApplicationUseCase(
 
         handleSubmissionSideEffects(application.receiptCode, request)
 
-        applicationEventPort.create(application.receiptCode, userId)
+        applicationEventPublishPort.submitApplicationEventPublish(
+            ApplicationSubmittedEvent(application.receiptCode, userId)
+        )
     }
 
     private fun handleSubmissionSideEffects(receiptCode: Long, request: ApplicationRequest) {
