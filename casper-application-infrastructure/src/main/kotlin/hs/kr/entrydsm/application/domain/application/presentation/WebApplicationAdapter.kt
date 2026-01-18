@@ -2,9 +2,9 @@ package hs.kr.entrydsm.application.domain.application.presentation
 
 import hs.kr.entrydsm.application.domain.application.presentation.dto.request.ApplicationWebRequest
 import hs.kr.entrydsm.application.domain.application.presentation.mapper.toApplicationRequest
+import hs.kr.entrydsm.application.domain.application.orchestration.SubmitApplicationOrchestrator
 import hs.kr.entrydsm.application.domain.application.usecase.CancelSubmittedApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.GetMyApplicationStatusUseCase
-import hs.kr.entrydsm.application.domain.application.usecase.SubmitApplicationUseCase
 import hs.kr.entrydsm.application.domain.application.usecase.dto.response.GetApplicationStatusResponse
 import jakarta.validation.Valid
 import kotlinx.coroutines.runBlocking
@@ -19,13 +19,13 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/application")
 class WebApplicationAdapter(
     private val getMyApplicationStatusUseCase: GetMyApplicationStatusUseCase,
-    private val submitApplicationUseCase: SubmitApplicationUseCase,
+    private val submitApplicationOrchestrator: SubmitApplicationOrchestrator,
     private val cancelSubmittedApplicationUseCase: CancelSubmittedApplicationUseCase
 ) {
     @PostMapping
     fun submitApplication(
         @RequestBody @Valid request: ApplicationWebRequest,
-    ) = runBlocking { submitApplicationUseCase.execute(request.toApplicationRequest()) }
+    ) = submitApplicationOrchestrator.execute(request.toApplicationRequest())
 
     @DeleteMapping
     fun cancelSubmittedApplication() = runBlocking {
