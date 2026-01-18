@@ -12,10 +12,8 @@ class ApplicationProducer(
     private val createApplicationTemplate: KafkaTemplate<String, Any>,
     private val cancelSubmittedApplicationTemplate: KafkaTemplate<String, Any>
 ) : ApplicationEventPort {
-    override fun create(
-        receiptCode: Long,
-        userId: UUID,
-    ) {
+
+    override fun sendApplicationCreateCompleted(receiptCode: Long, userId: UUID) {
         val createApplicationEvent =
             CreateApplicationEvent(
                 userId = userId,
